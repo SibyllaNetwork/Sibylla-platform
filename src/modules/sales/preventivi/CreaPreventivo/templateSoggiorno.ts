@@ -8,6 +8,7 @@
 //  di posta non leggono le variabili CSS della piattaforma.
 
 import { CLIENTS_INIT, INTESTATARI_INIT } from '../../../../admin/SibyllaAdminPanel/constants'
+import { tr, type Lingua } from './lingue'
 
 export type BloccoId = 'intestazione' | 'copertina' | 'lettera' | 'proposte' | 'condizioni' | 'termini' | 'firma' | 'footer'
 
@@ -132,6 +133,18 @@ export interface TemplateSoggiorno {
     obbligatorio: boolean
   }
   footer: DatiFooter
+  /** Pagamento con carta dopo l'accettazione. */
+  pagamento: {
+    attivo: boolean
+    /** Cosa si paga subito: la caparra, il totale, o sceglie il cliente. */
+    modalita: 'caparra' | 'totale' | 'scelta'
+    percentualeCaparra: number
+  }
+  /**
+   * Testi tradotti a mano per lingua (l'italiano è in `testi`). Un testo senza
+   * traduzione usa il frasario se è standard, altrimenti resta in italiano.
+   */
+  traduzioni?: Partial<Record<Lingua, Partial<Record<CampoTesto, string>>>>
   proposte: {
     disposizione: 'colonna' | 'griglia'
     fotoCamera: 'sinistra' | 'destra' | 'sopra' | 'nascosta'
@@ -151,6 +164,11 @@ export interface TemplateSoggiorno {
     contatti: string
     condizioni: string
     pulsante: string
+    /** Mail di conferma della prenotazione (stessa grafica). */
+    confermaTitolo: string
+    confermaLettera: string
+    confermaNote: string
+    confermaChiusura: string
   }
   font: {
     titoli: FontKey
@@ -176,6 +194,26 @@ export interface TemplateSoggiorno {
   }
 }
 
+/** Testi del template che si traducono (i testi + la nota legale del footer). */
+export type CampoTesto = keyof TemplateSoggiorno['testi'] | 'notaLegale'
+
+const base = (T: TemplateSoggiorno, k: CampoTesto) => (k === 'notaLegale' ? T.footer.notaLegale : T.testi[k])
+
+/** Testo del template nella lingua: traduzione scritta, frasario, oppure italiano. */
+export function testoIn(T: TemplateSoggiorno, lingua: Lingua, k: CampoTesto): string {
+  const it = base(T, k)
+  if (lingua === 'it') return it
+  return T.traduzioni?.[lingua]?.[k] || tr(lingua, it)
+}
+
+/** Il testo nella lingua è tradotto (a mano o dal frasario)? */
+export function tradotto(T: TemplateSoggiorno, lingua: Lingua, k: CampoTesto) {
+  const it = base(T, k)
+  // Un testo fatto solo di segnaposto e punteggiatura (es. "{struttura}") vale in ogni lingua.
+  const soloSegnaposto = !/\p{L}/u.test(it.replace(/\{\w+\}/g, ''))
+  return lingua === 'it' || soloSegnaposto || !!T.traduzioni?.[lingua]?.[k] || tr(lingua, it) !== it
+}
+
 /** Segnaposto sostituiti nei testi del template. */
 export const SEGNAPOSTO: [string, string][] = [
   ['{cliente}', 'Nome del cliente'],
@@ -189,6 +227,7 @@ export const SEGNAPOSTO: [string, string][] = [
 const IMG = (id: string, w = 1200) => `https://images.unsplash.com/${id}?w=${w}&q=70&auto=format&fit=crop`
 
 const ORDINE: BloccoId[] = ['intestazione', 'copertina', 'lettera', 'proposte', 'condizioni', 'termini', 'firma', 'footer']
+const PAGAMENTO: TemplateSoggiorno['pagamento'] = { attivo: true, modalita: 'scelta', percentualeCaparra: 30 }
 const TERMINI: TemplateSoggiorno['termini'] = { id: 'tc-generali', presentazione: 'sintesi', obbligatorio: true }
 const blocchi = (nascosti: BloccoId[] = [], ordine = ORDINE) => ordine.map((id) => ({ id, visibile: !nascosti.includes(id) }))
 
@@ -203,6 +242,10 @@ const TESTI: TemplateSoggiorno['testi'] = {
   contatti: '',
   condizioni: 'Offerta valida {validita} giorni dalla data di invio, salvo disponibilità al momento della conferma.\nLa tassa di soggiorno è dovuta per legge e si paga in struttura.',
   pulsante: 'Accetta la proposta {lettera}',
+  confermaTitolo: 'Prenotazione confermata',
+  confermaLettera: 'siamo felici di confermare la tua prenotazione. Qui sotto trovi il riepilogo del soggiorno: conservalo, ti servirà all\'arrivo.',
+  confermaNote: 'Il check-in è dalle ore 14:00, il check-out entro le ore 11:00.\nPer qualsiasi esigenza rispondi pure a questa mail.',
+  confermaChiusura: 'Ti aspettiamo!',
 }
 
 /** Template pronti: impaginazioni standard già curate. */
@@ -214,6 +257,7 @@ export const TEMPLATE_PRONTI: TemplateSoggiorno[] = [
     copertina: { immagine: IMG('photo-1566073771259-6a8506099945'), altezza: 220 },
     termini: TERMINI,
     footer: FOOTER_VUOTO,
+    pagamento: PAGAMENTO,
     proposte: { disposizione: 'colonna', fotoCamera: 'sinistra', dettaglioGiorni: true, mostraServizi: true, prezzi: 'completo', mostraNumeriCamera: false },
     testi: TESTI,
     font: { titoli: 'poppins', testo: 'poppins', dimTitolo: 24, dimSottotitolo: 14, dimTesto: 13, pesoTitoli: 700, etichetteMaiuscole: true, interlinea: 1.6 },
@@ -227,6 +271,7 @@ export const TEMPLATE_PRONTI: TemplateSoggiorno[] = [
     copertina: { immagine: IMG('photo-1542314831-068cd1dbfeeb'), altezza: 260 },
     termini: TERMINI,
     footer: FOOTER_VUOTO,
+    pagamento: PAGAMENTO,
     proposte: { disposizione: 'colonna', fotoCamera: 'sopra', dettaglioGiorni: false, mostraServizi: true, prezzi: 'completo', mostraNumeriCamera: false },
     testi: { ...TESTI, sottotitolo: 'Un soggiorno pensato per te', firma: 'Con i migliori saluti,\nla Direzione di {struttura}' },
     font: { titoli: 'playfair', testo: 'lora', dimTitolo: 30, dimSottotitolo: 15, dimTesto: 14, pesoTitoli: 600, etichetteMaiuscole: true, interlinea: 1.7 },
@@ -240,6 +285,7 @@ export const TEMPLATE_PRONTI: TemplateSoggiorno[] = [
     copertina: { immagine: IMG('photo-1507525428034-b723cf961d3e'), altezza: 200 },
     termini: TERMINI,
     footer: FOOTER_VUOTO,
+    pagamento: PAGAMENTO,
     proposte: { disposizione: 'griglia', fotoCamera: 'sopra', dettaglioGiorni: false, mostraServizi: true, prezzi: 'totale', mostraNumeriCamera: false },
     testi: { ...TESTI, sottotitolo: 'Le tue vacanze al mare iniziano qui', lettera: 'che bello sentirti! Ecco le proposte che abbiamo preparato per le tue vacanze: scegli quella che ti piace di più e pensiamo noi al resto.' },
     font: { titoli: 'montserrat', testo: 'opensans', dimTitolo: 26, dimSottotitolo: 14, dimTesto: 13, pesoTitoli: 800, etichetteMaiuscole: true, interlinea: 1.6 },
@@ -253,6 +299,7 @@ export const TEMPLATE_PRONTI: TemplateSoggiorno[] = [
     copertina: { immagine: IMG('photo-1505691938895-1758d7feb511'), altezza: 200 },
     termini: TERMINI,
     footer: FOOTER_VUOTO,
+    pagamento: PAGAMENTO,
     proposte: { disposizione: 'colonna', fotoCamera: 'destra', dettaglioGiorni: true, mostraServizi: false, prezzi: 'completo', mostraNumeriCamera: false },
     testi: { ...TESTI, sottotitolo: 'Preventivo di soggiorno' },
     font: { titoli: 'helvetica', testo: 'helvetica', dimTitolo: 22, dimSottotitolo: 13, dimTesto: 13, pesoTitoli: 700, etichetteMaiuscole: true, interlinea: 1.55 },
@@ -266,6 +313,7 @@ export const TEMPLATE_PRONTI: TemplateSoggiorno[] = [
     copertina: { immagine: IMG('photo-1564501049412-61c2a3083791'), altezza: 180 },
     termini: TERMINI,
     footer: FOOTER_VUOTO,
+    pagamento: PAGAMENTO,
     proposte: { disposizione: 'colonna', fotoCamera: 'nascosta', dettaglioGiorni: true, mostraServizi: true, prezzi: 'completo', mostraNumeriCamera: true },
     testi: { ...TESTI, saluto: 'Spett.le {cliente},', lettera: 'facendo seguito alla Vostra richiesta, siamo lieti di sottoporVi le seguenti soluzioni di soggiorno. Per confermare è sufficiente il pulsante "Accetta" della proposta scelta.', sottotitolo: 'Offerta commerciale · {soluzioni}' },
     font: { titoli: 'opensans', testo: 'opensans', dimTitolo: 20, dimSottotitolo: 13, dimTesto: 12, pesoTitoli: 700, etichetteMaiuscole: false, interlinea: 1.5 },
@@ -287,11 +335,13 @@ export function normalizza(t: Partial<TemplateSoggiorno> & { id: string }): Temp
     copertina: { ...d.copertina, ...t.copertina },
     termini: { ...d.termini, ...t.termini },
     footer: { ...d.footer, ...t.footer },
+    pagamento: { ...d.pagamento, ...t.pagamento },
     proposte: { ...d.proposte, ...t.proposte },
     testi: { ...d.testi, ...t.testi },
     font: { ...d.font, ...t.font },
     colori: { ...d.colori, ...t.colori },
     forme: { ...d.forme, ...t.forme },
+    traduzioni: t.traduzioni ?? {},
   } as TemplateSoggiorno
 }
 

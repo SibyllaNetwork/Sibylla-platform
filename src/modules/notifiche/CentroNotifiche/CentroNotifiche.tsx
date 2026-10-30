@@ -7,6 +7,7 @@ import { SelectField } from '../../../core/components/form'
 import { getNotifiche, type NotificaDto } from '../../../services/notifiche.service'
 import { useChatStore } from '../../../store/useChatStore'
 import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperativeStore'
+import { usePreventiviSoggiornoStore } from '../../../store/usePreventiviSoggiornoStore'
 import { usePraticheStore, praticheInRitardo } from '../../../store/usePraticheStore'
 import { useVccEmesseStore, useVccRows, vccScadute } from '../../../store/useVccEmesseStore'
 import { useEfficienzaStore, deltaEur, deltaPct } from '../../../store/useEfficienzaStore'
@@ -237,6 +238,35 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     [richiesteOp],
   )
 
+  // Pagamenti con carta dei preventivi di soggiorno → autorizzato / rifiutato.
+  const preventivi = usePreventiviSoggiornoStore((s) => s.preventivi)
+  const pagamentiNotifs: NotificaUI[] = useMemo(() => {
+    const today = new Date()
+    return preventivi.flatMap((p) => (p.pagamenti ?? []).map((t) => ({ p, t })))
+      .sort((a, b) => b.t.il.localeCompare(a.t.il))
+      .map(({ p, t }, i) => {
+        const d = new Date(t.il)
+        const sameDay = d.toDateString() === today.toDateString()
+        const sameMonth = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
+        const ok = t.esito === 'autorizzato'
+        const carta = `${t.circuito} •••• ${t.ultime4}`
+        return {
+          id: 930000 + i,
+          sev: ok ? 'info' : 'error',
+          title: ok ? 'Pagamento autorizzato · prenotazione confermata' : 'Pagamento rifiutato',
+          text: ok
+            ? `${p.cliente || 'Il cliente'} ha pagato ${fmtEUR(t.importo)} (${t.tipo === 'caparra' ? 'caparra' : 'intero importo'}) con ${carta}, codice ${t.codiceAut}. Mail di conferma pronta nel preventivo ${p.codice}.`
+            : `Il pagamento di ${fmtEUR(t.importo)} di ${p.cliente || 'un cliente'} con ${carta} non è andato a buon fine: ${t.motivo}. La proposta resta in attesa di pagamento.`,
+          ref: `Preventivo ${p.codice}`,
+          date: `${WEEKDAYS[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MONTHS[d.getMonth()]}`,
+          time: d.toTimeString().slice(0, 5),
+          group: (sameDay ? 'oggi' : sameMonth ? 'mese-corrente' : 'precedenti') as NotificaUI['group'],
+          read: !!t.letta,
+          source: 'platform' as const,
+        } as NotificaUI
+      })
+  }, [preventivi])
+
   // Pratiche in attesa oltre la soglia SLA → notifica di sollecito (se attiva nel Configuratore).
   const pratiche = usePraticheStore((s) => s.pratiche)
   const slaHours = usePraticheStore((s) => s.slaHours)
@@ -351,8 +381,8 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   }, [vccRows, notificaVccOn])
 
   const allNotifications = useMemo(
-    () => [...vccNotifs, ...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
-    [vccNotifs, cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
+    () => [...pagamentiNotifs, ...vccNotifs, ...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
+    [pagamentiNotifs, vccNotifs, cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
   )
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),

@@ -9,17 +9,20 @@ import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { useServiziStore } from '../../../../store/useServiziStore'
 import { useStrutturaCorrente } from '../../../../hooks/useStrutturaCorrente'
 import { useTemplate, useTemplatePreventivoStore, templateDi } from '../../../../store/useTemplatePreventivoStore'
-import { TEMPLATE_PRONTI, type TemplateSoggiorno } from './templateSoggiorno'
-import { terminiDi, useTerminiStore, type Termini } from '../../../../store/useTerminiStore'
+import { TEMPLATE_PRONTI, testoIn, type TemplateSoggiorno } from './templateSoggiorno'
+import { ELENCO_LINGUE, LINGUE, MESSAGGI, tr, type Lingua } from './lingue'
+import FlagCircle from '../../../../core/components/FlagCircle'
+import PagamentoNexi, { motivoIn } from './PagamentoNexi'
+import { terminiDi, terminiIn, useTerminiStore, type Termini } from '../../../../store/useTerminiStore'
 import {
   assegnaAutomatico, bastano, camereDaNumeri, camereLibere, camereStruttura, primaDataUtile, numeriScelti, perTipologia, serviziProponibili, totaleCamere,
 } from './disponibilita'
 import {
-  usePreventiviSoggiornoStore, type Assegnazione, type CameraProposta, type PreventivoSoggiorno, type PropostaSoggiorno, type ServizioExtra, type UnitaExtra,
+  pagamentoOk, usePreventiviSoggiornoStore, type Assegnazione, type TentativoPagamento, type CameraProposta, type PreventivoSoggiorno, type PropostaSoggiorno, type ServizioExtra, type UnitaExtra,
 } from '../../../../store/usePreventiviSoggiornoStore'
 import {
   LETTERE, SERVIZI, STRUTTURE, TIPOLOGIE, TRATTAMENTI, UNITA, VALIDITA, comprimiFoto, conto, costoCamera, costoExtra,
-  eur, giornoBreve, mailHtml, notti, nottiDate, ospitiLabel, periodo, tariffa, tipologia,
+  eur, giornoBreve, mailHtml, notti, scaricaEml, nottiDate, ospitiLabel, periodo, tariffa, tipologia,
 } from './soggiorno'
 import './PreventivoSoggiorno.sass'
 
@@ -79,7 +82,7 @@ export default function PreventivoSoggiorno({ navigate, preventivoId, templateId
   const template = useTemplate(pr.templateId)
   const opzioniTemplate = [...TEMPLATE_PRONTI, ...personali].map((t) => ({ value: t.id, label: t.pronto ? `${t.nome} (pronto)` : t.nome }))
   const [errori, setErrori] = useState<string[]>([])
-  const [mail, setMail] = useState<null | 'anteprima' | 'invia'>(null)
+  const [mail, setMail] = useState<null | 'anteprima' | 'invia' | 'conferma' | 'rifiuto'>(null)
 
   const set = <K extends keyof PreventivoSoggiorno>(k: K, v: PreventivoSoggiorno[K]) => setPr((p) => ({ ...p, [k]: v }))
   const setProp = (id: string, patch: Partial<PropostaSoggiorno>) =>
@@ -117,25 +120,47 @@ export default function PreventivoSoggiorno({ navigate, preventivoId, templateId
     toast.success(`Preventivo ${pr.codice} salvato`)
   }
 
-  const invia = () => {
+  // Invio: la piattaforma non ha ancora un servizio di posta, quindi la mail si
+  // scarica come .eml (bozza pronta nel programma di posta) e il preventivo passa in Inviato.
+  const invia = (oggetto: string) => {
+    scaricaEml(mailHtml(pr, { template }), pr.email, oggetto, `Preventivo ${pr.codice}`)
     const inviato: PreventivoSoggiorno = { ...pr, stato: pr.stato === 'Accettato' ? pr.stato : 'Inviato', inviatoIl: ora() }
     setPr(inviato); salva(inviato); setMail(null)
-    toast.success(`Preventivo ${pr.codice} inviato a ${pr.email}`)
+    toast.info('Mail scaricata: aprila nel programma di posta e premi Invia. Il preventivo è segnato come inviato.', `Preventivo ${pr.codice}`)
   }
 
-  // Il cliente accetta una proposta (dall'anteprima della mail) con gli extra scelti.
-  const accetta = (propostaId: string, extraScelti: string[], terminiAccettati?: string) => {
+  // Il cliente accetta una proposta (dall'anteprima della mail) con gli extra scelti;
+  // col pagamento attivo l'accettazione arriva solo a pagamento autorizzato.
+  const accetta = (propostaId: string, extraScelti: string[], terminiAccettati?: string, pagamento?: TentativoPagamento) => {
     const i = pr.proposte.findIndex((q) => q.id === propostaId)
-    const accettato: PreventivoSoggiorno = { ...pr, stato: 'Accettato', accettata: propostaId, extraScelti, terminiAccettati, rispostaIl: ora() }
+    const accettato: PreventivoSoggiorno = {
+      ...pr, stato: 'Accettato', accettata: propostaId, extraScelti, terminiAccettati, rispostaIl: ora(),
+      pagamenti: pagamento ? [...(pr.pagamenti ?? []), pagamento] : pr.pagamenti,
+    }
     setPr(accettato); salva(accettato)
     const extra = extraScelti.length ? ` con ${extraScelti.length} ${extraScelti.length === 1 ? 'servizio aggiuntivo' : 'servizi aggiuntivi'}` : ''
-    toast.success(`${pr.cliente} ha accettato la proposta ${LETTERE[i]}${extra}`, 'Preventivo accettato')
+    toast.success(pagamento
+      ? `${pr.cliente} ha pagato ${eur(pagamento.importo)} e confermato la proposta ${LETTERE[i]}${extra}: mail di conferma pronta`
+      : `${pr.cliente} ha accettato la proposta ${LETTERE[i]}${extra}`, pagamento ? 'Pagamento autorizzato' : 'Preventivo accettato')
   }
+  const pagamentoRifiutato = (t: TentativoPagamento) => {
+    const x: PreventivoSoggiorno = { ...pr, pagamenti: [...(pr.pagamenti ?? []), t] }
+    setPr(x); salva(x)
+    toast.error(`${eur(t.importo)} con ${t.circuito} •••• ${t.ultime4}: ${t.motivo}`, 'Pagamento rifiutato')
+  }
+  const okPagamento = pagamentoOk(pr)
+  const ultimoKo = !okPagamento ? [...(pr.pagamenti ?? [])].reverse().find((t) => t.esito === 'rifiutato') : undefined
 
   // Cambiando template il messaggio segue la lettera del nuovo, se non era stato riscritto.
+  const lingua: Lingua = pr.lingua ?? 'it'
   const cambiaTemplate = (id: string) => setPr((p) => ({
     ...p, templateId: id,
-    messaggio: p.messaggio === template.testi.lettera ? templateDi(id).testi.lettera : p.messaggio,
+    messaggio: p.messaggio === testoIn(template, lingua, 'lettera') ? testoIn(templateDi(id), lingua, 'lettera') : p.messaggio,
+  }))
+  // Cambiando lingua il messaggio passa alla lettera del template in quella lingua, se non era stato riscritto.
+  const cambiaLingua = (l: Lingua) => setPr((p) => ({
+    ...p, lingua: l,
+    messaggio: [testoIn(template, lingua, 'lettera'), template.testi.lettera].includes(p.messaggio) ? testoIn(template, l, 'lettera') : p.messaggio,
   }))
 
   // L'editor riceve il preventivo (salvato in bozza) e lo riapre col template personalizzato.
@@ -184,6 +209,26 @@ export default function PreventivoSoggiorno({ navigate, preventivoId, templateId
           </span>
         </div>
       )}
+      {okPagamento && (
+        <div className="psog__stato psog__stato--ok">
+          <i className="fa-solid fa-credit-card" aria-hidden="true" />
+          <span>Pagamento autorizzato: <strong>{eur(okPagamento.importo)}</strong> ({okPagamento.tipo === 'caparra' ? 'caparra' : 'intero importo'}) con {okPagamento.circuito} •••• {okPagamento.ultime4},
+            codice {okPagamento.codiceAut}, il {new Date(okPagamento.il).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}.</span>
+          <button type="button" className="sib-btn sib-btn--ghost" onClick={() => setMail('conferma')}>
+            <i className="fa-regular fa-envelope-circle-check" aria-hidden="true" /> Mail di conferma
+          </button>
+        </div>
+      )}
+      {ultimoKo && (
+        <div className="psog__stato psog__stato--ko">
+          <i className="fa-solid fa-circle-xmark" aria-hidden="true" />
+          <span>Pagamento rifiutato: <strong>{eur(ultimoKo.importo)}</strong> con {ultimoKo.circuito} •••• {ultimoKo.ultime4} · {ultimoKo.motivo}
+            {(pr.pagamenti ?? []).filter((t) => t.esito === 'rifiutato').length > 1 && <> ({(pr.pagamenti ?? []).filter((t) => t.esito === 'rifiutato').length} tentativi)</>}. La proposta resta in attesa di pagamento.</span>
+          <button type="button" className="sib-btn sib-btn--ghost" onClick={() => setMail('rifiuto')}>
+            <i className="fa-regular fa-envelope" aria-hidden="true" /> Mail di pagamento non riuscito
+          </button>
+        </div>
+      )}
 
       <div className="psog__layout">
         <div className="psog__main">
@@ -204,6 +249,22 @@ export default function PreventivoSoggiorno({ navigate, preventivoId, templateId
                   options={VALIDITA.map((v) => ({ value: v, label: `${v} giorni` }))} />
               </div>
               <TextareaField name="messaggio" label="Messaggio al cliente" rows={3} value={pr.messaggio} onChange={(e) => set('messaggio', e.target.value)} />
+              <div className="psog__lingue">
+                <span className="psog__lingue-lbl">Lingua della mail</span>
+                <div className="psog__lingue-opts" role="radiogroup" aria-label="Lingua della mail">
+                  {ELENCO_LINGUE.map((l) => (
+                    <button key={l} type="button" role="radio" aria-checked={lingua === l}
+                      className={'psog__lingua' + (lingua === l ? ' is-on' : '')} onClick={() => cambiaLingua(l)}>
+                      <FlagCircle code={LINGUE[l].bandiera} size={18} /> {LINGUE[l].nativo}
+                    </button>
+                  ))}
+                </div>
+                {lingua !== 'it' && (
+                  <span className="psog__lingue-hint">
+                    Testi standard, tipologie, trattamenti e servizi sono tradotti in automatico; i testi scritti a mano restano come li scrivi.
+                  </span>
+                )}
+              </div>
               <div className="psog__tpl">
                 <SelectField name="template" label="Template della mail" value={template.id} onChange={(e) => cambiaTemplate(e.target.value)}
                   options={opzioniTemplate} />
@@ -293,7 +354,7 @@ export default function PreventivoSoggiorno({ navigate, preventivoId, templateId
       </div>
 
       {mail && (
-        <MailModal pr={pr} template={template} invio={mail === 'invia'} onClose={() => setMail(null)} onInvia={invia} onAccetta={accetta} />
+        <MailModal pr={pr} template={template} modo={mail} onClose={() => setMail(null)} onInvia={invia} onAccetta={accetta} onRifiuto={pagamentoRifiutato} />
       )}
     </div>
   )
@@ -691,66 +752,117 @@ function Extra({ q, onChange }: { q: PropostaSoggiorno; onChange: (extra: Serviz
 }
 
 // ─── Mail: anteprima e invio; pagina di conferma del cliente ─────────────────
-function MailModal({ pr, template, invio, onClose, onInvia, onAccetta }: {
-  pr: PreventivoSoggiorno; template: TemplateSoggiorno; invio: boolean; onClose: () => void; onInvia: () => void
-  onAccetta: (propostaId: string, extraScelti: string[], terminiAccettati?: string) => void
+type VistaMail =
+  | { k: 'mail' }
+  | { k: 'proposta'; id: string }
+  | { k: 'pagamento'; id: string; extra: string[]; termini?: string }
+  | { k: 'conferma' }
+  | { k: 'rifiuto'; t: TentativoPagamento }
+
+function MailModal({ pr, template, modo, onClose, onInvia, onAccetta, onRifiuto }: {
+  pr: PreventivoSoggiorno; template: TemplateSoggiorno; modo: 'anteprima' | 'invia' | 'conferma' | 'rifiuto'
+  onClose: () => void; onInvia: (oggetto: string) => void
+  onAccetta: (propostaId: string, extraScelti: string[], terminiAccettati?: string, pagamento?: TentativoPagamento) => void
+  onRifiuto: (t: TentativoPagamento) => void
 }) {
-  const [oggetto, setOggetto] = useState(`Il tuo preventivo di soggiorno · ${pr.struttura}`)
-  // Proposta su cui il cliente ha cliccato "Accetta": apre la pagina di conferma.
-  const [conferma, setConferma] = useState<string | null>(null)
+  const lingua: Lingua = pr.lingua ?? 'it'
+  const invio = modo === 'invia'
+  const ultimoKo = [...(pr.pagamenti ?? [])].reverse().find((t) => t.esito === 'rifiutato')
+  const [vista, setVista] = useState<VistaMail>(() => (modo === 'conferma' ? { k: 'conferma' } : modo === 'rifiuto' && ultimoKo ? { k: 'rifiuto', t: ultimoKo } : { k: 'mail' }))
+  const [oggetto, setOggetto] = useState(`${tr(lingua, 'Preventivo di soggiorno')} · ${pr.struttura}`)
   const documenti = useTerminiStore((s) => s.documenti)
   const termini = terminiDi(template.termini.id, documenti)
-  const html = useMemo(() => mailHtml(pr, { template, termini }), [pr, template, termini])
+  const html = useMemo(() => {
+    if (vista.k === 'conferma') return mailHtml(pr, { template, termini, tipo: 'conferma' })
+    if (vista.k === 'rifiuto') return mailHtml(pr, { template, termini, tipo: 'rifiuto', rifiuto: { importo: vista.t.importo, motivo: motivoIn(vista.t.motivo ?? '', lingua) } })
+    return mailHtml(pr, { template, termini })
+  }, [pr, template, termini, vista, lingua])
   // Termini da accettare nella pagina di conferma (se il blocco è nella mail).
-  const daAccettare = termini && template.termini.obbligatorio && template.blocchi.some((b) => b.id === 'termini' && b.visibile) ? termini : null
+  const daAccettare = termini && template.termini.obbligatorio && template.blocchi.some((b) => b.id === 'termini' && b.visibile) ? terminiIn(termini, lingua) : null
   const frame = useRef<HTMLIFrameElement>(null)
-  const clickRef = useRef<(id: string) => void>(() => undefined)
-  clickRef.current = (id) => {
+  const clickRef = useRef<(a: HTMLAnchorElement) => void>(() => undefined)
+  clickRef.current = (a) => {
     if (pr.stato === 'Bozza') { toast.info('I pulsanti si attivano quando il preventivo è inviato al cliente'); return }
-    setConferma(id)
+    const id = a.getAttribute('data-accetta')
+    if (id) setVista({ k: 'proposta', id })
+    // "Riprova il pagamento" dalla mail di pagamento non riuscito.
+    if (a.getAttribute('data-paga') && vista.k === 'rifiuto' && vista.t.propostaId) {
+      setVista({ k: 'pagamento', id: vista.t.propostaId, extra: vista.t.extraScelti ?? [] })
+    }
   }
 
-  // I pulsanti "Accetta" della mail: nell'anteprima simulano il click del cliente.
+  // I pulsanti della mail: nell'anteprima simulano il click del cliente.
   const aggancia = () => {
     frame.current?.contentDocument?.addEventListener('click', (e) => {
       const a = (e.target as HTMLElement).closest('a')
       if (!a) return
       e.preventDefault()
-      const id = a.getAttribute('data-accetta')
-      if (id) clickRef.current(id)
+      clickRef.current(a)
     })
   }
 
-  const proposta = pr.proposte.find((q) => q.id === conferma)
-  const titolo = proposta ? 'Conferma della proposta (pagina del cliente)' : invio ? 'Invia preventivo via mail' : 'Anteprima della mail'
+  const titoli: Record<VistaMail['k'], string> = {
+    mail: invio ? 'Invia preventivo via mail' : 'Anteprima della mail',
+    proposta: 'Conferma della proposta (pagina del cliente)',
+    pagamento: 'Pagamento con carta (pagina del cliente)',
+    conferma: 'Mail di conferma della prenotazione',
+    rifiuto: 'Mail di pagamento non riuscito',
+  }
+  const oggettoMail = vista.k === 'conferma' ? `${tr(lingua, 'Conferma prenotazione')} · ${pr.struttura}`
+    : vista.k === 'rifiuto' ? `${MESSAGGI[lingua].rifiutoTitolo} · ${pr.struttura}` : oggetto
+  const proposta = vista.k === 'proposta' || vista.k === 'pagamento' ? pr.proposte.find((q) => q.id === vista.id) : undefined
 
   return (
-    <Modal open onClose={onClose} size="xl" title={titolo} className="psog-mail">
-      {proposta ? (
-        <ConfermaCliente pr={pr} q={proposta} termini={daAccettare} onIndietro={() => setConferma(null)}
+    <Modal open onClose={onClose} size="xl" title={titoli[vista.k]} className="psog-mail">
+      {vista.k === 'proposta' && proposta ? (
+        <ConfermaCliente pr={pr} q={proposta} termini={daAccettare} pagamento={template.pagamento.attivo} onIndietro={() => setVista({ k: 'mail' })}
           onConferma={(extra) => {
-            onAccetta(proposta.id, extra, daAccettare ? `${daAccettare.titolo} (agg. ${daAccettare.aggiornato})` : undefined)
-            setConferma(null)
+            const tc = daAccettare ? `${daAccettare.titolo} (agg. ${daAccettare.aggiornato})` : undefined
+            if (template.pagamento.attivo) { setVista({ k: 'pagamento', id: proposta.id, extra, termini: tc }); return }
+            onAccetta(proposta.id, extra, tc)
+            setVista({ k: 'mail' })
           }} />
+      ) : vista.k === 'pagamento' && proposta ? (
+        <div className="psog-mail__body">
+          <PagamentoNexi pr={pr} q={proposta} extraScelti={vista.extra} template={template}
+            onIndietro={() => setVista({ k: 'proposta', id: proposta.id })}
+            onVediConferma={() => setVista({ k: 'conferma' })}
+            onEsito={(t) => {
+              const tent = { ...t, propostaId: proposta.id, extraScelti: vista.extra }
+              if (t.esito === 'autorizzato') onAccetta(proposta.id, vista.extra, vista.termini, tent)
+              else onRifiuto(tent)
+            }} />
+        </div>
       ) : (
         <>
           <div className="psog-mail__body">
-            {invio && (
+            {invio && vista.k === 'mail' && (
               <div className="psog-mail__fields">
                 <InputField name="mail-a" label="A" value={pr.email} readOnly iconLeft="fa-regular fa-envelope" />
                 <InputField name="mail-oggetto" label="Oggetto" value={oggetto} onChange={(e) => setOggetto(e.target.value)} />
               </div>
             )}
-            {!invio && pr.stato === 'Inviato' && (
-              <p className="psog-mail__hint"><i className="fa-regular fa-hand-pointer" aria-hidden="true" /> Così la vede il cliente: con "Accetta" sceglie la proposta e aggiunge i servizi extra che desidera.</p>
+            {(invio || vista.k !== 'mail') && (
+              <p className="psog-mail__hint"><i className="fa-regular fa-circle-info" aria-hidden="true" /> La piattaforma non è ancora collegata a un servizio di invio: la mail si scarica (.eml) e si apre come bozza nel programma di posta, già impaginata e con destinatario e oggetto, pronta da spedire.</p>
+            )}
+            {!invio && vista.k === 'mail' && pr.stato === 'Inviato' && (
+              <p className="psog-mail__hint"><i className="fa-regular fa-hand-pointer" aria-hidden="true" /> Così la vede il cliente: con "Accetta" sceglie la proposta, aggiunge i servizi extra{template.pagamento.attivo ? ' e paga con carta' : ''}.</p>
+            )}
+            {vista.k === 'rifiuto' && (
+              <p className="psog-mail__hint"><i className="fa-regular fa-hand-pointer" aria-hidden="true" /> Con "Riprova il pagamento" il cliente torna alla pagina di pagamento.</p>
             )}
             <iframe ref={frame} className="psog-mail__frame" title="Anteprima mail" srcDoc={html} onLoad={aggancia} />
           </div>
           <div className="psog-mail__foot">
             <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>{invio ? 'Annulla' : 'Chiudi'}</button>
-            {invio && (
-              <button type="button" className="sib-btn sib-btn--primary" onClick={onInvia}>
-                <i className="fa-solid fa-paper-plane" aria-hidden="true" /> Invia a {pr.email}
+            {invio && vista.k === 'mail' ? (
+              <button type="button" className="sib-btn sib-btn--primary" onClick={() => onInvia(oggetto)}>
+                <i className="fa-regular fa-download" aria-hidden="true" /> Scarica la mail per {pr.email}
+              </button>
+            ) : vista.k !== 'mail' && (
+              <button type="button" className="sib-btn sib-btn--primary"
+                onClick={() => { scaricaEml(html, pr.email, oggettoMail, `${titoli[vista.k]} ${pr.codice}`); toast.info('Mail scaricata: aprila nel programma di posta e premi Invia') }}>
+                <i className="fa-regular fa-download" aria-hidden="true" /> Scarica la mail per {pr.email || 'il cliente'}
               </button>
             )}
           </div>
@@ -760,22 +872,30 @@ function MailModal({ pr, template, invio, onClose, onInvia, onAccetta }: {
   )
 }
 
-function ConfermaCliente({ pr, q, termini, onIndietro, onConferma }: {
-  pr: PreventivoSoggiorno; q: PropostaSoggiorno; termini: Termini | null; onIndietro: () => void; onConferma: (extra: string[]) => void
+function ConfermaCliente({ pr, q, termini, pagamento, onIndietro, onConferma }: {
+  pr: PreventivoSoggiorno; q: PropostaSoggiorno; termini: Termini | null; pagamento: boolean
+  onIndietro: () => void; onConferma: (extra: string[]) => void
 }) {
   const [presi, setPresi] = useState<string[]>([])
   const [letti, setLetti] = useState(false)
   const k = conto(q, presi)
   const i = pr.proposte.findIndex((x) => x.id === q.id)
   const toggle = (id: string) => setPresi((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
+  // La pagina del cliente parla la lingua del preventivo.
+  const lingua: Lingua = pr.lingua ?? 'it'
+  const M = MESSAGGI[lingua]
+  const loc = LINGUE[lingua].locale
+  const L_ = (x: string) => tr(lingua, x)
+  const eur = (n: number) => n.toLocaleString(loc, { style: 'currency', currency: 'EUR' })
+  const giorno = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString(loc, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
 
   return (
     <>
       <div className="psog-conf">
         <div className="psog-conf__hero">
           <span className="psog-conf__brand">{pr.struttura}</span>
-          <h3>Ottima scelta, {pr.cliente}!</h3>
-          <p>Stai accettando la proposta {LETTERE[i]}{q.titolo ? ` · ${q.titolo}` : ''}. Vuoi aggiungere qualcosa al tuo soggiorno?</p>
+          <h3>{M.confTitolo(pr.cliente)}</h3>
+          <p>{M.confSottotitolo(LETTERE[i], L_(q.titolo))}</p>
         </div>
 
         <div className="psog-conf__grid">
@@ -784,17 +904,17 @@ function ConfermaCliente({ pr, q, termini, onIndietro, onConferma }: {
               {q.camere.map((c) => (
                 <div key={c.id} className="psog-conf__room">
                   {c.immagine ? <img src={c.immagine} alt={c.tipologia} /> : <RoomIllustration tipo={tipologia(c.tipologia).tipo} fill />}
-                  <span>{c.quantita} × {c.tipologia}</span>
+                  <span>{c.quantita} × {L_(c.tipologia)}</span>
                 </div>
               ))}
             </div>
-            <p className="psog-conf__meta"><i className="fa-regular fa-calendar" aria-hidden="true" /> {periodo(q)} · {k.notti} {k.notti === 1 ? 'notte' : 'notti'} · {ospitiLabel(q)}</p>
-            <p className="psog-conf__meta"><i className="fa-regular fa-utensils" aria-hidden="true" /> {q.trattamento}</p>
+            <p className="psog-conf__meta"><i className="fa-regular fa-calendar" aria-hidden="true" /> {giorno(q.checkin)} → {giorno(q.checkout)} · {M.notti(k.notti)} · {[M.adulti(q.adulti), q.bambini ? M.bambini(q.bambini) : ''].filter(Boolean).join(' · ')}</p>
+            <p className="psog-conf__meta"><i className="fa-regular fa-utensils" aria-hidden="true" /> {L_(q.trattamento)}</p>
           </div>
 
           <div className="psog-conf__extra">
-            <h4>Servizi aggiuntivi</h4>
-            {q.extra.length === 0 && <p className="psog-conf__none">Questa proposta non prevede servizi aggiuntivi.</p>}
+            <h4>{M.extraTitolo}</h4>
+            {q.extra.length === 0 && <p className="psog-conf__none">{M.confNessunExtra}</p>}
             <ul>
               {q.extra.map((e) => {
                 const on = presi.includes(e.id)
@@ -803,8 +923,8 @@ function ConfermaCliente({ pr, q, termini, onIndietro, onConferma }: {
                     <button type="button" aria-pressed={on} className={'psog-conf__opt' + (on ? ' is-on' : '')} onClick={() => toggle(e.id)}>
                       <i className={on ? 'fa-solid fa-square-check' : 'fa-regular fa-square'} aria-hidden="true" />
                       <span className="psog-conf__opt-txt">
-                        <strong>{e.nome}</strong>
-                        <small>{eur(e.prezzo)} {UNITA[e.unita]}</small>
+                        <strong>{L_(e.nome)}</strong>
+                        <small>{eur(e.prezzo)} {M.unita[e.unita]}</small>
                       </span>
                       <span className="psog-conf__opt-tot">{on ? '+ ' : ''}{eur(costoExtra(e, q))}</span>
                     </button>
@@ -816,28 +936,28 @@ function ConfermaCliente({ pr, q, termini, onIndietro, onConferma }: {
             {termini && (
               <div className="psog-conf__tc">
                 <details>
-                  <summary>Leggi i {termini.titolo.toLowerCase()}</summary>
+                  <summary>{M.confLeggi(termini.titolo)}</summary>
                   <ol>{termini.sezioni.map((x) => <li key={x.id}><strong>{x.titolo}</strong> {x.testo}</li>)}</ol>
                 </details>
-                <CheckboxField name="tc-accetto" label={`Ho letto e accetto i ${termini.titolo.toLowerCase()}`} checked={letti}
+                <CheckboxField name="tc-accetto" label={M.confAccetto(termini.titolo)} checked={letti}
                   onChange={(e) => setLetti(e.target.checked)} />
               </div>
             )}
 
             <dl className="psog-conf__tot">
-              <div><dt>Soggiorno (tassa inclusa)</dt><dd>{eur(k.totale)}</dd></div>
-              {k.extra > 0 && <div><dt>Servizi aggiuntivi</dt><dd>{eur(k.extra)}</dd></div>}
-              <div className="is-tot"><dt>Totale</dt><dd>{eur(k.totaleConExtra)}</dd></div>
+              <div><dt>{M.confSoggiorno}</dt><dd>{eur(k.totale)}</dd></div>
+              {k.extra > 0 && <div><dt>{M.extraTitolo}</dt><dd>{eur(k.extra)}</dd></div>}
+              <div className="is-tot"><dt>{M.totale}</dt><dd>{eur(k.totaleConExtra)}</dd></div>
             </dl>
           </div>
         </div>
       </div>
       <div className="psog-mail__foot">
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onIndietro}>
-          <i className="fa-regular fa-arrow-left" aria-hidden="true" /> Torna alla mail
+          <i className="fa-regular fa-arrow-left" aria-hidden="true" /> {M.confIndietro}
         </button>
         <button type="button" className="sib-btn sib-btn--primary" disabled={!!termini && !letti} onClick={() => onConferma(presi)}>
-          <i className="fa-solid fa-circle-check" aria-hidden="true" /> Conferma la proposta {LETTERE[i]}
+          <i className={'fa-solid ' + (pagamento ? 'fa-credit-card' : 'fa-circle-check')} aria-hidden="true" /> {M.confPulsante(LETTERE[i])}
         </button>
       </div>
     </>

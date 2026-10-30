@@ -14,9 +14,13 @@ import { useTemplatePreventivoStore } from '../../../../store/useTemplatePrevent
 import { terminiDi, useTerminiStore, type Termini } from '../../../../store/useTerminiStore'
 import {
   BLOCCHI, FONT, FOOTER_VUOTO, FOTO_COPERTINA, datiStruttura, PALETTE, SEGNAPOSTO, TEMPLATE_DEFAULT, TEMPLATE_PRONTI, normalizza,
-  type BloccoId, type ColoriTemplate, type DatiFooter, type FontKey, type TemplateSoggiorno,
+  testoIn, tradotto,
+  type BloccoId, type CampoTesto, type ColoriTemplate, type DatiFooter, type FontKey, type TemplateSoggiorno,
 } from './templateSoggiorno'
-import { LETTERE, comprimiFoto, mailHtml } from './soggiorno'
+import { LETTERE, comprimiFoto, mailHtml, scaricaEml } from './soggiorno'
+import { ELENCO_LINGUE, LINGUE, type Lingua } from './lingue'
+import { motivoIn } from './PagamentoNexi'
+import FlagCircle from '../../../../core/components/FlagCircle'
 import { preventivoEsempio, conCamereAssegnate } from './esempio'
 import { Proposta, nuovaProposta, useStruttureSoggiorno } from './PreventivoSoggiorno'
 import './EditorTemplateSoggiorno.sass'
@@ -36,7 +40,16 @@ import './EditorTemplateSoggiorno.sass'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
-type Sezione = 'generale' | 'impaginazione' | 'intestazione' | 'copertina' | 'proposte' | 'testi' | 'termini' | 'footer' | 'tipografia' | 'colori' | 'forme'
+type Sezione = 'generale' | 'impaginazione' | 'intestazione' | 'copertina' | 'proposte' | 'testi' | 'conferma' | 'termini' | 'footer' | 'pagamento' | 'tipografia' | 'colori' | 'forme'
+type TipoMail = 'preventivo' | 'conferma' | 'rifiuto'
+const TIPI_MAIL: { v: TipoMail; label: string; ico: string }[] = [
+  { v: 'preventivo', label: 'Preventivo', ico: 'fa-envelope' },
+  { v: 'conferma', label: 'Conferma prenotazione', ico: 'fa-envelope-circle-check' },
+  { v: 'rifiuto', label: 'Pagamento non riuscito', ico: 'fa-credit-card' },
+]
+/** Testi che si traducono, per contare quelli ancora in italiano. */
+const CAMPI_TESTO: CampoTesto[] = ['etichetta', 'titolo', 'sottotitolo', 'saluto', 'lettera', 'chiusura', 'firma', 'contatti', 'condizioni', 'pulsante',
+  'confermaTitolo', 'confermaLettera', 'confermaNote', 'confermaChiusura', 'notaLegale']
 
 const SEZIONI: { id: Sezione; label: string; icona: string; desc: string }[] = [
   { id: 'generale', label: 'Generale', icona: 'fa-sliders', desc: 'Nome e punto di partenza' },
@@ -45,8 +58,10 @@ const SEZIONI: { id: Sezione; label: string; icona: string; desc: string }[] = [
   { id: 'copertina', label: 'Immagine di copertina', icona: 'fa-image', desc: 'Foto, altezza' },
   { id: 'proposte', label: 'Proposte e foto camere', icona: 'fa-bed', desc: 'Disposizione, posizione foto, prezzi' },
   { id: 'testi', label: 'Lettera e testi', icona: 'fa-envelope-open-text', desc: 'Saluto, lettera, firma, note sull\'offerta' },
+  { id: 'conferma', label: 'Mail di conferma', icona: 'fa-envelope-circle-check', desc: 'Testi della conferma di prenotazione' },
   { id: 'termini', label: 'Termini e condizioni', icona: 'fa-file-contract', desc: 'Crea o scegli il documento da inserire' },
   { id: 'footer', label: 'Footer istituzionale', icona: 'fa-building-columns', desc: 'Dati societari e contatti dell\'azienda' },
+  { id: 'pagamento', label: 'Pagamento con carta', icona: 'fa-credit-card', desc: 'Caparra o saldo con Nexi dopo l\'accettazione' },
   { id: 'tipografia', label: 'Tipografia', icona: 'fa-font', desc: 'Font, dimensioni, peso, interlinea' },
   { id: 'colori', label: 'Colori', icona: 'fa-palette', desc: 'Palette e singoli colori' },
   { id: 'forme', label: 'Bordi e angoli', icona: 'fa-vector-square', desc: 'Spessore, stile, arrotondamenti, ombra' },
@@ -99,6 +114,9 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
   const [modificato, setModificato] = useState(false)
   const [errore, setErrore] = useState<string | null>(null)
   const [invio, setInvio] = useState(false)
+  // Lingua dei testi che si modificano e dell'anteprima; mail mostrata nell'anteprima.
+  const [lingua, setLingua] = useState<Lingua>(() => pr.lingua ?? 'it')
+  const [tipoMail, setTipoMail] = useState<TipoMail>('preventivo')
   // Documento di termini aperto nell'editor (null = chiuso, 'nuovo' = da creare).
   const [terminiEdit, setTerminiEdit] = useState<Termini | 'nuovo' | null>(null)
 
@@ -109,9 +127,33 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
   const setCampo = (patch: Partial<Pick<TemplateSoggiorno, 'nome' | 'descrizione' | 'blocchi'>>) => { setTpl((t) => ({ ...t, ...patch })); setModificato(true) }
 
   // Il messaggio della bozza d'esempio segue la lettera del template.
-  const prAnteprima = useMemo(() => (prevId ? pr : { ...pr, messaggio: tpl.testi.lettera }), [pr, prevId, tpl.testi.lettera])
+  const lettera = testoIn(tpl, lingua, 'lettera')
+  const prAnteprima = useMemo(() => ({ ...pr, lingua, ...(prevId ? {} : { messaggio: lettera }) }), [pr, prevId, lettera, lingua])
   const termini = terminiDi(tpl.termini.id, documenti)
-  const html = useMemo(() => mailHtml(prAnteprima, { template: tpl, termini }), [prAnteprima, tpl, termini])
+  const html = useMemo(() => mailHtml(prAnteprima, {
+    template: tpl, termini, tipo: tipoMail,
+    rifiuto: { importo: 250, motivo: motivoIn('Fondi insufficienti', lingua) },
+  }), [prAnteprima, tpl, termini, tipoMail, lingua])
+  const daTradurre = (l: Lingua) => CAMPI_TESTO.filter((k) => !tradotto(tpl, l, k)).length
+
+  // Testo del template nella lingua in modifica: l'italiano è la base, le altre
+  // lingue scrivono in `traduzioni` (vuoto = traduzione automatica o italiano).
+  const valoreTesto = (k: CampoTesto) => (lingua === 'it' ? (k === 'notaLegale' ? tpl.footer.notaLegale : tpl.testi[k]) : tpl.traduzioni?.[lingua]?.[k] ?? '')
+  const scriviTesto = (k: CampoTesto, v: string) => {
+    if (lingua === 'it') { if (k === 'notaLegale') set('footer', { notaLegale: v }); else set('testi', { [k]: v } as Partial<TemplateSoggiorno['testi']>); return }
+    setTpl((t) => ({ ...t, traduzioni: { ...t.traduzioni, [lingua]: { ...t.traduzioni?.[lingua], [k]: v } } }))
+    setModificato(true)
+  }
+  const campoTesto = (k: CampoTesto, label: string, rows = 0, extra: { hint?: string; placeholder?: string } = {}) => {
+    const auto = lingua === 'it' ? extra.placeholder : testoIn({ ...tpl, traduzioni: {} }, lingua, k)
+    const manca = lingua !== 'it' && !tradotto(tpl, lingua, k)
+    const hint = manca ? 'Testo scritto a mano: non c\'è una traduzione automatica, scrivila qui (altrimenti resta in italiano)' : extra.hint
+    return rows
+      ? <TextareaField key={`${k}-${lingua}`} name={`t-${k}`} label={label} rows={rows} value={valoreTesto(k)} placeholder={auto} hint={hint} error={undefined}
+          onChange={(e) => scriviTesto(k, e.target.value)} />
+      : <InputField key={`${k}-${lingua}`} name={`t-${k}`} label={label} value={valoreTesto(k)} placeholder={auto} hint={hint}
+          onChange={(e) => scriviTesto(k, e.target.value)} />
+  }
 
   // ── Punto di partenza: applica l'aspetto di un template pronto ─────────────
   const partiDa = async (id: string) => {
@@ -181,7 +223,7 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
     if (!salva()) return
     const prev: PreventivoSoggiorno = prevId
       ? { ...pr, templateId: tpl.id }
-      : { ...pr, codice: usePreventiviSoggiornoStore.getState().prossimoCodice(), templateId: tpl.id, messaggio: tpl.testi.lettera }
+      : { ...pr, lingua, codice: usePreventiviSoggiornoStore.getState().prossimoCodice(), templateId: tpl.id, messaggio: lettera }
     salvaPreventivo(prev)
     navigate(`crea-preventivo:${prev.id}`)
   }
@@ -208,15 +250,17 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
   const apriInvio = () => { if (valida()) setInvio(true) }
   const inviato = (dest: { cliente: string; email: string; oggetto: string; prova: boolean }) => {
     setInvio(false)
-    if (dest.prova) { toast.success(`Mail di prova inviata a ${dest.email}`); return }
+    // Nessun servizio di posta collegato: la mail si scarica come .eml (bozza pronta da spedire).
+    scaricaEml(html, dest.email, dest.oggetto, `${dest.prova ? 'Prova' : 'Preventivo'} ${tpl.nome}`)
+    if (dest.prova) { toast.info(`Mail scaricata: aprila nel programma di posta, è già indirizzata a ${dest.email}`, 'Mail di prova'); return }
     salvaTemplate(tpl); setModificato(false)
     const ora = new Date().toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     const prev: PreventivoSoggiorno = {
-      ...pr, ...(prevId ? {} : { codice: usePreventiviSoggiornoStore.getState().prossimoCodice(), messaggio: tpl.testi.lettera }),
+      ...pr, lingua, ...(prevId ? {} : { codice: usePreventiviSoggiornoStore.getState().prossimoCodice(), messaggio: lettera }),
       cliente: dest.cliente, email: dest.email, templateId: tpl.id, stato: pr.stato === 'Accettato' ? pr.stato : 'Inviato', inviatoIl: ora,
     }
     salvaPreventivo(prev)
-    toast.success(`Preventivo ${prev.codice} inviato a ${dest.email}`)
+    toast.info(`Mail scaricata per ${dest.email}: aprila nel programma di posta e premi Invia. Il preventivo è segnato come inviato.`, `Preventivo ${prev.codice}`)
     navigate(`crea-preventivo:${prev.id}`)
   }
 
@@ -241,7 +285,7 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
     if (ok) navigate(prevId ? `crea-preventivo:${prevId}` : 'crea-preventivo')
   }
 
-  const { blocchi, intestazione: H, copertina: K, proposte: L, testi: X, font: F, colori: C, forme: S } = tpl
+  const { blocchi, intestazione: H, copertina: K, proposte: L, font: F, colori: C, forme: S } = tpl
   const r = (label: string, name: string, value: number, onChange: (v: number) => void, min: number, max: number, step = 1, suffix = 'px') => (
     <RangeField label={label} name={name} value={value} onChange={onChange} min={min} max={max} step={step}
       valueLabel={`${value}${suffix}`} hideReset />
@@ -298,9 +342,9 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
         <ImmagineField label="Logo" value={H.logo} vuoto="Nessun logo" onFile={(f) => caricaImg(f, 480, (src) => set('intestazione', { logo: src }))}
           onRimuovi={() => set('intestazione', { logo: null })} piccola />
         <ToggleSwitch label="Mostra l'etichetta col codice" checked={H.mostraCodice} onChange={(v) => set('intestazione', { mostraCodice: v })} />
-        {H.mostraCodice && <InputField name="t-etichetta" label="Etichetta" value={X.etichetta} onChange={(e) => set('testi', { etichetta: e.target.value })} />}
-        <InputField name="t-titolo" label="Titolo" value={X.titolo} onChange={(e) => set('testi', { titolo: e.target.value })} />
-        <InputField name="t-sotto" label="Sottotitolo" value={X.sottotitolo} onChange={(e) => set('testi', { sottotitolo: e.target.value })} />
+        {H.mostraCodice && campoTesto('etichetta', 'Etichetta')}
+        {campoTesto('titolo', 'Titolo')}
+        {campoTesto('sottotitolo', 'Sottotitolo')}
         <Segnaposto />
       </>
     ),
@@ -342,19 +386,53 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
         <ToggleSwitch label="Tariffe giorno per giorno" description="Per i soggiorni di più notti" checked={L.dettaglioGiorni} onChange={(v) => set('proposte', { dettaglioGiorni: v })} />
         <ToggleSwitch label="Servizi inclusi" checked={L.mostraServizi} onChange={(v) => set('proposte', { mostraServizi: v })} />
         <ToggleSwitch label="Numeri di camera" description="Le camere assegnate dal gestionale" checked={L.mostraNumeriCamera} onChange={(v) => set('proposte', { mostraNumeriCamera: v })} />
-        <InputField name="t-pulsante" label="Testo del pulsante" value={X.pulsante} onChange={(e) => set('testi', { pulsante: e.target.value })} />
+        {campoTesto('pulsante', 'Testo del pulsante')}
       </>
     ),
     testi: () => (
       <>
-        <InputField name="t-saluto" label="Saluto" value={X.saluto} onChange={(e) => set('testi', { saluto: e.target.value })} />
-        <TextareaField name="t-lettera" label="Lettera" rows={4} value={X.lettera} onChange={(e) => set('testi', { lettera: e.target.value })}
-          hint="È il messaggio con cui parte ogni preventivo con questo template: si può cambiare preventivo per preventivo" />
-        <InputField name="t-chiusura" label="Chiusura" value={X.chiusura} onChange={(e) => set('testi', { chiusura: e.target.value })} />
-        <TextareaField name="t-firma" label="Firma" rows={2} value={X.firma} onChange={(e) => set('testi', { firma: e.target.value })} />
-        <TextareaField name="t-contatti" label="Contatti" rows={2} value={X.contatti} onChange={(e) => set('testi', { contatti: e.target.value })} placeholder="Indirizzo, telefono, email, sito" />
-        <TextareaField name="t-condizioni" label="Condizioni" rows={3} value={X.condizioni} onChange={(e) => set('testi', { condizioni: e.target.value })} />
+        {campoTesto('saluto', 'Saluto')}
+        {campoTesto('lettera', 'Lettera', 4, { hint: 'È il messaggio con cui parte ogni preventivo con questo template: si può cambiare preventivo per preventivo' })}
+        {campoTesto('chiusura', 'Chiusura')}
+        {campoTesto('firma', 'Firma', 2)}
+        {campoTesto('contatti', 'Contatti', 2, { placeholder: 'Indirizzo, telefono, email, sito' })}
+        {campoTesto('condizioni', 'Note sull\'offerta', 3)}
         <Segnaposto />
+      </>
+    ),
+    conferma: () => (
+      <>
+        <p className="tpled__hint">La mail che il cliente riceve a prenotazione confermata: stessa grafica del preventivo, con il riepilogo della proposta accettata, gli extra prenotati e i termini accettati.</p>
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setTipoMail('conferma')}>
+          <i className="fa-regular fa-eye" aria-hidden="true" /> Vedi la mail di conferma
+        </button>
+        {campoTesto('confermaTitolo', 'Sottotitolo della conferma')}
+        {campoTesto('confermaLettera', 'Messaggio', 3)}
+        {campoTesto('confermaNote', 'Note per l\'arrivo', 3)}
+        {campoTesto('confermaChiusura', 'Chiusura')}
+        <Segnaposto />
+      </>
+    ),
+    pagamento: () => (
+      <>
+        <ToggleSwitch label="Pagamento con carta dopo l'accettazione" description="Il cliente paga con Nexi XPay: la prenotazione si conferma solo a pagamento autorizzato"
+          checked={tpl.pagamento.attivo} onChange={(v) => set('pagamento', { attivo: v })} />
+        {tpl.pagamento.attivo && (
+          <>
+            <RadioGroup name="pg-modo" label="Cosa paga il cliente" value={tpl.pagamento.modalita} onChange={(v) => set('pagamento', { modalita: v as TemplateSoggiorno['pagamento']['modalita'] })}
+              options={[{ value: 'caparra', label: 'Caparra' }, { value: 'totale', label: 'Totale' }, { value: 'scelta', label: 'Sceglie lui' }]} />
+            {tpl.pagamento.modalita !== 'totale' && (
+              <RangeField label="Caparra" name="pg-pct" value={tpl.pagamento.percentualeCaparra} onChange={(v) => set('pagamento', { percentualeCaparra: v })}
+                min={10} max={100} step={5} valueLabel={`${tpl.pagamento.percentualeCaparra}%`} hideReset />
+            )}
+            <AlertBanner type="info">
+              Ambiente di prova: la piattaforma non è ancora collegata a Nexi, nessun addebito reale. Con l'integrazione i dati della carta si inseriscono sulla pagina di Nexi e l'esito arriva dal gateway.
+            </AlertBanner>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setTipoMail('rifiuto')}>
+              <i className="fa-regular fa-eye" aria-hidden="true" /> Vedi la mail di pagamento non riuscito
+            </button>
+          </>
+        )}
       </>
     ),
     termini: () => (
@@ -441,7 +519,7 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
           {campo('facebook', 'Facebook', 'facebook.com/…')}
           {campo('instagram', 'Instagram', 'instagram.com/…')}
           {campo('linkedin', 'LinkedIn', 'linkedin.com/company/…')}
-          <TextareaField name="ft-nota" label="Nota legale" rows={3} value={D.notaLegale} onChange={(e) => set('footer', { notaLegale: e.target.value })} />
+          {campoTesto('notaLegale', 'Nota legale', 3)}
           <RadioGroup name="ft-align" label="Allineamento" value={D.allineamento} onChange={(v) => set('footer', { allineamento: v as DatiFooter['allineamento'] })}
             options={[{ value: 'left', label: 'Sinistra' }, { value: 'center', label: 'Centro' }, { value: 'right', label: 'Destra' }]} />
           <ToggleSwitch label="Logo nel footer" description={H.logo ? 'Lo stesso dell\'intestazione' : 'Carica prima il logo in Intestazione e titoli'}
@@ -547,6 +625,21 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
         {modificato && <span className="tpled__dirty"><i className="fa-solid fa-circle" aria-hidden="true" /> Modifiche non salvate</span>}
       </div>
 
+      <div className="tpled__langs" role="radiogroup" aria-label="Lingua">
+        <span className="tpled__label">Lingua dei testi e dell'anteprima</span>
+        {ELENCO_LINGUE.map((l) => {
+          const n = l === 'it' ? 0 : daTradurre(l)
+          return (
+            <Tooltip key={l} text={n ? `${n} ${n === 1 ? 'testo scritto a mano da tradurre' : 'testi scritti a mano da tradurre'}` : l === 'it' ? 'Lingua di base' : 'Tutti i testi tradotti'}>
+              <button type="button" role="radio" aria-checked={lingua === l} className={'tpled__lang' + (lingua === l ? ' is-on' : '')} onClick={() => setLingua(l)}>
+                <FlagCircle code={LINGUE[l].bandiera} size={18} /> {LINGUE[l].nativo}
+                {n > 0 && <span className="tpled__lang-n">{n}</span>}
+              </button>
+            </Tooltip>
+          )
+        })}
+      </div>
+
       {tab === 'design' ? (
         <div className="tpled__layout">
           <aside className="tpled__panel" aria-label="Impostazioni del template">
@@ -562,7 +655,7 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
             ))}
           </aside>
 
-          <Anteprima html={html} device={device} onDevice={setDevice} />
+          <Anteprima html={html} device={device} onDevice={setDevice} tipo={tipoMail} onTipo={setTipoMail} />
         </div>
       ) : (
         <div className="tpled__props">
@@ -598,11 +691,19 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
 }
 
 // ─── Anteprima dal vivo ───────────────────────────────────────────────────────
-function Anteprima({ html, device, onDevice }: { html: string; device: 'desktop' | 'mobile'; onDevice: (d: 'desktop' | 'mobile') => void }) {
+function Anteprima({ html, device, onDevice, tipo, onTipo }: {
+  html: string; device: 'desktop' | 'mobile'; onDevice: (d: 'desktop' | 'mobile') => void; tipo: TipoMail; onTipo: (t: TipoMail) => void
+}) {
   return (
     <div className="tpled__preview">
       <div className="tpled__preview-bar">
-        <span className="tpled__preview-title"><i className="fa-regular fa-envelope" aria-hidden="true" /> Anteprima della mail</span>
+        <div className="tpled__kinds" role="radiogroup" aria-label="Mail da vedere">
+          {TIPI_MAIL.map((x) => (
+            <button key={x.v} type="button" role="radio" aria-checked={tipo === x.v} className={'tpled__kind' + (tipo === x.v ? ' is-on' : '')} onClick={() => onTipo(x.v)}>
+              <i className={`fa-regular ${x.ico}`} aria-hidden="true" /> {x.label}
+            </button>
+          ))}
+        </div>
         <div className="tpled__devices" role="radiogroup" aria-label="Dispositivo">
           {([['desktop', 'fa-desktop', 'Computer'], ['mobile', 'fa-mobile-screen', 'Smartphone']] as const).map(([d, ico, label]) => (
             <Tooltip key={d} text={label}>
@@ -742,9 +843,13 @@ function InviaModal({ html, pr, onClose, onInvia }: {
             onChange={(e) => setEmail(e.target.value)} iconLeft="fa-regular fa-envelope" placeholder="nome@dominio.it"
             error={tentato && !emailOk ? 'Indica un\'email valida' : undefined} />
           <InputField name="send-oggetto" label="Oggetto" value={oggetto} onChange={(e) => setOggetto(e.target.value)} />
+          <AlertBanner type="info">
+            La piattaforma non è ancora collegata a un servizio di invio: la mail si scarica come file .eml, che si apre come bozza
+            nel programma di posta (Outlook, Apple Mail, Thunderbird) già impaginata, con destinatario e oggetto. Premi Invia da lì.
+          </AlertBanner>
           <p className="tpled__hint">
             {prova
-              ? 'La prova arriva con le proposte di esempio e i pulsanti disattivi: serve a vedere la mail nel tuo programma di posta.'
+              ? 'La prova contiene le proposte attuali: serve a vedere la mail com\'è davvero nel programma di posta.'
               : 'Il template viene salvato e il preventivo, con queste proposte, passa in "Inviato": lo ritrovi in I miei preventivi.'}
           </p>
         </div>
@@ -753,7 +858,7 @@ function InviaModal({ html, pr, onClose, onInvia }: {
       <div className="tpled-send__foot">
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
         <button type="button" className="sib-btn sib-btn--primary" onClick={invia}>
-          <i className="fa-solid fa-paper-plane" aria-hidden="true" /> {prova ? 'Invia la prova' : 'Invia al cliente'}
+          <i className="fa-regular fa-download" aria-hidden="true" /> {prova ? 'Scarica la mail di prova' : 'Scarica la mail per il cliente'}
         </button>
       </div>
     </Modal>

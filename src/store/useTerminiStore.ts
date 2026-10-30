@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { tr, type Lingua } from '../modules/sales/preventivi/CreaPreventivo/lingue'
 
 // ─── Termini e condizioni ─────────────────────────────────────────────────────
 //  Libreria dei documenti di termini e condizioni che i template della mail
@@ -18,6 +19,8 @@ export interface Termini {
   titolo: string
   aggiornato: string
   sezioni: SezioneTermini[]
+  /** Traduzioni scritte a mano (titolo e sezioni per id); il resto dal frasario. */
+  traduzioni?: Partial<Record<Lingua, { titolo?: string; sezioni?: Record<string, { titolo?: string; testo?: string }> }>>
 }
 
 const s = (id: string, titolo: string, testo: string): SezioneTermini => ({ id, titolo, testo })
@@ -70,3 +73,18 @@ export const useTerminiStore = create<TerminiState>()(
 
 export const terminiDi = (id: string | null | undefined, documenti = useTerminiStore.getState().documenti) =>
   (id ? documenti.find((d) => d.id === id) ?? null : null)
+
+/** Il documento nella lingua: traduzioni scritte, frasario, oppure italiano. */
+export function terminiIn(doc: Termini, lingua: Lingua): Termini {
+  if (lingua === 'it') return doc
+  const x = doc.traduzioni?.[lingua]
+  return {
+    ...doc,
+    titolo: x?.titolo || tr(lingua, doc.titolo),
+    sezioni: doc.sezioni.map((s) => ({
+      ...s,
+      titolo: x?.sezioni?.[s.id]?.titolo || tr(lingua, s.titolo),
+      testo: x?.sezioni?.[s.id]?.testo || tr(lingua, s.testo),
+    })),
+  }
+}

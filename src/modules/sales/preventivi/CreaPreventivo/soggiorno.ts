@@ -5,8 +5,9 @@ import RoomIllustration from '../../../impostazioni/InventarioCamere/RoomIllustr
 import type {
   CameraProposta, PreventivoSoggiorno, PropostaSoggiorno, ServizioExtra, UnitaExtra,
 } from '../../../../store/usePreventiviSoggiornoStore'
-import { FONT, TEMPLATE_DEFAULT, footerEffettivo, type BloccoId, type TemplateSoggiorno } from './templateSoggiorno'
-import { terminiDi, type Termini } from '../../../../store/useTerminiStore'
+import { FONT, TEMPLATE_DEFAULT, footerEffettivo, testoIn, type BloccoId, type TemplateSoggiorno } from './templateSoggiorno'
+import { terminiDi, terminiIn, type Termini } from '../../../../store/useTerminiStore'
+import { FONT_CJK, LINGUE, MESSAGGI, tr, type Lingua } from './lingue'
 
 export const TIPOLOGIE: { nome: string; tipo: string; capacita: number; prezzo: number; descrizione: string }[] = [
   { nome: 'Singola Classic', tipo: 'Singola', capacita: 1, prezzo: 89, descrizione: 'Letto singolo, scrivania e bagno privato con doccia: essenziale e silenziosa.' },
@@ -162,10 +163,10 @@ function tinta(hex: string, peso: number) {
 
 /** Testo del template con i segnaposto sostituiti (già escapato, a capo → <br>). */
 export function testoTemplate(s: string, pr: PreventivoSoggiorno, extra: Record<string, string> = {}) {
-  const n = pr.proposte.length
+  const M = MESSAGGI[pr.lingua ?? 'it']
   const v: Record<string, string> = {
-    cliente: pr.cliente || 'cliente', struttura: pr.struttura, codice: pr.codice, validita: pr.validita,
-    soluzioni: n === 1 ? '1 soluzione' : `${n} soluzioni`, ...extra,
+    cliente: pr.cliente || M.cliente, struttura: pr.struttura, codice: pr.codice, validita: pr.validita,
+    soluzioni: M.soluzioni(pr.proposte.length), ...extra,
   }
   return esc(s).replace(/\{(\w+)\}/g, (m, k) => (k in v ? esc(v[k]) : m)).replace(/\n/g, '<br>')
 }
@@ -177,16 +178,38 @@ export function testoTemplate(s: string, pr: PreventivoSoggiorno, extra: Record<
  * `stampa`: senza pulsanti di accettazione. Ogni pulsante porta
  * `data-accetta` con l'id della proposta: l'anteprima intercetta il click.
  */
-export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; template?: TemplateSoggiorno; termini?: Termini | null } = {}) {
+export function mailHtml(pr: PreventivoSoggiorno, opts: {
+  stampa?: boolean; template?: TemplateSoggiorno; termini?: Termini | null
+  /** 'conferma': mail di conferma della prenotazione, con la grafica del template. */
+  tipo?: 'preventivo' | 'conferma' | 'rifiuto'
+  /** Mail di pagamento non riuscito: importo e motivo (già nella lingua). */
+  rifiuto?: { importo: number; motivo: string }
+} = {}) {
   const T = opts.template ?? TEMPLATE_DEFAULT
+  const conferma = opts.tipo === 'conferma'
+  const rifiuto = opts.tipo === 'rifiuto'
+  // Lingua: parole fisse da MESSAGGI, testi standard dal frasario, date e prezzi nel formato locale.
+  const lingua: Lingua = pr.lingua ?? 'it'
+  const M = MESSAGGI[lingua]
+  const loc = LINGUE[lingua].locale
+  const eur = (n: number) => n.toLocaleString(loc, { style: 'currency', currency: 'EUR' })
+  const giornoBreve = (iso: string) => data(iso).toLocaleDateString(loc, { weekday: 'short', day: 'numeric', month: 'short' })
+  const giorno = (iso: string) => (isNaN(data(iso).getTime()) ? '—' : data(iso).toLocaleDateString(loc, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }))
+  const periodo = (p: PropostaSoggiorno) => `${giorno(p.checkin)} → ${giorno(p.checkout)}`
+  const ospitiLabel = (p: PropostaSoggiorno) => [M.adulti(p.adulti), p.bambini ? M.bambini(p.bambini) : ''].filter(Boolean).join(' · ')
+  const UNITA = M.unita
+  const L_ = (x: string) => tr(lingua, x)
+  const X = (k: Parameters<typeof testoIn>[2]) => testoIn(T, lingua, k)
   // Termini e condizioni: visibili solo se il blocco è nell'impaginazione.
-  const tc = T.blocchi.some((b) => b.id === 'termini' && b.visibile)
+  const tcBase = T.blocchi.some((b) => b.id === 'termini' && b.visibile)
     ? (opts.termini !== undefined ? opts.termini : terminiDi(T.termini.id)) : null
+  const tc = tcBase ? terminiIn(tcBase, lingua) : null
   const { colori: C, font: F, forme: S, proposte: L } = T
   const OK = '#1F8A5B'
   const OK_SOFT = '#E8F5EE'
-  const fTit = FONT[F.titoli].stack
-  const fTxt = FONT[F.testo].stack
+  const cjk = lingua === 'zh' ? `,${FONT_CJK}` : ''
+  const fTit = FONT[F.titoli].stack + cjk
+  const fTxt = FONT[F.testo].stack + cjk
   const tx = F.dimTesto
   const pad = S.spaziatura
   const bordo = S.bordo > 0 ? `${S.bordo}px ${S.stileBordo} ${C.bordo}` : 'none'
@@ -195,9 +218,11 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
   const titoloCss = `font-family:${fTit};font-weight:${F.pesoTitoli};`
   const accentoSoft = tinta(C.accento, 0.1)
   const primarioSoft = tinta(C.primario, 0.08)
-  const scelta = pr.accettata
+  // In conferma la proposta è quella accettata (nell'anteprima dell'editor la prima).
+  const scelta = conferma ? (pr.accettata ?? pr.proposte[0]?.id) : pr.accettata
   const multi = pr.proposte.length > 1
   const extraScelti = pr.extraScelti ?? []
+  const pagato = (pr.pagamenti ?? []).find((x) => x.esito === 'autorizzato')
   const griglia = L.disposizione === 'griglia' && multi
   const t = (s: string, extra?: Record<string, string>) => testoTemplate(s, pr, extra)
 
@@ -221,13 +246,13 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
             <td style="padding:4px 8px;font-size:${tx - 1}px;color:${C.testo};text-align:right;${riga(n)}">${eur(tariffa(c, d))}</td></tr>`).join('')}
         </table>` : ''
       const numeri = L.mostraNumeriCamera && c.numeri.length
-        ? `<div style="font-size:${tx - 1}px;color:${C.tenue};margin-top:2px">${c.numeri.length === 1 ? 'Camera' : 'Camere'} ${c.numeri.map(esc).join(', ')}</div>` : ''
+        ? `<div style="font-size:${tx - 1}px;color:${C.tenue};margin-top:2px">${M.numeriCamera(c.numeri.length)} ${c.numeri.map(esc).join(', ')}</div>` : ''
       const info = `
-        <div style="${titoloCss}font-size:${tx + 2}px;color:${C.testo}">${c.quantita} × ${esc(c.tipologia)}</div>
+        <div style="${titoloCss}font-size:${tx + 2}px;color:${C.testo}">${c.quantita} × ${esc(L_(c.tipologia))}</div>
         ${numeri}
-        ${c.descrizione && !griglia ? `<div style="font-size:${tx}px;color:${C.tenue};line-height:${F.interlinea};margin-top:4px">${esc(c.descrizione)}</div>` : ''}
+        ${c.descrizione && !griglia ? `<div style="font-size:${tx}px;color:${C.tenue};line-height:${F.interlinea};margin-top:4px">${esc(L_(c.descrizione))}</div>` : ''}
         <div style="font-size:${tx}px;color:${C.testo};margin-top:6px"><strong>${eur(costoCamera(c, date) * c.quantita)}</strong>
-          <span style="color:${C.tenue}"> per ${date.length} ${date.length === 1 ? 'notte' : 'notti'}${c.quantita > 1 ? `, ${c.quantita} camere` : ''}</span></div>
+          <span style="color:${C.tenue}"> ${M.perNotti(date.length, c.quantita)}</span></div>
         ${giorni}`
       const sep = j ? `border-top:1px solid ${C.bordo};` : ''
       if (fotoPos === 'nascosta') return `<tr><td style="padding:12px 0;${sep}">${info}</td></tr>`
@@ -242,27 +267,29 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
     }
 
     const servizi = L.mostraServizi ? p.servizi.map((s) =>
-      `<span style="display:inline-block;margin:0 6px 6px 0;padding:4px 10px;border-radius:999px;background:${primarioSoft};color:${C.primario};font-size:${tx - 1}px;font-weight:600">✓ ${esc(s)}</span>`).join('') : ''
-    const extra = (p.extra ?? []).map((e) => {
+      `<span style="display:inline-block;margin:0 6px 6px 0;padding:4px 10px;border-radius:999px;background:${primarioSoft};color:${C.primario};font-size:${tx - 1}px;font-weight:600">✓ ${esc(L_(s))}</span>`).join('') : ''
+    const extra = (p.extra ?? []).filter((e) => !conferma || extraScelti.includes(e.id)).map((e) => {
       const preso = isScelta && extraScelti.includes(e.id)
-      return `<tr><td style="padding:5px 0;font-size:${tx}px;color:${C.testo}">${preso ? '✓ ' : '+ '}${esc(e.nome)} <span style="color:${C.tenue}">· ${eur(e.prezzo)} ${UNITA[e.unita]}</span></td>
+      return `<tr><td style="padding:5px 0;font-size:${tx}px;color:${C.testo}">${preso ? '✓ ' : '+ '}${esc(L_(e.nome))} <span style="color:${C.tenue}">· ${eur(e.prezzo)} ${UNITA[e.unita]}</span></td>
         <td style="padding:5px 0;font-size:${tx}px;text-align:right;color:${preso ? OK : C.testo};font-weight:${preso ? 700 : 400}">${eur(costoExtra(e, p))}</td></tr>`
     }).join('')
     const voce = (l: string, v: string, css = '') =>
       `<tr><td style="padding:4px 0;color:${C.tenue};font-size:${tx}px">${l}</td><td style="padding:4px 0;text-align:right;color:${C.testo};font-size:${tx}px;${css}">${v}</td></tr>`
-    const cta = opts.stampa || scelta ? '' :
-      `<a href="#accetta-${p.id}" data-accetta="${p.id}" style="display:block;margin-top:16px;padding:13px 18px;border-radius:${S.raggioPulsante}px;background:${C.pulsante};color:${C.testoPulsante};text-align:center;text-decoration:none;font-weight:700;font-size:${tx + 2}px;font-family:${fTxt}">${t(T.testi.pulsante, { lettera: multi ? lettera : '' }).trim()}</a>`
-    const ribbon = isScelta
-      ? `<div style="margin-bottom:12px;padding:8px 12px;border-radius:8px;background:${OK_SOFT};color:${OK};font-weight:700;font-size:${tx}px">✓ Proposta accettata${pr.rispostaIl ? ` il ${esc(pr.rispostaIl)}` : ''}</div>` : ''
+    const cta = opts.stampa || scelta || conferma ? '' :
+      `<a href="#accetta-${p.id}" data-accetta="${p.id}" style="display:block;margin-top:16px;padding:13px 18px;border-radius:${S.raggioPulsante}px;background:${C.pulsante};color:${C.testoPulsante};text-align:center;text-decoration:none;font-weight:700;font-size:${tx + 2}px;font-family:${fTxt}">${t(X('pulsante'), { lettera: multi ? lettera : '' }).trim()}</a>`
+    const ribbon = conferma
+      ? `<div style="margin-bottom:12px;padding:8px 12px;border-radius:8px;background:${OK_SOFT};color:${OK};font-weight:700;font-size:${tx}px">${M.confermata}${pr.codice ? ` · ${esc(pr.codice)}` : ''}</div>`
+      : isScelta
+      ? `<div style="margin-bottom:12px;padding:8px 12px;border-radius:8px;background:${OK_SOFT};color:${OK};font-weight:700;font-size:${tx}px">${M.accettata(esc(pr.rispostaIl ?? ''))}</div>` : ''
     const prezzi = L.prezzi === 'completo' ? `
-            ${voce('Camere', eur(k.camere))}
-            ${k.trattamento ? voce(`Supplemento ${esc(p.trattamento.toLowerCase())}`, eur(k.trattamento)) : ''}
-            ${k.sconto ? voce(`Sconto ${p.scontoPct}%`, '− ' + eur(k.sconto), `color:${OK}`) : ''}
-            ${voce('Tassa di soggiorno', eur(k.tassa))}
-            <tr><td colspan="2" style="padding:2px 0 0;color:${C.tenue};font-size:${tx - 2}px">${eur(p.tassaImporto)} a persona per notte, max ${p.tassaMaxNotti} notti${p.tassaEsentiMinori ? ', minori esenti' : ''}</td></tr>` : ''
+            ${voce(M.vociCamere, eur(k.camere))}
+            ${k.trattamento ? voce(esc(M.supplemento(L_(p.trattamento))), eur(k.trattamento)) : ''}
+            ${k.sconto ? voce(M.sconto(p.scontoPct), '− ' + eur(k.sconto), `color:${OK}`) : ''}
+            ${voce(M.tassa, eur(k.tassa))}
+            <tr><td colspan="2" style="padding:2px 0 0;color:${C.tenue};font-size:${tx - 2}px">${M.tassaRegola(eur(p.tassaImporto), p.tassaMaxNotti, p.tassaEsentiMinori)}</td></tr>` : ''
     const totaleTop = griglia ? '' : `
             <td style="vertical-align:top;text-align:right;white-space:nowrap">
-              <div style="font-size:${tx - 2}px;color:${C.tenue}">Totale</div>
+              <div style="font-size:${tx - 2}px;color:${C.tenue}">${M.totale}</div>
               <div style="${titoloCss}font-size:${tx + 11}px;color:${C.testo}">${eur(k.totale)}</div>
             </td>`
     return `
@@ -271,39 +298,46 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
           ${ribbon}
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
             <td style="vertical-align:top">
-              ${multi ? `<div style="font-size:${tx - 2}px;font-weight:700;${etichetta}color:${C.accento}">Proposta ${lettera}</div>` : ''}
-              <div style="${titoloCss}font-size:${tx + 6}px;color:${C.primario};margin-top:2px">${esc(p.titolo || `Soluzione ${lettera}`)}</div>
-              <div style="font-size:${tx}px;color:${C.tenue};margin-top:4px">${periodo(p)} · ${k.notti} ${k.notti === 1 ? 'notte' : 'notti'} · ${ospitiLabel(p)}</div>
+              ${multi ? `<div style="font-size:${tx - 2}px;font-weight:700;${etichetta}color:${C.accento}">${M.proposta} ${lettera}</div>` : ''}
+              <div style="${titoloCss}font-size:${tx + 6}px;color:${C.primario};margin-top:2px">${esc(L_(p.titolo) || `${M.soluzione} ${lettera}`)}</div>
+              <div style="font-size:${tx}px;color:${C.tenue};margin-top:4px">${periodo(p)} · ${M.notti(k.notti)} · ${ospitiLabel(p)}</div>
             </td>${totaleTop}
           </tr></table>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px">${p.camere.map(camera).join('')}</table>
-          <div style="padding-top:12px;border-top:1px solid ${C.bordo};font-size:${tx}px;color:${C.testo}"><strong>Trattamento:</strong> ${esc(p.trattamento)}</div>
-          ${servizi ? `<div style="margin-top:10px"><div style="font-size:${tx - 1}px;color:${C.tenue};margin-bottom:6px">Servizi inclusi</div>${servizi}</div>` : ''}
+          <div style="padding-top:12px;border-top:1px solid ${C.bordo};font-size:${tx}px;color:${C.testo}"><strong>${M.trattamento}:</strong> ${esc(L_(p.trattamento))}</div>
+          ${servizi ? `<div style="margin-top:10px"><div style="font-size:${tx - 1}px;color:${C.tenue};margin-bottom:6px">${M.serviziInclusi}</div>${servizi}</div>` : ''}
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:12px;border-top:1px solid ${C.bordo}">
             ${prezzi}
-            <tr><td style="padding:10px 0 0;font-weight:700;color:${C.testo};font-size:${tx + 2}px;${L.prezzi === 'completo' ? `border-top:1px solid ${C.bordo}` : ''}">Totale</td>
+            <tr><td style="padding:10px 0 0;font-weight:700;color:${C.testo};font-size:${tx + 2}px;${L.prezzi === 'completo' ? `border-top:1px solid ${C.bordo}` : ''}">${M.totale}</td>
                 <td style="padding:10px 0 0;text-align:right;${titoloCss}color:${C.primario};font-size:${tx + 4}px;${L.prezzi === 'completo' ? `border-top:1px solid ${C.bordo}` : ''}">${eur(k.totale)}</td></tr>
-            ${L.prezzi === 'totale' ? `<tr><td colspan="2" style="padding:2px 0 0;color:${C.tenue};font-size:${tx - 2}px">Tassa di soggiorno inclusa (${eur(k.tassa)})</td></tr>` : ''}
+            ${L.prezzi === 'totale' ? `<tr><td colspan="2" style="padding:2px 0 0;color:${C.tenue};font-size:${tx - 2}px">${M.tassaInclusa(eur(k.tassa))}</td></tr>` : ''}
           </table>
           ${extra ? `
           <div style="margin-top:14px;padding:12px 14px;border-radius:${Math.min(S.raggioCard, 12)}px;background:${accentoSoft}">
-            <div style="font-size:${tx}px;font-weight:700;color:${C.accento}">Servizi aggiuntivi a pagamento</div>
-            <div style="font-size:${tx - 1}px;color:${C.tenue};margin:2px 0 6px">${isScelta ? 'Quelli con ✓ sono stati aggiunti alla prenotazione' : 'Facoltativi: puoi aggiungerli uno per uno quando accetti la proposta'}</div>
+            <div style="font-size:${tx}px;font-weight:700;color:${C.accento}">${conferma ? M.extraPrenotati : M.extraTitolo}</div>
+            ${conferma ? '<div style="height:6px;line-height:6px">&nbsp;</div>' : `<div style="font-size:${tx - 1}px;color:${C.tenue};margin:2px 0 6px">${isScelta ? M.extraScelti : M.extraFacoltativi}</div>`}
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0">${extra}</table>
           </div>` : ''}
+          ${conferma && pagato ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px;border-top:1px solid ${C.bordo}">
+            ${voce(esc(M.pagato(`${pagato.circuito} •••• ${pagato.ultime4}`)), eur(pagato.importo), `color:${OK};font-weight:700`)}
+            ${k.totaleConExtra - pagato.importo > 0.005 ? voce(M.saldo, eur(k.totaleConExtra - pagato.importo), 'font-weight:700') : ''}
+          </table>` : ''}
           ${isScelta && k.extra ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px">
-            <tr><td style="font-weight:700;color:${C.testo};font-size:${tx + 2}px">Totale con i servizi aggiuntivi</td>
+            <tr><td style="font-weight:700;color:${C.testo};font-size:${tx + 2}px">${M.totaleConExtra}</td>
                 <td style="text-align:right;font-weight:800;color:${OK};font-size:${tx + 4}px">${eur(k.totaleConExtra)}</td></tr></table>` : ''}
           ${cta}
-          ${cta && tc && T.termini.obbligatorio ? `<div style="margin-top:8px;font-size:${tx - 2}px;color:${C.tenue};text-align:center">Accettando la proposta confermi di aver letto i ${esc(tc.titolo.toLowerCase())}</div>` : ''}
+          ${cta && tc && T.termini.obbligatorio ? `<div style="margin-top:8px;font-size:${tx - 2}px;color:${C.tenue};text-align:center">${esc(M.confermaTermini(tc.titolo))}</div>` : ''}
         </td></tr>
       </table>`
   }
 
-  const grazie = scelta && !opts.stampa
-    ? `<div style="margin-bottom:18px;padding:16px 18px;border-radius:${Math.min(S.raggioCard, 12)}px;background:${OK_SOFT};color:${OK};font-size:${tx + 1}px"><strong>Grazie!</strong> Hai scelto la proposta ${LETTERE[pr.proposte.findIndex((p) => p.id === scelta)] ?? ''}. ${esc(pr.struttura)} ti contatterà a breve per confermare la prenotazione.</div>` : ''
+  const grazie = scelta && !opts.stampa && !conferma
+    ? `<div style="margin-bottom:18px;padding:16px 18px;border-radius:${Math.min(S.raggioCard, 12)}px;background:${OK_SOFT};color:${OK};font-size:${tx + 1}px">${M.grazie(LETTERE[pr.proposte.findIndex((p) => p.id === scelta)] ?? '', esc(pr.struttura))}</div>` : ''
 
-  const elencoProposte = griglia
+  const confermata = pr.proposte.find((p) => p.id === scelta)
+  const elencoProposte = conferma
+    ? (confermata ? card(confermata, pr.proposte.indexOf(confermata)) : '')
+    : griglia
     ? `<table role="presentation" class="sib-col" width="100%" cellspacing="0" cellpadding="0">${Array.from({ length: Math.ceil(pr.proposte.length / 2) }, (_, r) => {
       const cella = (i: number) => (pr.proposte[i]
         ? `<td width="50%" style="vertical-align:top;padding:0 ${i % 2 ? 0 : 8}px 16px ${i % 2 ? 8 : 0}px">${card(pr.proposte[i], i)}</td>`
@@ -318,32 +352,47 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
   const blocco: Record<BloccoId, () => string> = {
     intestazione: () => `<tr><td style="padding:${pad}px ${pad}px ${pieno ? pad : pad - 8}px;text-align:${H.allineamento};background:${pieno ? C.primario : C.superficie};${H.stile === 'linea' ? `border-bottom:2px solid ${C.testo};` : ''}">
       ${H.logo ? `<img src="${H.logo}" alt="${esc(pr.struttura)}" height="48" style="display:inline-block;height:48px;max-width:220px;object-fit:contain;margin-bottom:12px;border:0">` : ''}
-      ${H.mostraCodice && T.testi.etichetta ? `<div style="font-size:${tx - 1}px;${etichetta}color:${pieno ? C.testoIntestazione : C.accento};opacity:${pieno ? 0.8 : 1}">${t(T.testi.etichetta)}</div>` : ''}
-      <div style="${titoloCss}font-size:${F.dimTitolo}px;line-height:1.2;color:${colTit};margin-top:4px">${t(T.testi.titolo)}</div>
-      ${T.testi.sottotitolo ? `<div style="font-size:${F.dimSottotitolo}px;color:${pieno ? C.testoIntestazione : C.tenue};opacity:${pieno ? 0.85 : 1};margin-top:6px">${t(T.testi.sottotitolo)}</div>` : ''}
+      ${H.mostraCodice && X('etichetta') ? `<div style="font-size:${tx - 1}px;${etichetta}color:${pieno ? C.testoIntestazione : C.accento};opacity:${pieno ? 0.8 : 1}">${rifiuto || conferma ? `${esc(rifiuto ? M.rifiutoTitolo : M.titoloConferma)} ${esc(pr.codice)}` : t(X('etichetta'))}</div>` : ''}
+      <div style="${titoloCss}font-size:${F.dimTitolo}px;line-height:1.2;color:${colTit};margin-top:4px">${t(X('titolo'))}</div>
+      ${(rifiuto || (conferma ? X('confermaTitolo') : X('sottotitolo'))) ? `<div style="font-size:${F.dimSottotitolo}px;color:${pieno ? C.testoIntestazione : C.tenue};opacity:${pieno ? 0.85 : 1};margin-top:6px">${rifiuto ? esc(M.rifiutoTitolo) : t(conferma ? X('confermaTitolo') : X('sottotitolo'))}</div>` : ''}
       ${H.stile === 'chiaro' ? `<div style="margin:14px ${H.allineamento === 'left' ? '0' : 'auto'} 0 ${H.allineamento === 'right' ? 'auto' : H.allineamento === 'left' ? '0' : 'auto'};width:56px;height:2px;background:${C.accento};line-height:2px;font-size:0">&nbsp;</div>` : ''}
     </td></tr>`,
     copertina: () => (T.copertina.immagine
       ? `<tr><td style="padding:0;line-height:0;font-size:0"><img src="${T.copertina.immagine}" alt="" width="${S.larghezza}" height="${T.copertina.altezza}" style="display:block;width:100%;height:${T.copertina.altezza}px;object-fit:cover;border:0"></td></tr>` : ''),
     lettera: () => {
-      const intro = t(pr.messaggio || '')
+      if (rifiuto) {
+        const r = opts.rifiuto ?? { importo: 0, motivo: '' }
+        return `<tr><td style="padding:${pad - 4}px ${pad}px 8px">
+          ${X('saluto') ? `<div style="${titoloCss}font-size:${tx + 3}px;color:${C.testo}">${t(X('saluto'))}</div>` : ''}
+          <div style="font-size:${tx + 1}px;color:${C.testo};line-height:${F.interlinea};margin-top:8px">${esc(M.rifiutoTesto(eur(r.importo), r.motivo))}</div>
+          ${opts.stampa ? '' : `<a href="#paga-${pr.accettata ?? ''}" data-paga="1" style="display:inline-block;margin-top:16px;padding:13px 22px;border-radius:${S.raggioPulsante}px;background:${C.pulsante};color:${C.testoPulsante};text-decoration:none;font-weight:700;font-size:${tx + 2}px;font-family:${fTxt}">${M.rifiutoPulsante}</a>`}
+        </td></tr>`
+      }
+      const intro = conferma ? t(X('confermaLettera')) : t(L_(pr.messaggio || ''))
       return `<tr><td style="padding:${pad - 4}px ${pad}px 8px">
-        ${T.testi.saluto ? `<div style="${titoloCss}font-size:${tx + 3}px;color:${C.testo}">${t(T.testi.saluto)}</div>` : ''}
+        ${X('saluto') ? `<div style="${titoloCss}font-size:${tx + 3}px;color:${C.testo}">${t(X('saluto'))}</div>` : ''}
         ${intro ? `<div style="font-size:${tx + 1}px;color:${C.testo};line-height:${F.interlinea};margin-top:8px">${intro}</div>` : ''}
       </td></tr>`
     },
     proposte: () => `<tr><td style="padding:16px ${pad}px 4px">${grazie}${elencoProposte}</td></tr>`,
-    condizioni: () => (T.testi.condizioni
-      ? `<tr><td style="padding:12px ${pad}px;color:${C.tenue};font-size:${tx - 1}px;line-height:${F.interlinea};border-top:1px solid ${C.bordo}">${t(T.testi.condizioni)}</td></tr>` : ''),
+    condizioni: () => {
+      const testo = conferma ? X('confermaNote') : X('condizioni')
+      return testo
+        ? `<tr><td style="padding:12px ${pad}px;color:${C.tenue};font-size:${tx - 1}px;line-height:${F.interlinea};border-top:1px solid ${C.bordo}">${t(testo)}</td></tr>` : ''
+    },
     termini: () => {
       if (!tc) return ''
+      // In conferma basta ricordare quali termini sono stati accettati.
+      if (conferma) {
+        return `<tr><td style="padding:4px ${pad}px 8px;color:${C.tenue};font-size:${tx - 1}px">${esc(M.terminiAccettati(pr.terminiAccettati ? tr(lingua, pr.terminiAccettati.replace(/ \(agg\..*\)$/, '')) : tc.titolo, pr.rispostaIl ?? ''))}</td></tr>`
+      }
       const sezioni = T.termini.presentazione === 'completo'
         ? tc.sezioni.map((x, i) => `<div style="margin-top:${i ? 10 : 8}px"><div style="font-weight:700;color:${C.testo};font-size:${tx - 1}px">${i + 1}. ${esc(x.titolo)}</div><div style="margin-top:2px">${esc(x.testo).replace(/\n/g, '<br>')}</div></div>`).join('')
         : `<ul style="margin:8px 0 0;padding-left:18px">${tc.sezioni.map((x) => `<li style="margin:3px 0"><strong style="color:${C.testo}">${esc(x.titolo)}</strong> · ${esc(x.testo.split(/(?<=\.)\s/)[0])}</li>`).join('')}</ul>`
       return `<tr><td style="padding:12px ${pad}px">
         <div style="padding:14px 16px;border:1px solid ${C.bordo};border-radius:${Math.min(S.raggioCard, 12)}px;color:${C.tenue};font-size:${tx - 1}px;line-height:${F.interlinea}">
           <div style="${titoloCss}font-size:${tx + 1}px;color:${C.primario}">${esc(tc.titolo)}</div>
-          <div style="font-size:${tx - 2}px;margin-top:2px">Aggiornati al ${esc(tc.aggiornato)}${T.termini.presentazione === 'sintesi' ? ' · in sintesi: il testo completo è nella pagina di conferma' : ''}</div>
+          <div style="font-size:${tx - 2}px;margin-top:2px">${esc(M.terminiAggiornati(tc.aggiornato))}${T.termini.presentazione === 'sintesi' ? ` · ${M.terminiSintesi}` : ''}</div>
           ${sezioni}
         </div>
       </td></tr>`
@@ -355,8 +404,8 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
       const riga = (xs: string[]) => xs.filter(Boolean).join(' &nbsp;·&nbsp; ')
       const web = (u: string) => (/^https?:/i.test(u) ? u : `https://${u}`)
       const sede = riga([esc(f.indirizzo), esc([f.cap, f.citta].filter(Boolean).join(' ') + (f.provincia ? ` (${f.provincia})` : ''))])
-      const fiscali = riga([f.piva && `P.IVA ${esc(f.piva)}`, f.codiceFiscale && `C.F. ${esc(f.codiceFiscale)}`, f.rea && `REA ${esc(f.rea)}`, f.capitaleSociale && `Cap. soc. ${esc(f.capitaleSociale)}`])
-      const contatti = riga([f.telefono && link(`tel:${f.telefono.replace(/\s/g, '')}`, f.telefono), f.email && link(`mailto:${f.email}`, f.email), f.pec && `PEC ${link(`mailto:${f.pec}`, f.pec)}`, f.sito && link(web(f.sito), f.sito)])
+      const fiscali = riga([f.piva && `${M.fiscale.piva} ${esc(f.piva)}`, f.codiceFiscale && `${M.fiscale.cf} ${esc(f.codiceFiscale)}`, f.rea && `${M.fiscale.rea} ${esc(f.rea)}`, f.capitaleSociale && `${M.fiscale.capitale} ${esc(f.capitaleSociale)}`])
+      const contatti = riga([f.telefono && link(`tel:${f.telefono.replace(/\s/g, '')}`, f.telefono), f.email && link(`mailto:${f.email}`, f.email), f.pec && `${M.fiscale.pec} ${link(`mailto:${f.pec}`, f.pec)}`, f.sito && link(web(f.sito), f.sito)])
       const social = riga([f.facebook && link(web(f.facebook), 'Facebook'), f.instagram && link(web(f.instagram), 'Instagram'), f.linkedin && link(web(f.linkedin), 'LinkedIn')])
       return `<tr><td style="padding:${pad - 4}px ${pad}px;background:${C.sfondoFooter};color:${col};text-align:${f.allineamento};font-size:${tx - 1}px;line-height:1.7">
         ${f.mostraLogo && H.logo ? `<img src="${H.logo}" alt="${esc(pr.struttura)}" height="36" style="display:inline-block;height:36px;max-width:180px;object-fit:contain;margin-bottom:8px;border:0"><br>` : ''}
@@ -365,13 +414,13 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
         ${fiscali ? `<div>${fiscali}</div>` : ''}
         ${contatti ? `<div>${contatti}</div>` : ''}
         ${social ? `<div style="margin-top:4px">${social}</div>` : ''}
-        ${f.notaLegale ? `<div style="margin-top:10px;font-size:${tx - 3}px;opacity:.8">${t(f.notaLegale)}</div>` : ''}
+        ${X('notaLegale') ? `<div style="margin-top:10px;font-size:${tx - 3}px;opacity:.8">${t(X('notaLegale'))}</div>` : ''}
       </td></tr>`
     },
     firma: () => `<tr><td style="padding:14px ${pad}px ${pad}px;color:${C.testo};font-size:${tx}px;line-height:${F.interlinea}">
-      ${T.testi.chiusura ? `<div>${t(T.testi.chiusura)}</div>` : ''}
-      ${T.testi.firma ? `<div style="${titoloCss}margin-top:8px;color:${C.primario}">${t(T.testi.firma)}</div>` : ''}
-      ${T.testi.contatti ? `<div style="margin-top:6px;color:${C.tenue};font-size:${tx - 1}px">${t(T.testi.contatti)}</div>` : ''}
+      ${(conferma ? X('confermaChiusura') : X('chiusura')) ? `<div>${t(conferma ? X('confermaChiusura') : X('chiusura'))}</div>` : ''}
+      ${X('firma') ? `<div style="${titoloCss}margin-top:8px;color:${C.primario}">${t(X('firma'))}</div>` : ''}
+      ${X('contatti') ? `<div style="margin-top:6px;color:${C.tenue};font-size:${tx - 1}px">${t(X('contatti'))}</div>` : ''}
     </td></tr>`,
   }
 
@@ -379,12 +428,47 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
   const fontLink = google.length
     ? `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?${google.map((g) => `family=${g}`).join('&')}&display=swap">` : ''
 
-  return `<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Preventivo ${esc(pr.codice)} · ${esc(pr.struttura)}</title>${fontLink}
+  return `<!doctype html><html lang="${lingua}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${rifiuto ? M.rifiutoTitolo : conferma ? M.titoloConferma : M.titoloMail} ${esc(pr.codice)} · ${esc(pr.struttura)}</title>${fontLink}
 <style>@media print{body{background:#fff!important}}@media (max-width:560px){.sib-col td{display:block!important;width:100%!important;padding:0 0 16px!important}}</style></head>
 <body style="margin:0;padding:0;background:${C.sfondo};font-family:${fTxt};color:${C.testo}">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${C.sfondo}"><tr><td align="center" style="padding:28px 14px">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:${S.larghezza}px;background:${C.superficie};border:${bordo};border-radius:${S.raggioContenitore}px;overflow:hidden;border-collapse:separate;${ombra}">
-  ${T.blocchi.filter((b) => b.visibile).map((b) => blocco[b.id]()).join('')}
+  ${T.blocchi.filter((b) => b.visibile && (!rifiuto || ['intestazione', 'copertina', 'lettera', 'firma', 'footer'].includes(b.id))).map((b) => blocco[b.id]()).join('')}
 </table></td></tr></table></body></html>`
+}
+
+// ─── Mail come file .eml ──────────────────────────────────────────────────────
+//  Finché la piattaforma non ha un servizio di invio, la mail si scarica come
+//  .eml "non inviato" (X-Unsent): Outlook, Apple Mail e Thunderbird lo aprono
+//  come bozza già impaginata, con destinatario e oggetto, pronta da spedire.
+
+const base64Utf8 = (s: string) => {
+  const bytes = new TextEncoder().encode(s)
+  let bin = ''
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...Array.from(bytes.subarray(i, i + 0x8000)))
+  return btoa(bin)
+}
+
+export function emlMail(html: string, to: string, oggetto: string) {
+  const righe = base64Utf8(html).match(/.{1,76}/g) ?? []
+  return [
+    'X-Unsent: 1',
+    `To: ${to}`,
+    `Subject: =?UTF-8?B?${base64Utf8(oggetto)}?=`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/html; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+    '',
+    ...righe,
+  ].join('\r\n')
+}
+
+export function scaricaEml(html: string, to: string, oggetto: string, nome: string) {
+  const url = URL.createObjectURL(new Blob([emlMail(html, to, oggetto)], { type: 'message/rfc822' }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${nome.replace(/[^\w.-]+/g, '_')}.eml`
+  document.body.appendChild(a); a.click(); a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { Lingua } from '../modules/sales/preventivi/CreaPreventivo/lingue'
 
 // ─── Preventivi di soggiorno ──────────────────────────────────────────────────
 //  Un preventivo propone una o più soluzioni di soggiorno (date, camere,
@@ -58,6 +59,30 @@ export interface PropostaSoggiorno {
   tassaEsentiMinori: boolean
 }
 
+// ─── Pagamento con carta (Nexi) dopo l'accettazione ──────────────────────────
+export type EsitoPagamento = 'autorizzato' | 'rifiutato'
+
+export interface TentativoPagamento {
+  id: string
+  /** Data e ora (ISO). */
+  il: string
+  esito: EsitoPagamento
+  importo: number
+  tipo: 'caparra' | 'totale'
+  circuito: string
+  ultime4: string
+  titolare: string
+  /** Codice di autorizzazione della banca (solo se autorizzato). */
+  codiceAut?: string
+  /** Motivo del diniego (solo se rifiutato). */
+  motivo?: string
+  /** Notifica letta dall'hotel nel Centro notifiche. */
+  letta?: boolean
+  /** Proposta e servizi extra per cui si pagava (per riprovare dalla mail). */
+  propostaId?: string
+  extraScelti?: string[]
+}
+
 export interface PreventivoSoggiorno {
   id: string
   codice: string
@@ -69,6 +94,8 @@ export interface PreventivoSoggiorno {
   validita: string
   /** Template della mail (pronto o personale). */
   templateId?: string
+  /** Lingua della mail e della pagina di conferma (default italiano). */
+  lingua?: Lingua
   creato: string
   stato: StatoPreventivo
   inviatoIl?: string
@@ -79,6 +106,8 @@ export interface PreventivoSoggiorno {
   extraScelti?: string[]
   /** Termini e condizioni accettati con la proposta (titolo e versione). */
   terminiAccettati?: string
+  /** Tentativi di pagamento, dal più vecchio. L'ultimo autorizzato conferma la prenotazione. */
+  pagamenti?: TentativoPagamento[]
   proposte: PropostaSoggiorno[]
 }
 
@@ -88,6 +117,9 @@ interface PreventiviSoggiornoState {
   aggiorna: (id: string, patch: Partial<PreventivoSoggiorno>) => void
   elimina: (id: string) => void
   prossimoCodice: () => string
+  /** Registra un tentativo di pagamento del cliente. */
+  registraPagamento: (id: string, t: TentativoPagamento) => void
+  segnaPagamentoLetto: (id: string, tentativo: string) => void
 }
 
 export const usePreventiviSoggiornoStore = create<PreventiviSoggiornoState>()(
@@ -103,6 +135,13 @@ export const usePreventiviSoggiornoStore = create<PreventiviSoggiornoState>()(
         preventivi: s.preventivi.map((x) => (x.id === id ? { ...x, ...patch } : x)),
       })),
       elimina: (id) => set((s) => ({ preventivi: s.preventivi.filter((x) => x.id !== id) })),
+      registraPagamento: (id, t) => set((s) => ({
+        preventivi: s.preventivi.map((x) => (x.id === id ? { ...x, pagamenti: [...(x.pagamenti ?? []), t] } : x)),
+      })),
+      segnaPagamentoLetto: (id, tentativo) => set((s) => ({
+        preventivi: s.preventivi.map((x) => (x.id === id
+          ? { ...x, pagamenti: (x.pagamenti ?? []).map((t) => (t.id === tentativo ? { ...t, letta: true } : t)) } : x)),
+      })),
       prossimoCodice: () => `PRV-S${101 + get().preventivi.reduce((m, p) => Math.max(m, Number(p.codice.slice(5)) - 101 + 1 || 0), 0)}`,
     }),
     {
@@ -123,3 +162,6 @@ export const usePreventiviSoggiornoStore = create<PreventiviSoggiornoState>()(
     },
   ),
 )
+
+/** Pagamento andato a buon fine (la prenotazione è confermata). */
+export const pagamentoOk = (p: PreventivoSoggiorno) => (p.pagamenti ?? []).find((t) => t.esito === 'autorizzato')

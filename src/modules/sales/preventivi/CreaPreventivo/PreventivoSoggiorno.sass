@@ -1087,3 +1087,55 @@
 
     strong
       color: $text-active
+
+// ── Lingua della mail ──────────────────────────────────────────────────────────
+.psog__lingue
+  display: flex
+  flex-direction: column
+  gap: 6px
+  margin-top: 12px
+
+.psog__lingue-lbl
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.psog__lingue-opts
+  display: flex
+  flex-wrap: wrap
+  gap: 6px
+
+.psog__lingua
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  padding: 5px 12px 5px 6px
+  border: 1px solid $border
+  border-radius: 999px
+  background: var(--color-surface)
+  font-family: inherit
+  font-size: 12.5px
+  color: $text-active
+  cursor: pointer
+  transition: border-color .12s, background .12s
+
+  &:hover
+    border-color: $primary
+
+  &.is-on
+    border-color: $primary
+    background: $primary-50
+    font-weight: 600
+
+.psog__lingue-hint
+  font-size: 11.5px
+  color: $text-inactive
+
+// ── Pagamento rifiutato ────────────────────────────────────────────────────────
+.psog__stato--ko
+  background: $error-light
+  border-color: $error
+
+  > i
+    color: $error

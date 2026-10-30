@@ -1,0 +1,258 @@
+// ─── PAGAMENTO CON CARTA (Nexi XPay, ambiente di prova) ────────────────────────
+@use '../../../../styles/tokens' as *
+
+.pnexi
+  display: flex
+  flex-direction: column
+  gap: 14px
+  font-size: 13px
+
+  &__bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+    padding: 8px 12px
+    border: 1px solid $border
+    border-radius: 10px
+    background: $bg
+
+  &__secure
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-weight: 600
+    color: $success
+
+  &__sandbox
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 3px 10px
+    border-radius: 999px
+    background: $warning-light
+    color: $text-active
+    font-size: 12px
+
+    i
+      color: $warning
+
+  &__grid
+    display: grid
+    grid-template-columns: 260px minmax(0, 1fr)
+    gap: 18px
+    align-items: start
+
+  // ── Riepilogo ─────────────────────────────────────────────────────────────
+  &__sum
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 16px
+    border: 1px solid $border
+    border-radius: 12px
+    background: $primary-50
+
+    h4
+      margin: 0
+      font-family: $font-heading
+      font-size: 14px
+      color: $text-active
+
+    dl
+      margin: 0
+      display: flex
+      flex-direction: column
+      gap: 6px
+
+      div
+        display: flex
+        justify-content: space-between
+        gap: 10px
+
+      dt
+        color: $text-inactive
+
+      dd
+        margin: 0
+        color: $text-active
+        text-align: right
+
+      .is-tot
+        padding-top: 8px
+        border-top: 1px solid $border
+
+        dt, dd
+          font-weight: 700
+          font-size: 15px
+          color: $primary
+
+  &__merchant
+    font-family: $font-heading
+    font-weight: 600
+    color: $primary
+
+  &__note
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+  &__ref
+    font-family: monospace
+    font-size: 11.5px
+    color: $text-inactive
+
+  // ── Modulo carta ──────────────────────────────────────────────────────────
+  &__main
+    display: flex
+    flex-direction: column
+    gap: 14px
+    min-width: 0
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-size: 17px
+      color: $text-active
+
+  &__num
+    position: relative
+
+  &__brand
+    position: absolute
+    right: 10px
+    top: 29px
+    padding: 1px 8px
+    border-radius: 6px
+    background: $primary-50
+    color: $primary
+    font-size: 11px
+    font-weight: 700
+
+  &__row
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 120px
+    gap: 12px
+
+  &__acts
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    flex-wrap: wrap
+
+  &__test
+    padding: 8px 12px
+    border: 1px dashed $border
+    border-radius: 10px
+
+    summary
+      cursor: pointer
+      font-weight: 600
+      color: $link
+
+    ul
+      list-style: none
+      margin: 8px 0 0
+      padding: 0
+      display: flex
+      flex-direction: column
+      gap: 4px
+
+  &__test-card
+    display: flex
+    align-items: center
+    gap: 10px
+    width: 100%
+    padding: 4px 6px
+    border: 0
+    border-radius: 6px
+    background: none
+    font-family: inherit
+    font-size: 12px
+    color: $text-inactive
+    text-align: left
+    cursor: pointer
+
+    code
+      color: $text-active
+
+    &:hover
+      background: $primary-50
+
+  // ── Elaborazione, 3-D Secure, esito ───────────────────────────────────────
+  &__wait
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 10px
+    min-height: 240px
+    color: $text-inactive
+    font-size: 14px
+
+    i
+      color: $primary
+      font-size: 20px
+
+  &__tds,
+  &__esito
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 10px
+    padding: 24px 12px
+    text-align: center
+
+    p
+      margin: 0
+      max-width: 420px
+      color: $text-inactive
+      line-height: 1.5
+
+  &__tds-ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 56px
+    height: 56px
+    border-radius: 50%
+    background: $primary-50
+    color: $primary
+    font-size: 24px
+
+  &__tds-amt
+    font-weight: 700
+    color: $text-active
+
+  &__esito
+    > i
+      font-size: 44px
+
+    &.is-ok > i
+      color: $success
+
+    &.is-ko > i
+      color: $error
+
+    dl
+      margin: 4px 0 8px
+      display: grid
+      grid-template-columns: auto auto
+      gap: 4px 16px
+
+      div
+        display: contents
+
+      dt
+        color: $text-inactive
+        text-align: right
+
+      dd
+        margin: 0
+        font-weight: 600
+        color: $text-active
+        text-align: left
+
+@media (max-width: 900px)
+  .pnexi__grid
+    grid-template-columns: minmax(0, 1fr)

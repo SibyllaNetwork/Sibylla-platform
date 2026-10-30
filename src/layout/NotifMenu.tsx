@@ -4,6 +4,7 @@ import Ico from '../core/icons/Ico'
 import { useChatStore } from '../store/useChatStore'
 import { useNotifPrefsStore } from '../store/useNotifPrefsStore'
 import { useVccEmesseStore, useVccRows, vccScadute } from '../store/useVccEmesseStore'
+import { usePreventiviSoggiornoStore } from '../store/usePreventiviSoggiornoStore'
 import './notif.sass'
 
 // ── Tipi ─────────────────────────────────────────────────────────────────────
@@ -21,6 +22,10 @@ interface Notif {
   read:   boolean
   // Pagina report da aprire con il pulsante "Visualizza report" (se presente).
   reportPage?: string
+  /** Etichetta del pulsante che apre `reportPage` (default "Visualizza report"). */
+  reportLabel?: string
+  /** Pagamento di un preventivo di soggiorno: letta si salva nello store. */
+  pagamento?: { preventivo: string; tentativo: string }
 }
 
 // ── Dati mock ─────────────────────────────────────────────────────────────────
@@ -84,7 +89,32 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
       }, ...visibiliStatiche]
     : visibiliStatiche
 
-  const unreadCount = visibili.filter(n => !n.read).length
+  // Esiti dei pagamenti con carta dei preventivi di soggiorno (autorizzati / rifiutati).
+  const preventivi = usePreventiviSoggiornoStore(s => s.preventivi)
+  const segnaPagamentoLetto = usePreventiviSoggiornoStore(s => s.segnaPagamentoLetto)
+  const eurN = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
+  const pagamenti: Notif[] = preventivi
+    .flatMap(p => (p.pagamenti ?? []).map(t => ({ p, t })))
+    .sort((a, b) => b.t.il.localeCompare(a.t.il))
+    .slice(0, 20)
+    .map(({ p, t }, i) => {
+      const ok = t.esito === 'autorizzato'
+      const d = new Date(t.il)
+      return {
+        id: 5000 + i, sev: ok ? 'info' : 'error', origin: 'platform',
+        title: ok ? 'Pagamento autorizzato' : 'Pagamento rifiutato',
+        text: ok
+          ? `${p.cliente || 'Il cliente'} ha pagato ${eurN(t.importo)} con ${t.circuito} •••• ${t.ultime4}: prenotazione confermata.`
+          : `${eurN(t.importo)} di ${p.cliente || 'un cliente'} con ${t.circuito} •••• ${t.ultime4}: ${t.motivo}.`,
+        ref: `Preventivo ${p.codice}`,
+        date: d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+        read: !!t.letta, reportPage: `crea-preventivo:${p.id}`, reportLabel: 'Apri il preventivo',
+        pagamento: { preventivo: p.id, tentativo: t.id },
+      } as Notif
+    })
+  const tutte = [...pagamenti, ...visibili]
+
+  const unreadCount = tutte.filter(n => !n.read).length
 
   // Chiudi cliccando fuori
   useEffect(() => {
@@ -95,10 +125,18 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
     return () => document.removeEventListener('mousedown', h)
   }, [])
 
-  const markAllRead = () => { setVccLetta(true); setNotifs(prev => prev.map(n => ({ ...n, read: true }))) }
-  const markRead    = (id: number) => { if (id === VCC_ID) setVccLetta(true); setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n)) }
+  const markAllRead = () => {
+    setVccLetta(true); setNotifs(prev => prev.map(n => ({ ...n, read: true })))
+    pagamenti.forEach(n => n.pagamento && segnaPagamentoLetto(n.pagamento.preventivo, n.pagamento.tentativo))
+  }
+  const markRead    = (id: number) => {
+    if (id === VCC_ID) setVccLetta(true)
+    const pg = pagamenti.find(n => n.id === id)?.pagamento
+    if (pg) segnaPagamentoLetto(pg.preventivo, pg.tentativo)
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+  }
 
-  const filtered = visibili.filter(n => {
+  const filtered = tutte.filter(n => {
     if (tab === 'unread')   return !n.read
     if (tab === 'platform') return n.origin === 'platform'
     if (tab === 'tableau')  return n.origin === 'tableau'
@@ -225,7 +263,7 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
                           setOpen(false)
                         }}
                       >
-                        <i className="fa-light fa-chart-column" aria-hidden="true" /> Visualizza report
+                        <i className={`fa-light ${n.pagamento ? 'fa-file-invoice' : 'fa-chart-column'}`} aria-hidden="true" /> {n.reportLabel ?? 'Visualizza report'}
                       </button>
                     )}
                     <div className="notif-item__badges">
