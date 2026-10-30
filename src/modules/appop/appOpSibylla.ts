@@ -11,7 +11,10 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apiFetchSibylla, ApiError } from '../../services/api'
 import { REPARTI_OP, repartoDaId, type LivelloOp, type RepartiModuli, type RepartoOp } from './opCatalogo'
-import { OpApiError, opCollegataApi, type DipendenteOp, type DipendenteRichiesta, type InvitoOp, type StrutturaOp } from './opApi'
+import {
+  OpApiError, opBiApi, opCollegataApi,
+  type BiAzienda, type DipendenteOp, type DipendenteRichiesta, type InvitoOp, type PuntoBi, type StrutturaOp, type UnitaBi,
+} from './opApi'
 
 interface UtenteSibylla {
   id_utente: number
@@ -157,4 +160,50 @@ export const appOpSibylla = {
     const r = await post<{ codice: string; scade_il: string; email_mascherata: string }>('OpApp/inviti/Invia', { id_utente: id })
     return { codice: r.codice, scadeIl: r.scade_il, emailMascherata: r.email_mascherata }
   },
+}
+
+// ─── Business Intelligence per reparto (pagina AppOp! › Business Intelligence) ──
+//  Come la configurazione: prima Op.Api con il simulatore (GET /admin/collegata/bi),
+//  poi il Portal (POST OpApp/bi/Get, scheda 15 di sibylla-op) quando Op.Api lavora
+//  con Sibylla vera e risponde 404. Stesso contenuto, nomi dei campi del Portal.
+
+interface PuntoBiPortal { etichetta: string; valore: number }
+interface BiPortal {
+  azienda: string
+  dal: string
+  al: string
+  aggiornato_il: string
+  reparti: {
+    id_reparto: number
+    kpi: { chiave: string; etichetta: string; valore: number; unita: UnitaBi; precedente: number | null }[]
+    serie: { chiave: string; titolo: string; unita: UnitaBi; punti: PuntoBiPortal[] }[]
+    ripartizioni: { chiave: string; titolo: string; unita: UnitaBi; voci: PuntoBiPortal[] }[]
+  }[]
+}
+
+const punti = (p: PuntoBiPortal[]): PuntoBi[] => p.map(x => ({ etichetta: x.etichetta, valore: x.valore }))
+
+export async function leggiBiOp(struttura: StrutturaOp | null, dal: string, al: string): Promise<BiAzienda> {
+  try {
+    return await opBiApi.reparti(struttura, dal, al)
+  } catch (e) {
+    if (!(e instanceof OpApiError && e.status === 404)) throw e
+  }
+  const r = await post<BiPortal>('OpApp/bi/Get', { id_struttura: struttura?.id ?? null, dal, al })
+  return {
+    azienda: r.azienda,
+    dal: r.dal,
+    al: r.al,
+    aggiornatoIl: r.aggiornato_il,
+    // Reparti nell'ordine del catalogo, senza quelli che l'app non conosce e senza la BI stessa.
+    reparti: REPARTI_OP
+      .filter(c => c.key !== 'businessIntelligence')
+      .flatMap(c => r.reparti.filter(x => repartoDaId(x.id_reparto)?.key === c.key).map(x => ({
+        key: c.key,
+        nome: c.nome,
+        kpi: x.kpi,
+        serie: x.serie.map(s => ({ ...s, punti: punti(s.punti) })),
+        ripartizioni: x.ripartizioni.map(s => ({ ...s, voci: punti(s.voci) })),
+      }))),
+  }
 }

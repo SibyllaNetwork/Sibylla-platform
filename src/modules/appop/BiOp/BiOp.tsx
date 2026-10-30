@@ -15,8 +15,9 @@ import {
 import { CLIENTS_INIT } from '../../../admin/SibyllaAdminPanel/constants'
 import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 import {
-  OpApiError, opBiApi, type BiAzienda, type KpiBi, type PuntoBi, type RepartoBi, type StrutturaOp, type UnitaBi,
+  OpApiError, type BiAzienda, type KpiBi, type PuntoBi, type RepartoBi, type StrutturaOp, type UnitaBi,
 } from '../opApi'
+import { leggiBiOp } from '../appOpSibylla'
 import './BiOp.sass'
 
 // ─── BUSINESS INTELLIGENCE OP! ──────────────────────────────────────────────────
@@ -27,7 +28,8 @@ import './BiOp.sass'
 //    • andamento giornaliero della serie principale
 //    • ripartizione (anello) e seconda serie o confronto indicatore per indicatore
 //    • "lettura del reparto": le frasi che spiegano i grafici, ricavate dai dati
-//  I numeri li calcola Op.Api (GET /admin/collegata/bi) sugli stessi dati dell'app:
+//  I numeri li calcola Op.Api (GET /admin/collegata/bi) sugli stessi dati dell'app, o
+//  il Portal (OpApp/bi/Get) quando Op.Api è collegato a Sibylla vera:
 //  qui non si inventa nulla, un reparto senza attività mostra zeri.
 
 const ICONE: Record<string, string> = {
@@ -137,12 +139,12 @@ export default function BiOp({ navigate: _navigate }: { navigate: (p: string) =>
     const { dal, al } = intervallo(giorni)
     setLoading(true)
     setErrore(null)
-    opBiApi.reparti(struttura, dal, al)
+    leggiBiOp(struttura, dal, al)
       .then((d) => { if (!annullato) setDati(d) })
       .catch((e) => {
         if (annullato) return
         setDati(null)
-        setErrore(e instanceof OpApiError ? e.message : 'Dati di Op! non disponibili.')
+        setErrore(e instanceof OpApiError || e instanceof Error ? e.message : 'Dati di Op! non disponibili.')
       })
       .finally(() => { if (!annullato) setLoading(false) })
     return () => { annullato = true }
