@@ -90,7 +90,7 @@ function lettura(r: RepartoBi, giorni: number): string[] {
       const picco = s.punti.reduce((a, b) => (b.valore > a.valore ? b : a))
       const attivi = s.punti.filter(p => p.valore > 0).length
       frasi.push(`${s.titolo}: in media ${fmt(tot / s.punti.length)} al giorno, con il picco il ${giorno(picco.etichetta)} (${fmt(picco.valore)}).`)
-      if (attivi < s.punti.length) frasi.push(`Attività registrata in ${fmtInt(attivi)} giorni su ${fmtInt(s.punti.length)}.`)
+      if (attivi < s.punti.length) frasi.push(`Attività registrata in ${fmtInt(attivi)} ${attivi === 1 ? 'giorno' : 'giorni'} su ${fmtInt(s.punti.length)}.`)
     }
   }
   const variazioni = r.kpi
