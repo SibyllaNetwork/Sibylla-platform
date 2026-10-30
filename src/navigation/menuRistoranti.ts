@@ -76,6 +76,7 @@ const MENU_RISTORANTI:any[]=[
         {id:"gest-preventivi",label:"Gestione dei preventivi",children:[
           {id:"crea-preventivo",label:"Crea preventivo",page:"crea-preventivo"},
           {id:"i-miei-preventivi",label:"I miei preventivi",page:"i-miei-preventivi"},
+          {id:"configura-servizio-preventivi",label:"Configura servizio",page:"configura-servizio-preventivi"},
         ]},
       ]},
       {id:"gest-ricavi",label:"Gestione dei ricavi",children:[

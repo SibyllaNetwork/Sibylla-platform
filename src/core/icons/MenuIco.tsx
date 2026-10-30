@@ -292,6 +292,7 @@ const MENU_MAP: Record<string, string> = {
   'maggiorazioni':              'fa-percent',
   'crea-preventivo':            'fa-file-circle-plus',
   'i-miei-preventivi':          'fa-file-invoice',
+  'configura-servizio-preventivi': 'fa-envelope-open-text',
   'budget-analysis':            'fa-chart-column',
   'segment-analysis':           'fa-chart-pie',
   'miei-contratti-v':           'fa-file-contract',

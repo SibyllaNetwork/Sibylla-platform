@@ -63,6 +63,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "guest-room": "Monitoraggio e analisi degli ospiti e dell’occupazione delle camere",
   "hr-overview": "Panoramica completa del personale, delle performance e dei trend HR",
   "i-miei-business": "Panoramica completa del tuo business in unico ambiente",
+  "configura-servizio-preventivi": "I dati per attivare l'invio delle mail dei preventivi e i pagamenti con carta",
   "i-miei-preventivi": "Visualizza e gesitisci i tuoi preventivi di vendita",
   "i-miei-ristoranti": "Dashboard integrata di sintesi per le performace d'impresa",
   "i-miei-servizi": "Visualizza e gestisci i tuoi servizi disponibili",

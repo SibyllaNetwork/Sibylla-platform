@@ -1,0 +1,313 @@
+// ─── CONFIGURA SERVIZIO (invio mail preventivi + Nexi) ─────────────────────────
+@use '../../../../styles/tokens' as *
+
+.cfgsrv
+  display: flex
+  flex-direction: column
+  gap: 14px
+  font-size: 13px
+  container-type: inline-size
+
+  &__top
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
+
+    > :first-child
+      width: 280px
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    height: 34px
+    padding: 0 12px
+    border-radius: 999px
+    font-weight: 600
+    font-size: 12.5px
+
+    &.is-ok
+      background: $success-light
+      color: $success
+
+    &.is-warn
+      background: $warning-light
+      color: $text-active
+
+      i
+        color: $warning
+
+  &__agg
+    align-self: center
+    font-size: 12px
+    color: $text-inactive
+
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 300px
+    gap: 18px
+    align-items: start
+
+  &__main
+    display: flex
+    flex-direction: column
+    gap: 14px
+    min-width: 0
+
+  // ── Card di sezione ───────────────────────────────────────────────────────
+  &__card
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 12px 16px
+    border-bottom: 1px solid $border
+
+    > div
+      display: flex
+      flex-direction: column
+      flex: 1
+      min-width: 0
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-size: 14px
+      font-weight: 600
+      color: $text-active
+
+    span
+      font-size: 12px
+      color: $text-inactive
+
+  &__num
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+    width: 28px
+    height: 28px
+    border-radius: 8px
+    background: $primary
+    color: #fff
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 13px
+
+    &.is-ok
+      background: $success
+
+  &__show
+    flex-shrink: 0
+
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 14px 16px 16px
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px 14px
+
+  &__metodi
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 10px
+
+  &__metodo
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 12px 14px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    font-family: inherit
+    text-align: left
+    cursor: pointer
+
+    i
+      font-size: 18px
+      color: $primary
+
+    strong
+      font-size: 13px
+      color: $text-active
+
+    small
+      font-size: 12px
+      color: $text-inactive
+      line-height: 1.45
+
+    &:hover
+      border-color: $primary-300
+
+    &.is-on
+      border-color: $primary
+      background: $primary-50
+
+  &__hint
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+    line-height: 1.5
+
+  &__group
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  // ── Record DNS ────────────────────────────────────────────────────────────
+  &__dns table
+    table-layout: fixed
+    width: 100%
+
+  &__c-tipo
+    width: 70px
+
+  &__c-nome
+    width: 30%
+
+  &__c-stato
+    width: 110px
+
+  &__c-az
+    width: 52px
+
+  &__pill
+    display: inline-flex
+    padding: 2px 8px
+    border-radius: 999px
+    background: $warning-light
+    color: $text-active
+    font-size: 11.5px
+    white-space: nowrap
+
+  &__ico
+    i
+      color: $primary
+      font-size: 16px
+
+  // Copia senza riquadro (servono 2 classi per battere .sib-btn--icon).
+  &__urls .cfgsrv__ico
+    border: 0
+    background: none
+    box-shadow: none
+
+  &__urls
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    li
+      display: grid
+      grid-template-columns: 220px minmax(0, 1fr) auto
+      align-items: center
+      gap: 10px
+      padding: 6px 10px
+      border: 1px solid $border
+      border-radius: 9px
+
+      > span
+        font-size: 12px
+        color: $text-inactive
+
+    code
+      min-width: 0
+      font-size: 12px
+      color: $text-active
+
+  // ── Riepilogo laterale ────────────────────────────────────────────────────
+  &__aside
+    display: flex
+    flex-direction: column
+    gap: 14px
+    position: sticky
+    top: 12px
+
+  &__check
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+
+    h4
+      margin: 0
+      font-family: $font-heading
+      font-size: 14px
+      color: $text-active
+
+    ul
+      list-style: none
+      margin: 0
+      padding: 0
+      display: flex
+      flex-direction: column
+      gap: 5px
+
+    li
+      display: flex
+      align-items: center
+      gap: 7px
+      font-size: 12.5px
+      color: $text-inactive
+
+      i
+        font-size: 9px
+        color: $text-disabled
+
+      &.is-ok
+        color: $text-active
+
+        i
+          font-size: 13px
+          color: $success
+
+  &__dirty
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $warning
+
+    i
+      font-size: 7px
+
+  &__tt
+    display: block
+
+  &__full
+    width: 100%
+    justify-content: center
+
+@container (max-width: 1050px)
+  .cfgsrv__layout
+    grid-template-columns: minmax(0, 1fr)
+
+  .cfgsrv__aside
+    position: static
+
+@container (max-width: 700px)
+  .cfgsrv__grid,
+  .cfgsrv__metodi
+    grid-template-columns: minmax(0, 1fr)
+
+  .cfgsrv__urls li
+    grid-template-columns: minmax(0, 1fr) auto
+
+    > span
+      grid-column: 1 / -1
