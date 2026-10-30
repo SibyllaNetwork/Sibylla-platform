@@ -109,6 +109,8 @@ const PARENT_MAP: Record<string, string> = {
   'prenotazioni-ids':     'tariffe-disp',
   'prenotazioni-ids-dett': 'prenotazioni-ids',
   'analisi-dist-sales':   'analisi-dist-exec',
+  'editor-template-soggiorno': 'crea-preventivo',
+  'crea-preventivo-template':  'crea-preventivo',
 }
 
 export function resolveActivePage(pageId: string): string {

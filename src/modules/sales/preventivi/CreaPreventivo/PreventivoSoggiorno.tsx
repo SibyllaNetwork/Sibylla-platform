@@ -1,16 +1,23 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import RoomIllustration from '../../../impostazioni/InventarioCamere/RoomIllustration'
 import AlertBanner from '../../../../core/components/AlertBanner'
-import { CheckboxField, DateRangeField, InputField, SelectField, TextareaField } from '../../../../core/components/form'
+import { CheckboxField, DateRangeField, InputField, RadioGroup, SelectField, TextareaField } from '../../../../core/components/form'
 import { toast } from '../../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
+import { useServiziStore } from '../../../../store/useServiziStore'
+import { useStrutturaCorrente } from '../../../../hooks/useStrutturaCorrente'
+import { useTemplate, useTemplatePreventivoStore, templateDi } from '../../../../store/useTemplatePreventivoStore'
+import { TEMPLATE_PRONTI, type TemplateSoggiorno } from './templateSoggiorno'
 import {
-  usePreventiviSoggiornoStore, type CameraProposta, type PreventivoSoggiorno, type PropostaSoggiorno, type ServizioExtra, type UnitaExtra,
+  assegnaAutomatico, bastano, camereDaNumeri, camereLibere, camereStruttura, primaDataUtile, numeriScelti, perTipologia, serviziProponibili, totaleCamere,
+} from './disponibilita'
+import {
+  usePreventiviSoggiornoStore, type Assegnazione, type CameraProposta, type PreventivoSoggiorno, type PropostaSoggiorno, type ServizioExtra, type UnitaExtra,
 } from '../../../../store/usePreventiviSoggiornoStore'
 import {
-  EXTRA_CATALOGO, LETTERE, SERVIZI, STRUTTURE, TIPOLOGIE, TRATTAMENTI, UNITA, VALIDITA, comprimiFoto, conto, costoCamera, costoExtra,
+  LETTERE, SERVIZI, STRUTTURE, TIPOLOGIE, TRATTAMENTI, UNITA, VALIDITA, comprimiFoto, conto, costoCamera, costoExtra,
   eur, giornoBreve, mailHtml, notti, nottiDate, ospitiLabel, periodo, tariffa, tipologia,
 } from './soggiorno'
 import './PreventivoSoggiorno.sass'
@@ -19,8 +26,10 @@ import './PreventivoSoggiorno.sass'
  * Preventivo di soggiorno: una o più soluzioni (date, camere, trattamento,
  * servizi inclusi, tassa di soggiorno), ognuna col suo prezzo e con servizi
  * aggiuntivi a pagamento facoltativi. Ogni camera ha foto, descrizione e
- * tariffe giorno per giorno. Si stampa o si invia via mail; il cliente accetta
- * una proposta dai pulsanti nella mail e aggiunge gli extra che vuole.
+ * tariffe giorno per giorno. Le camere vengono dal gestionale: libere nel
+ * periodo, assegnate in automatico o scelte a mano per numero. La mail segue
+ * il template scelto (pronto o personale). Si stampa o si invia via mail; il
+ * cliente accetta una proposta dai pulsanti nella mail e aggiunge gli extra.
  */
 
 const uid = () => Math.random().toString(36).slice(2, 10)
@@ -31,32 +40,43 @@ const isoTra = (giorni: number) => {
 const oggi = () => new Date().toLocaleDateString('it-IT')
 const ora = () => new Date().toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
-const nuovaCamera = (nome = 'Doppia Classic'): CameraProposta => ({
-  id: uid(), tipologia: nome, quantita: 1, prezzoNotte: tipologia(nome).prezzo, tariffe: {},
-  descrizione: tipologia(nome).descrizione, immagine: null,
-})
-
-const nuovaProposta = (): PropostaSoggiorno => ({
-  id: uid(), titolo: '', checkin: isoTra(14), checkout: isoTra(17), adulti: 2, bambini: 0,
-  camere: [nuovaCamera()], trattamento: 'Pernottamento e colazione', servizi: ['Wi-Fi'], extra: [],
+// Le camere arrivano dall'assegnazione (automatica appena si apre la proposta).
+export const nuovaProposta = (): PropostaSoggiorno => ({
+  id: uid(), titolo: '', assegnazione: 'automatica', checkin: isoTra(30), checkout: isoTra(33), adulti: 2, bambini: 0,
+  camere: [], trattamento: 'Pernottamento e colazione', servizi: ['Wi-Fi'], extra: [],
   scontoPct: 0, tassaImporto: 3.5, tassaMaxNotti: 7, tassaEsentiMinori: true,
 })
 
-const MESSAGGIO = 'grazie per averci contattato. Abbiamo preparato per te le soluzioni qui sotto: scegli quella che preferisci con il pulsante "Accetta" e ti confermeremo la prenotazione.'
-
-const nuovoPreventivo = (codice: string): PreventivoSoggiorno => ({
-  id: uid(), codice, struttura: STRUTTURE[0], cliente: '', email: '', telefono: '',
-  messaggio: MESSAGGIO, validita: '7', creato: oggi(), stato: 'Bozza', proposte: [nuovaProposta()],
+export const nuovoPreventivo = (codice: string, struttura: string, templateId?: string): PreventivoSoggiorno => ({
+  id: uid(), codice, struttura, cliente: '', email: '', telefono: '', templateId,
+  messaggio: templateDi(templateId).testi.lettera, validita: '7', creato: oggi(), stato: 'Bozza', proposte: [nuovaProposta()],
 })
+
+/** Strutture del cliente fra cui scegliere (le demo se l'organizzazione non ne ha). */
+export function useStruttureSoggiorno() {
+  const { struttura, elenco } = useStrutturaCorrente()
+  return useMemo(() => {
+    const lista = elenco.length ? elenco : STRUTTURE
+    return { iniziale: lista.includes(struttura) ? struttura : lista[0], opzioni: lista.map((x) => ({ value: x, label: x })) }
+  }, [struttura, elenco])
+}
 
 const emailOk = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim())
 
-export default function PreventivoSoggiorno({ navigate, preventivoId }: { navigate: (p: string) => void; preventivoId?: string }) {
+export default function PreventivoSoggiorno({ navigate, preventivoId, templateId, onCambiaTemplate }: {
+  navigate: (p: string) => void; preventivoId?: string; templateId?: string
+  /** Torna alla galleria dei template (solo per un preventivo nuovo). */
+  onCambiaTemplate?: () => void
+}) {
   const salvato = usePreventiviSoggiornoStore((s) => s.preventivi.find((p) => p.id === preventivoId))
   const salva = usePreventiviSoggiornoStore((s) => s.salva)
   const confirm = useConfirmStore((s) => s.confirm)
+  const strutture = useStruttureSoggiorno()
+  const personali = useTemplatePreventivoStore((s) => s.personali)
 
-  const [pr, setPr] = useState<PreventivoSoggiorno>(() => salvato ?? nuovoPreventivo(usePreventiviSoggiornoStore.getState().prossimoCodice()))
+  const [pr, setPr] = useState<PreventivoSoggiorno>(() => salvato ?? nuovoPreventivo(usePreventiviSoggiornoStore.getState().prossimoCodice(), strutture.iniziale, templateId))
+  const template = useTemplate(pr.templateId)
+  const opzioniTemplate = [...TEMPLATE_PRONTI, ...personali].map((t) => ({ value: t.id, label: t.pronto ? `${t.nome} (pronto)` : t.nome }))
   const [errori, setErrori] = useState<string[]>([])
   const [mail, setMail] = useState<null | 'anteprima' | 'invia'>(null)
 
@@ -111,13 +131,25 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
     toast.success(`${pr.cliente} ha accettato la proposta ${LETTERE[i]}${extra}`, 'Preventivo accettato')
   }
 
+  // Cambiando template il messaggio segue la lettera del nuovo, se non era stato riscritto.
+  const cambiaTemplate = (id: string) => setPr((p) => ({
+    ...p, templateId: id,
+    messaggio: p.messaggio === template.testi.lettera ? templateDi(id).testi.lettera : p.messaggio,
+  }))
+
+  // L'editor riceve il preventivo (salvato in bozza) e lo riapre col template personalizzato.
+  const personalizza = () => {
+    salva(pr)
+    navigate(`editor-template-soggiorno:${template.id}:${pr.id}`)
+  }
+
   const stampa = () => {
     if (!valida()) return
     const f = document.createElement('iframe')
     f.className = 'psog__print-frame'
     document.body.appendChild(f)
     const doc = f.contentDocument!
-    doc.open(); doc.write(mailHtml(pr, { stampa: true })); doc.close()
+    doc.open(); doc.write(mailHtml(pr, { stampa: true, template })); doc.close()
     setTimeout(() => { f.contentWindow?.focus(); f.contentWindow?.print(); setTimeout(() => f.remove(), 1000) }, 300)
   }
 
@@ -162,7 +194,7 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
             <div className="psog__card-body">
               <div className="psog__grid">
                 <SelectField name="struttura" label="Struttura" value={pr.struttura} onChange={(e) => set('struttura', e.target.value)}
-                  options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+                  options={strutture.opzioni.some((o) => o.value === pr.struttura) ? strutture.opzioni : [{ value: pr.struttura, label: pr.struttura }, ...strutture.opzioni]} />
                 <InputField name="cliente" label="Cliente" required value={pr.cliente} onChange={(e) => set('cliente', e.target.value)} placeholder="Nome e cognome o azienda" />
                 <InputField name="email" label="Email" type="email" required value={pr.email} onChange={(e) => set('email', e.target.value)} placeholder="nome@dominio.it" />
                 <InputField name="telefono" label="Telefono" type="tel" value={pr.telefono} onChange={(e) => set('telefono', e.target.value)} placeholder="+39 ..." />
@@ -170,6 +202,21 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
                   options={VALIDITA.map((v) => ({ value: v, label: `${v} giorni` }))} />
               </div>
               <TextareaField name="messaggio" label="Messaggio al cliente" rows={3} value={pr.messaggio} onChange={(e) => set('messaggio', e.target.value)} />
+              <div className="psog__tpl">
+                <SelectField name="template" label="Template della mail" value={template.id} onChange={(e) => cambiaTemplate(e.target.value)}
+                  options={opzioniTemplate} />
+                <span className="psog__tpl-desc">{template.descrizione}</span>
+                <div className="psog__tpl-acts">
+                  {onCambiaTemplate && (
+                    <button type="button" className="sib-btn sib-btn--ghost" onClick={onCambiaTemplate}>
+                      <i className="fa-regular fa-grid-2" aria-hidden="true" /> Galleria template
+                    </button>
+                  )}
+                  <button type="button" className="sib-btn sib-btn--secondary" onClick={personalizza}>
+                    <i className="fa-regular fa-pen-ruler" aria-hidden="true" /> Personalizza il design
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -187,7 +234,7 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
             </header>
             <div className="psog__card-body">
               {pr.proposte.map((q, i) => (
-                <Proposta key={q.id} q={q} i={i} sola={pr.proposte.length === 1} scelta={pr.accettata === q.id}
+                <Proposta key={q.id} q={q} i={i} struttura={pr.struttura} sola={pr.proposte.length === 1} scelta={pr.accettata === q.id}
                   onChange={(patch) => setProp(q.id, patch)} onDuplica={() => duplica(q)} onElimina={() => elimina(q, i)} />
               ))}
               <button type="button" className="psog__add" onClick={aggiungi}>
@@ -244,15 +291,15 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
       </div>
 
       {mail && (
-        <MailModal pr={pr} invio={mail === 'invia'} onClose={() => setMail(null)} onInvia={invia} onAccetta={accetta} />
+        <MailModal pr={pr} template={template} invio={mail === 'invia'} onClose={() => setMail(null)} onInvia={invia} onAccetta={accetta} />
       )}
     </div>
   )
 }
 
 // ─── Singola soluzione ────────────────────────────────────────────────────────
-function Proposta({ q, i, sola, scelta, onChange, onDuplica, onElimina }: {
-  q: PropostaSoggiorno; i: number; sola: boolean; scelta: boolean
+export function Proposta({ q, i, struttura, sola, scelta, onChange, onDuplica, onElimina }: {
+  q: PropostaSoggiorno; i: number; struttura: string; sola: boolean; scelta: boolean
   onChange: (patch: Partial<PropostaSoggiorno>) => void; onDuplica: () => void; onElimina: () => void
 }) {
   const k = conto(q)
@@ -298,15 +345,13 @@ function Proposta({ q, i, sola, scelta, onChange, onDuplica, onElimina }: {
         {/* Camere: foto, descrizione, tariffe giorno per giorno */}
         <div className="psog__block">
           <div className="psog__block-title">Camere</div>
+          <Disponibilita q={q} struttura={struttura} onChange={onChange} />
           {q.camere.map((c) => (
-            <Camera key={c.id} c={c} date={date} rimovibile={q.camere.length > 1}
+            <Camera key={c.id} c={c} date={date} rimovibile={q.assegnazione === 'manuale'}
               onChange={(patch) => setCamera(c.id, patch)}
               onRimuovi={() => onChange({ camere: q.camere.filter((x) => x.id !== c.id) })} />
           ))}
           <div className="psog__camere-foot">
-            <button type="button" className="sib-btn sib-btn--ghost" onClick={() => onChange({ camere: [...q.camere, nuovaCamera()] })}>
-              <i className="fa-regular fa-plus" aria-hidden="true" /> Aggiungi camera
-            </button>
             <span className={'psog__posti' + (k.postiLetto < ospiti ? ' is-warn' : '')}>
               <i className={'fa-solid ' + (k.postiLetto < ospiti ? 'fa-triangle-exclamation' : 'fa-bed')} aria-hidden="true" />
               {k.postiLetto} posti letto per {ospiti} {ospiti === 1 ? 'ospite' : 'ospiti'}
@@ -357,6 +402,138 @@ function Proposta({ q, i, sola, scelta, onChange, onDuplica, onElimina }: {
   )
 }
 
+// ─── Disponibilità dal gestionale: assegnazione automatica o manuale ─────────
+const MODI: { value: Assegnazione; label: string }[] = [
+  { value: 'automatica', label: 'Automatica' },
+  { value: 'manuale', label: 'Manuale' },
+]
+
+function Disponibilita({ q, struttura, onChange }: {
+  q: PropostaSoggiorno; struttura: string; onChange: (patch: Partial<PropostaSoggiorno>) => void
+}) {
+  const libere = useMemo(() => camereLibere(struttura, q.checkin, q.checkout), [struttura, q.checkin, q.checkout])
+  const gruppi = useMemo(() => perTipologia(libere), [libere])
+  const totale = useMemo(() => totaleCamere(struttura), [struttura])
+  const scelti = numeriScelti(q)
+  const ospiti = q.adulti + q.bambini
+  const occupate = scelti.filter((n) => !libere.some((c) => c.numero === n))
+
+  const assegna = () => onChange({ camere: camereDaNumeri(assegnaAutomatico(libere, ospiti), q.camere) })
+
+  // In automatico le camere seguono struttura, date e ospiti; all'apertura si
+  // assegna solo se la proposta non ha ancora camere del gestionale.
+  const chiave = `${struttura}|${q.checkin}|${q.checkout}|${ospiti}`
+  const ultima = useRef<string | null>(null)
+  useEffect(() => {
+    const prima = ultima.current === null
+    ultima.current = chiave
+    if (q.assegnazione !== 'automatica') return
+    if (prima && scelti.length && !occupate.length) return
+    assegna()
+  }, [chiave, q.assegnazione]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const cambiaModo = (m: Assegnazione) => onChange(m === 'automatica'
+    ? { assegnazione: m, camere: camereDaNumeri(assegnaAutomatico(libere, ospiti), q.camere) }
+    : { assegnazione: m })
+
+  // Le camere scelte a mano, per numero (anche quelle non più libere, finché non si tolgono).
+  const conNumeri = (nuovi: string[]) => onChange({
+    camere: [
+      ...camereDaNumeri(camereStruttura(struttura).filter((c) => nuovi.includes(c.numero)), q.camere),
+      // le righe senza numeri (preventivi di prima) restano finché non si tolgono
+      ...q.camere.filter((c) => !c.numeri.length),
+    ],
+  })
+  const toggle = (numero: string) => conNumeri(scelti.includes(numero) ? scelti.filter((n) => n !== numero) : [...scelti, numero])
+
+  const posti = q.camere.reduce((s, c) => s + c.quantita * tipologia(c.tipologia).capacita, 0)
+  const periodoOk = notti(q) > 0
+  const insufficienti = periodoOk && !bastano(libere, ospiti)
+  const alternativa = useMemo(
+    () => (insufficienti ? primaDataUtile(struttura, q.checkin, q.checkout, ospiti) : null),
+    [insufficienti, struttura, q.checkin, q.checkout, ospiti],
+  )
+
+  return (
+    <div className="psog__disp">
+      <div className="psog__disp-head">
+        <span className="psog__disp-info">
+          <i className="fa-solid fa-door-open" aria-hidden="true" />
+          {periodoOk
+            ? <span><strong>{libere.length}</strong> camere libere su {totale} in {struttura} per le date scelte</span>
+            : <span>Scegli le date per vedere le camere libere</span>}
+        </span>
+        <RadioGroup name={`assegna-${q.id}`} label="Assegnazione camere" value={q.assegnazione} options={MODI}
+          onChange={(v) => cambiaModo(v as Assegnazione)} className="psog__disp-modo" />
+      </div>
+
+      {occupate.length > 0 && (
+        <AlertBanner type="warning">
+          {occupate.length === 1 ? 'La camera' : 'Le camere'} {occupate.join(', ')} non {occupate.length === 1 ? 'è più libera' : 'sono più libere'} nelle date scelte.{' '}
+          <button type="button" className="psog__link" onClick={() => conNumeri(scelti.filter((n) => !occupate.includes(n)))}>Togli dalla proposta</button>
+        </AlertBanner>
+      )}
+
+      {insufficienti && (
+        <p className="psog__disp-alt">
+          <i className="fa-regular fa-calendar-circle-exclamation" aria-hidden="true" />
+          {alternativa
+            ? <span>Le camere libere non bastano per {ospiti} {ospiti === 1 ? 'ospite' : 'ospiti'}. Prima data utile con le stesse notti: <strong>{giornoBreve(alternativa.checkin)} → {giornoBreve(alternativa.checkout)}</strong> ({alternativa.libere} camere libere).</span>
+            : <span>Le camere libere non bastano per {ospiti} {ospiti === 1 ? 'ospite' : 'ospiti'}, né nei prossimi 90 giorni con le stesse notti.</span>}
+          {alternativa && (
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => onChange({ checkin: alternativa.checkin, checkout: alternativa.checkout })}>
+              <i className="fa-regular fa-calendar-arrow-up" aria-hidden="true" /> Sposta le date
+            </button>
+          )}
+        </p>
+      )}
+
+      {q.assegnazione === 'automatica' && periodoOk && (
+        <p className="psog__disp-note">
+          <i className="fa-regular fa-wand-magic-sparkles" aria-hidden="true" />
+          {scelti.length
+            ? <span>Il sistema ha scelto {scelti.length === 1 ? 'la camera' : 'le camere'} <strong>{scelti.join(', ')}</strong> per {ospiti} {ospiti === 1 ? 'ospite' : 'ospiti'}: la combinazione con meno letti vuoti e il prezzo più basso.</span>
+            : <span>Nessuna combinazione di camere libere ospita {ospiti} {ospiti === 1 ? 'ospite' : 'ospiti'} in queste date.</span>}
+          <button type="button" className="sib-btn sib-btn--ghost" onClick={assegna}>
+            <i className="fa-regular fa-arrows-rotate" aria-hidden="true" /> Ricalcola
+          </button>
+        </p>
+      )}
+
+      {q.assegnazione === 'manuale' && periodoOk && (
+        <div className="psog__disp-groups">
+          {gruppi.length === 0 && <p className="psog__disp-none">Nessuna camera libera in queste date.</p>}
+          {gruppi.map((g) => (
+            <div key={g.tipologia} className="psog__disp-group">
+              <div className="psog__disp-gname">
+                <strong>{g.tipologia}</strong>
+                <small>max {g.capacita} · da {eur(g.tariffa)} a notte · {g.camere.length} {g.camere.length === 1 ? 'libera' : 'libere'}</small>
+              </div>
+              <div className="psog__disp-rooms">
+                {g.camere.map((c) => {
+                  const on = scelti.includes(c.numero)
+                  return (
+                    <Tooltip key={c.numero} text={`Camera ${c.numero} · piano ${c.piano} · ${eur(c.tariffa)} a notte`}>
+                      <button type="button" aria-pressed={on} className={'psog__disp-room' + (on ? ' is-on' : '')} onClick={() => toggle(c.numero)}>
+                        {on && <i className="fa-solid fa-check" aria-hidden="true" />} {c.numero}
+                      </button>
+                    </Tooltip>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+          {scelti.length > 0 && (
+            <p className={'psog__disp-sum' + (posti < ospiti ? ' is-warn' : '')}>
+              {scelti.length} {scelti.length === 1 ? 'camera scelta' : 'camere scelte'} · {posti} posti letto per {ospiti} {ospiti === 1 ? 'ospite' : 'ospiti'}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Camera: foto + descrizione accanto, tariffe giorno per giorno ───────────
 function Camera({ c, date, rimovibile, onChange, onRimuovi }: {
   c: CameraProposta; date: string[]; rimovibile: boolean
@@ -365,6 +542,7 @@ function Camera({ c, date, rimovibile, onChange, onRimuovi }: {
   const file = useRef<HTMLInputElement>(null)
   const num = (v: string, min = 0) => Math.max(min, Number(v) || 0)
   const t = tipologia(c.tipologia)
+  const assegnata = c.numeri.length > 0
   const personalizzate = date.some((d) => c.tariffe[d] != null && c.tariffe[d] !== c.prezzoNotte)
 
   const cambiaTipologia = (nome: string) => onChange({
@@ -401,8 +579,9 @@ function Camera({ c, date, rimovibile, onChange, onRimuovi }: {
       <div className="psog__room-info">
         <div className="psog__room-fields">
           <SelectField name={`tipo-${c.id}`} label="Tipologia di camera" value={c.tipologia} onChange={(e) => cambiaTipologia(e.target.value)}
-            options={TIPOLOGIE.map((x) => ({ value: x.nome, label: `${x.nome} · max ${x.capacita}` }))} />
-          <InputField name={`qta-${c.id}`} label="Camere" type="number" min={1} value={c.quantita} onChange={(e) => onChange({ quantita: num(e.target.value, 1) })} />
+            disabled={assegnata} options={TIPOLOGIE.map((x) => ({ value: x.nome, label: `${x.nome} · max ${x.capacita}` }))} />
+          <InputField name={`qta-${c.id}`} label="Camere" type="number" min={1} value={c.quantita} readOnly={assegnata}
+            onChange={(e) => onChange({ quantita: num(e.target.value, 1) })} />
           <InputField name={`prz-${c.id}`} label="Tariffa a notte" type="number" min={0} step={1} iconRight="fa-regular fa-euro-sign"
             value={c.prezzoNotte} onChange={(e) => onChange({ prezzoNotte: num(e.target.value) })} />
           <div className="psog__room-sub">
@@ -416,6 +595,12 @@ function Camera({ c, date, rimovibile, onChange, onRimuovi }: {
               </button>
             </Tooltip>
           )}
+        </div>
+        <div className={'psog__room-num' + (assegnata ? '' : ' is-warn')}>
+          <i className={'fa-solid ' + (assegnata ? 'fa-door-closed' : 'fa-triangle-exclamation')} aria-hidden="true" />
+          {assegnata
+            ? <span>{c.numeri.length === 1 ? 'Camera' : 'Camere'} <strong>{c.numeri.join(', ')}</strong> riservate nel gestionale per il periodo</span>
+            : <span>Nessuna camera assegnata: sceglila tra le libere qui sopra</span>}
         </div>
         <TextareaField name={`desc-${c.id}`} label="Descrizione della camera" rows={2} value={c.descrizione}
           onChange={(e) => onChange({ descrizione: e.target.value })} placeholder="Cosa rende speciale questa camera" />
@@ -454,7 +639,10 @@ function Camera({ c, date, rimovibile, onChange, onRimuovi }: {
 // ─── Servizi aggiuntivi a pagamento ───────────────────────────────────────────
 function Extra({ q, onChange }: { q: PropostaSoggiorno; onChange: (extra: ServizioExtra[]) => void }) {
   const set = (id: string, patch: Partial<ServizioExtra>) => onChange(q.extra.map((e) => (e.id === id ? { ...e, ...patch } : e)))
-  const disponibili = EXTRA_CATALOGO.filter((x) => !q.extra.some((e) => e.nome === x.nome))
+  const rete = useServiziStore((s) => s.servizi)
+  const catalogo = useMemo(() => serviziProponibili(q, rete), [q.checkin, q.checkout, rete]) // eslint-disable-line react-hooks/exhaustive-deps
+  const disponibili = catalogo.filter((x) => !q.extra.some((e) => e.nome === x.nome))
+  const fuori = disponibili.filter((x) => !x.disponibile).length
 
   return (
     <div className="psog__block psog__extra">
@@ -482,29 +670,33 @@ function Extra({ q, onChange }: { q: PropostaSoggiorno; onChange: (extra: Serviz
         </ul>
       )}
       <div className="psog__extra-add">
-        <SelectField name={`xcat-${q.id}`} ariaLabel="Aggiungi dal catalogo" value="" placeholder="Aggiungi dal catalogo…"
+        <SelectField name={`xcat-${q.id}`} ariaLabel="Aggiungi un servizio disponibile nel periodo" value="" placeholder="Aggiungi un servizio disponibile nel periodo…"
           onChange={(ev) => {
-            const x = disponibili.find((d) => d.nome === ev.target.value)
-            if (x) onChange([...q.extra, { ...x, id: uid() }])
+            const x = disponibili.find((d) => d.nome === ev.target.value && d.disponibile)
+            if (x) onChange([...q.extra, { id: uid(), nome: x.nome, prezzo: x.prezzo, unita: x.unita }])
           }}
-          options={disponibili.map((x) => ({ value: x.nome, label: `${x.nome} · ${eur(x.prezzo)} ${UNITA[x.unita]}` }))} />
+          options={[...disponibili].sort((a, b) => Number(b.disponibile) - Number(a.disponibile)).map((x) => ({
+            value: x.nome, disabled: !x.disponibile,
+            label: `${x.fonte === 'rete' ? 'Rete · ' : ''}${x.nome} · ${eur(x.prezzo)} ${UNITA[x.unita]}${x.nota ? ` (${x.nota.toLowerCase()})` : ''}`,
+          }))} />
         <button type="button" className="sib-btn sib-btn--ghost" onClick={() => onChange([...q.extra, { id: uid(), nome: '', prezzo: 0, unita: 'soggiorno' }])}>
           <i className="fa-regular fa-plus" aria-hidden="true" /> Servizio personalizzato
         </button>
+        {fuori > 0 && <span className="psog__block-hint">{fuori} {fuori === 1 ? 'servizio non disponibile' : 'servizi non disponibili'} nelle date scelte</span>}
       </div>
     </div>
   )
 }
 
 // ─── Mail: anteprima e invio; pagina di conferma del cliente ─────────────────
-function MailModal({ pr, invio, onClose, onInvia, onAccetta }: {
-  pr: PreventivoSoggiorno; invio: boolean; onClose: () => void; onInvia: () => void
+function MailModal({ pr, template, invio, onClose, onInvia, onAccetta }: {
+  pr: PreventivoSoggiorno; template: TemplateSoggiorno; invio: boolean; onClose: () => void; onInvia: () => void
   onAccetta: (propostaId: string, extraScelti: string[]) => void
 }) {
   const [oggetto, setOggetto] = useState(`Il tuo preventivo di soggiorno · ${pr.struttura}`)
   // Proposta su cui il cliente ha cliccato "Accetta": apre la pagina di conferma.
   const [conferma, setConferma] = useState<string | null>(null)
-  const html = useMemo(() => mailHtml(pr), [pr])
+  const html = useMemo(() => mailHtml(pr, { template }), [pr, template])
   const frame = useRef<HTMLIFrameElement>(null)
   const clickRef = useRef<(id: string) => void>(() => undefined)
   clickRef.current = (id) => {

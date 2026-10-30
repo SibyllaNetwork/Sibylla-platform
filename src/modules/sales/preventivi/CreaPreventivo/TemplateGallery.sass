@@ -1,0 +1,216 @@
+// ─── GALLERIA TEMPLATE DEL PREVENTIVO DI SOGGIORNO ─────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.tplg
+  display: flex
+  flex-direction: column
+  gap: 18px
+  font-size: 13px
+
+  &__sec
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+    padding: 16px 18px 20px
+
+  &__sec-head
+    display: flex
+    flex-direction: column
+    gap: 2px
+    margin-bottom: 16px
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-size: 15px
+      font-weight: 600
+      color: $text-active
+
+    span
+      font-size: 12px
+      color: $text-inactive
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))
+    gap: 16px
+
+  // ── Scheda di un template ─────────────────────────────────────────────────
+  &__card
+    display: flex
+    flex-direction: column
+    border: 1px solid $border
+    border-radius: 12px
+    overflow: hidden
+    background: var(--color-surface)
+    transition: border-color .15s, box-shadow .15s
+
+    &:hover
+      border-color: $primary-300
+      box-shadow: $shadow-md
+
+  &__thumb
+    position: relative
+    display: block
+    width: 100%
+    height: 300px
+    padding: 0
+    border: 0
+    border-bottom: 1px solid $border
+    background: $bg
+    cursor: zoom-in
+    overflow: hidden
+
+    &:hover .tplg__thumb-hover,
+    &:focus-visible .tplg__thumb-hover
+      opacity: 1
+
+  &__thumb-hover
+    position: absolute
+    inset: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+    background: rgba(15, 23, 42, .45)
+    color: #fff
+    font-weight: 600
+    opacity: 0
+    transition: opacity .15s
+
+  &__info
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 12px 14px 14px
+    flex: 1
+
+  &__name
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+
+    strong
+      font-family: $font-heading
+      font-size: 14px
+      font-weight: 600
+      color: $text-active
+      white-space: nowrap
+      overflow: hidden
+      text-overflow: ellipsis
+
+  &__tag
+    flex-shrink: 0
+    padding: 2px 8px
+    border-radius: 999px
+    background: $primary-50
+    color: $primary
+    font-size: 11px
+    font-weight: 600
+
+    &--mio
+      background: $success-light
+      color: $success
+
+  &__desc
+    margin: 0
+    color: $text-inactive
+    font-size: 12px
+    line-height: 1.45
+    flex: 1
+
+  &__acts
+    display: flex
+    align-items: center
+    gap: 6px
+    margin-top: 4px
+
+    .sib-btn--primary,
+    .sib-btn--secondary
+      flex: 1
+      justify-content: center
+
+  &__ico
+    i
+      color: $primary
+      font-size: 16px
+
+  // ── Crea il tuo template ──────────────────────────────────────────────────
+  &__new
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 420px
+    padding: 24px
+    border: 2px dashed $primary-200
+    border-radius: 12px
+    background: $primary-50
+    color: $text-active
+    font-family: inherit
+    text-align: center
+    cursor: pointer
+    transition: border-color .15s, background .15s
+
+    strong
+      font-family: $font-heading
+      font-size: 15px
+      font-weight: 600
+      color: $primary
+
+    small
+      max-width: 220px
+      color: $text-inactive
+      font-size: 12px
+      line-height: 1.5
+
+    &:hover
+      border-color: $primary
+      background: $primary-100
+
+  &__new-ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 52px
+    height: 52px
+    border-radius: 50%
+    background: $primary
+    color: #fff
+    font-size: 22px
+
+// ── Miniatura: la mail vera, ridotta in scala ──────────────────────────────────
+.tplg-mini
+  position: absolute
+  inset: 0
+  overflow: hidden
+  pointer-events: none
+
+  &__frame
+    width: 660px
+    height: 760px
+    border: 0
+    transform: scale(.4)
+    transform-origin: 0 0
+    background: transparent
+
+// ── Anteprima a grandezza reale ────────────────────────────────────────────────
+.tplg-prev
+  &__body
+    padding: 16px 20px
+
+  &__frame
+    width: 100%
+    height: 68vh
+    border: 1px solid $border
+    border-radius: 12px
+    background: $bg
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding: 12px 20px 16px
+    border-top: 1px solid $border

@@ -1,0 +1,648 @@
+// ─── EDITOR DEL TEMPLATE (preventivo di soggiorno) ─────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.tpled
+  display: flex
+  flex-direction: column
+  gap: 14px
+  font-size: 13px
+  container-type: inline-size
+
+  &__top-acts
+    display: flex
+    gap: 8px
+    margin-left: auto
+    padding-bottom: 6px
+
+  &__hint
+    margin: 0
+    color: $text-inactive
+    font-size: 12px
+    line-height: 1.5
+
+  &__label
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__link
+    padding: 0
+    border: 0
+    background: none
+    color: $link
+    font: inherit
+    font-weight: 600
+    text-decoration: underline
+    cursor: pointer
+
+  &__file
+    display: none
+
+  &__ico
+    i
+      color: $primary
+      font-size: 16px
+
+    &:disabled i
+      color: $text-disabled
+
+  // ── Schede Design / Proposte ──────────────────────────────────────────────
+  &__tabs
+    display: flex
+    align-items: center
+    gap: 4px
+    border-bottom: 1px solid $border
+
+  &__tab
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    padding: 9px 14px
+    border: 0
+    border-bottom: 2px solid transparent
+    margin-bottom: -1px
+    background: none
+    font-family: inherit
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+
+    &:hover
+      color: $text-active
+
+    &.is-on
+      color: $primary
+      border-bottom-color: $primary
+
+  &__dirty
+    margin-left: 12px
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $warning
+
+    i
+      font-size: 7px
+
+  // ── Pannello impostazioni + anteprima ──────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: 380px minmax(0, 1fr)
+    gap: 18px
+    align-items: start
+
+  &__panel
+    display: flex
+    flex-direction: column
+    gap: 8px
+    max-height: calc(100vh - 230px)
+    overflow-y: auto
+    padding-right: 4px
+    position: sticky
+    top: 12px
+
+  &__sec
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+
+    &.is-open
+      border-color: $primary-200
+
+  &__sec-head
+    display: flex
+    align-items: center
+    gap: 10px
+    width: 100%
+    padding: 10px 12px
+    border: 0
+    background: none
+    font-family: inherit
+    text-align: left
+    cursor: pointer
+
+  &__sec-ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+    width: 32px
+    height: 32px
+    border-radius: 9px
+    background: $primary-50
+    color: $primary
+    font-size: 15px
+
+  &__sec-txt
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-width: 0
+
+    strong
+      font-family: $font-heading
+      font-size: 13px
+      font-weight: 600
+      color: $text-active
+
+    small
+      font-size: 11.5px
+      color: $text-inactive
+      white-space: nowrap
+      overflow: hidden
+      text-overflow: ellipsis
+
+  &__chev
+    color: $text-inactive
+    font-size: 12px
+
+  &__sec-body
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 4px 14px 16px
+
+  // ── Blocchi dell'impaginazione ─────────────────────────────────────────────
+  &__blocks
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__block
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 7px 8px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    cursor: grab
+
+    &.is-off
+      background: $bg
+
+      .tpled__block-txt,
+      .tpled__block-ico
+        opacity: .5
+
+    &.is-over
+      border-color: $primary
+      box-shadow: 0 0 0 2px $focus-ring
+
+  // Frecce compatte: senza riquadro (servono 2 classi per battere .sib-btn--icon).
+  &__block .tpled__ico
+    width: 26px
+    height: 26px
+    min-width: 26px
+    padding: 0
+    border: 0
+    background: none
+    box-shadow: none
+
+    i
+      font-size: 13px
+
+    &:hover:not(:disabled)
+      background: $primary-50
+
+  &__grip
+    color: $text-disabled
+    font-size: 13px
+
+  &__block-ico
+    width: 18px
+    text-align: center
+    color: $primary
+    font-size: 14px
+
+  &__block-txt
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-width: 0
+
+    strong
+      font-size: 12.5px
+      font-weight: 600
+      color: $text-active
+
+    small
+      font-size: 11px
+      color: $text-inactive
+      white-space: nowrap
+      overflow: hidden
+      text-overflow: ellipsis
+
+  // ── Scelte visive (disposizione, posizione foto) ───────────────────────────
+  &__choice
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__choice-opts
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(76px, 1fr))
+    gap: 6px
+
+  &__opt
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    padding: 9px 6px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    font-family: inherit
+    font-size: 11.5px
+    color: $text-active
+    text-align: center
+    cursor: pointer
+    transition: border-color .12s, background .12s
+
+    > i
+      font-size: 18px
+      color: $primary
+
+    &:hover
+      border-color: $primary-300
+
+    &.is-on
+      border-color: $primary
+      background: $primary-50
+      font-weight: 600
+
+  // Schema della posizione foto: i = foto, b = righe di testo.
+  &__schema
+    display: grid
+    width: 44px
+    height: 30px
+    gap: 3px
+    padding: 3px
+    border: 1px solid $primary-200
+    border-radius: 5px
+    background: var(--color-surface)
+
+    i
+      display: block
+      border-radius: 2px
+      background: $primary-300
+
+    b
+      display: block
+      height: 4px
+      border-radius: 2px
+      background: $primary-200
+      align-self: center
+
+    &--sinistra
+      grid-template-columns: 16px 1fr
+      grid-template-rows: 1fr 1fr
+
+      i
+        grid-row: 1 / 3
+
+    &--destra
+      grid-template-columns: 1fr 16px
+      grid-template-rows: 1fr 1fr
+
+      i
+        grid-column: 2
+        grid-row: 1 / 3
+
+      b
+        grid-column: 1
+        grid-row: auto
+
+    &--sopra
+      grid-template-rows: 12px 1fr 1fr
+
+    &--nascosta
+      grid-template-rows: 1fr 1fr
+      align-content: center
+
+      i
+        display: none
+
+  // ── Immagini (logo, copertina) ─────────────────────────────────────────────
+  &__photos
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 6px
+
+  &__photo
+    display: block
+    padding: 0
+    height: 62px
+    border: 2px solid transparent
+    border-radius: 8px
+    overflow: hidden
+    cursor: pointer
+    background: $bg
+
+    img
+      display: block
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+    &.is-on
+      border-color: $primary
+
+  &__img
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__img-row
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__img-prev
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex: 1
+    min-width: 0
+    height: 56px
+    border: 1px dashed $border
+    border-radius: 8px
+    background: $bg
+    overflow: hidden
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+    small
+      color: $text-inactive
+      font-size: 11.5px
+
+    &--logo img
+      object-fit: contain
+      padding: 6px
+
+  // ── Colori ─────────────────────────────────────────────────────────────────
+  &__palettes
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__palette
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 5px 9px 5px 6px
+    border: 1px solid $border
+    border-radius: 999px
+    background: var(--color-surface)
+    font-family: inherit
+    font-size: 12px
+    color: $text-active
+    cursor: pointer
+
+    svg
+      width: 36px
+      height: 9px
+      border-radius: 3px
+      overflow: hidden
+
+    &:hover
+      border-color: $primary
+
+  &__colors
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__color
+    position: relative
+
+  &__color-btn
+    display: flex
+    align-items: center
+    gap: 9px
+    width: 100%
+    padding: 6px 8px
+    border: 1px solid $border
+    border-radius: 9px
+    background: var(--color-surface)
+    font-family: inherit
+    text-align: left
+    cursor: pointer
+
+    &:hover,
+    &[aria-expanded="true"]
+      border-color: $primary
+
+    code
+      font-size: 11.5px
+      color: $text-inactive
+
+  &__swatch
+    width: 20px
+    height: 20px
+    flex-shrink: 0
+
+    rect
+      stroke: rgba(15, 23, 42, .15)
+
+  &__color-lbl
+    flex: 1
+    min-width: 0
+    font-size: 12.5px
+    color: $text-active
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__picker
+    position: absolute
+    z-index: 20
+    top: calc(100% + 4px)
+    left: 0
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 10px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    box-shadow: $shadow-lg
+
+  &__hex
+    height: 30px
+    padding: 0 10px
+    border: 1px solid $border
+    border-radius: 8px
+    background: var(--color-surface)
+    color: $text-active
+    font-family: monospace
+    font-size: 13px
+    text-transform: uppercase
+
+    &:focus
+      outline: none
+      border-color: $primary
+      box-shadow: 0 0 0 2px $focus-ring
+
+  // ── Segnaposto ─────────────────────────────────────────────────────────────
+  &__vars
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__vars-list
+    display: flex
+    flex-wrap: wrap
+    gap: 5px
+
+  &__var
+    padding: 3px 8px
+    border: 1px solid $primary-200
+    border-radius: 6px
+    background: $primary-50
+    color: $primary
+    font-family: monospace
+    font-size: 11.5px
+    cursor: copy
+
+    &:hover
+      border-color: $primary
+
+  // ── Anteprima ──────────────────────────────────────────────────────────────
+  &__preview
+    display: flex
+    flex-direction: column
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+    min-width: 0
+
+  &__preview-bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+    padding: 8px 12px
+    border-bottom: 1px solid $border
+
+  &__preview-title
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+    i
+      color: $primary
+
+  &__devices
+    display: inline-flex
+    padding: 2px
+    border: 1px solid $border
+    border-radius: 9px
+    background: $bg
+
+  &__device
+    width: 34px
+    height: 28px
+    border: 0
+    border-radius: 7px
+    background: none
+    color: $text-inactive
+    font-size: 14px
+    cursor: pointer
+
+    &.is-on
+      background: var(--color-surface)
+      color: $primary
+      box-shadow: $shadow-sm
+
+  &__stage
+    display: flex
+    justify-content: center
+    padding: 14px
+    background: $bg
+
+    &--mobile
+      .tpled__frame
+        width: 390px
+        border-radius: 22px
+        border: 6px solid $text-active
+
+  &__frame
+    width: 100%
+    height: calc(100vh - 300px)
+    min-height: 520px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    transition: width .2s
+
+  // ── Scheda Proposte ────────────────────────────────────────────────────────
+  &__props
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__props-head
+    display: grid
+    grid-template-columns: 280px minmax(0, 1fr) auto
+    gap: 16px
+    align-items: end
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+
+  &__add
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    padding: 12px
+    border: 1px dashed $primary-300
+    border-radius: 12px
+    background: $primary-50
+    color: $primary
+    font-family: inherit
+    font-weight: 600
+    cursor: pointer
+
+    &:hover
+      border-color: $primary
+
+@container (max-width: 1100px)
+  .tpled__layout
+    grid-template-columns: 330px minmax(0, 1fr)
+
+  .tpled__props-head
+    grid-template-columns: minmax(0, 1fr) auto
+
+    .tpled__hint
+      grid-column: 1 / -1
+      grid-row: 2
+
+@container (max-width: 860px)
+  .tpled__layout
+    grid-template-columns: minmax(0, 1fr)
+
+  .tpled__panel
+    position: static
+    max-height: none
+    overflow: visible
+
+  .tpled__stage--mobile .tpled__frame
+    width: 100%

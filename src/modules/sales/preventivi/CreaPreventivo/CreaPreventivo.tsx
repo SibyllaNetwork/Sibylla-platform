@@ -6,6 +6,8 @@ import { InputField, SelectField, TextareaField } from '../../../../core/compone
 import { useCatalogoStore } from '../../../../store/useCatalogoStore'
 import { apiFetchSibylla } from '../../../../services/api'
 import PreventivoSoggiorno from './PreventivoSoggiorno'
+import TemplateGallery from './TemplateGallery'
+import { useConfirmStore } from '../../../../store/useConfirmStore'
 import './CreaPreventivo.sass'
 
 /**
@@ -64,8 +66,19 @@ export const FINALITA: { id: FinalitaPreventivo; label: string; icona: string; d
 const eur = (n: number) =>
   n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 
-export default function CreaPreventivo({ navigate, preventivoId }: { navigate: (p: string) => void; preventivoId?: string }) {
+export default function CreaPreventivo({ navigate, preventivoId, templateId }: { navigate: (p: string) => void; preventivoId?: string; templateId?: string }) {
   const [finalita, setFinalita] = useState<FinalitaPreventivo>('soggiorno')
+  // Soggiorno: prima si sceglie il template della mail (galleria), poi si compila.
+  const [template, setTemplate] = useState<string | null>(templateId ?? null)
+  const confirm = useConfirmStore(s => s.confirm)
+  const tornaAllaGalleria = async () => {
+    const ok = await confirm({
+      title: 'Torna alla galleria',
+      message: 'Tornare alla scelta del template? Le modifiche al preventivo non salvate in bozza andranno perse.',
+      confirmLabel: 'Torna alla galleria',
+    })
+    if (ok) setTemplate(null)
+  }
   const prodotti  = useCatalogoStore(s => s.prodotti)
   const fornitori = useCatalogoStore(s => s.fornitori)
 
@@ -157,7 +170,9 @@ export default function CreaPreventivo({ navigate, preventivoId }: { navigate: (
     <div className="crea-preventivo">
       <PageHead
         title={modifica ? 'Modifica preventivo' : 'Crea preventivo'}
-        subtitle={finalita === 'soggiorno'
+        subtitle={finalita === 'soggiorno' && !modifica && !template
+          ? 'Scegli come apparirà la mail al cliente: un template pronto o il tuo, personalizzato in ogni dettaglio'
+          : finalita === 'soggiorno'
           ? 'Proponi una o più soluzioni di soggiorno: il cliente riceve la mail e sceglie quella che preferisce'
           : 'Generazione automatica di preventivi personalizzabili'}
         onBack={() => navigate('i-miei-preventivi')}
@@ -193,8 +208,12 @@ export default function CreaPreventivo({ navigate, preventivoId }: { navigate: (
         </div>
       )}
 
-      {finalita === 'soggiorno' || modifica
+      {modifica
         ? <PreventivoSoggiorno navigate={navigate} preventivoId={preventivoId} />
+        : finalita === 'soggiorno' && !template
+        ? <TemplateGallery navigate={navigate} onScegli={setTemplate} />
+        : finalita === 'soggiorno'
+        ? <PreventivoSoggiorno key={template} navigate={navigate} templateId={template ?? undefined} onCambiaTemplate={tornaAllaGalleria} />
         : <>
           {error && <AlertBanner type="error">{error}</AlertBanner>}
 

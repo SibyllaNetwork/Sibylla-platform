@@ -20,6 +20,8 @@ export interface CameraProposta {
   descrizione: string
   /** Foto della camera (data URL compressa); null = illustrazione. */
   immagine: string | null
+  /** Camere assegnate dal gestionale (numeri): se ci sono, quantita = numeri.length. */
+  numeri: string[]
 }
 
 export type UnitaExtra = 'soggiorno' | 'persona' | 'notte' | 'persona-notte'
@@ -32,9 +34,13 @@ export interface ServizioExtra {
   unita: UnitaExtra
 }
 
+/** Come si scelgono le camere: in automatico sulle libere del periodo, o a mano. */
+export type Assegnazione = 'automatica' | 'manuale'
+
 export interface PropostaSoggiorno {
   id: string
   titolo: string
+  assegnazione: Assegnazione
   checkin: string
   checkout: string
   adulti: number
@@ -61,6 +67,8 @@ export interface PreventivoSoggiorno {
   telefono: string
   messaggio: string
   validita: string
+  /** Template della mail (pronto o personale). */
+  templateId?: string
   creato: string
   stato: StatoPreventivo
   inviatoIl?: string
@@ -97,15 +105,16 @@ export const usePreventiviSoggiornoStore = create<PreventiviSoggiornoState>()(
     }),
     {
       name: 'sibylla.preventivi-soggiorno',
-      version: 2,
+      version: 3,
       // v2: tariffe giorno per giorno, foto/descrizione camera, servizi extra.
+      // v3: camere assegnate dal gestionale (numeri), modo di assegnazione, template.
       migrate: (stato: any) => ({
         ...stato,
         preventivi: (stato?.preventivi ?? []).map((p: any) => ({
           ...p,
           proposte: p.proposte.map((q: any) => ({
-            ...q, extra: q.extra ?? [],
-            camere: q.camere.map((c: any) => ({ tariffe: {}, descrizione: '', immagine: null, ...c })),
+            assegnazione: 'manuale', ...q, extra: q.extra ?? [],
+            camere: q.camere.map((c: any) => ({ tariffe: {}, descrizione: '', immagine: null, numeri: [], ...c })),
           })),
         })),
       }),

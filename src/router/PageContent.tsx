@@ -173,6 +173,7 @@ import IMieiServizi                from '../modules/sales/servizi/IMieiServizi/I
 import CreaServizio                from '../modules/sales/servizi/CreaServizio/CreaServizio';
 import IMieiPreventivi             from '../modules/sales/preventivi/IMieiPreventivi/IMieiPreventivi';
 import CreaPreventivo              from '../modules/sales/preventivi/CreaPreventivo/CreaPreventivo';
+import EditorTemplateSoggiorno     from '../modules/sales/preventivi/CreaPreventivo/EditorTemplateSoggiorno';
 import ImpostaCentroDiCosto        from '../modules/finance/ImpostaCentroDiCosto/ImpostaCentroDiCosto';
 import ArchivioPersonale           from '../modules/hr/ArchivioPersonale/ArchivioPersonale';
 import CreaAnagrafica              from '../modules/hr/CreaAnagrafica/CreaAnagrafica';
@@ -469,6 +470,9 @@ export default function PageContent({ page, navigate }: Props) {
   if (page.startsWith('crea-servizio:')) return <CreaServizio navigate={navigate} servizioId={page.slice('crea-servizio:'.length)} key={page}/>;
   if (page === 'i-miei-preventivi')     return <IMieiPreventivi navigate={navigate}/>;
   if (page === 'crea-preventivo')       return <CreaPreventivo navigate={navigate}/>;
+  if (page.startsWith('crea-preventivo-template:')) return <CreaPreventivo navigate={navigate} templateId={page.slice('crea-preventivo-template:'.length)} key={page}/>;
+  if (page === 'editor-template-soggiorno' || page.startsWith('editor-template-soggiorno:'))
+    return <EditorTemplateSoggiorno navigate={navigate} param={page.slice('editor-template-soggiorno:'.length)} key={page}/>;
   if (page.startsWith('crea-preventivo:')) return <CreaPreventivo navigate={navigate} preventivoId={page.slice('crea-preventivo:'.length)} key={page}/>;
   if (page === 'centro-costo')          return <ImpostaCentroDiCosto navigate={navigate}/>;
   if (page === 'archivio-personale')    return <ArchivioPersonale navigate={navigate}/>;
