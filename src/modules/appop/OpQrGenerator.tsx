@@ -317,7 +317,7 @@ function QrCamere({ struttura, azienda }: { struttura: StrutturaQr; azienda: str
       <EmptyState
         icon="door-closed"
         title="Nessuna camera in questa struttura"
-        subtitle="Le camere con il loro QR arrivano dalla struttura (o dai dati di esempio): appena ci sono, qui trovi le etichette da stampare."
+        subtitle="Le camere con il loro QR arrivano dalle strutture: appena ci sono, qui trovi le etichette da stampare."
       />
     )
   }
