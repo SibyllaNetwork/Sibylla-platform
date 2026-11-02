@@ -180,16 +180,146 @@
     i
       font-size: 11px
 
-  // ── Stato (testo, non badge) ────────────────────────────────────────────
+  // ── Stato: badge con icona + riga del perché ────────────────────────────
+  // Colori: bozza grigio, inviato blu, letto viola, accettato verde chiaro,
+  // confermato verde pieno, rifiutato rosso, scaduto arancio (da richiamare).
   &__stato
-    &--letto
-      color: var(--color-primary)
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    max-width: 100%
+    padding: 2px 8px
+    border-radius: 999px
+    font-size: 11.5px
+    font-weight: 600
+    line-height: 18px
+    border: 1px solid transparent
+
+    i
+      font-size: 11px
 
     &--bozza
+      background: var(--color-bg)
+      border-color: var(--color-border)
+      color: var(--color-text-inactive)
+
+    &--inviato
+      background: var(--color-primary-50)
+      border-color: var(--color-primary-200)
+      color: var(--color-primary)
+
+    &--letto
+      background: rgba($stato-noshow, 0.1)
+      border-color: rgba($stato-noshow, 0.35)
+      color: $stato-noshow
+
+    &--accettato
+      background: var(--color-success-light)
+      border-color: var(--color-success-mid)
+      color: var(--color-success)
+
+    &--confermato
+      background: var(--color-success)
+      color: #fff
+
+    &--rifiutato
+      background: var(--color-error-light)
+      border-color: var(--color-error)
+      color: var(--color-error-dark)
+
+    &--scaduto
+      background: var(--color-warning-light)
+      border-color: var(--color-warning)
+      color: var(--color-warning)
+
+  // Badge e nota sulla stessa riga: la nota si accorcia (tooltip col testo intero).
+  &__stato-cella
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+  &__stato
+    flex-shrink: 0
+
+  &__stato-nota
+    flex: 1
+    min-width: 0
+    overflow: hidden
+    font-size: 10.5px
+    color: var(--color-text-inactive)
+
+    &--pagamento-ko
+      color: var(--color-error-dark)
+      font-weight: 600
+
+    &--in-scadenza
+      color: var(--color-warning)
+      font-weight: 600
+
+  // ── Riepilogo per stato (filtri rapidi): testo leggero con un pallino ───
+  &__riepilogo
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 2px
+    margin-bottom: 12px
+
+  &__conta
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 4px 10px
+    border: none
+    border-radius: 999px
+    background: none
+    font-size: 12px
+    color: var(--color-text-inactive)
+    cursor: pointer
+    transition: background 0.15s ease, color 0.15s ease
+
+    &:hover:not(:disabled)
       color: var(--color-text-active)
+      background: var(--color-bg)
+
+    &:disabled
+      opacity: 0.4
+      cursor: default
+
+    &.is-attivo
+      color: var(--color-primary)
+      background: var(--color-primary-50)
+      font-weight: 600
+
+  &__conta-n
+    font-weight: 600
+    color: var(--color-text-active)
+
+    .is-attivo &
+      color: var(--color-primary)
+
+  &__conta-punto
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    background: var(--color-text-inactive)
+
+    .gest-prev__conta--inviato &
+      background: var(--color-primary)
+    .gest-prev__conta--letto &
+      background: $stato-noshow
+    .gest-prev__conta--accettato &
+      background: var(--color-success-mid)
+    .gest-prev__conta--confermato &
+      background: var(--color-success)
+    .gest-prev__conta--rifiutato &
+      background: var(--color-error-dark)
+    .gest-prev__conta--scaduto &
+      background: var(--color-warning)
 
   &__scaduto
-    color: var(--color-error)
+    color: var(--color-warning)
+    font-weight: 600
 
   // ── Azioni inline ───────────────────────────────────────────────────────
   &__actions
@@ -235,71 +365,6 @@
       font-size: 16px
       color: var(--color-primary)
 
-  // Proposte del preventivo di soggiorno (riga espansa)
-  &__proposte
-    list-style: none
-    margin: 4px 0 10px
-    padding: 0
-    display: flex
-    flex-direction: column
-    gap: 6px
-
-    li
-      display: flex
-      align-items: center
-      gap: 10px
-      padding: 7px 10px
-      border: 1px solid var(--color-border)
-      border-radius: 8px
-      background: var(--color-surface)
-
-      &.is-scelta
-        border-color: var(--color-success)
-        background: var(--color-success-light)
-
-  &__lettera
-    width: 22px
-    height: 22px
-    flex-shrink: 0
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    border-radius: 6px
-    background: var(--color-primary)
-    color: #fff
-    font-size: 11px
-    font-weight: 700
-
-  &__prop-txt
-    flex: 1
-    min-width: 0
-    display: flex
-    flex-direction: column
-
-    strong, small
-      overflow: hidden
-      text-overflow: ellipsis
-      white-space: nowrap
-
-    strong
-      font-size: 12.5px
-      color: var(--color-text-active)
-
-    small
-      font-size: 11px
-      color: var(--color-text-inactive)
-
-  &__scelta
-    font-size: 12px
-    font-weight: 600
-    color: var(--color-success)
-    white-space: nowrap
-
-  &__prop-tot
-    font-weight: 700
-    color: var(--color-primary)
-    white-space: nowrap
-
   &__pager
     margin-top: 18px
     justify-content: center
@@ -325,27 +390,27 @@
 .gest-prev__w-id
   width: 7%
 .gest-prev__w-fin
-  width: 8%
-.gest-prev__w-stato
-  width: 8%
-.gest-prev__w-utente
   width: 7%
+.gest-prev__w-stato
+  width: 16%
+.gest-prev__w-utente
+  width: 6%
 .gest-prev__w-creazione
-  width: 8%
+  width: 6%
 .gest-prev__w-scadenza
   width: 8%
 .gest-prev__w-cliente
   width: 8%
 .gest-prev__w-email
-  width: 7%
+  width: 6%
 .gest-prev__w-camere
-  width: 5%
+  width: 4%
 .gest-prev__w-inout
-  width: 8%
+  width: 7%
 .gest-prev__w-prezzo
   width: 7%
 .gest-prev__w-azioni
-  width: 13%
+  width: 12%
 
 @container gestprev (max-width: 1180px)
   .gest-prev__wrap .gest-prev__table

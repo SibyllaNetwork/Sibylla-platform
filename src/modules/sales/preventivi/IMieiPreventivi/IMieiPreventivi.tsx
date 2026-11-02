@@ -13,7 +13,10 @@ import { exportPreventivoPdf } from './preventivoPdf'
 import { SelectField } from '../../../../core/components/form'
 import { usePreventiviSoggiornoStore, type PreventivoSoggiorno } from '../../../../store/usePreventiviSoggiornoStore'
 import { FINALITA, type FinalitaPreventivo } from '../CreaPreventivo/CreaPreventivo'
-import { LETTERE, conto, eur } from '../CreaPreventivo/soggiorno'
+import { conto } from '../CreaPreventivo/soggiorno'
+import DettaglioSoggiorno from './DettaglioSoggiorno'
+import { esempiSoggiorno } from './esempiSoggiorno'
+import { STATI_VISTI, chiaveStato, iconaStato, statoSemplice, statoSoggiorno, type StatoDettaglio, type StatoVisto } from './statoPreventivo'
 import './IMieiPreventivi.sass'
 
 /**
@@ -37,13 +40,16 @@ interface Preventivo {
   prezzo?: number
   /** Finalità: Soggiorno, Prodotti o Servizi. */
   finalita?: FinalitaPreventivo
-  /** Preventivo di soggiorno creato nella piattaforma (store). */
+  /** Preventivo di soggiorno creato nella piattaforma (store) o d'esempio. */
   soggiorno?: PreventivoSoggiorno
+  /** Stato come lo vede l'hotel (con scaduto e confermato) e il suo perché. */
+  vista?: StatoDettaglio
   [key: string]: unknown
 }
 
-// Preventivi d'esempio (senza backend): creati negli ultimi 20 giorni, con
-// scadenza a 7 giorni e soggiorni nelle settimane successive. Deterministici.
+// Preventivi d'esempio di prodotti e servizi (senza backend): creati negli
+// ultimi 20 giorni, con scadenza a 7 giorni. Deterministici. Quelli di soggiorno
+// d'esempio sono completi (esempiSoggiorno) e hanno il dettaglio.
 const CLIENTI_PRV: Array<[string, string]> = [
   ['Gruppo Rotary Roma Sud', 'segreteria@rotaryromasud.it'], ['Studio Legale Riva', 'eventi@studioriva.it'],
   ['Tecnomec S.p.A.', 'travel@tecnomec.it'], ['Famiglia Colombo', 'colombo.famiglia@mail.it'],
@@ -75,7 +81,7 @@ const FALLBACK: Preventivo[] = CLIENTI_PRV.map(([cliente, email], i) => {
     checkin: fmtDataPrv(traPrv(arrivo)), checkout: fmtDataPrv(traPrv(arrivo + notti)),
     prezzo: Math.round(camere * notti * (128 + (i % 4) * 22) * 100) / 100,
   }
-}).reverse()
+}).filter((p) => p.finalita !== 'soggiorno').reverse()
 
 const FIN_LABEL = Object.fromEntries(FINALITA.map((f) => [f.id, f])) as Record<FinalitaPreventivo, (typeof FINALITA)[number]>
 
@@ -89,7 +95,8 @@ function daSoggiorno(p: PreventivoSoggiorno, i: number): Preventivo {
   scad.setFullYear(a, m - 1, g + Number(p.validita))
   return {
     id: 100000 + i, codice: p.codice, stato: p.stato, utente: 'Mario Rossi', finalita: 'soggiorno', soggiorno: p,
-    data_creazione: p.creato, data_scadenza: `${fmtDataPrv(scad)} 00:00`,
+    vista: statoSoggiorno(p),
+    data_creazione: fmtDataPrv(parseDate(p.creato) ?? new Date()), data_scadenza: `${fmtDataPrv(scad)} 00:00`,
     cliente: p.cliente, email: p.email,
     camere: q?.camere.reduce((s, c) => s + c.quantita, 0),
     checkin: q ? isoIt(q.checkin) : '', checkout: q ? isoIt(q.checkout) : '',
@@ -97,29 +104,32 @@ function daSoggiorno(p: PreventivoSoggiorno, i: number): Preventivo {
   }
 }
 
-const STATI = ['Bozza', 'Letto', 'Inviato', 'Accettato', 'Rifiutato', 'Scaduto']
-
 const PAGE_SIZE = 10
 
 /** Parsa "dd/mm/yyyy" o "dd/mm/yyyy HH:MM" → Date (o null). */
 function parseDate(s?: string): Date | null {
   if (!s) return null
-  const m = s.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/)
+  const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/)
   if (!m) return null
   return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]), Number(m[4] ?? 0), Number(m[5] ?? 0))
 }
 
-function isScaduto(p: Preventivo): boolean {
-  const d = parseDate(p.data_scadenza)
-  return !!d && d.getTime() < Date.now()
-}
+const vistaDi = (p: Preventivo): StatoDettaglio => p.vista ?? statoSemplice(p.stato, parseDate(p.data_scadenza))
+
+/** Scadenza in rosso solo se è passata senza risposta (non per bozze, accettati o rifiutati). */
+const scadenzaRossa = (p: Preventivo) => vistaDi(p).stato === 'Scaduto'
 
 export default function IMieiPreventivi({ navigate }: { navigate: (p: string) => void }) {
   const [remoti, setItems] = useState<Preventivo[]>(FALLBACK)
   const soggiorni = usePreventiviSoggiornoStore((s) => s.preventivi)
-  const aggiornaSoggiorno = usePreventiviSoggiornoStore((s) => s.aggiorna)
+  const salvaSoggiorno = usePreventiviSoggiornoStore((s) => s.salva)
   const eliminaSoggiorno = usePreventiviSoggiornoStore((s) => s.elimina)
-  const items = useMemo(() => [...soggiorni.map(daSoggiorno), ...remoti], [soggiorni, remoti])
+  // Esempi tolti dall'elenco in questa sessione (non sono nello store).
+  const [esempiTolti, setEsempiTolti] = useState<Set<string>>(new Set())
+  const items = useMemo(() => {
+    const esempi = esempiSoggiorno().filter((e) => !esempiTolti.has(e.id) && !soggiorni.some((x) => x.id === e.id))
+    return [...[...soggiorni, ...esempi].map(daSoggiorno), ...remoti].map((p) => ({ ...p, vista: vistaDi(p) }))
+  }, [soggiorni, remoti, esempiTolti])
   const [finSel, setFinSel] = useState<'' | FinalitaPreventivo>('')
   const [search, setSearch] = useState('')
   const [statiSel, setStatiSel] = useState<string[]>([])
@@ -147,19 +157,26 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
     return () => document.removeEventListener('mousedown', onDoc)
   }, [])
 
+  // Ricerca e tipologia valgono anche per i conteggi del riepilogo; lo stato no.
+  const cercati = useMemo(() => items.filter((p) => {
+    const matchSearch = !search || `${p.codice ?? ''} ${p.cliente ?? ''} ${p.email ?? ''} ${p.utente ?? ''}`.toLowerCase().includes(search.toLowerCase())
+    return matchSearch && (!finSel || p.finalita === finSel)
+  }), [items, search, finSel])
+
+  const conteggi = useMemo(() => {
+    const n = Object.fromEntries(STATI_VISTI.map((x) => [x.stato, 0])) as Record<StatoVisto, number>
+    cercati.forEach((p) => { n[vistaDi(p).stato]++ })
+    return n
+  }, [cercati])
+
   const filtered = useMemo(() => {
-    const rows = items.filter((p) => {
-      const matchSearch = !search || `${p.codice ?? ''} ${p.cliente ?? ''} ${p.email ?? ''} ${p.utente ?? ''}`.toLowerCase().includes(search.toLowerCase())
-      const matchStato = statiSel.length === 0 || statiSel.includes(p.stato ?? '')
-      const matchFin = !finSel || p.finalita === finSel
-      return matchSearch && matchStato && matchFin
-    })
+    const rows = cercati.filter((p) => statiSel.length === 0 || statiSel.includes(vistaDi(p).stato))
     return rows.sort((a, b) => {
       const da = parseDate(a.data_creazione)?.getTime() ?? 0
       const db = parseDate(b.data_creazione)?.getTime() ?? 0
       return sortAsc ? da - db : db - da
     })
-  }, [items, search, statiSel, finSel, sortAsc])
+  }, [cercati, statiSel, sortAsc])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageStart = (page - 1) * PAGE_SIZE
@@ -184,9 +201,13 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
   const statiLabel = statiSel.length === 0 ? 'Scelte multiple' : statiSel.length === 1 ? statiSel[0] : `${statiSel.length} stati`
 
   // ── Azioni riga ───────────────────────────────────────────────────────────
-  // I preventivi di soggiorno creati in piattaforma si riaprono nella loro
-  // scheda; gli altri aprono Crea preventivo (nessun prefill da id).
-  const handleOpen = (p: Preventivo) => navigate(p.soggiorno ? `crea-preventivo:${p.soggiorno.id}` : 'crea-preventivo')
+  // I preventivi di soggiorno si riaprono nella loro scheda (un esempio prima si
+  // copia nello store); gli altri aprono Crea preventivo (nessun prefill da id).
+  const nelloStore = (s: PreventivoSoggiorno) => soggiorni.some((x) => x.id === s.id)
+  const handleOpen = (p: Preventivo) => {
+    if (p.soggiorno && !nelloStore(p.soggiorno)) salvaSoggiorno(p.soggiorno)
+    navigate(p.soggiorno ? `crea-preventivo:${p.soggiorno.id}` : 'crea-preventivo')
+  }
 
   const handlePdf = (p: Preventivo) => {
     exportPreventivoPdf(p)
@@ -196,7 +217,11 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
   const handleEmail = (p: Preventivo) => {
     if (!p.email) { toast.warning(`Nessun indirizzo email per ${p.codice}`); return }
     // marca il preventivo come "Inviato"
-    if (p.soggiorno) aggiornaSoggiorno(p.soggiorno.id, { stato: p.stato === 'Accettato' ? 'Accettato' : 'Inviato', inviatoIl: new Date().toLocaleString('it-IT') })
+    if (p.soggiorno) {
+      const ora = new Date().toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      const stato = p.soggiorno.stato === 'Accettato' || p.soggiorno.stato === 'Rifiutato' ? p.soggiorno.stato : 'Inviato'
+      salvaSoggiorno({ ...p.soggiorno, stato, inviatoIl: ora })
+    }
     else setItems((list) => list.map((x) => (x.id === p.id ? { ...x, stato: 'Inviato' } : x)))
     toast.success(`Preventivo ${p.codice} inviato a ${p.email}`)
   }
@@ -209,7 +234,8 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
       danger: true,
     })
     if (!ok) return
-    if (p.soggiorno) eliminaSoggiorno(p.soggiorno.id)
+    if (p.soggiorno && nelloStore(p.soggiorno)) eliminaSoggiorno(p.soggiorno.id)
+    else if (p.soggiorno) setEsempiTolti((t) => new Set(t).add(p.soggiorno!.id))
     else setItems((list) => list.filter((x) => x.id !== p.id))
     setSelected((s) => { const n = new Set(s); n.delete(p.id!); return n })
     setExpanded((s) => { const n = new Set(s); n.delete(p.id!); return n })
@@ -218,9 +244,9 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
 
   // ── Export Excel dell'elenco filtrato ───────────────────────────────────────
   const handleExcel = () => {
-    const header = ['ID preventivo', 'Tipologia', 'Stato', 'Utente', 'Data creazione', 'Data scadenza', 'Cliente', 'Email', 'Camere', 'Check-in', 'Check-out', 'Prezzo']
+    const header = ['ID preventivo', 'Tipologia', 'Stato', 'Dettaglio stato', 'Utente', 'Data creazione', 'Data scadenza', 'Cliente', 'Email', 'Camere', 'Check-in', 'Check-out', 'Prezzo']
     const rows = filtered.map((p) => [
-      p.codice ?? '', p.finalita ? FIN_LABEL[p.finalita].label : '', p.stato ?? '', p.utente ?? '', p.data_creazione ?? '', p.data_scadenza ?? '',
+      p.codice ?? '', p.finalita ? FIN_LABEL[p.finalita].label : '', vistaDi(p).stato, vistaDi(p).nota, p.utente ?? '', p.data_creazione ?? '', p.data_scadenza ?? '',
       p.cliente ?? '', p.email ?? '', p.camere ?? '', p.checkin ?? '', p.checkout ?? '',
       p.prezzo != null ? p.prezzo.toLocaleString('it-IT', { minimumFractionDigits: 2 }) : '',
     ])
@@ -241,7 +267,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
           </button>
           {statiOpen && (
             <div className="gest-prev__multi-menu">
-              {STATI.map((s) => (
+              {STATI_VISTI.map(({ stato: s }) => (
                 <label key={s} className="gest-prev__multi-item">
                   <input type="checkbox" checked={statiSel.includes(s)} onChange={() => toggleStato(s)} />
                   {s}
@@ -271,6 +297,24 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
         <button className="sib-btn sib-btn--primary gest-prev__new" onClick={() => navigate('crea-preventivo')}>
           <i className="fa-light fa-file" aria-hidden="true" /> Nuovo Preventivo
         </button>
+      </div>
+
+      {/* Riepilogo per stato: un clic filtra l'elenco (insieme a "Stati preventivo"). */}
+      <div className="gest-prev__riepilogo" role="group" aria-label="Preventivi per stato">
+        <button type="button" className={`gest-prev__conta${statiSel.length === 0 ? ' is-attivo' : ''}`}
+          onClick={() => { setStatiSel([]); setPage(1) }}>
+          Tutti <span className="gest-prev__conta-n">{cercati.length}</span>
+        </button>
+        {STATI_VISTI.map(({ stato: s, desc }) => (
+          <Tooltip key={s} text={desc}>
+            <button type="button" disabled={conteggi[s] === 0 && !statiSel.includes(s)}
+              className={`gest-prev__conta gest-prev__conta--${chiaveStato(s)}${statiSel.includes(s) ? ' is-attivo' : ''}`}
+              onClick={() => toggleStato(s)} aria-pressed={statiSel.includes(s)}>
+              <span className="gest-prev__conta-punto" aria-hidden="true" />
+              {s} <span className="gest-prev__conta-n">{conteggi[s]}</span>
+            </button>
+          </Tooltip>
+        ))}
       </div>
 
       <div className="sib-table-wrap gest-prev__wrap">
@@ -327,10 +371,21 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                       </span>
                     )}
                   </td>
-                  <td><span className={`gest-prev__stato gest-prev__stato--${(p.stato ?? '').toLowerCase()}`}>{p.stato}</span></td>
+                  <td>
+                    <div className="gest-prev__stato-cella">
+                      <span className={`gest-prev__stato gest-prev__stato--${chiaveStato(vistaDi(p).stato)}`}>
+                        <i className={`fa-solid ${iconaStato(vistaDi(p).stato)}`} aria-hidden="true" />{vistaDi(p).stato}
+                      </span>
+                      {vistaDi(p).nota && (
+                        <small className={`gest-prev__stato-nota${vistaDi(p).avviso ? ` gest-prev__stato-nota--${vistaDi(p).avviso}` : ''}`}>
+                          <TruncatedText text={vistaDi(p).nota} />
+                        </small>
+                      )}
+                    </div>
+                  </td>
                   <td><TruncatedText text={p.utente ?? ''} /></td>
                   <td><TruncatedText text={p.data_creazione ?? ''} /></td>
-                  <td className={isScaduto(p) ? 'gest-prev__scaduto' : ''}><TruncatedText text={p.data_scadenza ?? ''} /></td>
+                  <td className={scadenzaRossa(p) ? 'gest-prev__scaduto' : ''}><TruncatedText text={p.data_scadenza ?? ''} /></td>
                   <td><TruncatedText text={p.cliente ?? ''} /></td>
                   <td className="gest-prev__email"><TruncatedText text={p.email ?? ''} /></td>
                   <td className="gest-prev__col-num">{p.camere ?? '—'}</td>
@@ -361,34 +416,18 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                 {expanded.has(p.id!) && (
                   <tr className="gest-prev__detail-row">
                     <td colSpan={14}>
-                      {p.soggiorno && (
-                        <ul className="gest-prev__proposte">
-                          {p.soggiorno.proposte.map((q, i) => {
-                            const scelta = p.soggiorno!.accettata === q.id
-                            const k = conto(q, scelta ? p.soggiorno!.extraScelti : [])
-                            const extra = scelta ? q.extra.filter((e) => p.soggiorno!.extraScelti?.includes(e.id)) : []
-                            return (
-                              <li key={q.id} className={scelta ? 'is-scelta' : ''}>
-                                <span className="gest-prev__lettera">{LETTERE[i]}</span>
-                                <span className="gest-prev__prop-txt">
-                                  <strong>{q.titolo || q.camere.map((c) => `${c.quantita}× ${c.tipologia}`).join(', ')}</strong>
-                                  <small>{isoIt(q.checkin)} → {isoIt(q.checkout)} · {k.notti} notti · {q.trattamento}{extra.length > 0 && ` · extra: ${extra.map((e) => e.nome).join(', ')}`}</small>
-                                </span>
-                                {scelta && <span className="gest-prev__scelta"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Scelta dal cliente</span>}
-                                <span className="gest-prev__prop-tot">{eur(k.totaleConExtra)}</span>
-                              </li>
-                            )
-                          })}
-                        </ul>
+                      {p.soggiorno ? <DettaglioSoggiorno p={p.soggiorno} stato={vistaDi(p)} /> : (
+                        <div className="gest-prev__detail">
+                          <div><span>Tipologia</span>{p.finalita ? FIN_LABEL[p.finalita].label : '—'}</div>
+                          <div><span>Stato</span>{vistaDi(p).stato}{vistaDi(p).nota ? ` · ${vistaDi(p).nota}` : ''}</div>
+                          <div><span>Cliente</span>{p.cliente || '—'}</div>
+                          <div><span>Email</span>{p.email || '—'}</div>
+                          <div><span>Creato</span>{p.data_creazione || '—'}</div>
+                          <div><span>Scadenza</span>{p.data_scadenza || '—'}</div>
+                          {p.checkin && <div><span>Soggiorno</span>{p.checkin} → {p.checkout} · {p.camere ?? '—'} camere</div>}
+                          <div><span>Prezzo</span>{p.prezzo?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</div>
+                        </div>
                       )}
-                      <div className="gest-prev__detail">
-                        <div><span>Tipologia</span>{p.finalita ? FIN_LABEL[p.finalita].label : '—'}</div>
-                        <div><span>Check-in</span>{p.checkin || '—'}</div>
-                        <div><span>Check-out</span>{p.checkout || '—'}</div>
-                        <div><span>Camere</span>{p.camere ?? '—'}</div>
-                        <div><span>Prezzo</span>{p.prezzo?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</div>
-                        <div><span>Email</span>{p.email || '—'}</div>
-                      </div>
                     </td>
                   </tr>
                 )}

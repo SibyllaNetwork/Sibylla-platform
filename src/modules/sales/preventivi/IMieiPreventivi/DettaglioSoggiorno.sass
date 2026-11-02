@@ -1,0 +1,462 @@
+// ─── Dettaglio preventivo di soggiorno (riga espansa di I miei preventivi) ────
+@use '../../../../styles/tokens' as *
+
+.dprev
+  display: flex
+  flex-direction: column
+  gap: 12px
+  padding: 8px 6px 12px
+  white-space: normal
+  font-size: 12.5px
+  color: $text-active
+
+  // ── Frase dello stato ─────────────────────────────────────────────────────
+  &__banner
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 10px 14px
+    border-radius: 12px
+    border: 1px solid $border
+    background: $primary-50
+    line-height: 1.45
+
+    > i
+      font-size: 16px
+      color: $primary
+
+    > span
+      flex: 1
+      min-width: 0
+
+    &--bozza
+      background: $white
+      > i
+        color: $text-inactive
+
+    &--letto
+      background: rgba($stato-noshow, 0.08)
+      border-color: rgba($stato-noshow, 0.3)
+      > i
+        color: $stato-noshow
+
+    &--accettato, &--confermato
+      background: $success-light
+      border-color: $success-mid
+      > i
+        color: $success
+
+    &--rifiutato
+      background: $error-light
+      border-color: $error
+      > i
+        color: $error-dark
+
+    &--scaduto, &--avviso
+      background: $warning-light
+      border-color: $warning
+      > i
+        color: $warning
+
+  // ── Passaggi: creato → inviato → risposta → pagamento ─────────────────────
+  &__passi
+    list-style: none
+    margin: 0
+    padding: 2px 0
+    display: flex
+    flex-wrap: wrap
+    gap: 6px 0
+
+    li
+      display: flex
+      align-items: center
+      gap: 8px
+      min-width: 0
+
+      & + li::before
+        content: ''
+        width: 28px
+        height: 2px
+        margin: 0 8px
+        background: $border
+
+      &.is-fatto + li::before
+        background: $success-mid
+
+    .is-fatto .dprev__passo-ico
+      background: $success
+      color: #fff
+
+    .is-ko .dprev__passo-ico
+      background: $error-dark
+      color: #fff
+
+    .is-attesa .dprev__passo-ico
+      background: $white
+      border: 1px dashed $text-inactive
+      color: $text-inactive
+
+  &__passo-ico
+    width: 26px
+    height: 26px
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    font-size: 11px
+
+  &__passo-txt
+    display: flex
+    flex-direction: column
+    line-height: 1.2
+
+    strong
+      font-size: 12px
+
+    small
+      font-size: 10.5px
+      color: $text-inactive
+
+  // ── Proposte a sinistra, cliente e invio a destra ─────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 290px
+    gap: 14px
+    align-items: start
+
+    @media (max-width: 1100px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__proposte
+    display: flex
+    flex-direction: column
+    gap: 10px
+    min-width: 0
+
+  &__prop
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 12px 14px
+    border: 1px solid $border
+    border-radius: 12px
+    background: $white
+
+    &.is-scelta
+      border: 2px solid $success-mid
+      box-shadow: 0 2px 10px rgba(0, 112, 53, 0.08)
+
+    &.is-scartata
+      opacity: 0.6
+
+  &__prop-head
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__lettera
+    width: 26px
+    height: 26px
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 7px
+    background: $primary
+    color: #fff
+    font-size: 12px
+    font-weight: 700
+
+  &__prop-tit
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+
+    strong
+      font-size: 13.5px
+
+    small
+      font-size: 11.5px
+      color: $text-inactive
+
+  &__tag
+    flex-shrink: 0
+    padding: 2px 8px
+    border-radius: 999px
+    background: $bg
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+
+    &--ok
+      background: $success-light
+      color: $success
+
+  &__prop-tot
+    flex-shrink: 0
+    font-size: 15px
+    font-weight: 700
+    color: $primary
+
+  &__camere
+    list-style: none
+    margin: 0
+    padding: 0
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))
+    gap: 8px
+
+    li
+      display: flex
+      gap: 10px
+      align-items: flex-start
+
+  &__foto
+    width: 64px
+    height: 46px
+    flex-shrink: 0
+    object-fit: cover
+    border-radius: 8px
+    background: $bg
+
+  &__camera-txt
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+    strong
+      font-size: 12.5px
+
+    small
+      font-size: 11px
+      color: $text-inactive
+
+  &__desc
+    display: -webkit-box
+    -webkit-line-clamp: 2
+    -webkit-box-orient: vertical
+    overflow: hidden
+
+  &__vuoto
+    font-size: 11.5px
+    color: $text-inactive
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    padding: 3px 9px
+    border-radius: 999px
+    background: $primary-50
+    font-size: 11px
+    color: $text-active
+
+    i
+      font-size: 10.5px
+      color: $primary
+
+    &--forte
+      font-weight: 600
+
+    &--tenue
+      background: $bg
+      color: $text-inactive
+
+      i
+        color: $text-inactive
+
+  &__sotto
+    display: block
+    margin-bottom: 4px
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+
+  &__extra
+    ul
+      list-style: none
+      margin: 0
+      padding: 0
+      display: flex
+      flex-direction: column
+      gap: 3px
+
+    li
+      display: flex
+      align-items: center
+      gap: 7px
+      font-size: 12px
+
+      i
+        color: $text-inactive
+
+      &.is-preso
+        font-weight: 600
+
+        i
+          color: $success
+
+  &__extra-tot
+    margin-left: auto
+    font-size: 11px
+    color: $text-inactive
+
+    .is-preso &
+      color: $success
+
+  // ── Conto della proposta ──────────────────────────────────────────────────
+  &__conto
+    margin: 0
+    padding-top: 8px
+    border-top: 1px dashed $border
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+    div
+      display: flex
+      justify-content: space-between
+      gap: 12px
+
+    dt
+      font-size: 12px
+      color: $text-inactive
+
+      small
+        display: block
+        font-size: 10.5px
+
+    dd
+      margin: 0
+      font-size: 12px
+      white-space: nowrap
+
+    .is-sconto dd
+      color: $success
+
+    .is-totale
+      margin-top: 3px
+      padding-top: 5px
+      border-top: 1px solid $border
+
+      dt, dd
+        font-size: 13px
+        font-weight: 700
+        color: $text-active
+
+  // ── Riquadri a destra ─────────────────────────────────────────────────────
+  &__aside
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__box
+    padding: 12px 14px
+    border: 1px solid $border
+    border-radius: 12px
+    background: $white
+
+    h4
+      display: flex
+      align-items: center
+      gap: 7px
+      margin: 0 0 8px
+      font-size: 12.5px
+      font-weight: 600
+      color: $primary
+
+    dl
+      margin: 0
+      display: flex
+      flex-direction: column
+      gap: 5px
+
+      div
+        display: grid
+        grid-template-columns: 96px minmax(0, 1fr)
+        gap: 8px
+
+    dt
+      font-size: 11px
+      color: $text-inactive
+
+    dd
+      margin: 0
+      font-size: 12px
+      overflow-wrap: anywhere
+
+      a
+        color: $link
+
+  &__lingua
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  &__messaggio
+    margin-top: 8px
+
+    summary
+      font-size: 11.5px
+      font-weight: 600
+      color: $primary
+      cursor: pointer
+
+    p
+      margin: 6px 0 0
+      white-space: pre-line
+      font-size: 11.5px
+      color: $text-inactive
+
+  &__pagamenti
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__pag
+    display: grid
+    grid-template-columns: 16px minmax(0, 1fr)
+    gap: 2px 8px
+    align-items: start
+
+    > i
+      margin-top: 2px
+      font-size: 13px
+
+    &.is-ok > i
+      color: $success
+
+    &.is-ko > i
+      color: $error-dark
+
+  &__pag-txt
+    display: flex
+    flex-direction: column
+
+    strong
+      font-size: 12px
+
+    small
+      font-size: 10.5px
+      color: $text-inactive
+
+  &__pag-esito
+    grid-column: 2
+    font-size: 11px
+    font-weight: 600
+
+    .is-ok &
+      color: $success
+
+    .is-ko &
+      color: $error-dark

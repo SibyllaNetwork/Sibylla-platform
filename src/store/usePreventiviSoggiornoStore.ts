@@ -8,7 +8,8 @@ import type { Lingua } from '../modules/sales/preventivi/CreaPreventivo/lingue'
 //  riceve via mail e accetta una delle proposte dai pulsanti nel messaggio.
 //  Mock persistito: il BE salverà e invierà davvero la mail.
 
-export type StatoPreventivo = 'Bozza' | 'Inviato' | 'Accettato' | 'Rifiutato'
+/** Letto: il cliente ha aperto la mail (lo segnalerà il BE). */
+export type StatoPreventivo = 'Bozza' | 'Inviato' | 'Letto' | 'Accettato' | 'Rifiutato'
 
 export interface CameraProposta {
   id: string
