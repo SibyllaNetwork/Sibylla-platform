@@ -1,0 +1,183 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+@use '../hrGestione' as *
+
+.rfe
+  +hr-root(richiesteferie)
+
+.rfe__toolbar
+  +hr-toolbar
+
+.rfe__field
+  +hr-field(200px)
+
+.rfe__push
+  +hr-push
+
+.rfe__icon-btn
+  +hr-icon-btn
+
+.rfe__wrap
+  +hr-wrap
+
+.rfe .rfe__table
+  +table-fit
+
+  .rfe__r .sib-colf-head
+    justify-content: flex-end
+
+  .rfe__c .sib-colf-head
+    justify-content: center
+
++th-labels
+
+// Larghezze di colonna in percentuale (somma 100).
+.rfe__col-data
+  width: 9%
+.rfe__col-dip
+  width: 14%
+.rfe__col-rep
+  width: 11%
+.rfe__col-tipo
+  width: 8%
+.rfe__col-periodo
+  width: 16%
+.rfe__col-giorni
+  width: 8%
+.rfe__col-residuo
+  width: 8%
+.rfe__col-conf
+  width: 8%
+.rfe__col-stato
+  width: 11%
+.rfe__col-azioni
+  width: 7%
+
+// Due classi: a pari specificità vincerebbe l'allineamento di .sib-table th/td.
+.rfe .rfe__c
+  text-align: center
+
+.rfe .rfe__r
+  text-align: right
+
+.rfe__strong
+  font-weight: 600
+  color: $text-active
+
+.rfe__dip
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  max-width: 100%
+  min-width: 0
+
+.rfe__note
+  display: inline-flex
+  color: var(--color-primary)
+  cursor: help
+
+// Tipo di assenza: stesso colore usato nel Piano ferie.
+.rfe .rfe__tipo
+  display: block
+  min-width: 0
+  font-weight: 600
+
+  &--ferie
+    color: var(--color-primary)
+
+  &--permesso
+    color: $link
+
+  &--rol
+    color: $success
+
+  &--malattia
+    color: $error
+
+.rfe__neg
+  color: $error
+  font-weight: 600
+
+.rfe__conflitto
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  color: $warning
+  font-weight: 600
+  cursor: help
+
+.rfe__act
+  +hr-act
+
+.rfe__acts
+  display: inline-flex
+  align-items: center
+  gap: 14px
+
+.rfe__dash
+  color: $text-inactive
+
+.rfe .rfe__stato
+  +hr-stato
+  display: block
+  min-width: 0
+
+.rfe__stato-txt
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  cursor: help
+
+.rfe__empty
+  +hr-empty
+
+.rfe__pag
+  +hr-pag
+
+// ─── Modali ───────────────────────────────────────────────────────────────────
+.rfe-modal
+  +hr-modal-body
+
+.rfe-modal__grid
+  +hr-modal-grid
+
+.rfe-modal__actions
+  +hr-modal-actions
+
+.rfe-modal__text
+  margin: 0
+  font-size: 13px
+  color: $text-active
+
+.rfe-modal__info
+  margin: 0
+  display: flex
+  align-items: center
+  gap: 6px
+  padding: 8px 12px
+  border-radius: $radius-md
+  background: $primary-50
+  font-size: 12px
+  color: $text-active
+
+  &--warn
+    background: $warning-light
+    color: $text-active
+
+    i
+      color: $warning
+
+// ─── Responsività (container query sul root pagina) ───────────────────────────
+@container richiesteferie (max-width: 1360px)
+  .rfe .rfe__table
+    +hr-table-compact
+
+  .rfe
+    +th-compact
+
+  .rfe__acts
+    gap: 10px
+
+@container richiesteferie (max-width: 1000px)
+  .rfe__field
+    width: 160px

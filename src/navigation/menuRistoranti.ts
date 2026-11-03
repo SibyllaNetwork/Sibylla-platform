@@ -216,16 +216,24 @@ const MENU_RISTORANTI:any[]=[
       ]},
     ]},
     {id:"hr",label:"Human resource",color:"#9B59B6",children:[
-      {id:"registro-presenze",label:"Registro presenze",page:"registro-presenze"},
-      {id:"turni-personale",label:"Turni del personale",page:"turni-personale"},
       {id:"gest-anagrafiche",label:"Gestione delle anagrafiche",children:[
         {id:"crea-anagrafica",label:"Crea anagrafica personale",page:"crea-anagrafica"},
         {id:"archivio-personale",label:"Archivio del personale",page:"archivio-personale"},
         {id:"profile-analysis",label:"Profile analysis",page:"profile-analysis"},
       ]},
-      {id:"premio-performance",label:"Gestione premio performance",children:[
-        {id:"assegna-obiettivo",label:"Assegna obiettivo",page:"assegna-obiettivo"},
+      {id:"gest-presenze",label:"Gestione delle presenze",children:[
+        {id:"registro-presenze",label:"Registro",page:"registro-presenze"},
+        {id:"turni-personale",label:"Turni del personale",page:"turni-personale"},
+        {id:"hr-note-spese",label:"Nota spese",page:"hr-note-spese"},
+        {id:"hr-cedolini",label:"Cedolini",page:"hr-cedolini"},
+        {id:"gest-ferie",label:"Gestione delle ferie",children:[
+          {id:"hr-richieste-ferie",label:"Richieste",page:"hr-richieste-ferie"},
+          {id:"hr-piano-ferie",label:"Piano ferie",page:"hr-piano-ferie"},
+        ]},
+      ]},
+      {id:"premio-performance",label:"Gestione dei premi",children:[
         {id:"monitoraggio-perf",label:"Monitoraggio performance",page:"monitoraggio-perf"},
+        {id:"assegna-obiettivo",label:"Assegna obiettivo",page:"assegna-obiettivo"},
       ]},
       {id:"hr-overview",label:"HR Overview",page:"hr-overview"},
     ]},

@@ -102,6 +102,12 @@ const MENU_MAP: Record<string, string> = {
   'registro-presenze':      'fa-clock',
   'turni-personale':        'fa-calendar-clock',
   'gest-anagrafiche':       'fa-address-book',
+  'gest-presenze':          'fa-user-clock',
+  'gest-ferie':             'fa-umbrella-beach',
+  'hr-note-spese':          'fa-receipt',
+  'hr-cedolini':            'fa-file-invoice-dollar',
+  'hr-richieste-ferie':     'fa-inbox',
+  'hr-piano-ferie':         'fa-calendar-days',
   'premio-performance':     'fa-trophy',
   'hr-overview':            'fa-eye',
 

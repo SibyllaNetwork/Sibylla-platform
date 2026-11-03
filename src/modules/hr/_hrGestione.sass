@@ -1,0 +1,138 @@
+// ─── HR › Gestione delle presenze: mixin comuni ──────────────────────────────
+// Usati da Nota spese, Cedolini, Richieste e Piano ferie (stessa impostazione:
+// barra filtri sopra la tabella, tabella che non scrolla mai in orizzontale,
+// stato in testo colorato, icone azione blu Platform senza box).
+@use '../../styles/tokens' as *
+
+=hr-root($name)
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+  container-name: $name
+
+=hr-toolbar
+  display: flex
+  align-items: flex-end
+  gap: 10px
+  flex-wrap: wrap
+
+  > *
+    min-width: 0
+
+=hr-field($w: 200px)
+  width: $w
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+=hr-push
+  margin-left: auto
+  display: flex
+  align-items: center
+  gap: 8px
+
+// Pulsante quadrato (export Excel) allineato all'altezza standard dei campi.
+=hr-icon-btn
+  width: 34px
+  height: 34px
+  border: 0
+  border-radius: 8px
+  background: var(--color-primary)
+  color: #fff
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+
+  &:hover
+    filter: brightness(.92)
+
+=hr-wrap
+  border: 1px solid $border
+  overflow-x: hidden
+
+=hr-act
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  line-height: 1
+  color: var(--color-primary)
+
+  &:disabled
+    cursor: default
+    opacity: .35
+
+=hr-stato
+  font-weight: 600
+
+  &--attesa
+    color: $warning
+
+  &--ok
+    color: $success
+
+  &--ko
+    color: $error
+
+  &--neutro
+    color: $text-inactive
+
+  &--info
+    color: $link
+
+=hr-empty
+  text-align: center
+  color: $text-inactive
+  padding: 28px 0 !important
+
+=hr-pag
+  display: flex
+  justify-content: center
+  margin-top: 4px
+
+// Riga riepilogativa sotto la tabella (niente stat-card in cima alla pagina).
+=hr-foot
+  display: flex
+  justify-content: flex-end
+  gap: 18px
+  flex-wrap: wrap
+  font-size: 12px
+  color: $text-inactive
+
+  strong
+    color: $text-active
+
+=hr-modal-body
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 4px 2px
+
+=hr-modal-grid
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 12px
+
+=hr-modal-actions
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+  padding-top: 4px
+
+// Tabella compatta dentro la container query di pagina.
+=hr-table-compact
+  font-size: 12px
+
+  thead th
+    font-size: 11px
+
+  th, td
+    padding-left: 6px
+    padding-right: 6px

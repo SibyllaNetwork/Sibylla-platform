@@ -1,0 +1,254 @@
+@use 'sass:math'
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+@use '../hrGestione' as *
+
+// Colori dei tipi di assenza (gli stessi del testo in "Richieste").
+$c-ferie: var(--color-primary)
+
+.pfe
+  +hr-root(pianoferie)
+
+.pfe__toolbar
+  +hr-toolbar
+
+.pfe__nav
+  display: flex
+  align-items: center
+  gap: 8px
+  height: 34px
+
+.pfe__nav-btn
+  width: 34px
+  height: 34px
+  border: 1px solid $border
+  border-radius: 8px
+  background: var(--color-surface)
+  color: var(--color-primary)
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+
+  &:hover
+    background: $primary-50
+
+.pfe__mese
+  min-width: 140px
+  text-align: center
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+  color: $text-active
+
+.pfe__field
+  +hr-field(190px)
+
+.pfe__check
+  height: 34px
+  display: flex
+  align-items: center
+
+.pfe__push
+  +hr-push
+  gap: 14px
+
+.pfe__icon-btn
+  +hr-icon-btn
+
+.pfe__legend
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  align-items: center
+  gap: 12px
+  font-size: 12px
+  color: $text-inactive
+
+  li
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    white-space: nowrap
+
+.pfe__sw
+  width: 14px
+  height: 10px
+  border-radius: 3px
+
+// ── Colori dei tipi (barre e campioni di legenda) ──
+.pfe__sw--ferie,
+.pfe__bar--ferie
+  background: $c-ferie
+
+.pfe__sw--permesso,
+.pfe__bar--permesso
+  background: $link
+
+.pfe__sw--rol,
+.pfe__bar--rol
+  background: $success
+
+.pfe__sw--malattia,
+.pfe__bar--malattia
+  background: $error
+
+// Da approvare: tratteggio sopra il colore del tipo, più tenue.
+.pfe__sw--attesa
+  background: repeating-linear-gradient(45deg, $text-disabled 0 3px, var(--color-surface) 3px 6px)
+  border: 1px solid $text-disabled
+
+.pfe__wrap
+  +hr-wrap
+
+// Griglia del mese: deroga consapevole alla tabella dati (matrice giorno per giorno),
+// ma senza scroll orizzontale: larghezze in percentuale per il numero di giorni.
+.pfe .pfe__table
+  +table-fit
+
+  th, td
+    padding: 0
+
+  thead th
+    padding: 6px 0
+    text-align: center
+
+  .pfe__th-nome,
+  .pfe__nome
+    padding: 0 10px
+    text-align: left
+
+  .pfe__r
+    padding: 0 10px
+    text-align: right
+
+  tbody td
+    height: 30px
+
+.pfe__col-nome
+  width: 15%
+
+.pfe__col-res
+  width: 7%
+
+@for $n from 28 through 31
+  .pfe__table--d#{$n} .pfe__col-day
+    width: math.div(78%, $n)
+
+.pfe__th-day
+  line-height: 1.15
+
+.pfe__wd
+  display: block
+  font-size: 10px
+  font-weight: 400
+  color: $text-inactive
+
+.pfe__dn
+  display: block
+  font-size: 12px
+
+.pfe .pfe__dom
+  background: $bg
+
+.pfe .pfe__today
+  background: $primary-50
+
+  .pfe__dn
+    color: var(--color-primary)
+    font-weight: 700
+
+.pfe__nome
+  font-weight: 600
+  color: $text-active
+
+.pfe .pfe__group td
+  padding: 6px 10px
+  background: $primary-50
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.pfe__day
+  position: relative
+
+// Il Tooltip avvolge la barra in uno span inline-flex (stile inline del componente):
+// qui deve riempire la cella, altrimenti la barra resta larga 0.
+.pfe .pfe__day > span
+  display: flex !important
+  width: 100%
+
+// Barra continua dell'assenza: si unisce tra giorni consecutivi, angoli tondi
+// solo sul primo e sull'ultimo giorno.
+.pfe__bar
+  display: block
+  flex: 1 1 auto
+  height: 14px
+  margin: 0 -1px
+  cursor: help
+
+  &--start
+    margin-left: 3px
+    border-top-left-radius: 7px
+    border-bottom-left-radius: 7px
+
+  &--end
+    margin-right: 3px
+    border-top-right-radius: 7px
+    border-bottom-right-radius: 7px
+
+  &--attesa
+    opacity: .55
+    background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .55) 0 3px, transparent 3px 6px)
+
+.pfe__res
+  font-weight: 600
+  color: $text-active
+
+  &--low
+    color: $warning
+
+.pfe .pfe__tot td
+  height: 28px
+  text-align: center
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  border-top: 1px solid $border
+
+.pfe .pfe__tot .pfe__nome
+  text-align: left
+  color: $text-active
+
+.pfe .pfe__tot .pfe__tot--warn
+  background: $warning-light
+  color: $warning
+
+// ─── Responsività (container query sul root pagina) ───────────────────────────
+@container pianoferie (max-width: 1360px)
+  .pfe .pfe__table
+    font-size: 12px
+
+    .pfe__th-nome,
+    .pfe__nome,
+    .pfe__r
+      padding: 0 6px
+
+  .pfe__dn
+    font-size: 11px
+
+  .pfe__legend
+    gap: 8px
+
+@container pianoferie (max-width: 1100px)
+  .pfe__col-nome
+    width: 17%
+
+  @for $n from 28 through 31
+    .pfe__table--d#{$n} .pfe__col-day
+      width: math.div(76%, $n)
+
+  .pfe__wd
+    display: none

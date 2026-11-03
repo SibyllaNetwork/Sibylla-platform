@@ -1,0 +1,184 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+@use '../hrGestione' as *
+
+.nsp
+  +hr-root(notespese)
+
+.nsp__toolbar
+  +hr-toolbar
+
+.nsp__field
+  +hr-field(190px)
+
+  &--periodo
+    width: 250px
+
+.nsp__push
+  +hr-push
+
+.nsp__icon-btn
+  +hr-icon-btn
+
+.nsp__wrap
+  +hr-wrap
+
+.nsp .nsp__table
+  +table-fit
+
+  .nsp__r .sib-colf-head
+    justify-content: flex-end
+
+  .nsp__c .sib-colf-head
+    justify-content: center
+
++th-labels
+
+// Larghezze di colonna in percentuale (somma 100).
+.nsp__col-data
+  width: 9%
+.nsp__col-dip
+  width: 14%
+.nsp__col-rep
+  width: 11%
+.nsp__col-cat
+  width: 9%
+.nsp__col-desc
+  width: 19%
+.nsp__col-giust
+  width: 8%
+.nsp__col-imp
+  width: 9%
+.nsp__col-stato
+  width: 12%
+.nsp__col-azioni
+  width: 9%
+
+// Due classi: a pari specificità vincerebbe l'allineamento di .sib-table th/td.
+.nsp .nsp__c
+  text-align: center
+
+.nsp .nsp__r
+  text-align: right
+
+.nsp__strong
+  font-weight: 600
+  color: $text-active
+
+.nsp__act
+  +hr-act
+
+.nsp__acts
+  display: inline-flex
+  align-items: center
+  gap: 14px
+
+.nsp__missing
+  display: inline-flex
+  color: $warning
+
+.nsp__dash
+  color: $text-inactive
+
+.nsp .nsp__stato
+  +hr-stato
+  display: block
+  min-width: 0
+
+.nsp__stato-txt
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  cursor: help
+
+.nsp__empty
+  +hr-empty
+
+.nsp__foot
+  +hr-foot
+
+.nsp__pag
+  +hr-pag
+
+// ─── Modali ───────────────────────────────────────────────────────────────────
+.nsp-modal
+  +hr-modal-body
+
+.nsp-modal__grid
+  +hr-modal-grid
+
+.nsp-modal__actions
+  +hr-modal-actions
+
+.nsp-modal__text
+  margin: 0
+  font-size: 13px
+  color: $text-active
+
+.nsp-modal__label
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.nsp-modal__file
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 6px
+
+.nsp-modal__upload
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  gap: 6px
+
+.nsp-modal__filename
+  max-width: 100%
+  min-width: 0
+  font-size: 12px
+  color: $text-inactive
+
+.nsp-modal__doc
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 8px
+  padding: 18px
+  border: 1px dashed $border
+  border-radius: $radius-md
+  background: $bg
+
+.nsp-modal__meta
+  margin: 0
+  display: grid
+  grid-template-columns: auto 1fr
+  gap: 6px 14px
+  font-size: 13px
+
+  dt
+    color: $text-inactive
+
+  dd
+    margin: 0
+    font-weight: 600
+    color: $text-active
+    text-align: right
+
+// ─── Responsività (container query sul root pagina, mai sul viewport) ─────────
+@container notespese (max-width: 1360px)
+  .nsp .nsp__table
+    +hr-table-compact
+
+  .nsp
+    +th-compact
+
+  .nsp__acts
+    gap: 10px
+
+@container notespese (max-width: 1000px)
+  .nsp__field
+    width: 150px
+
+    &--periodo
+      width: 210px

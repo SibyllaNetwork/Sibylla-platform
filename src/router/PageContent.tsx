@@ -182,6 +182,10 @@ import CreaAnagrafica              from '../modules/hr/CreaAnagrafica/CreaAnagra
 import AssegnaObiettivo            from '../modules/hr/AssegnaObiettivo/AssegnaObiettivo';
 import MonitoraggioPerformance     from '../modules/hr/MonitoraggioPerformance/MonitoraggioPerformance';
 import HrOverview                  from '../modules/hr/HrOverview/HrOverview';
+import NoteSpese                   from '../modules/hr/NoteSpese/NoteSpese';
+import Cedolini                    from '../modules/hr/Cedolini/Cedolini';
+import RichiesteFerie              from '../modules/hr/RichiesteFerie/RichiesteFerie';
+import PianoFerie                  from '../modules/hr/PianoFerie/PianoFerie';
 import SibyllaHr                   from '../modules/hr/SibyllaHr/SibyllaHr';
 import type { SibyllaHrView }      from '../modules/hr/SibyllaHr/SibyllaHr';
 import CabinaControllo             from '../modules/finance/CabinaControllo/CabinaControllo';
@@ -490,6 +494,10 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'assegna-obiettivo')     return <AssegnaObiettivo navigate={navigate}/>;
   if (page === 'monitoraggio-perf')     return <MonitoraggioPerformance navigate={navigate}/>;
   if (page === 'hr-overview')           return <HrOverview navigate={navigate}/>;
+  if (page === 'hr-note-spese')         return <NoteSpese navigate={navigate}/>;
+  if (page === 'hr-cedolini')           return <Cedolini navigate={navigate}/>;
+  if (page === 'hr-richieste-ferie')    return <RichiesteFerie navigate={navigate}/>;
+  if (page === 'hr-piano-ferie')        return <PianoFerie navigate={navigate}/>;
   // Sibylla HR: una vista del modulo per pagina (la key azzera lo stato passando da una all'altra)
   if (SIBYLLA_HR_PAGES[page])           return <SibyllaHr view={SIBYLLA_HR_PAGES[page]} navigate={navigate} key={page}/>;
   if (page === 'budget-costi')          return <BudgetCosti navigate={navigate}/>;
