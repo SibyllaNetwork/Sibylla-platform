@@ -1,16 +1,16 @@
 @use '../../../styles/tokens' as *
 
-.nsp
+.mnspot
   display: grid
   grid-template-columns: 280px minmax(0, 1fr)
   gap: 22px
 
-.nsp__form
+.mnspot__form
   display: flex
   flex-direction: column
   gap: 14px
 
-.nsp__live
+.mnspot__live
   width: 170px
   align-self: center
   border-radius: 10px
@@ -20,30 +20,30 @@
   &--oriz
     width: 100%
 
-.nsp__hint
+.mnspot__hint
   margin: 0
   font-size: 12px
   text-align: center
   color: $text-inactive
 
-.nsp__tpl
+.mnspot__tpl
   min-width: 0
   display: flex
   flex-direction: column
   gap: 8px
 
-.nsp__lbl
+.mnspot__lbl
   font-family: $font-heading
   font-size: 12px
   font-weight: 600
   color: $primary
 
-.nsp__grid
+.mnspot__grid
   display: grid
   grid-template-columns: repeat(3, minmax(0, 1fr))
   gap: 12px
 
-.nsp__card
+.mnspot__card
   display: flex
   flex-direction: column
   gap: 8px
@@ -61,7 +61,7 @@
     border-color: var(--color-primary)
     box-shadow: 0 0 0 2px $primary-100
 
-.nsp__thumb
+.mnspot__thumb
   display: block
   width: 62%
   margin: 0 auto
@@ -71,7 +71,7 @@
   &--oriz
     width: 100%
 
-.nsp__card-txt
+.mnspot__card-txt
   font-size: 12px
   font-weight: 600
   color: $text-active
@@ -80,15 +80,15 @@
     color: #a2864c
     margin-right: 3px
 
-.nsp__acts
+.mnspot__acts
   display: flex
   justify-content: flex-end
   gap: 8px
   margin-top: 18px
 
 @media (max-width: 900px)
-  .nsp
+  .mnspot
     grid-template-columns: 1fr
 
-  .nsp__grid
+  .mnspot__grid
     grid-template-columns: repeat(2, minmax(0, 1fr))
