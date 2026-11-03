@@ -17,6 +17,8 @@ export interface DipendenteHr {
   reparto: Reparto
   /** Giorni di ferie maturati nell'anno. */
   ferieAnnue: number
+  /** Ore di ROL (riduzione orario di lavoro) maturate nell'anno, in proporzione al contratto. */
+  rolAnnui: number
 }
 
 // ── Nota spese ──
@@ -70,6 +72,8 @@ export interface RichiestaAssenza {
   note?: string
   stato: StatoRichiesta
   motivo?: string
+  /** Ore richieste (ROL e permessi a ore). Senza ore vale la giornata intera: 8 h per giorno lavorativo. */
+  ore?: number
   /** ISO datetime della richiesta. */
   createdAt: string
 }
@@ -102,18 +106,18 @@ export const eurHr = (n: number) => {
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────
 export const DIPENDENTI_HR: DipendenteHr[] = [
-  { id: 1,  nome: 'Andrea',  cognome: 'Grimaudo',  reparto: 'Front office',    ferieAnnue: 26 },
-  { id: 2,  nome: 'Giulia',  cognome: 'Conti',     reparto: 'Front office',    ferieAnnue: 26 },
-  { id: 3,  nome: 'Marco',   cognome: 'Esposito',  reparto: 'Cucina',          ferieAnnue: 26 },
-  { id: 4,  nome: 'Sara',    cognome: 'Romano',    reparto: 'Housekeeping',    ferieAnnue: 22 },
-  { id: 5,  nome: 'Davide',  cognome: 'Marini',    reparto: 'Front office',    ferieAnnue: 26 },
-  { id: 6,  nome: 'Sergio',  cognome: 'Benvenuti', reparto: 'Manutenzione',    ferieAnnue: 26 },
-  { id: 7,  nome: 'Manuel',  cognome: 'Fantoni',   reparto: 'Manutenzione',    ferieAnnue: 22 },
-  { id: 8,  nome: 'Oscar',   cognome: 'Pettinari', reparto: 'Housekeeping',    ferieAnnue: 22 },
-  { id: 9,  nome: 'Luca',    cognome: 'Hambelli',  reparto: 'Amministrazione', ferieAnnue: 26 },
-  { id: 10, nome: 'Elena',   cognome: 'Bianchi',   reparto: 'F&B',             ferieAnnue: 26 },
-  { id: 11, nome: 'Chiara',  cognome: 'Ferri',     reparto: 'F&B',             ferieAnnue: 22 },
-  { id: 12, nome: 'Paolo',   cognome: 'Greco',     reparto: 'Cucina',          ferieAnnue: 26 },
+  { id: 1,  nome: 'Andrea',  cognome: 'Grimaudo',  reparto: 'Front office',    ferieAnnue: 26, rolAnnui: 72 },
+  { id: 2,  nome: 'Giulia',  cognome: 'Conti',     reparto: 'Front office',    ferieAnnue: 26, rolAnnui: 72 },
+  { id: 3,  nome: 'Marco',   cognome: 'Esposito',  reparto: 'Cucina',          ferieAnnue: 26, rolAnnui: 72 },
+  { id: 4,  nome: 'Sara',    cognome: 'Romano',    reparto: 'Housekeeping',    ferieAnnue: 22, rolAnnui: 43 },
+  { id: 5,  nome: 'Davide',  cognome: 'Marini',    reparto: 'Front office',    ferieAnnue: 26, rolAnnui: 58 },
+  { id: 6,  nome: 'Sergio',  cognome: 'Benvenuti', reparto: 'Manutenzione',    ferieAnnue: 26, rolAnnui: 72 },
+  { id: 7,  nome: 'Manuel',  cognome: 'Fantoni',   reparto: 'Manutenzione',    ferieAnnue: 22, rolAnnui: 29 },
+  { id: 8,  nome: 'Oscar',   cognome: 'Pettinari', reparto: 'Housekeeping',    ferieAnnue: 22, rolAnnui: 72 },
+  { id: 9,  nome: 'Luca',    cognome: 'Hambelli',  reparto: 'Amministrazione', ferieAnnue: 26, rolAnnui: 72 },
+  { id: 10, nome: 'Elena',   cognome: 'Bianchi',   reparto: 'F&B',             ferieAnnue: 26, rolAnnui: 72 },
+  { id: 11, nome: 'Chiara',  cognome: 'Ferri',     reparto: 'F&B',             ferieAnnue: 22, rolAnnui: 22 },
+  { id: 12, nome: 'Paolo',   cognome: 'Greco',     reparto: 'Cucina',          ferieAnnue: 26, rolAnnui: 72 },
 ]
 
 export const nomeDipendente = (id: number) => {
@@ -166,8 +170,8 @@ function seedCedolini(): Cedolino[] {
 }
 
 function seedRichieste(): RichiestaAssenza[] {
-  const r = (dipendenteId: number, tipo: TipoAssenza, dal: number, al: number, stato: StatoRichiesta, creata: number, note?: string, motivo?: string): Omit<RichiestaAssenza, 'id'> =>
-    ({ dipendenteId, tipo, dal: dayOffset(dal), al: dayOffset(al), stato, note, motivo, createdAt: `${dayOffset(creata)}T09:${pad((dipendenteId * 7) % 60)}:00` })
+  const r = (dipendenteId: number, tipo: TipoAssenza, dal: number, al: number, stato: StatoRichiesta, creata: number, note?: string, motivo?: string, ore?: number): Omit<RichiestaAssenza, 'id'> =>
+    ({ dipendenteId, tipo, dal: dayOffset(dal), al: dayOffset(al), stato, note, motivo, ore, createdAt: `${dayOffset(creata)}T09:${pad((dipendenteId * 7) % 60)}:00` })
   const rows = [
     r(2,  'Ferie',    6,  12, 'Da approvare', -1, 'Matrimonio di mia sorella'),
     r(5,  'Ferie',    8,  10, 'Da approvare', -1),
@@ -183,6 +187,14 @@ function seedRichieste(): RichiestaAssenza[] {
     r(7,  'Ferie',    7,  11, 'Rifiutata',    -8,  undefined, 'Nello stesso periodo è già assente Sergio Benvenuti: la manutenzione resterebbe scoperta.'),
     r(2,  'Ferie',    -25, -19, 'Approvata',  -40),
     r(5,  'Malattia', -14, -12, 'Approvata',  -14),
+    // ROL a ore e a giornate, già goduti nell'anno o da approvare.
+    r(9,  'ROL',      3,  3,  'Da approvare', 0,  'Uscita anticipata per pratiche in comune', undefined, 3),
+    r(4,  'ROL',      11, 11, 'Da approvare', -1, undefined, undefined, 4),
+    r(6,  'ROL',      -40, -38, 'Approvata',  -45),
+    r(1,  'ROL',      -12, -12, 'Approvata',  -15, undefined, undefined, 4),
+    r(12, 'ROL',      -30, -30, 'Approvata',  -33),
+    r(7,  'ROL',      -20, -19, 'Approvata',  -24),
+    r(5,  'ROL',      -50, -50, 'Rifiutata',  -52, undefined, 'Giornata di picco: il front office resterebbe con una sola persona.', 6),
   ]
   return rows.map((x, i) => ({ ...x, id: `ra-${i + 1}` }))
 }
@@ -234,13 +246,28 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
 
   aggiungiRichiesta: (r) => set(st => ({ richieste: [{ ...r, id: uid('ra'), stato: 'Da approvare', createdAt: new Date().toISOString() }, ...st.richieste] })),
   decidiRichiesta: (id, stato, motivo) => set(st => ({ richieste: st.richieste.map(r => r.id === id ? { ...r, stato, motivo: stato === 'Rifiutata' ? motivo : undefined } : r) })),
-}), { name: 'sibylla.hr-gestione', version: 3, migrate: () => ({ noteSpese: seedNoteSpese(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
+}), { name: 'sibylla.hr-gestione', version: 4, migrate: () => ({ noteSpese: seedNoteSpese(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
 
 /** Ferie godute (approvate) nell'anno solare corrente per dipendente. */
 export function ferieGodute(richieste: RichiestaAssenza[], dipendenteId: number, anno = new Date().getFullYear()) {
   return richieste
     .filter(r => r.dipendenteId === dipendenteId && r.tipo === 'Ferie' && r.stato === 'Approvata' && r.dal.startsWith(String(anno)))
     .reduce((s, r) => s + giorniLavorativi(r.dal, r.al), 0)
+}
+
+/** Ore di una richiesta: quelle indicate, oppure 8 h per ogni giorno lavorativo. */
+// Almeno una giornata: anche un'assenza di domenica (giorno lavorato in hotel) vale 8 h.
+export const oreRichiesta = (r: Pick<RichiestaAssenza, 'dal' | 'al' | 'ore'>) => r.ore ?? Math.max(1, giorniLavorativi(r.dal, r.al)) * ORE_GIORNO
+export const ORE_GIORNO = 8
+
+/** Saldo ROL dell'anno: maturate, godute (approvate), in attesa e residue. */
+export function saldoRol(richieste: RichiestaAssenza[], dipendenteId: number, anno = new Date().getFullYear()) {
+  const d = DIPENDENTI_HR.find(x => x.id === dipendenteId)
+  const rol = richieste.filter(r => r.dipendenteId === dipendenteId && r.tipo === 'ROL' && r.dal.startsWith(String(anno)))
+  const godute = rol.filter(r => r.stato === 'Approvata').reduce((s, r) => s + oreRichiesta(r), 0)
+  const inAttesa = rol.filter(r => r.stato === 'Da approvare').reduce((s, r) => s + oreRichiesta(r), 0)
+  const maturate = d?.rolAnnui ?? 0
+  return { maturate, godute, inAttesa, residue: maturate - godute }
 }
 
 /** Assenze già approvate dello stesso reparto che si sovrappongono all'intervallo (escluso il dipendente). */

@@ -12,7 +12,7 @@ import { exportXls } from '../hrExport'
 import './PianoFerie.sass'
 
 /**
- * Piano ferie — HR › Gestione delle presenze › Gestione delle ferie.
+ * Piano ferie — HR › Gestione delle presenze › Gestione ferie e permessi.
  * Calendario del mese per dipendente, raggruppato per reparto: mostra le assenze
  * approvate in "Richieste" (e, a scelta, quelle ancora da approvare) e conta
  * gli assenti di ogni giorno per vedere subito i giorni scoperti.

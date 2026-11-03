@@ -33,23 +33,23 @@
 
 // Larghezze di colonna in percentuale (somma 100).
 .rfe__col-data
-  width: 9%
+  width: 8%
 .rfe__col-dip
   width: 14%
 .rfe__col-rep
-  width: 11%
+  width: 10%
 .rfe__col-tipo
-  width: 8%
+  width: 9%
 .rfe__col-periodo
-  width: 16%
+  width: 13%
 .rfe__col-giorni
   width: 8%
 .rfe__col-residuo
   width: 8%
 .rfe__col-conf
-  width: 8%
+  width: 14%
 .rfe__col-stato
-  width: 11%
+  width: 10%
 .rfe__col-azioni
   width: 7%
 
@@ -78,9 +78,15 @@
 
 // Tipo di assenza: stesso colore usato nel Piano ferie.
 .rfe .rfe__tipo
-  display: block
+  max-width: 100%
   min-width: 0
+  display: inline-flex
+  align-items: center
+  gap: 6px
   font-weight: 600
+
+  i
+    font-size: 12px
 
   &--ferie
     color: var(--color-primary)
@@ -167,10 +173,193 @@
     i
       color: $warning
 
+// ─── Schede vista (Da approvare / Approvate / Rifiutate / Tutte) ─────────────
+.rfe__tabs
+  height: 34px
+  display: inline-flex
+  padding: 3px
+  gap: 2px
+  border: 1px solid $border
+  border-radius: 9px
+  background: $bg
+
+.rfe__tab
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  padding: 0 12px
+  border: 0
+  border-radius: 6px
+  background: transparent
+  cursor: pointer
+  font-family: $font-body
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  white-space: nowrap
+  transition: $transition-fast
+
+  &:hover:not(.rfe__tab--on)
+    color: var(--color-primary)
+
+  &--on
+    background: var(--color-surface)
+    color: var(--color-primary)
+    box-shadow: 0 1px 3px rgba(15, 17, 23, .12)
+
+.rfe__tab-n
+  min-width: 20px
+  height: 18px
+  padding: 0 6px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border-radius: 9px
+  background: $border
+  font-size: 11px
+  color: $text-inactive
+
+  .rfe__tab--on &
+    background: $primary-50
+    color: var(--color-primary)
+
+  &--hot,
+  .rfe__tab--on &--hot
+    background: $warning
+    color: #fff
+
+.rfe__smart i
+  color: var(--color-primary)
+
+// ─── Avatar con il colore del reparto ────────────────────────────────────────
+$rfe-rep: (1: var(--chart-1), 2: var(--chart-2), 3: var(--chart-5), 4: var(--chart-4), 5: var(--chart-7), 6: var(--chart-3))
+
+.rfe__avatar
+  flex-shrink: 0
+  width: 26px
+  height: 26px
+  border-radius: 50%
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: var(--color-primary)
+  color: #fff
+  font-size: 10px
+  font-weight: 700
+  letter-spacing: .3px
+
+  @each $i, $c in $rfe-rep
+    &[data-rep="#{$i}"]
+      background: $c
+
+// ─── Valutazione di Sibylla ──────────────────────────────────────────────────
+.rfe__val
+  max-width: 100%
+  min-width: 0
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 3px 10px
+  border-radius: 999px
+  font-size: 12px
+  font-weight: 600
+  cursor: help
+
+  i
+    font-size: 12px
+
+  &--ok
+    background: $success-light
+    color: $success
+
+  &--warn
+    background: $warning-light
+    color: $warning
+
+  &--ko
+    background: $error-light
+    color: $error
+
+.rfe__val-txt
+  min-width: 0
+  overflow: hidden
+  text-overflow: ellipsis
+
+.rfe .rfe__val-urg
+  color: $warning
+
+// Richiesta che inizia entro 3 giorni: filo a sinistra.
+.rfe .rfe__row--urgente td:first-child
+  box-shadow: inset 3px 0 0 $warning
+
+.rfe-tip
+  display: flex
+  flex-direction: column
+  gap: 5px
+  max-width: 280px
+  text-align: left
+
+.rfe-tip__title
+  font-weight: 700
+
+.rfe-tip__row
+  position: relative
+  padding-left: 14px
+
+  &::before
+    content: ''
+    position: absolute
+    left: 0
+    top: 6px
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    background: #94A3B8
+
+  &--ok::before
+    background: #34D399
+
+  &--warn::before
+    background: #FBBF24
+
+  &--ko::before
+    background: #F87171
+
+// Saldo ROL (modale)
+.rfe__scol-dip
+  width: 28%
+.rfe__scol-rep
+  width: 24%
+.rfe__scol-n
+  width: 12%
+
+.rfe-modal__ore
+  width: 160px
+
 // ─── Responsività (container query sul root pagina) ───────────────────────────
 @container richiesteferie (max-width: 1360px)
   .rfe .rfe__table
     +hr-table-compact
+
+  // Valutazione solo come icona colorata (dettaglio nel tooltip): lo spazio va alle date.
+  .rfe__val-txt
+    display: none
+
+  .rfe .rfe__val
+    padding: 3px 7px
+
+  .rfe__col-data
+    width: 10%
+  .rfe__col-periodo
+    width: 17%
+  .rfe__col-conf
+    width: 6%
+  .rfe__col-tipo
+    width: 10%
+  .rfe__col-rep
+    width: 10%
+  .rfe__col-stato
+    width: 9%
 
   .rfe
     +th-compact

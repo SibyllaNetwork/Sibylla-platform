@@ -6,23 +6,29 @@ import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import Pagination from '../../../core/components/Pagination'
 import Ico from '../../../core/icons/Ico'
-import { SelectField, DateRangeField, TextareaField } from '../../../core/components/form'
+import { SelectField, DateRangeField, TextareaField, InputField } from '../../../core/components/form'
+import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
 import {
   useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, TIPI_ASSENZA, STATI_RICHIESTA,
   nomeDipendente, repartoDipendente, fmtDataHr, giorniLavorativi, ferieGodute, sovrapposizioni,
+  saldoRol, oreRichiesta, ORE_GIORNO,
   type RichiestaAssenza, type TipoAssenza, type StatoRichiesta,
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
+import { occupazione, addGiorni } from '../../../store/useTurniPersonaleStore'
 import './RichiesteFerie.sass'
 
 /**
- * Richieste — HR › Gestione delle presenze › Gestione delle ferie.
+ * Richieste — HR › Gestione delle presenze › Gestione ferie e permessi.
  * Le richieste di ferie, permessi, ROL e malattia del personale: chi le gestisce
  * vede le ferie che resterebbero al dipendente e i colleghi dello stesso reparto
  * già assenti negli stessi giorni, poi approva o rifiuta (con motivo).
  * Le richieste approvate compaiono nel Piano ferie.
+ * ROL: si chiedono a ore (o a giornate da 8 h) e scalano dal monte ore annuo
+ * maturato secondo il contratto; "Saldo ROL" mostra maturate, godute, in
+ * attesa e residue di ogni dipendente.
  */
 
 const PAGE_SIZE = 10
@@ -31,8 +37,13 @@ const VISTA_TUTTE = 'tutte'
 
 const statoCls = (s: StatoRichiesta) => (s === 'Da approvare' ? 'attesa' : s === 'Approvata' ? 'ok' : 'ko')
 
-const durata = (r: Pick<RichiestaAssenza, 'tipo' | 'dal' | 'al'>) => {
-  const g = giorniLavorativi(r.dal, r.al)
+/** Tipi che si possono chiedere a ore. */
+const A_ORE: TipoAssenza[] = ['ROL', 'Permesso']
+const fmtOre = (h: number) => `${h.toLocaleString('it-IT', { maximumFractionDigits: 1 })} h`
+
+const durata = (r: Pick<RichiestaAssenza, 'tipo' | 'dal' | 'al' | 'ore'>) => {
+  if (r.ore != null) return fmtOre(r.ore)
+  const g = Math.max(1, giorniLavorativi(r.dal, r.al))
   return g === 1 ? '1 giorno' : `${g} giorni`
 }
 
@@ -43,13 +54,58 @@ const periodo = (dal: string, al: string) => {
   return `${dal.slice(0, 4) === al.slice(0, 4) ? a.slice(0, 5) : a} → ${fmtDataHr(al)}`
 }
 
-interface Bozza { dipendenteId: string; tipo: TipoAssenza; dal: string; al: string; note: string }
+// ─── Valutazione di Sibylla sulle richieste da approvare ─────────────────────
+type Livello = 'ok' | 'warn' | 'ko'
+interface Valutazione { livello: Livello; motivi: { livello: Livello | 'info'; testo: string }[] }
+const LIVELLO_LBL: Record<Livello, string> = { ok: 'Approvabile', warn: 'Da valutare', ko: 'Sconsigliata' }
+const TIPO_ICO: Record<TipoAssenza, string> = { Ferie: 'fa-umbrella-beach', Permesso: 'fa-clock', ROL: 'fa-hourglass-half', Malattia: 'fa-notes-medical' }
+const REP_IDX = (rep: string) => REPARTI_HR.indexOf(rep as typeof REPARTI_HR[number]) + 1
+const iniziali = (nome: string) => nome.split(' ').map(x => x.charAt(0)).slice(0, 2).join('')
+
+const giorniA = (iso: string) => Math.round((new Date(`${iso}T12:00:00`).getTime() - new Date(new Date().toDateString() + ' 12:00').getTime()) / 86400000)
+
+/** Occupazione media prevista della struttura nel periodo richiesto. */
+function occupazioneMedia(dal: string, al: string) {
+  const out: number[] = []
+  for (let g = dal; g <= al && out.length < 60; g = addGiorni(g, 1)) out.push(occupazione(g))
+  return out.length ? Math.round(out.reduce((a, b) => a + b, 0) / out.length) : 0
+}
+
+function valuta(r: RichiestaAssenza & { residuo: number; conflitti: RichiestaAssenza[]; reparto: string }): Valutazione {
+  const motivi: Valutazione['motivi'] = []
+  if (r.tipo === 'Malattia') return { livello: 'ok', motivi: [{ livello: 'ok', testo: 'Malattia: va registrata con il certificato.' }] }
+  const colleghi = DIPENDENTI_HR.filter(d => d.reparto === r.reparto && d.id !== r.dipendenteId).length
+  const assenti = new Set(r.conflitti.map(c => c.dipendenteId)).size
+  if (assenti > 0 && assenti >= colleghi) motivi.push({ livello: 'ko', testo: `${r.reparto} resterebbe scoperto: tutti i colleghi sono già assenti.` })
+  else if (assenti > 0) motivi.push({ livello: 'warn', testo: `Nel reparto è già assente ${r.conflitti.map(c => nomeDipendente(c.dipendenteId)).join(', ')}.` })
+  if (r.tipo === 'Ferie' && r.residuo < 0) motivi.push({ livello: 'ko', testo: `Ferie insufficienti: mancano ${-r.residuo} gg.` })
+  if (r.tipo === 'ROL' && r.residuo < 0) motivi.push({ livello: 'ko', testo: `ROL insufficienti: mancano ${fmtOre(-r.residuo)}.` })
+  const occ = occupazioneMedia(r.dal, r.al)
+  if (occ >= 85) motivi.push({ livello: 'warn', testo: `Periodo di alta occupazione (${occ}% in media).` })
+  else motivi.push({ livello: 'ok', testo: `Occupazione prevista nel periodo: ${occ}%.` })
+  const tra = giorniA(r.dal)
+  if (tra >= 0 && tra <= 3) motivi.push({ livello: 'info', testo: tra === 0 ? 'Inizia oggi: decidi subito.' : `Inizia tra ${tra === 1 ? '1 giorno' : `${tra} giorni`}: decidi presto.` })
+  const livello: Livello = motivi.some(m => m.livello === 'ko') ? 'ko' : motivi.some(m => m.livello === 'warn') ? 'warn' : 'ok'
+  if (livello === 'ok' && !motivi.some(m => m.livello === 'info')) motivi.unshift({ livello: 'ok', testo: 'Nessun conflitto nel reparto e saldo sufficiente.' })
+  return { livello, motivi }
+}
+
+const VISTE = [
+  { value: 'attesa', label: 'Da approvare' },
+  { value: 'Approvata', label: 'Approvate' },
+  { value: 'Rifiutata', label: 'Rifiutate' },
+  { value: 'tutte', label: 'Tutte' },
+]
+
+interface Bozza { dipendenteId: string; tipo: TipoAssenza; dal: string; al: string; note: string; ore: string }
 
 export default function RichiesteFerie({ navigate }: { navigate: (p: string) => void }) {
   const richieste = useHrGestioneStore(s => s.richieste)
   const decidi = useHrGestioneStore(s => s.decidiRichiesta)
   const aggiungi = useHrGestioneStore(s => s.aggiungiRichiesta)
   const cf = useColFilters()
+  const confirm = useConfirmStore(s => s.confirm)
+  const [saldoOpen, setSaldoOpen] = useState(false)
 
   const [vista, setVista] = useState(VISTA_ATTESA)
   const [reparto, setReparto] = useState('')
@@ -64,7 +120,11 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
       const giorni = giorniLavorativi(r.dal, r.al)
       const godute = ferieGodute(richieste, r.dipendenteId)
       // Residuo dopo la richiesta: per una richiesta di ferie ancora in attesa si sottraggono anche i suoi giorni.
-      const residuo = (d?.ferieAnnue ?? 0) - godute - (r.tipo === 'Ferie' && r.stato === 'Da approvare' ? giorni : 0)
+      // Per i ROL il residuo è in ore: sul monte ore annuo, togliendo anche questa richiesta se in attesa.
+      const rol = r.tipo === 'ROL' ? saldoRol(richieste, r.dipendenteId, Number(r.dal.slice(0, 4))) : null
+      const residuo = rol
+        ? rol.residue - (r.stato === 'Da approvare' ? oreRichiesta(r) : 0)
+        : (d?.ferieAnnue ?? 0) - godute - (r.tipo === 'Ferie' && r.stato === 'Da approvare' ? giorni : 0)
       return {
         ...r,
         dipendente: nomeDipendente(r.dipendenteId),
@@ -74,7 +134,8 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
         conflitti: r.stato === 'Rifiutata' ? [] : sovrapposizioni(richieste, r),
       }
     })
-    .filter(r => vista === VISTA_TUTTE || r.stato === 'Da approvare')
+    .map(r => ({ ...r, valutazione: r.stato === 'Da approvare' ? valuta(r) : null, urgente: r.stato === 'Da approvare' && giorniA(r.dal) <= 3 }))
+    .filter(r => vista === VISTA_TUTTE || (vista === VISTA_ATTESA ? r.stato === 'Da approvare' : r.stato === vista))
     .filter(r => !reparto || r.reparto === reparto)
     .filter(r => cf.matchText(r.dipendente, 'dipendente') && cf.matchMulti(r.tipo, 'tipo') && cf.matchMulti(r.stato, 'stato')),
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,8 +149,34 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   useEffect(() => { setPage(1) }, [vista, reparto, cf.text, cf.multi])
   const pageRows = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const inAttesa = richieste.filter(r => r.stato === 'Da approvare').length
+  const contaVista = (v: string) => v === VISTA_TUTTE ? richieste.length : v === VISTA_ATTESA ? inAttesa : richieste.filter(r => r.stato === v).length
+  // Richieste da approvare che Sibylla valuta senza problemi (sul filtro reparto attivo).
+  const consigliate = rows.filter(r => r.valutazione?.livello === 'ok')
 
-  const approva = (r: RichiestaAssenza) => {
+  const approvaConsigliate = async () => {
+    const ok = await confirm({
+      title: 'Approva le richieste consigliate',
+      message: <>Sibylla non vede conflitti in <strong>{consigliate.length === 1 ? '1 richiesta' : `${consigliate.length} richieste`}</strong>: {consigliate.map(r => `${r.dipendente} (${r.tipo.toLowerCase()})`).join(', ')}. Le approvi tutte?</>,
+      confirmLabel: 'Approva', danger: false,
+    })
+    if (!ok) return
+    consigliate.forEach(r => decidi(r.id, 'Approvata'))
+    toast.success(`${consigliate.length === 1 ? '1 richiesta approvata' : `${consigliate.length} richieste approvate`}: sono nel Piano ferie.`, 'Richieste approvate')
+  }
+
+  const approva = async (r: RichiestaAssenza) => {
+    if (r.tipo === 'ROL') {
+      const saldo = saldoRol(richieste, r.dipendenteId, Number(r.dal.slice(0, 4)))
+      const ore = oreRichiesta(r)
+      if (ore > saldo.residue) {
+        const ok = await confirm({
+          title: 'ROL insufficienti',
+          message: <>{nomeDipendente(r.dipendenteId)} ha <strong>{fmtOre(Math.max(0, saldo.residue))}</strong> di ROL residui e ne chiede <strong>{fmtOre(ore)}</strong>. Le ore mancanti andranno recuperate o tolte dalle ferie. Approvi comunque?</>,
+          confirmLabel: 'Approva comunque', danger: false,
+        })
+        if (!ok) return
+      }
+    }
     decidi(r.id, 'Approvata')
     toast.success(`${r.tipo} di ${nomeDipendente(r.dipendenteId)} dal ${fmtDataHr(r.dal)} al ${fmtDataHr(r.al)} approvata: è nel Piano ferie.`, 'Richiesta approvata')
   }
@@ -105,16 +192,23 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     const e: Record<string, string> = {}
     if (!nuova.dipendenteId) e.dipendenteId = 'Scegli il dipendente'
     if (!nuova.dal || !nuova.al) e.periodo = 'Indica il periodo'
+    const aOre = A_ORE.includes(nuova.tipo) && nuova.dal && nuova.dal === nuova.al
+    const ore = aOre ? Number(nuova.ore.replace(',', '.')) : undefined
+    if (aOre && (!ore || ore <= 0 || ore > ORE_GIORNO)) e.ore = `Indica le ore (da 0,5 a ${ORE_GIORNO})`
     setErrori(e)
     if (Object.keys(e).length) return
-    aggiungi({ dipendenteId: Number(nuova.dipendenteId), tipo: nuova.tipo, dal: nuova.dal, al: nuova.al, note: nuova.note.trim() || undefined })
+    aggiungi({ dipendenteId: Number(nuova.dipendenteId), tipo: nuova.tipo, dal: nuova.dal, al: nuova.al, note: nuova.note.trim() || undefined, ore: ore && ore < ORE_GIORNO ? ore : undefined })
     toast.success('Richiesta inserita: è in attesa di approvazione.', 'Richiesta aggiunta')
     setVista(VISTA_ATTESA)
     setNuova(null)
   }
 
-  const esporta = () => exportXls('richieste-assenze', ['Richiesta il', 'Dipendente', 'Reparto', 'Tipo', 'Dal', 'Al', 'Giorni', 'Ferie residue', 'Stato', 'Note', 'Motivo rifiuto'],
-    sorted.map(r => [fmtDataHr(r.createdAt.slice(0, 10)), r.dipendente, r.reparto, r.tipo, fmtDataHr(r.dal), fmtDataHr(r.al), r.giorni, r.residuo, r.stato, r.note ?? '', r.motivo ?? '']))
+  const esporta = () => exportXls('richieste-assenze', ['Richiesta il', 'Dipendente', 'Reparto', 'Tipo', 'Dal', 'Al', 'Durata', 'Residuo', 'Stato', 'Note', 'Motivo rifiuto'],
+    sorted.map(r => [fmtDataHr(r.createdAt.slice(0, 10)), r.dipendente, r.reparto, r.tipo, fmtDataHr(r.dal), fmtDataHr(r.al), durata(r),
+      r.tipo === 'Ferie' ? `${r.residuo} gg` : r.tipo === 'ROL' ? fmtOre(r.residuo) : '', r.stato, r.note ?? '', r.motivo ?? '']))
+
+  const esportaSaldo = () => exportXls('saldo-rol', ['Dipendente', 'Reparto', 'Maturate', 'Godute', 'In attesa', 'Residue'],
+    DIPENDENTI_HR.map(d => { const s = saldoRol(richieste, d.id); return [`${d.nome} ${d.cognome}`, d.reparto, s.maturate, s.godute, s.inAttesa, s.residue] }))
 
   const act = (tip: string, ico: string, onClick: () => void) => (
     <Tooltip text={tip}>
@@ -125,8 +219,14 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   )
 
   // Anteprima della nuova richiesta: giorni e sovrapposizioni mentre la si compila.
+  const nuovaAOre = !!nuova && A_ORE.includes(nuova.tipo) && !!nuova.dal && nuova.dal === nuova.al
   const nuovaInfo = nuova && nuova.dipendenteId && nuova.dal && nuova.al ? {
     giorni: giorniLavorativi(nuova.dal, nuova.al),
+    rol: nuova.tipo === 'ROL' ? (() => {
+      const s = saldoRol(richieste, Number(nuova.dipendenteId), Number(nuova.dal.slice(0, 4)))
+      const ore = nuovaAOre ? (Number(nuova.ore.replace(',', '.')) || 0) : giorniLavorativi(nuova.dal, nuova.al) * ORE_GIORNO
+      return { residue: s.residue, ore, dopo: s.residue - ore }
+    })() : null,
     conflitti: sovrapposizioni(richieste, { id: '', dipendenteId: Number(nuova.dipendenteId), dal: nuova.dal, al: nuova.al }),
   } : null
 
@@ -137,18 +237,34 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
         subtitle="Approva o rifiuta ferie, permessi e assenze del personale"
         onBack={() => navigate('home')}
         actions={
-          <button type="button" className="sib-btn sib-btn--primary" onClick={() => { setErrori({}); setNuova({ dipendenteId: '', tipo: 'Ferie', dal: '', al: '', note: '' }) }}>
+          <button type="button" className="sib-btn sib-btn--primary" onClick={() => { setErrori({}); setNuova({ dipendenteId: '', tipo: 'Ferie', dal: '', al: '', note: '', ore: '8' }) }}>
             <Ico n="plus" s={14} c="currentColor" /> Nuova richiesta
           </button>
         }
       />
 
       <div className="rfe__toolbar">
-        <SelectField name="vista" label="Vista" className="rfe__field" value={vista} onChange={e => setVista(e.target.value)}
-          options={[{ value: VISTA_ATTESA, label: `Da approvare (${inAttesa})` }, { value: VISTA_TUTTE, label: 'Tutte le richieste' }]} />
+        <div className="rfe__tabs" role="tablist" aria-label="Vista">
+          {VISTE.map(v => (
+            <button key={v.value} type="button" role="tab" aria-selected={vista === v.value}
+              className={`rfe__tab ${vista === v.value ? 'rfe__tab--on' : ''}`} onClick={() => setVista(v.value)}>
+              {v.label}<span className={`rfe__tab-n ${v.value === VISTA_ATTESA && inAttesa > 0 ? 'rfe__tab-n--hot' : ''}`}>{contaVista(v.value)}</span>
+            </button>
+          ))}
+        </div>
         <SelectField name="reparto" label="Reparto" className="rfe__field" value={reparto} onChange={e => setReparto(e.target.value)}
           options={[{ value: '', label: 'Tutti i reparti' }, ...REPARTI_HR.map(r => ({ value: r, label: r }))]} />
         <div className="rfe__push">
+          {consigliate.length > 0 && (
+            <Tooltip text="Approva in un colpo le richieste senza conflitti nel reparto e con saldo sufficiente">
+              <button type="button" className="sib-btn sib-btn--secondary rfe__smart" onClick={approvaConsigliate}>
+                <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" /> Approva consigliate ({consigliate.length})
+              </button>
+            </Tooltip>
+          )}
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setSaldoOpen(true)}>
+            <i className="fa-solid fa-hourglass-half" aria-hidden="true" /> Saldo ROL
+          </button>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('hr-piano-ferie')}>
             <Ico n="calendar" s={13} c="currentColor" /> Piano ferie
           </button>
@@ -181,40 +297,62 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
               <th><ThLabel full="Reparto" /></th>
               <th><span className="sib-colf-head"><ThLabel full="Tipo" />{cf.th('tipo', 'tipo', { options: TIPI_ASSENZA })}</span></th>
               <th><span className="sib-colf-head"><ThLabel full="Periodo" />{cf.th('dal', 'periodo', { sort: true })}</span></th>
-              <th className="rfe__r"><ThLabel full="Giorni" /></th>
-              <th className="rfe__r"><ThLabel full="Ferie residue" short="Residue" /></th>
-              <th className="rfe__c"><ThLabel full="Sovrapposizioni" short="Sovrapp." /></th>
+              <th className="rfe__r"><ThLabel full="Durata" /></th>
+              <th className="rfe__r"><ThLabel full="Residuo" /></th>
+              <th><ThLabel full="Valutazione Sibylla" short="Val." /></th>
               <th><span className="sib-colf-head"><ThLabel full="Stato" />{cf.th('stato', 'stato', { options: STATI_RICHIESTA })}</span></th>
               <th className="rfe__c"><ThLabel full="Azioni" /></th>
             </tr>
           </thead>
           <tbody>
             {pageRows.map(r => (
-              <tr key={r.id}>
+              <tr key={r.id} className={r.urgente ? 'rfe__row--urgente' : undefined}>
                 <td><TruncatedText text={fmtDataHr(r.createdAt.slice(0, 10))} /></td>
                 <td className="rfe__strong">
                   <span className="rfe__dip">
+                    <span className="rfe__avatar" data-rep={REP_IDX(r.reparto)} aria-hidden="true">{iniziali(r.dipendente)}</span>
                     <TruncatedText text={r.dipendente} />
                     {r.note && <Tooltip text={r.note}><span className="rfe__note"><Ico n="info" w="solid" s={12} c="currentColor" /></span></Tooltip>}
                   </span>
                 </td>
                 <td><TruncatedText text={r.reparto} /></td>
-                <td><span className={`rfe__tipo rfe__tipo--${r.tipo.toLowerCase()}`}><TruncatedText text={r.tipo} /></span></td>
+                <td>
+                  <span className={`rfe__tipo rfe__tipo--${r.tipo.toLowerCase()}`}>
+                    <i className={`fa-solid ${TIPO_ICO[r.tipo]}`} aria-hidden="true" /><TruncatedText text={r.tipo} />
+                  </span>
+                </td>
                 <td><TruncatedText text={periodo(r.dal, r.al)} full={r.dal === r.al ? undefined : `dal ${fmtDataHr(r.dal)} al ${fmtDataHr(r.al)}`} /></td>
                 <td className="rfe__r"><TruncatedText text={durata(r)} /></td>
                 <td className={`rfe__r ${r.residuo < 0 ? 'rfe__neg' : ''}`}>
                   {r.tipo === 'Ferie'
                     ? <Tooltip text={r.stato === 'Da approvare' ? 'Giorni di ferie che restano se la richiesta viene approvata' : 'Giorni di ferie ancora disponibili nell\'anno'}><span>{r.residuo} gg</span></Tooltip>
-                    : <span className="rfe__dash">-</span>}
+                    : r.tipo === 'ROL'
+                      ? <Tooltip text={r.stato === 'Da approvare' ? 'Ore di ROL che restano se la richiesta viene approvata' : 'Ore di ROL ancora disponibili nell\'anno'}><span>{fmtOre(r.residuo)}</span></Tooltip>
+                      : <span className="rfe__dash">-</span>}
                 </td>
-                <td className="rfe__c">
-                  {r.conflitti.length > 0
+                <td>
+                  {r.valutazione
                     ? (
-                      <Tooltip text={`Assenti nello stesso reparto: ${r.conflitti.map(c => `${nomeDipendente(c.dipendenteId)} (${fmtDataHr(c.dal)} → ${fmtDataHr(c.al)})`).join(', ')}`}>
-                        <span className="rfe__conflitto"><Ico n="alert" w="solid" s={14} c="currentColor" /> {r.conflitti.length}</span>
+                      <Tooltip content={
+                        <span className="rfe-tip">
+                          <span className="rfe-tip__title">Valutazione di Sibylla</span>
+                          {r.valutazione.motivi.map((m, i) => <span key={i} className={`rfe-tip__row rfe-tip__row--${m.livello}`}>{m.testo}</span>)}
+                        </span>
+                      }>
+                        <span className={`rfe__val rfe__val--${r.valutazione.livello}`}>
+                          <i className={`fa-solid ${r.valutazione.livello === 'ok' ? 'fa-circle-check' : r.valutazione.livello === 'warn' ? 'fa-triangle-exclamation' : 'fa-circle-xmark'}`} aria-hidden="true" />
+                          <span className="rfe__val-txt">{LIVELLO_LBL[r.valutazione.livello]}</span>
+                          {r.urgente && <i className="fa-solid fa-bolt rfe__val-urg" aria-label="Urgente" />}
+                        </span>
                       </Tooltip>
                     )
-                    : <span className="rfe__dash">-</span>}
+                    : r.conflitti.length > 0
+                      ? (
+                        <Tooltip text={`Assenti nello stesso reparto: ${r.conflitti.map(c => `${nomeDipendente(c.dipendenteId)} (${fmtDataHr(c.dal)} → ${fmtDataHr(c.al)})`).join(', ')}`}>
+                          <span className="rfe__conflitto"><Ico n="alert" w="solid" s={14} c="currentColor" /> {r.conflitti.length}<span className="rfe__val-txt"> sovrapp.</span></span>
+                        </Tooltip>
+                      )
+                      : <span className="rfe__dash">-</span>}
                 </td>
                 <td>
                   <span className={`rfe__stato rfe__stato--${statoCls(r.stato)}`}>
@@ -278,10 +416,16 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
               valueFrom={nuova.dal} valueTo={nuova.al}
               onChangeFrom={e => setNuova(n => n && ({ ...n, dal: e.target.value }))}
               onChangeTo={e => setNuova(n => n && ({ ...n, al: e.target.value }))} />
+            {nuovaAOre && (
+              <InputField name="rf-ore" label="Ore" type="number" required value={nuova.ore} error={errori.ore}
+                hint={`Su una giornata di ${ORE_GIORNO} h: con ${ORE_GIORNO} vale la giornata intera`}
+                onChange={e => setNuova({ ...nuova, ore: e.target.value })} className="rfe-modal__ore" />
+            )}
             {nuovaInfo && (
-              <p className={`rfe-modal__info ${nuovaInfo.conflitti.length ? 'rfe-modal__info--warn' : ''}`}>
-                <Ico n={nuovaInfo.conflitti.length ? 'alert' : 'info'} w="solid" s={13} c="currentColor" />
-                {nuovaInfo.giorni === 1 ? '1 giorno lavorativo' : `${nuovaInfo.giorni} giorni lavorativi`}
+              <p className={`rfe-modal__info ${nuovaInfo.conflitti.length || (nuovaInfo.rol && nuovaInfo.rol.dopo < 0) ? 'rfe-modal__info--warn' : ''}`}>
+                <Ico n={nuovaInfo.conflitti.length || (nuovaInfo.rol && nuovaInfo.rol.dopo < 0) ? 'alert' : 'info'} w="solid" s={13} c="currentColor" />
+                {nuovaAOre ? `${fmtOre(Number(nuova.ore.replace(',', '.')) || 0)} il ${fmtDataHr(nuova.dal)}` : nuovaInfo.giorni === 1 ? '1 giorno lavorativo' : `${nuovaInfo.giorni} giorni lavorativi`}
+                {nuovaInfo.rol && ` · ROL residui ${fmtOre(nuovaInfo.rol.residue)}, dopo la richiesta ${fmtOre(nuovaInfo.rol.dopo)}`}
                 {nuovaInfo.conflitti.length > 0 && ` · già assenti nel reparto: ${nuovaInfo.conflitti.map(c => nomeDipendente(c.dipendenteId)).join(', ')}`}
               </p>
             )}
@@ -292,6 +436,52 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* ── Saldo ROL: monte ore annuo per dipendente ── */}
+      <Modal open={saldoOpen} onClose={() => setSaldoOpen(false)} title={`Saldo ROL ${new Date().getFullYear()}`} size="lg">
+        <div className="rfe-modal">
+          <p className="rfe-modal__text">Ore di riduzione orario maturate nell'anno secondo il contratto, godute con le richieste approvate e ancora da approvare.</p>
+          <div className="sib-table-wrap rfe__wrap">
+            <table className="sib-table rfe__table rfe__saldo">
+              <colgroup>
+                <col className="rfe__scol-dip" /><col className="rfe__scol-rep" />
+                <col className="rfe__scol-n" /><col className="rfe__scol-n" /><col className="rfe__scol-n" /><col className="rfe__scol-n" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th><ThLabel full="Dipendente" /></th>
+                  <th><ThLabel full="Reparto" /></th>
+                  <th className="rfe__r"><ThLabel full="Maturate" /></th>
+                  <th className="rfe__r"><ThLabel full="Godute" /></th>
+                  <th className="rfe__r"><ThLabel full="In attesa" /></th>
+                  <th className="rfe__r"><ThLabel full="Residue" /></th>
+                </tr>
+              </thead>
+              <tbody>
+                {DIPENDENTI_HR.map(d => {
+                  const s = saldoRol(richieste, d.id)
+                  return (
+                    <tr key={d.id}>
+                      <td className="rfe__strong"><TruncatedText text={`${d.nome} ${d.cognome}`} /></td>
+                      <td><TruncatedText text={d.reparto} /></td>
+                      <td className="rfe__r">{fmtOre(s.maturate)}</td>
+                      <td className="rfe__r">{fmtOre(s.godute)}</td>
+                      <td className="rfe__r">{s.inAttesa ? fmtOre(s.inAttesa) : <span className="rfe__dash">-</span>}</td>
+                      <td className={`rfe__r rfe__strong ${s.residue < 0 ? 'rfe__neg' : ''}`}>{fmtOre(s.residue)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="rfe-modal__actions">
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={esportaSaldo}>
+              <i className="fa-regular fa-file-xls" aria-hidden="true" /> Esporta in Excel
+            </button>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={() => setSaldoOpen(false)}>Chiudi</button>
+          </div>
+        </div>
       </Modal>
     </div>
   )

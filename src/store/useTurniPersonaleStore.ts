@@ -89,17 +89,18 @@ export const fabbisogno = (iso: string, reparto?: Reparto | '') =>
   (reparto ? [reparto] : REPARTI_HR).reduce((s, r) => s + fabbisognoReparto(r, iso), 0)
 
 // ─── Assenze (dalle richieste HR) ────────────────────────────────────────────
-export interface AssenzaGiorno { tipo: TipoAssenza; inAttesa: boolean }
+export interface AssenzaGiorno { tipo: TipoAssenza; inAttesa: boolean; /** ROL/permesso a ore nella giornata. */ ore?: number }
 /** Assenza del dipendente nel giorno: approvata, oppure in attesa di approvazione. */
 export function assenzaDi(richieste: RichiestaAssenza[], id: number, iso: string): AssenzaGiorno | null {
   const attive = richieste.filter(x => x.dipendenteId === id && x.dal <= iso && x.al >= iso
     && (x.stato === 'Approvata' || x.stato === 'Da approvare'))
   // Le approvate prevalgono sulle richieste ancora da decidere.
   const pick = attive.find(x => x.stato === 'Approvata') ?? attive[0]
-  return pick ? { tipo: pick.tipo, inAttesa: pick.stato === 'Da approvare' } : null
+  return pick ? { tipo: pick.tipo, inAttesa: pick.stato === 'Da approvare', ore: pick.dal === pick.al ? pick.ore : undefined } : null
 }
-/** Il permesso è a ore: il dipendente resta assegnabile. */
-export const bloccaTurno = (a: AssenzaGiorno | null) => !!a && !a.inAttesa && a.tipo !== 'Permesso'
+/** Permesso e ROL di poche ore: il dipendente resta assegnabile. */
+export const bloccaTurno = (a: AssenzaGiorno | null) =>
+  !!a && !a.inAttesa && a.tipo !== 'Permesso' && !(a.tipo === 'ROL' && a.ore != null && a.ore < 8)
 
 // ─── Algoritmo di Sibylla ─────────────────────────────────────────────────────
 export type Assegnazioni = Record<string, number[]>

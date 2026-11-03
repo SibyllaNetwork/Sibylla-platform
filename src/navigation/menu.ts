@@ -221,7 +221,7 @@ const MENU:any[]=[
         {id:"turni-personale",label:"Turni del personale",page:"turni-personale"},
         {id:"hr-note-spese",label:"Nota spese",page:"hr-note-spese"},
         {id:"hr-cedolini",label:"Cedolini",page:"hr-cedolini"},
-        {id:"gest-ferie",label:"Gestione delle ferie",children:[
+        {id:"gest-ferie",label:"Gestione ferie e permessi",children:[
           {id:"hr-richieste-ferie",label:"Richieste",page:"hr-richieste-ferie"},
           {id:"hr-piano-ferie",label:"Piano ferie",page:"hr-piano-ferie"},
         ]},
