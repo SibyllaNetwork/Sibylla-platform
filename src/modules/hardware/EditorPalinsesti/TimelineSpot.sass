@@ -1,0 +1,338 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+// Timeline scura (come una regia video). Colonna etichette fissa a 140px.
+$lbl: 140px
+$gap: 8px
+
+.tls
+  display: flex
+  flex-direction: column
+  gap: 8px
+  padding: 12px 14px 14px
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: #10233a
+  color: #fff
+  user-select: none
+
+.tls__head
+  display: flex
+  align-items: center
+  gap: 10px
+
+.tls__play
+  width: 34px
+  height: 34px
+  border: 0
+  border-radius: 50%
+  background: #a2864c
+  color: #fff
+  cursor: pointer
+  font-size: 13px
+
+  &:hover
+    filter: brightness(1.1)
+
+.tls__btn
+  width: 28px
+  height: 28px
+  border: 0
+  border-radius: 6px
+  background: transparent
+  color: #c9d6e3
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+
+  &:hover
+    background: rgba(255, 255, 255, .12)
+
+  &--sm
+    width: 22px
+    height: 22px
+    font-size: 11px
+
+.tls__time
+  font-family: monospace
+  font-size: 13px
+  color: #a9b8c9
+
+  strong
+    color: #fff
+
+.tls__meta
+  font-size: 12px
+  color: #7f93a8
+
+.tls .tls__add
+  margin-left: auto
+  border-color: rgba(255, 255, 255, .35)
+  background: rgba(255, 255, 255, .08)
+  color: #fff
+
+  &:hover
+    background: rgba(255, 255, 255, .16)
+
+.tls__grid
+  position: relative
+  display: grid
+  grid-template-columns: $lbl minmax(0, 1fr)
+  gap: 6px $gap
+  align-items: center
+
+  &--el
+    max-height: 210px
+    overflow-x: hidden
+    overflow-y: auto
+    padding-right: 4px
+    +custom-scrollbar
+
+.tls__lbl
+  min-width: 0
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 11px
+  font-weight: 600
+  color: #7f93a8
+
+  &--el
+    height: 26px
+    padding: 0 6px
+    border: 0
+    border-radius: 6px
+    background: transparent
+    color: #c9d6e3
+    cursor: pointer
+    text-align: left
+
+    i
+      width: 14px
+      color: #a2864c
+
+    &:hover
+      background: rgba(255, 255, 255, .08)
+
+  &--on
+    background: rgba(162, 134, 76, .22)
+    color: #fff
+
+  &--off
+    opacity: .45
+
+.tls__lbl-txt
+  display: block
+  min-width: 0
+  flex: 1
+
+.tls__ruler
+  position: relative
+  height: 18px
+  border-bottom: 1px solid rgba(255, 255, 255, .15)
+  cursor: ew-resize
+
+  &--loc
+    position: sticky
+    top: 0
+    z-index: 2
+    background: #10233a
+
+.tls__tick
+  position: absolute
+  left: var(--pos)
+  bottom: 2px
+  transform: translateX(-50%)
+  font-size: 10px
+  color: #7f93a8
+  pointer-events: none
+
+  &:first-child
+    transform: none
+
+.tls__head-pin
+  position: absolute
+  left: var(--pos)
+  bottom: -5px
+  width: 11px
+  height: 11px
+  margin-left: -5.5px
+  border-radius: 2px 2px 50% 50%
+  background: #ffd166
+  pointer-events: none
+
+.tls__track
+  position: relative
+  height: 50px
+
+.tls__clip
+  position: absolute
+  top: 0
+  bottom: 0
+  left: var(--a)
+  width: calc(var(--w) - 4px)
+  min-width: 0
+  display: flex
+  align-items: center
+  gap: 7px
+  padding: 5px 10px 5px 5px
+  border: 2px solid transparent
+  border-radius: 8px
+  background: rgba(255, 255, 255, .07)
+  cursor: pointer
+  overflow: hidden
+
+  &:hover
+    background: rgba(255, 255, 255, .12)
+
+    .tls__clip-acts
+      opacity: 1
+
+  &--on
+    border-color: #a2864c
+    background: rgba(162, 134, 76, .18)
+
+.tls__clip-thumb
+  flex-shrink: 0
+  width: 22px
+  border-radius: 3px
+  overflow: hidden
+
+.tls__clip-txt
+  min-width: 0
+  flex: 1
+  display: flex
+  flex-direction: column
+  font-size: 10.5px
+
+  > span:last-child
+    color: #a9b8c9
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+.tls__clip-name
+  display: block
+  font-size: 12px
+  font-weight: 700
+
+.tls__clip-acts
+  display: flex
+  opacity: 0
+  transition: opacity .15s
+
+.tls__clip-resize
+  position: absolute
+  top: 0
+  right: 0
+  bottom: 0
+  width: 8px
+  cursor: ew-resize
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .25))
+
+  &:hover
+    background: #ffd166
+
+.tls__playhead
+  position: absolute
+  top: -6px
+  bottom: -4px
+  left: var(--pos)
+  width: 2px
+  margin-left: -1px
+  background: #ffd166
+  pointer-events: none
+  z-index: 3
+
+  &--loc
+    top: 0
+    bottom: 0
+    left: calc(#{$lbl} + #{$gap} + (100% - #{$lbl} - #{$gap} - 4px) * var(--f))
+
+.tls__sub
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 10px
+  margin-top: 4px
+  padding-top: 8px
+  border-top: 1px solid rgba(255, 255, 255, .1)
+
+.tls__sub-title
+  font-size: 12px
+  font-weight: 700
+
+.tls__sub-hint
+  font-size: 11px
+  color: #7f93a8
+
+.tls__lane
+  position: relative
+  height: 26px
+  border-radius: 6px
+  background: rgba(255, 255, 255, .04)
+
+.tls__bar
+  position: absolute
+  top: 3px
+  bottom: 3px
+  left: var(--a)
+  width: var(--w)
+  min-width: 8px
+  border-radius: 5px
+  background: #2f5a85
+  cursor: grab
+  overflow: hidden
+
+  &:active
+    cursor: grabbing
+
+  &--on
+    background: #3f75ab
+    box-shadow: 0 0 0 1.5px #ffd166
+
+  &--off
+    opacity: .4
+
+.tls__bar-in
+  position: absolute
+  top: 0
+  bottom: 0
+  left: 0
+  width: var(--in)
+  background: repeating-linear-gradient(-45deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .22) 3px, transparent 3px, transparent 6px)
+
+.tls__bar-h
+  position: absolute
+  top: 0
+  bottom: 0
+  width: 7px
+  cursor: ew-resize
+  z-index: 1
+
+  &--a
+    left: 0
+  &--b
+    right: 0
+
+  &:hover
+    background: rgba(255, 209, 102, .8)
+
+.tls__bar-lbl
+  position: relative
+  display: block
+  padding: 0 10px
+  font-size: 10px
+  line-height: 20px
+  color: #dfe8f1
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+  pointer-events: none
+
+.tls__empty
+  grid-column: 2
+  padding: 8px 0
+  font-size: 12px
+  color: #7f93a8

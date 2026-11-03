@@ -1,0 +1,93 @@
+@use '../../../styles/tokens' as *
+
+.cpk
+  position: relative
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.cpk__lbl
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.cpk__row
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: 6px
+
+.cpk__sep
+  width: 1px
+  height: 18px
+  background: $border
+
+.cpk__sw
+  width: 22px
+  height: 22px
+  padding: 0
+  border: 1px solid $border
+  border-radius: 50%
+  background: var(--sw)
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+
+  &--brand
+    border-radius: 6px
+
+  &--on
+    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)
+
+  &--lg
+    width: 30px
+    height: 30px
+
+  &--add
+    border-style: dashed
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 11px
+
+  &--none
+    background: linear-gradient(135deg, transparent 45%, $error 45%, $error 55%, transparent 55%), var(--color-surface)
+
+  &--custom
+    background: conic-gradient(#e25c5c, #ffd166, #48c49a, #57b6d9, #8e7cc3, #e25c5c)
+    color: #fff
+    font-size: 10px
+
+    &[style]
+      background: var(--sw)
+
+.cpk__pop
+  position: absolute
+  top: 100%
+  left: 0
+  z-index: 30
+  margin-top: 6px
+  display: flex
+  flex-direction: column
+  gap: 8px
+  padding: 10px
+  border: 1px solid $border
+  border-radius: 10px
+  background: var(--color-surface)
+  box-shadow: 0 12px 30px -10px rgba(15, 23, 42, .35)
+
+  .react-colorful
+    width: 190px
+    height: 150px
+
+.cpk__hex
+  height: 30px
+  padding: 0 8px
+  border: 1px solid $border
+  border-radius: 6px
+  background: var(--color-surface)
+  color: $text-active
+  font-family: monospace
+  font-size: 12px
+  text-transform: uppercase

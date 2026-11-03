@@ -1,31 +1,25 @@
-// ─── Spot 9:16 ────────────────────────────────────────────────────────────────
-// Unità di riferimento: slide larga 360 px → 1px = 100cqw / 360.
+// ─── Spot 9:16 / 16:9 ────────────────────────────────────────────────────────
+// Unità di riferimento: slide larga 360 px (640 in orizzontale) → --u = 100cqw / base.
+// --u resta una custom property non registrata: cqw si risolve dove viene usata,
+// cioè dentro la slide (container).
 @use '../../../styles/tokens' as *
 
 .spot
+  --base: 360
+  --u: calc(100cqw / var(--base))
   position: relative
   width: 100%
   aspect-ratio: 9 / 16
   overflow: hidden
   container-type: inline-size
   border-radius: inherit
-  background: #1d3a57
+  background: #0b1622
   color: #fff
   user-select: none
 
-  &--oceano
-    background: linear-gradient(160deg, #0b4f7c 0%, #1477a8 45%, #57b6d9 100%)
-  &--tramonto
-    background: linear-gradient(170deg, #3b1d4a 0%, #b8475a 50%, #f39a5c 100%)
-  &--notte
-    background: radial-gradient(120% 80% at 50% 0%, #2a4f78 0%, #142a44 55%, #0a1626 100%)
-  &--oro
-    background: linear-gradient(160deg, #e9d7a8 0%, #c7a764 50%, #a2864c 100%)
-  &--smeraldo
-    background: linear-gradient(165deg, #0d5c4a 0%, #13866a 55%, #48c49a 100%)
-  &--bianco
-    background: #ffffff
-    color: #1e293b
+  &--orizzontale
+    --base: 640
+    aspect-ratio: 16 / 9
 
   &--vuoto
     display: flex
@@ -34,11 +28,66 @@
     background: repeating-linear-gradient(-45deg, #18283a, #18283a 10px, #1c2f44 10px, #1c2f44 20px)
 
 .spot__vuoto
-  font-size: calc(14 * 100cqw / 360)
+  font-size: calc(14 * var(--u))
   color: rgba(255, 255, 255, .6)
   text-align: center
   padding: 0 10%
 
+// ── Sfondi ──
+.spot__bg
+  position: absolute
+  inset: 0
+  overflow: hidden
+
+  &--custom
+    background: var(--slide-bg)
+
+.spot-bg--oceano
+  background: linear-gradient(160deg, #0b4f7c 0%, #1477a8 45%, #57b6d9 100%)
+.spot-bg--tramonto
+  background: linear-gradient(170deg, #3b1d4a 0%, #b8475a 50%, #f39a5c 100%)
+.spot-bg--notte
+  background: radial-gradient(120% 80% at 50% 0%, #2a4f78 0%, #142a44 55%, #0a1626 100%)
+.spot-bg--oro
+  background: linear-gradient(160deg, #e9d7a8 0%, #c7a764 50%, #a2864c 100%)
+.spot-bg--smeraldo
+  background: linear-gradient(165deg, #0d5c4a 0%, #13866a 55%, #48c49a 100%)
+.spot-bg--bianco
+  background: #ffffff
+.spot-bg--ardesia
+  background: linear-gradient(170deg, #3b4252 0%, #2e3440 60%, #1f232b 100%)
+.spot-bg--corallo
+  background: linear-gradient(160deg, #ffb199 0%, #f07a63 55%, #d9534f 100%)
+.spot-bg--lavanda
+  background: linear-gradient(165deg, #c3b5e8 0%, #8e7cc3 55%, #5b4b9a 100%)
+.spot-bg--sabbia
+  background: linear-gradient(170deg, #f7efe2 0%, #eadbc4 55%, #d6c09c 100%)
+
+.spot__bgimg
+  position: absolute
+  inset: 0
+  width: 100%
+  height: 100%
+  object-fit: cover
+  filter: blur(var(--blur))
+  transform-origin: 50% 40%
+
+  &--kb
+    animation: spot-kb var(--dur) ease-in-out both
+
+.spot__velo
+  position: absolute
+  inset: 0
+  background: #000
+  opacity: var(--velo)
+
+@keyframes spot-kb
+  from
+    transform: scale(1)
+  to
+    transform: scale(1.14)
+
+// ── Transizioni tra slide ──
 .spot__stage
   position: absolute
   inset: 0
@@ -48,6 +97,14 @@
     animation-name: spot-slide
   &--zoom
     animation-name: spot-zoom
+  &--spinta
+    animation-name: spot-push
+  &--tendina
+    animation-name: spot-wipe
+  &--sfocatura
+    animation-name: spot-blur
+  &--nessuna
+    animation: none
 
 @keyframes spot-fade
   from
@@ -71,32 +128,127 @@
     opacity: 1
     transform: none
 
+@keyframes spot-push
+  from
+    transform: translateX(100%)
+  to
+    transform: none
+
+@keyframes spot-wipe
+  from
+    clip-path: inset(0 100% 0 0)
+  to
+    clip-path: inset(0 0 0 0)
+
+@keyframes spot-blur
+  from
+    opacity: 0
+    filter: blur(14px)
+  to
+    opacity: 1
+    filter: none
+
 // ── Elementi ──
+// Esterno: posizione, rotazione, opacità e animazione d'ingresso/uscita (--p).
+// Interno: aspetto (colori, bordo, ombra) e animazione continua (loop).
 .spot-el
   position: absolute
   left: var(--x)
   top: var(--y)
   width: var(--w)
   height: var(--h)
+  rotate: var(--rot)
+  opacity: var(--op)
+
+  &--fuori
+    opacity: .16
+
+  &--fx-dissolvenza
+    opacity: calc(var(--op) * var(--p))
+  &--fx-sali
+    opacity: calc(var(--op) * var(--p))
+    translate: 0 calc((1 - var(--p)) * 14cqw)
+  &--fx-scendi
+    opacity: calc(var(--op) * var(--p))
+    translate: 0 calc((var(--p) - 1) * 14cqw)
+  &--fx-da-sinistra
+    opacity: calc(var(--op) * var(--p))
+    translate: calc((var(--p) - 1) * 60cqw) 0
+  &--fx-da-destra
+    opacity: calc(var(--op) * var(--p))
+    translate: calc((1 - var(--p)) * 60cqw) 0
+  &--fx-zoom
+    opacity: calc(var(--op) * var(--p))
+    scale: calc(.4 + .6 * var(--p))
+  &--fx-rimbalzo
+    opacity: calc(var(--op) * min(1, var(--p) * 3))
+    scale: var(--p)
+
+.spot-el__in
+  box-sizing: border-box
+  width: 100%
+  height: 100%
   display: flex
   align-items: center
-  justify-content: var(--justify, center)
+  justify-content: var(--justify)
+  padding: var(--pad)
   color: var(--color)
   background: var(--bg)
+  border: var(--bw) solid var(--bc)
   border-radius: var(--radius)
   font-family: var(--font), 'Poppins', sans-serif
   font-weight: var(--weight)
-  font-size: calc(var(--size) * 100cqw / 360)
-  line-height: 1.1
+  font-style: var(--fstyle)
+  font-size: calc(var(--size) * var(--u))
+  line-height: var(--lh)
+  letter-spacing: var(--ls)
+  text-transform: var(--tt)
   text-align: var(--align)
+  filter: var(--filtro)
+
+.spot-el--f-pillola .spot-el__in
+  border-radius: 999px
+.spot-el--f-cerchio .spot-el__in
+  border-radius: 50%
+.spot-el--f-linea .spot-el__in
+  border-radius: 0
+.spot-el--f-triangolo .spot-el__in
+  clip-path: polygon(50% 0, 100% 100%, 0 100%)
+
+.spot-el--loop-pulsa .spot-el__in
+  animation: spot-pulsa 1.6s ease-in-out infinite
+.spot-el--loop-fluttua .spot-el__in
+  animation: spot-fluttua 3s ease-in-out infinite
+.spot-el--loop-lampeggia .spot-el__in
+  animation: spot-lampeggia 1.4s ease-in-out infinite
+.spot-el--loop-oscilla .spot-el__in
+  animation: spot-oscilla 2.4s ease-in-out infinite
+.spot-el--loop-ruota .spot-el__in
+  animation: spot-ruota 8s linear infinite
+
+@keyframes spot-pulsa
+  50%
+    transform: scale(1.07)
+@keyframes spot-fluttua
+  50%
+    transform: translateY(-6%)
+@keyframes spot-lampeggia
+  50%
+    opacity: .35
+@keyframes spot-oscilla
+  25%
+    transform: rotate(-5deg)
+  75%
+    transform: rotate(5deg)
+@keyframes spot-ruota
+  to
+    transform: rotate(360deg)
 
 .spot-el__txt
   width: 100%
   overflow: hidden
+  white-space: pre-line
   text-shadow: 0 1px 8px rgba(0, 0, 0, .18)
-
-.spot-el--forma .spot-el__txt
-  display: none
 
 .spot-el__prezzo
   width: 100%
@@ -105,26 +257,68 @@
   align-items: center
   gap: 2px
 
+.spot-el__pre
+  font-family: 'Poppins', sans-serif
+  font-size: .26em
+  font-weight: 600
+  letter-spacing: .04em
+  opacity: .9
+
+.spot-el__val
+  width: 100%
+  display: flex
+  align-items: baseline
+  justify-content: center
+  gap: .18em
+
+  .spot-el__txt
+    width: auto
+
+.spot-el__old
+  font-size: .45em
+  opacity: .65
+
 .spot-el__live
   padding: .15em .7em
   border-radius: 99px
   background: rgba(255, 255, 255, .2)
   font-family: 'Poppins', sans-serif
-  font-size: calc(10 * 100cqw / 360)
+  font-size: calc(10 * var(--u))
   font-weight: 600
+  font-style: normal
   letter-spacing: .04em
   text-transform: uppercase
 
 .spot-el__ico
-  font-size: calc(var(--size) * 2.4 * 100cqw / 360)
+  font-size: calc(var(--size) * 2.4 * var(--u))
   width: 100%
   text-align: center
 
 .spot-el__img
   width: 100%
   height: 100%
-  object-fit: cover
+  object-fit: var(--fit)
   border-radius: var(--radius)
+
+.spot-el__qr
+  width: 100%
+  height: 100%
+  object-fit: contain
+  border-radius: calc(var(--radius) * .5)
+
+.spot-el__widget
+  width: 100%
+  display: inline-flex
+  align-items: center
+  justify-content: var(--justify)
+  gap: .45em
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+  span
+    overflow: hidden
+    text-overflow: ellipsis
 
 .spot-el__placeholder
   width: 100%
@@ -134,7 +328,7 @@
   justify-content: center
   border: 1px dashed rgba(255, 255, 255, .5)
   border-radius: var(--radius)
-  font-size: calc(28 * 100cqw / 360)
+  font-size: calc(28 * var(--u))
   opacity: .7
 
 // ── Avanzamento slide ──
@@ -145,6 +339,7 @@
   top: 2.2%
   display: flex
   gap: 4px
+  z-index: 2
 
 .spot__seg
   flex: 1
@@ -160,17 +355,7 @@
     inset: 0
     background: #fff
     transform-origin: left
-    transform: scaleX(0)
-
-  &--done::after
-    transform: scaleX(1)
-
-  &--run::after
-    animation: spot-run var(--dur) linear forwards
-
-@keyframes spot-run
-  to
-    transform: scaleX(1)
+    transform: scaleX(var(--fill))
 
 // ── Creatività di terzi ──
 .spot--creativita .spot__stage
@@ -182,26 +367,29 @@
   padding: 0 8%
   text-align: center
 
+  > :not(.spot__bg)
+    position: relative
+
 .spot-cr__ico
-  font-size: calc(54 * 100cqw / 360)
+  font-size: calc(54 * var(--u))
 
 .spot-cr__tit
   font-family: 'Bebas Neue', 'Poppins', sans-serif
-  font-size: calc(40 * 100cqw / 360)
+  font-size: calc(40 * var(--u))
   line-height: 1
 
 .spot-cr__sub
-  font-size: calc(15 * 100cqw / 360)
+  font-size: calc(15 * var(--u))
   opacity: .85
 
-.spot-cr__tag
+.spot--creativita .spot-cr__tag
   position: absolute
   bottom: 4%
   right: 5%
   padding: .2em .7em
   border-radius: 99px
   background: rgba(0, 0, 0, .3)
-  font-size: calc(10 * 100cqw / 360)
+  font-size: calc(10 * var(--u))
   font-weight: 600
 
 // ─── Cornice del totem ───────────────────────────────────────────────────────
@@ -218,6 +406,9 @@
   border-radius: 18px
   background: linear-gradient(160deg, #2b2f36, #0e1013 60%)
   box-shadow: 0 24px 50px -18px rgba(15, 23, 42, .55), inset 0 0 0 1px rgba(255, 255, 255, .06)
+
+  .totem-frame--oriz &
+    padding: 3.5% 3% 5%
 
 .totem-frame__screen
   overflow: hidden
@@ -238,10 +429,16 @@
   border-radius: 50%
   background: #3a4048
 
+  .totem-frame--oriz &
+    top: 1.4%
+
 .totem-frame__neck
   width: 18%
   height: 22px
   background: linear-gradient(90deg, #15181c, #3a3f46, #15181c)
+
+  .totem-frame--oriz &
+    width: 8%
 
 .totem-frame__base
   width: 72%
@@ -249,6 +446,9 @@
   border-radius: 8px 8px 4px 4px
   background: linear-gradient(180deg, #3a3f46, #111316)
   box-shadow: 0 10px 18px -8px rgba(15, 23, 42, .5)
+
+  .totem-frame--oriz &
+    width: 36%
 
 .totem-frame__caption
   margin-top: 12px

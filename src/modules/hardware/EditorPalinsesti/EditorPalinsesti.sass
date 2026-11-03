@@ -12,10 +12,12 @@
 .edp__head-acts
   display: flex
   gap: 8px
+  flex-wrap: wrap
+  justify-content: flex-end
 
 .edp__layout
   display: grid
-  grid-template-columns: 240px minmax(0, 1fr) 280px
+  grid-template-columns: 250px minmax(0, 1fr) 300px
   gap: 14px
   align-items: stretch
 
@@ -29,28 +31,38 @@
   background: var(--color-surface)
   overflow: hidden
 
-.edp__panel-head
+.edp__tabs
   display: flex
-  align-items: center
-  justify-content: space-between
-  gap: 8px
-  padding: 12px 14px
+  gap: 2px
+  padding: 8px 8px 0
   border-bottom: 1px solid $border
 
-.edp__panel-title
+.edp__tab
+  flex: 1
+  min-width: 0
+  height: 32px
   display: inline-flex
   align-items: center
-  gap: 7px
-  font-family: $font-heading
-  font-size: 13px
-  font-weight: 700
-  color: $primary
+  justify-content: center
+  gap: 5px
+  border: 0
+  border-bottom: 2px solid transparent
+  background: transparent
+  color: $text-inactive
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+
+  &--on
+    border-bottom-color: var(--color-primary)
+    color: var(--color-primary)
 
 .edp__icon
-  width: 28px
-  height: 28px
+  width: 34px
+  height: 34px
+  flex-shrink: 0
   border: 0
-  border-radius: 6px
+  border-radius: 8px
   background: var(--color-primary)
   color: #fff
   cursor: pointer
@@ -61,23 +73,37 @@
   &--sm
     width: 24px
     height: 24px
+    border-radius: 6px
     background: transparent
     color: var(--color-primary)
-    font-size: 13px
+    font-size: 12px
 
     &:hover
       background: $primary-50
 
 .edp__search
+  display: flex
+  gap: 8px
+  align-items: center
   padding: 10px 12px
   border-bottom: 1px solid $border
 
-.edp__tree
+  > :first-child
+    flex: 1
+    min-width: 0
+
+.edp__scroll
   flex: 1
   overflow-y: auto
-  padding: 8px
-  max-height: 620px
+  max-height: 680px
+  padding: 10px
   +custom-scrollbar
+
+.edp__none
+  margin: 6px 0
+  font-size: 12px
+  color: $text-disabled
+  text-align: center
 
 .edp__folder
   margin-bottom: 10px
@@ -93,6 +119,11 @@
 
   i
     color: #a2864c
+
+  small
+    margin-left: auto
+    font-weight: 600
+    color: $text-disabled
 
 .edp__proj
   position: relative
@@ -116,10 +147,13 @@
 
 .edp__proj-thumb
   flex-shrink: 0
-  width: 34px
+  width: 32px
   border-radius: 4px
   overflow: hidden
   box-shadow: 0 1px 3px rgba(15, 23, 42, .25)
+
+  &--oriz
+    width: 48px
 
 .edp__proj-txt
   min-width: 0
@@ -151,6 +185,202 @@
   opacity: 0
   transition: opacity .15s
 
+// ── Libreria "Aggiungi" ──
+.edp__lib
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.edp__lib-title
+  margin-top: 6px
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+
+  &:first-child
+    margin-top: 0
+
+.edp__lib-hint
+  margin: 0 0 8px
+  font-size: 11px
+  color: $text-inactive
+
+.edp__presets
+  display: flex
+  flex-direction: column
+  gap: 5px
+
+.edp__preset
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 1px
+  padding: 7px 10px
+  border: 1px solid $border
+  border-radius: 8px
+  background: linear-gradient(135deg, #142a44, #1d4a6e)
+  color: #fff
+  cursor: pointer
+  text-align: left
+
+  &:hover
+    box-shadow: 0 0 0 2px $primary-200
+
+  small
+    font-size: 10px
+    color: #a9b8c9
+
+.edp__preset-demo
+  max-width: 100%
+  overflow: hidden
+  white-space: nowrap
+  text-overflow: ellipsis
+  font-family: var(--pf), 'Poppins', sans-serif
+  font-weight: var(--pw)
+  font-size: 15px
+
+  &--up
+    text-transform: uppercase
+    letter-spacing: .12em
+    font-size: 11px
+
+.edp__lib-grid
+  display: grid
+  grid-template-columns: repeat(3, minmax(0, 1fr))
+  gap: 6px
+
+  &--5
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+
+  &--2
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+  > span
+    display: flex
+
+.edp__lib-btn
+  flex: 1
+  min-width: 0
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 4px
+  height: 56px
+  padding: 0 4px
+  border: 1px solid $border
+  border-radius: 8px
+  background: var(--color-surface)
+  color: $text-active
+  font-size: 11px
+  font-weight: 600
+  cursor: pointer
+
+  i
+    color: var(--color-primary)
+    font-size: 16px
+
+  &:hover
+    border-color: $primary-200
+    background: $primary-50
+
+  &--ico
+    height: 38px
+
+  &--row
+    flex-direction: row
+    height: 36px
+    gap: 7px
+
+    i
+      font-size: 14px
+
+.edp__icocat
+  display: flex
+  flex-direction: column
+  gap: 5px
+
+  small
+    font-size: 10.5px
+    font-weight: 600
+    color: $text-inactive
+
+.edp__icons
+  display: grid
+  grid-template-columns: repeat(6, minmax(0, 1fr))
+  gap: 4px
+
+.edp__ic
+  height: 30px
+  border: 1px solid $border
+  border-radius: 6px
+  background: var(--color-surface)
+  color: var(--color-primary)
+  font-size: 13px
+  cursor: pointer
+
+  &:hover
+    border-color: var(--color-primary)
+    background: $primary-50
+
+// ── Livelli ──
+.edp__layers
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+.edp__layer
+  display: grid
+  grid-template-columns: 10px 16px minmax(0, 1fr) auto
+  align-items: center
+  gap: 7px
+  padding: 6px 6px 6px 4px
+  border: 1px solid $border
+  border-radius: 8px
+  background: var(--color-surface)
+  cursor: pointer
+
+  &:hover
+    background: $bg
+
+  &--on
+    border-color: var(--color-primary)
+    background: $primary-50
+
+  &--off
+    opacity: .55
+
+.edp__layer-grip
+  color: $text-disabled
+  font-size: 10px
+  cursor: grab
+
+.edp__layer-ico
+  color: var(--color-primary)
+  text-align: center
+
+.edp__layer-txt
+  min-width: 0
+  display: flex
+  flex-direction: column
+
+  small
+    font-size: 10px
+    color: $text-inactive
+
+.edp__layer-name
+  display: block
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.edp__layer-acts
+  display: flex
+
 // ── Tela ──
 .edp__canvas-col
   min-width: 0
@@ -161,43 +391,115 @@
 .edp__toolbar
   display: flex
   align-items: center
-  gap: 6px
+  gap: 2px
   flex-wrap: wrap
-  padding: 8px
+  padding: 6px
   border: 1px solid $border
   border-radius: 10px
   background: var(--color-surface)
 
-.edp__name
-  width: 210px
+.edp__tb
+  width: 32px
+  height: 32px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 1px solid transparent
+  border-radius: 7px
+  background: transparent
+  color: var(--color-primary)
+  font-size: 14px
+  cursor: pointer
+
+  &:hover:not(:disabled)
+    border-color: $primary-200
+    background: $primary-50
+
+  &:disabled
+    color: $text-disabled
+    cursor: default
+
+  &--on
+    background: $primary-100
 
 .edp__sep
   width: 1px
-  height: 24px
+  height: 22px
   margin: 0 4px
   background: $border
 
-.edp__tool
-  height: 34px
+.edp__menu-wrap
+  position: relative
+  display: inline-flex
+
+.edp__menu
+  position: absolute
+  top: calc(100% + 4px)
+  left: 0
+  z-index: 20
+  display: grid
+  grid-template-columns: repeat(2, max-content)
+  gap: 2px
+  padding: 6px
+  border: 1px solid $border
+  border-radius: 10px
+  background: var(--color-surface)
+  box-shadow: 0 12px 30px -10px rgba(15, 23, 42, .35)
+
+.edp__menu-item
   display: inline-flex
   align-items: center
-  gap: 6px
+  gap: 8px
+  height: 32px
   padding: 0 10px
-  border: 1px solid transparent
-  border-radius: 7px
+  border: 0
+  border-radius: 6px
   background: transparent
   color: $text-active
   font-size: 12px
   font-weight: 600
+  white-space: nowrap
   cursor: pointer
 
   i
+    width: 16px
     color: var(--color-primary)
-    font-size: 14px
 
   &:hover
-    border-color: $primary-200
     background: $primary-50
+
+.edp__zoom
+  min-width: 40px
+  text-align: center
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.edp__tb-end
+  margin-left: auto
+  display: inline-flex
+  align-items: center
+  gap: 4px
+
+.edp__score
+  height: 30px
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 0 10px
+  border: 0
+  border-radius: 99px
+  color: #fff
+  font-size: 12px
+  font-weight: 700
+  cursor: pointer
+
+  &--ok
+    background: $success
+  &--mid
+    background: $warning
+  &--ko
+    background: $error
 
 .edp__stage-wrap
   flex: 1
@@ -205,21 +507,41 @@
   flex-direction: column
   align-items: center
   gap: 10px
-  padding: 18px
+  padding: 12px 18px 16px
   border-radius: $radius-xl
   background: repeating-conic-gradient(var(--color-surface) 0% 25%, $bg 0% 50%) 50% / 22px 22px
   border: 1px solid $border
+  overflow: auto
+  +custom-scrollbar
+
+.edp__crumb
+  align-self: stretch
+  display: flex
+  justify-content: space-between
+  gap: 10px
+  font-size: 11.5px
+  color: $text-inactive
+
+  strong
+    color: $text-active
 
 .edp__stage
-  width: min(330px, 100%)
+  position: relative
+  flex-shrink: 0
+  width: min(calc(300px * var(--zoom)), 100%)
   border-radius: 10px
   box-shadow: 0 18px 40px -14px rgba(15, 23, 42, .45)
-  overflow: hidden
   touch-action: none
 
-.edp__stage-hint
-  font-size: 11px
-  color: $text-inactive
+  &--oriz
+    width: min(calc(560px * var(--zoom)), 100%)
+
+  > .spot
+    border-radius: 10px
+
+.edp__layer-stage
+  position: absolute
+  inset: 0
 
 .edp__el
   display: contents
@@ -227,28 +549,132 @@
   .spot-el
     cursor: move
 
+  &--lock .spot-el
+    cursor: pointer
+
+  &--sel .spot-el--fuori
+    opacity: .6
+
+.edp__grid
+  position: absolute
+  inset: 0
+  pointer-events: none
+  background-image: linear-gradient(rgba(255, 255, 255, .18) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .18) 1px, transparent 1px)
+  background-size: 10% 10%
+
+.edp__safe
+  position: absolute
+  inset: 3%
+  border: 1px dashed rgba(255, 209, 102, .55)
+  border-radius: 4px
+  pointer-events: none
+
+.edp__guide
+  position: absolute
+  pointer-events: none
+  background: #ff4fa3
+  z-index: 4
+
+  &--v
+    top: 0
+    bottom: 0
+    left: var(--pos)
+    width: 1px
+
+  &--h
+    left: 0
+    right: 0
+    top: var(--pos)
+    height: 1px
+
 .edp__frame
   position: absolute
   left: var(--x)
   top: var(--y)
   width: var(--w)
   height: var(--h)
+  rotate: var(--rot)
   border: 1.5px dashed #ffd166
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .35)
   pointer-events: none
+  z-index: 5
+
+  &--lock
+    border-color: rgba(255, 255, 255, .7)
 
 .edp__handle
   position: absolute
-  left: var(--x)
-  top: var(--y)
   width: 12px
   height: 12px
   margin: -6px 0 0 -6px
   border: 2px solid #fff
   border-radius: 3px
   background: #a2864c
-  cursor: nwse-resize
   box-shadow: 0 1px 4px rgba(0, 0, 0, .4)
+  pointer-events: auto
+
+  &--nw
+    left: 0
+    top: 0
+    cursor: nwse-resize
+  &--ne
+    left: 100%
+    top: 0
+    cursor: nesw-resize
+  &--sw
+    left: 0
+    top: 100%
+    cursor: nesw-resize
+  &--se
+    left: 100%
+    top: 100%
+    cursor: nwse-resize
+
+.edp__rot
+  position: absolute
+  left: 50%
+  top: -26px
+  width: 20px
+  height: 20px
+  margin-left: -10px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 2px solid #fff
+  border-radius: 50%
+  background: #a2864c
+  color: #fff
+  font-size: 9px
+  cursor: grab
+  pointer-events: auto
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .4)
+
+.edp__lock-badge,
+.edp__touch-badge
+  position: absolute
+  top: -10px
+  width: 20px
+  height: 20px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border-radius: 50%
+  background: #1e293b
+  color: #fff
+  font-size: 9px
+
+.edp__lock-badge
+  right: -10px
+
+.edp__touch-badge
+  left: -10px
+  background: #a2864c
+
+.edp__stage-hint
+  max-width: 520px
+  font-size: 11px
+  text-align: center
+  color: $text-inactive
 
 .edp__empty
   padding: 60px 20px
@@ -257,276 +683,139 @@
   border: 1px dashed $border
   border-radius: $radius-xl
 
-// ── Proprietà ──
-.edp__props-body
+// ── Storyboard (fuori schermo, solo per il PDF) ──
+.edp__story
+  position: fixed
+  left: -10000px
+  top: 0
   display: flex
-  flex-direction: column
-  gap: 14px
-  padding-bottom: 14px
-
-  > *:not(.edp__panel-head)
-    margin: 0 14px
-
-.edp__props-acts
-  display: inline-flex
-  gap: 2px
-
-.edp__row2
-  display: grid
-  grid-template-columns: 1fr 1fr
   gap: 10px
 
-.edp__field
-  display: flex
-  flex-direction: column
-  gap: 6px
+.edp__story-slide
+  width: 360px
 
-.edp__lbl
-  font-family: $font-heading
-  font-size: 12px
-  font-weight: 600
-  color: $primary
+  &--oriz
+    width: 640px
 
-.edp__seg
-  height: 34px
-  display: inline-flex
-  border: 1px solid $border
-  border-radius: 8px
-  overflow: hidden
-
-.edp__seg-btn
-  flex: 1
-  border: 0
-  background: var(--color-surface)
-  color: $text-inactive
-  cursor: pointer
-
-  & + &
-    border-left: 1px solid $border
-
-  &--on
-    background: var(--color-primary)
-    color: #fff
-
-.edp__swatches,
-.edp__bgs
-  display: flex
-  flex-wrap: wrap
-  gap: 7px
-
-.edp__swatch
-  width: 24px
-  height: 24px
-  border: 1px solid $border
-  border-radius: 50%
-  background: var(--sw)
-  cursor: pointer
-
-  &--on
-    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)
-
-.edp__bg
-  width: 34px
-  height: 48px
-  padding: 0
-  border: 1px solid $border
-  border-radius: 6px
-  cursor: pointer
-
-  &--on
-    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)
-
-.edp__icons
-  display: grid
-  grid-template-columns: repeat(5, 1fr)
-  gap: 6px
-
-.edp__ic
-  height: 36px
-  border: 1px solid $border
-  border-radius: 7px
-  background: var(--color-surface)
-  color: var(--color-primary)
-  font-size: 15px
-  cursor: pointer
-
-  &--on
-    border-color: var(--color-primary)
-    background: $primary-50
-
-.edp__box
-  display: flex
-  flex-direction: column
-  gap: 10px
-  padding: 12px
-  border-radius: 10px
-  background: $bg
-
-.edp__box-title
-  display: inline-flex
-  align-items: center
-  gap: 7px
-  font-size: 12px
-  font-weight: 700
-  color: $text-active
-
-  i
-    color: #a2864c
-
-.edp__checks
-  list-style: none
-  margin: 0
-  padding: 0
-  display: flex
-  flex-direction: column
-  gap: 7px
-  font-size: 12px
-  color: $text-active
-
-  li
-    display: flex
-    gap: 7px
-
-  i
-    margin-top: 2px
-
-.edp__check--ok i
-  color: $success
-
-.edp__check--ko i
-  color: $warning
-
-.edp__hint
-  font-size: 11px
-  color: $text-inactive
-
-// ── Timeline ──
-.edp__timeline
-  display: flex
-  flex-direction: column
-  gap: 8px
-  padding: 12px 14px 14px
-  border: 1px solid $border
-  border-radius: $radius-xl
-  background: #10233a
-
-  .edp__panel-title
-    color: #fff
-
-.edp__tl-head
-  display: flex
-  align-items: center
-  gap: 14px
-
-.edp__tl-tot
-  font-size: 12px
-  color: #a9b8c9
-
-  strong
-    color: #fff
-
-.edp__tl-add
-  margin-left: auto
-
-.edp__ruler
-  position: relative
-  height: 14px
-  border-bottom: 1px solid rgba(255, 255, 255, .15)
-
-.edp__tick
-  position: absolute
-  left: var(--pos)
-  transform: translateX(-50%)
-  font-size: 10px
-  color: #7f93a8
-
-  &:first-child
-    transform: none
-
-.edp__track
-  display: flex
-  gap: 4px
-
-.edp__clip
-  flex: var(--grow) 1 0
-  min-width: 0
-  display: flex
-  align-items: center
-  gap: 8px
-  padding: 6px
-  border: 2px solid transparent
-  border-radius: 8px
-  background: rgba(255, 255, 255, .07)
-  cursor: pointer
-  color: #fff
-
-  &:hover
-    background: rgba(255, 255, 255, .12)
-
-  &--on
-    border-color: #a2864c
-    background: rgba(162, 134, 76, .18)
-
-.edp__clip-thumb
-  flex-shrink: 0
-  width: 30px
-  border-radius: 3px
-  overflow: hidden
-
-.edp__clip-txt
-  min-width: 0
-  flex: 1
-  display: flex
-  flex-direction: column
-  font-size: 11px
-
-  strong
-    font-size: 12px
-
-  span
-    color: #a9b8c9
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
-
-.edp__clip-acts
-  display: flex
-
-  .edp__icon--sm
-    color: #c9d6e3
-
-    &:hover
-      background: rgba(255, 255, 255, .12)
-
+// ── Modali ──
 .edp__preview
   display: flex
-  justify-content: center
-  padding: 6px 0 4px
-
-  .totem-frame
-    width: 250px
-
-.edp__new
-  display: flex
   flex-direction: column
   gap: 14px
 
-.edp__new-acts
+.edp__preview-frame
+  width: 250px
+  align-self: center
+
+  &--oriz
+    width: min(560px, 100%)
+
+.edp__warn
+  color: $warning
+
+.edp__vers
   display: flex
-  justify-content: flex-end
+  flex-direction: column
   gap: 8px
 
-// ── Responsività ──
-@container edp (max-width: 1040px)
-  .edp__layout
-    grid-template-columns: 200px minmax(0, 1fr) 250px
+.edp__ver
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 8px 10px
+  border: 1px solid $border
+  border-radius: 10px
 
-  .edp__tool span
+  &--cur
+    background: $primary-50
+    border-color: $primary-200
+
+.edp__ver-thumb
+  flex-shrink: 0
+  width: 34px
+  border-radius: 4px
+  overflow: hidden
+
+  &--oriz
+    width: 56px
+
+.edp__ver-txt
+  flex: 1
+  min-width: 0
+  display: flex
+  flex-direction: column
+
+  strong
+    font-size: 13px
+    color: $text-active
+
+  small
+    font-size: 11.5px
+    color: $text-inactive
+
+.edp__ver-tag
+  padding: 3px 10px
+  border-radius: 99px
+  background: var(--color-primary)
+  color: #fff
+  font-size: 11px
+  font-weight: 600
+
+.edp__keys
+  margin: 0
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+  div
+    display: grid
+    grid-template-columns: 170px 1fr
+    gap: 10px
+    align-items: center
+
+  dd
+    margin: 0
+    color: $text-active
+
+  kbd
+    display: inline-block
+    padding: 2px 8px
+    border: 1px solid $border
+    border-bottom-width: 2px
+    border-radius: 6px
+    background: $bg
+    font-family: monospace
+    font-size: 11.5px
+    color: $text-active
+
+// ── Responsività ──
+@container edp (max-width: 1180px)
+  .edp__layout
+    grid-template-columns: 220px minmax(0, 1fr) 270px
+
+  .edp__tab span
     display: none
 
-@container edp (max-width: 900px)
+@container edp (max-width: 960px)
+  .edp__layout
+    grid-template-columns: 190px minmax(0, 1fr) 240px
+
+  .edp__stage-wrap
+    padding: 10px
+
+@container edp (max-width: 760px)
   .edp__layout
     grid-template-columns: 1fr
 
-  .edp__tree
-    max-height: 220px
+  .edp__scroll
+    max-height: 260px
+
+@container edp (max-width: 1180px)
+  .edp__tb
+    width: 28px
+
+  .edp__sep
+    margin: 0 2px
+
+  .edp__zoom
+    display: none

@@ -1,0 +1,372 @@
+@use 'sass:math'
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+.pp
+  min-height: 0
+  flex: 1
+  display: flex
+  flex-direction: column
+
+.pp__head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 8px
+  padding: 10px 12px
+  border-bottom: 1px solid $border
+
+.pp__title
+  min-width: 0
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.pp__acts
+  display: inline-flex
+  gap: 1px
+
+.pp__icon
+  width: 26px
+  height: 26px
+  flex-shrink: 0
+  border: 0
+  border-radius: 6px
+  background: transparent
+  color: var(--color-primary)
+  font-size: 13px
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+
+  &:hover
+    background: $primary-50
+
+  &--on
+    background: $primary-100
+
+.pp__tabs
+  display: flex
+  gap: 2px
+  padding: 6px 8px 0
+  border-bottom: 1px solid $border
+
+  &--top
+    padding-top: 8px
+
+.pp__tab
+  flex: 1
+  min-width: 0
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  gap: 5px
+  height: 32px
+  padding: 0 4px
+  border: 0
+  border-bottom: 2px solid transparent
+  background: transparent
+  color: $text-inactive
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+  white-space: nowrap
+
+  &--on
+    border-bottom-color: var(--color-primary)
+    color: var(--color-primary)
+
+.pp__badge
+  min-width: 17px
+  height: 17px
+  padding: 0 4px
+  border-radius: 9px
+  background: $warning
+  color: #fff
+  font-size: 10px
+  line-height: 17px
+
+.pp__body
+  flex: 1
+  min-height: 0
+  max-height: 640px
+  overflow-y: auto
+  display: flex
+  flex-direction: column
+  gap: 12px
+  padding: 12px
+  +custom-scrollbar
+
+.pp__sec
+  border: 1px solid $border
+  border-radius: 10px
+
+  &--on
+    background: $bg
+
+.pp__sec-head
+  width: 100%
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 9px 10px
+  border: 0
+  background: transparent
+  color: $text-active
+  font-size: 12px
+  font-weight: 700
+  cursor: pointer
+  text-align: left
+
+  > i:first-child
+    width: 16px
+    color: #a2864c
+
+  span
+    flex: 1
+
+.pp__sec-chev
+  color: $text-inactive
+  font-size: 10px
+  transition: transform .15s
+
+  .pp__sec--on &
+    transform: rotate(180deg)
+
+.pp__sec-body
+  display: flex
+  flex-direction: column
+  gap: 12px
+  padding: 2px 10px 12px
+
+  > .sib-btn
+    justify-content: center
+
+.pp__row2
+  display: grid
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 10px
+
+.pp__field
+  display: flex
+  flex-direction: column
+  gap: 4px
+  min-width: 0
+
+.pp__lbl
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.pp__seg
+  height: 34px
+  display: flex
+  border: 1px solid $border
+  border-radius: 8px
+  overflow: hidden
+  background: var(--color-surface)
+
+  > span
+    flex: 1
+    display: flex
+
+.pp__seg-btn
+  flex: 1
+  min-width: 0
+  border: 0
+  background: transparent
+  color: $text-inactive
+  cursor: pointer
+
+  span + span &
+    border-left: 1px solid $border
+
+  &--on
+    background: var(--color-primary)
+    color: #fff
+
+.pp__hint
+  margin: 0
+  font-size: 11px
+  line-height: 1.45
+  color: $text-inactive
+
+  i
+    margin-right: 3px
+    color: #a2864c
+
+  strong
+    color: $text-active
+
+.pp__icons
+  display: grid
+  grid-template-columns: repeat(6, minmax(0, 1fr))
+  gap: 5px
+  max-height: 150px
+  overflow-y: auto
+  +custom-scrollbar
+
+.pp__ic
+  height: 32px
+  border: 1px solid $border
+  border-radius: 7px
+  background: var(--color-surface)
+  color: var(--color-primary)
+  font-size: 14px
+  cursor: pointer
+
+  &--on
+    border-color: var(--color-primary)
+    background: $primary-50
+
+.pp__bgs
+  display: grid
+  grid-template-columns: repeat(5, minmax(0, 1fr))
+  gap: 7px
+
+.pp__bgs > span
+  display: flex
+
+.pp__bg
+  width: 100%
+  aspect-ratio: 9 / 13
+  padding: 0
+  border: 1px solid $border
+  border-radius: 6px
+  cursor: pointer
+
+  &--on
+    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)
+
+.pp__palette
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.pp__pal-item
+  display: grid
+  grid-template-columns: minmax(0, 1fr) auto
+  align-items: start
+  gap: 4px
+
+  .cpk__row
+    max-height: 24px
+    overflow: hidden
+
+// Barra "in scena da… a…"
+.pp__timebar
+  position: relative
+  height: 34px
+  border-radius: 8px
+  background: $bg
+  overflow: hidden
+  border: 1px solid $border
+
+.pp__timebar-fill
+  position: absolute
+  top: 0
+  bottom: 0
+  left: var(--a)
+  right: calc(100% - var(--b))
+  background: $primary-100
+
+.pp__timebar-lbl
+  position: relative
+  display: flex
+  height: 100%
+  align-items: center
+  justify-content: center
+  font-size: 11.5px
+  font-weight: 600
+  color: $text-active
+
+// Controllo di Sibylla
+.pp__score
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 10px
+  border-radius: 10px
+  background: $bg
+
+.pp__ring
+  --c: #{$success}
+  flex-shrink: 0
+  width: 54px
+  height: 54px
+  border-radius: 50%
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: radial-gradient(closest-side, var(--color-surface) 78%, transparent 80%), conic-gradient(var(--c) calc(var(--score) * 1%), $border 0)
+
+  strong
+    font-family: $font-heading
+    font-size: 16px
+    color: $text-active
+
+  &--mid
+    --c: #{$warning}
+  &--ko
+    --c: #{$error}
+
+.pp__score-txt
+  display: flex
+  flex-direction: column
+  gap: 2px
+  font-size: 12px
+  color: $text-inactive
+
+  strong
+    font-size: 13px
+    color: $text-active
+
+.pp__checks
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  flex-direction: column
+  gap: 8px
+  font-size: 12px
+  color: $text-active
+
+  li
+    display: grid
+    grid-template-columns: 16px minmax(0, 1fr)
+    gap: 2px 7px
+
+  i
+    margin-top: 2px
+
+.pp__check--ok i
+  color: $success
+
+.pp__check--ko i
+  color: $warning
+
+.pp__check-acts
+  grid-column: 2
+  display: flex
+  gap: 12px
+
+.pp__link
+  padding: 0
+  border: 0
+  background: none
+  color: $link
+  font-size: 11.5px
+  font-weight: 600
+  cursor: pointer
+
+  &:hover
+    text-decoration: underline

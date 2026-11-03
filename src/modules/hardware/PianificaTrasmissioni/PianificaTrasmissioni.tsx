@@ -104,7 +104,7 @@ export default function PianificaTrasmissioni({ navigate, totemId }: { navigate:
             <div className="ptr__spots">
               {progetti.map(p => (
                 <button key={p.id} type="button" className={clsx('ptr__spot', p.id === progId && 'ptr__spot--on')} onClick={() => setProgId(p.id)}>
-                  <span className="ptr__spot-thumb">{p.slides[0] && <SlideView slide={p.slides[0]} />}</span>
+                  <span className="ptr__spot-thumb">{p.slides[0] && <SlideView slide={p.slides[0]} formato={p.formato} />}</span>
                   <span className="ptr__spot-txt">
                     <TruncatedText text={p.nome} className="ptr__strong" />
                     <span className="ptr__sub">{p.slides.length} slide · {durataProgetto(p)} s</span>
@@ -183,7 +183,7 @@ export default function PianificaTrasmissioni({ navigate, totemId }: { navigate:
 
         {/* ── Riepilogo ── */}
         <aside className="ptr__summary">
-          <TotemFrame caption={prog ? `${prog.nome} · ${durata} s` : 'Scegli uno spot'}><SpotPlayer progetto={prog} /></TotemFrame>
+          <TotemFrame orizzontale={prog?.formato === 'orizzontale'} caption={prog ? `${prog.nome} · ${durata} s` : 'Scegli uno spot'}><SpotPlayer progetto={prog} /></TotemFrame>
           <dl className="ptr__kpi">
             <div><dt>Totem</dt><dd>{sel.length}</dd></div>
             <div><dt>Giorni</dt><dd>{giorni}</dd></div>
@@ -235,7 +235,7 @@ export default function PianificaTrasmissioni({ navigate, totemId }: { navigate:
                 <tr key={t.id}>
                   <td>
                     <span className="ptr__cell-spot">
-                      <span className="ptr__mini">{t.prog?.slides[0] && <SlideView slide={t.prog.slides[0]} />}</span>
+                      <span className="ptr__mini">{t.prog?.slides[0] && <SlideView slide={t.prog.slides[0]} formato={t.prog.formato} />}</span>
                       <TruncatedText text={t.prog?.nome ?? 'Spot eliminato'} className="ptr__strong" />
                       {t.priorita === 'alta' && <Tooltip text="Priorità alta"><i className="fa-solid fa-bolt ptr__alta" aria-label="Priorità alta" /></Tooltip>}
                     </span>

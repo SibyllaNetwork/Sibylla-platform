@@ -95,7 +95,7 @@ export default function SchedaTotem({ navigate, totemId, tabIniziale }: { naviga
               {ins ? <>Inserzione di <strong>{ins.inserzionista}</strong></> : prog ? <><strong>{prog.nome}</strong>{!tr.length && ' · riempimento'}</> : 'Nessuno spot'}
             </span>
           }>
-            {ins ? <CreativitaView c={ins.creativita} /> : <SpotPlayer progetto={prog} play={t.stato === 'online'} />}
+            {ins ? <CreativitaView c={ins.creativita} /> : <SpotPlayer progetto={prog} play={t.stato === 'online'} ctx={{ citta: t.citta }} />}
           </TotemFrame>
         </aside>
       </div>

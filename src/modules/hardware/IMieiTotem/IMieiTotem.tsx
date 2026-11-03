@@ -225,7 +225,7 @@ export default function IMieiTotem({ navigate }: { navigate: (p: string) => void
                 <span>{totemSel.citta} · {totemSel.modello}</span>
               </span>
             }>
-              {ondaSel?.ins ? <CreativitaView c={ondaSel.ins.creativita} /> : <SpotPlayer progetto={ondaSel?.prog} play={totemSel.stato === 'online'} />}
+              {ondaSel?.ins ? <CreativitaView c={ondaSel.ins.creativita} /> : <SpotPlayer progetto={ondaSel?.prog} play={totemSel.stato === 'online'} ctx={{ citta: totemSel.citta }} />}
             </TotemFrame>
             <div className="imt__next">
               <span className={clsx('imt__live', totemSel.stato !== 'online' && 'imt__live--off')}>{totemSel.stato === 'online' ? 'LIVE' : 'OFF'}</span>
