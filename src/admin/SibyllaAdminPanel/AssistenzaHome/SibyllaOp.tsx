@@ -98,7 +98,9 @@ type Apertura = { id: number; scheda?: Scheda; invito?: { invito: InvitoOp; nome
 //  sospensione, eliminazione) più dipendenti, strutture e QR. Unica differenza:
 //  qui l'azienda nasce INTEGRATA con un'azienda di Sibylla Platform
 //  (idAziendaPlatform, sibylla-op schede 09 e 15); su sibyllaop.it/admin nasce
-//  stand alone. Dati e regole stanno in Op.Api (/admin/indipendenti).
+//  stand alone. Integrata, può usare anche le funzioni del gestionale alberghiero
+//  (Check In, Check Out…), che sibyllaop.it/admin non offre alle stand alone.
+//  Dati e regole stanno in Op.Api (/admin/indipendenti).
 export default function SibyllaOp({ incorporata = false }: Props) {
   const [clienti, setClienti] = useState<ClienteOp[] | null>(null)
   const [problema, setProblema] = useState<string | null>(null)
@@ -423,8 +425,11 @@ function NuovaAzienda({ clienti, onBack, onCreata }: { clienti: ClienteOp[]; onB
 
       <Card title="Reparti e moduli">
         <div className="sibylla-op__sezione">
-          <p className="sibylla-op__nota">Cosa può usare l’azienda nell’app. Si può cambiare in seguito.</p>
-          <OpModuliEditor value={reparti} onChange={setReparti} senzaPms />
+          <p className="sibylla-op__nota">
+            Cosa può usare l’azienda nell’app. Si può cambiare in seguito. Integrata con Platform, può usare anche le funzioni del gestionale
+            alberghiero (Check In, Check Out, Servizi in camera, Ospiti del giorno).
+          </p>
+          <OpModuliEditor value={reparti} onChange={setReparti} />
           {!repartiOk && <p className="sibylla-op__errore">Attiva almeno un reparto.</p>}
         </div>
       </Card>
@@ -693,8 +698,12 @@ function SchedaCliente({ id, schedaIniziale, invitoIniziale, onBack }: {
 
           {scheda === 'reparti' && (
             <div className="sibylla-op__sezione">
-              <p className="sibylla-op__nota">Cosa possono usare gli utenti dell’azienda nell’app. I dipendenti vedono solo i moduli attivi.</p>
-              <OpModuliEditor value={reparti} onChange={setReparti} senzaPms />
+              <p className="sibylla-op__nota">
+                Cosa possono usare gli utenti dell’azienda nell’app. I dipendenti vedono solo i moduli attivi.
+                {cliente.idAziendaPlatform ? ' Integrata con Platform: ci sono anche le funzioni del gestionale alberghiero.' : ''}
+              </p>
+              {/* Stand alone: senza le funzioni del gestionale, come su sibyllaop.it/admin; integrata: anche Check In, Check Out… */}
+              <OpModuliEditor value={reparti} onChange={setReparti} senzaPms={!cliente.idAziendaPlatform} />
               {Object.keys(reparti).length === 0 && <p className="sibylla-op__errore">Attiva almeno un reparto.</p>}
               <div className="sibylla-op__salva">
                 <Button variant="secondary" onClick={() => setReparti(cliente.reparti)}>Annulla</Button>
