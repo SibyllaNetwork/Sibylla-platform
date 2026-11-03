@@ -22,8 +22,14 @@ export interface DipendenteHr {
 }
 
 // ── Nota spese ──
-export type CategoriaSpesa = 'Trasporto' | 'Vitto' | 'Alloggio' | 'Carburante' | 'Materiale' | 'Altro'
-export const CATEGORIE_SPESA: CategoriaSpesa[] = ['Trasporto', 'Vitto', 'Alloggio', 'Carburante', 'Materiale', 'Altro']
+// Voci del foglio "Nota spese mensile": trasporti, vitto e altro (i buoni pasto sono a parte).
+export type CategoriaSpesa = 'Treno' | 'Bus' | 'Aereo' | 'Parcheggio' | 'Taxi' | 'Pasti' | 'Varie'
+export const CATEGORIE_SPESA: CategoriaSpesa[] = ['Treno', 'Bus', 'Aereo', 'Parcheggio', 'Taxi', 'Pasti', 'Varie']
+export const TRASPORTI: CategoriaSpesa[] = ['Treno', 'Bus', 'Aereo', 'Parcheggio', 'Taxi']
+export const VITTO_ALTRO: CategoriaSpesa[] = ['Pasti', 'Varie']
+/** Valore del buono pasto giornaliero (esente fino a 8 € se elettronico). */
+export const VALORE_BUONO = 8
+export const chiaveBuono = (dipendenteId: number, iso: string) => `${dipendenteId}|${iso}`
 export type StatoSpesa = 'Da approvare' | 'Approvata' | 'Rifiutata' | 'Rimborsata'
 export const STATI_SPESA: StatoSpesa[] = ['Da approvare', 'Approvata', 'Rifiutata', 'Rimborsata']
 
@@ -127,21 +133,70 @@ export const nomeDipendente = (id: number) => {
 export const repartoDipendente = (id: number) => DIPENDENTI_HR.find(x => x.id === id)?.reparto ?? ''
 
 function seedNoteSpese(): NotaSpesa[] {
-  const rows: Omit<NotaSpesa, 'id'>[] = [
-    { dipendenteId: 9,  data: dayOffset(-2),  categoria: 'Trasporto',  descrizione: 'Treno Roma–Milano fiera BIT',        importo: 89.9,  giustificativo: 'biglietto_trenitalia.pdf', stato: 'Da approvare' },
-    { dipendenteId: 9,  data: dayOffset(-2),  categoria: 'Alloggio',   descrizione: 'Pernottamento fiera BIT (1 notte)',  importo: 142,   giustificativo: 'fattura_hotel.pdf',        stato: 'Da approvare' },
-    { dipendenteId: 3,  data: dayOffset(-4),  categoria: 'Materiale',  descrizione: 'Coltelli professionali per la brigata', importo: 236.5, giustificativo: 'scontrino_coltelleria.jpg', stato: 'Da approvare' },
-    { dipendenteId: 6,  data: dayOffset(-5),  categoria: 'Carburante', descrizione: 'Rifornimento furgone manutenzione',  importo: 68.4,  giustificativo: 'ricevuta_carburante.jpg',  stato: 'Approvata' },
-    { dipendenteId: 1,  data: dayOffset(-7),  categoria: 'Vitto',      descrizione: 'Pranzo con agenzia partner',         importo: 54,    giustificativo: 'ricevuta_ristorante.pdf',  stato: 'Approvata' },
-    { dipendenteId: 10, data: dayOffset(-9),  categoria: 'Materiale',  descrizione: 'Allestimento tavoli evento',         importo: 118.2, giustificativo: 'fattura_allestimenti.pdf', stato: 'Rimborsata' },
-    { dipendenteId: 5,  data: dayOffset(-11), categoria: 'Trasporto',  descrizione: 'Taxi per transfer ospite VIP',       importo: 45,                                                stato: 'Rifiutata', motivo: 'Manca il giustificativo: il transfer va fatturato al cliente.' },
-    { dipendenteId: 7,  data: dayOffset(-12), categoria: 'Materiale',  descrizione: 'Ricambi impianto idraulico',         importo: 312.75, giustificativo: 'fattura_ferramenta.pdf',  stato: 'Rimborsata' },
-    { dipendenteId: 12, data: dayOffset(-15), categoria: 'Trasporto',  descrizione: 'Corso HACCP – viaggio A/R',          importo: 38.6,  giustificativo: 'biglietti_bus.pdf',        stato: 'Approvata' },
-    { dipendenteId: 2,  data: dayOffset(-18), categoria: 'Altro',      descrizione: 'Cancelleria reception',              importo: 27.3,  giustificativo: 'scontrino_cartoleria.jpg', stato: 'Rimborsata' },
-    { dipendenteId: 11, data: dayOffset(-20), categoria: 'Vitto',      descrizione: 'Degustazione fornitore vini',        importo: 76,    giustificativo: 'ricevuta_enoteca.pdf',     stato: 'Rimborsata' },
-    { dipendenteId: 4,  data: dayOffset(-23), categoria: 'Materiale',  descrizione: 'Prodotti pulizia urgenti',           importo: 64.9,  giustificativo: 'scontrino_market.jpg',     stato: 'Rimborsata' },
-  ]
-  return rows.map((r, i) => ({ ...r, id: `ns-${i + 1}` }))
+  // Due mesi di spese per ogni dipendente: il mese scorso è tutto chiuso (rimborsato,
+  // con qualche rifiuto), il mese in corso è ancora da lavorare.
+  const out: NotaSpesa[] = []
+  const DESCR: Record<CategoriaSpesa, string[]> = {
+    Treno: ['Treno A/R per fiera', 'Treno per corso di formazione', 'Treno per visita fornitore'],
+    Bus: ['Bus navetta aeroporto', 'Biglietti bus urbano'],
+    Aereo: ['Volo per workshop commerciale', 'Volo per fiera di settore'],
+    Parcheggio: ['Parcheggio in fiera', 'Parcheggio stazione', 'Sosta presso fornitore'],
+    Taxi: ['Taxi per transfer ospite', 'Taxi dalla stazione'],
+    Pasti: ['Pranzo con agenzia partner', 'Cena in trasferta', 'Pranzo durante il corso'],
+    Varie: ['Cancelleria reception', 'Ricambi urgenti', 'Prodotti per allestimento'],
+  }
+  const IMPORTI: Record<CategoriaSpesa, [number, number]> = {
+    Treno: [24, 95], Bus: [2, 12], Aereo: [80, 240], Parcheggio: [4, 22], Taxi: [15, 48], Pasti: [14, 62], Varie: [9, 140],
+  }
+  let n = 0
+  for (const d of DIPENDENTI_HR) {
+    let seme = d.id * 9301 + 49297
+    const rnd = () => { seme = (seme * 9301 + 49297) % 233280; return seme / 233280 }
+    for (const off of [-1, 0]) {
+      const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + off); base.setHours(12, 0, 0, 0)
+      const giorniMese = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate()
+      const ultimo = off === 0 ? Math.max(1, new Date().getDate()) : giorniMese
+      const quante = 4 + Math.floor(rnd() * 7)
+      for (let k = 0; k < quante; k++) {
+        const giorno = 1 + Math.floor(rnd() * ultimo)
+        const cat = CATEGORIE_SPESA[Math.floor(rnd() * (d.reparto === 'Amministrazione' || d.reparto === 'Front office' ? 7 : 5)) % 7]
+        const [lo, hi] = IMPORTI[cat]
+        const importo = Math.round((lo + rnd() * (hi - lo)) * 10) / 10
+        const data = `${base.getFullYear()}-${pad(base.getMonth() + 1)}-${pad(giorno)}`
+        const descr = DESCR[cat][Math.floor(rnd() * DESCR[cat].length)]
+        const x = rnd()
+        const stato: StatoSpesa = off < 0
+          ? (x < 0.08 ? 'Rifiutata' : 'Rimborsata')
+          : (x < 0.5 ? 'Da approvare' : x < 0.85 ? 'Approvata' : x < 0.93 ? 'Rimborsata' : 'Rifiutata')
+        const senzaRicevuta = stato === 'Rifiutata'
+        out.push({
+          id: `ns-${++n}`,
+          dipendenteId: d.id,
+          data,
+          categoria: cat,
+          descrizione: descr,
+          importo,
+          giustificativo: senzaRicevuta ? undefined : `ricevuta_${cat.toLowerCase()}_${data}.pdf`,
+          stato,
+          motivo: stato === 'Rifiutata' ? 'Manca la ricevuta: senza giustificativo la spesa non è rimborsabile.' : undefined,
+        })
+      }
+    }
+  }
+  return out
+}
+
+function seedBuoni(): string[] {
+  // Buono pasto nei giorni lavorati a turno spezzato: circa un giorno feriale su tre.
+  const out: string[] = []
+  for (const d of DIPENDENTI_HR) {
+    for (let off = -45; off <= 0; off++) {
+      const g = new Date(); g.setHours(12, 0, 0, 0); g.setDate(g.getDate() + off)
+      if (g.getDay() === 0) continue
+      if ((g.getDate() + d.id * 2) % 3 === 0) out.push(chiaveBuono(d.id, isoOf(g)))
+    }
+  }
+  return out
 }
 
 function seedCedolini(): Cedolino[] {
@@ -202,12 +257,15 @@ function seedRichieste(): RichiestaAssenza[] {
 // ─── Store ────────────────────────────────────────────────────────────────────
 interface HrGestioneState {
   noteSpese: NotaSpesa[]
+  /** Giorni con buono pasto, chiave `dipendenteId|aaaa-mm-gg`. */
+  buoniPasto: string[]
   cedolini: Cedolino[]
   richieste: RichiestaAssenza[]
 
   aggiungiSpesa: (s: Omit<NotaSpesa, 'id' | 'stato'>) => void
   setStatoSpesa: (id: string, stato: StatoSpesa, motivo?: string) => void
   eliminaSpesa: (id: string) => void
+  toggleBuono: (dipendenteId: number, iso: string) => void
 
   caricaCedolini: (mese: string, dipendenteIds: number[]) => number
   pubblicaCedolini: (ids: string[]) => void
@@ -221,12 +279,17 @@ const uid = (p: string) => `${p}-${Date.now().toString(36)}${Math.random().toStr
 
 export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) => ({
   noteSpese: seedNoteSpese(),
+  buoniPasto: seedBuoni(),
   cedolini: seedCedolini(),
   richieste: seedRichieste(),
 
   aggiungiSpesa: (s) => set(st => ({ noteSpese: [{ ...s, id: uid('ns'), stato: 'Da approvare' }, ...st.noteSpese] })),
   setStatoSpesa: (id, stato, motivo) => set(st => ({ noteSpese: st.noteSpese.map(n => n.id === id ? { ...n, stato, motivo: stato === 'Rifiutata' ? motivo : undefined } : n) })),
   eliminaSpesa: (id) => set(st => ({ noteSpese: st.noteSpese.filter(n => n.id !== id) })),
+  toggleBuono: (dipendenteId, iso) => set(st => {
+    const k = chiaveBuono(dipendenteId, iso)
+    return { buoniPasto: st.buoniPasto.includes(k) ? st.buoniPasto.filter(x => x !== k) : [...st.buoniPasto, k] }
+  }),
 
   caricaCedolini: (mese, dipendenteIds) => {
     const esistenti = new Set(get().cedolini.filter(c => c.mese === mese).map(c => c.dipendenteId))
@@ -246,7 +309,7 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
 
   aggiungiRichiesta: (r) => set(st => ({ richieste: [{ ...r, id: uid('ra'), stato: 'Da approvare', createdAt: new Date().toISOString() }, ...st.richieste] })),
   decidiRichiesta: (id, stato, motivo) => set(st => ({ richieste: st.richieste.map(r => r.id === id ? { ...r, stato, motivo: stato === 'Rifiutata' ? motivo : undefined } : r) })),
-}), { name: 'sibylla.hr-gestione', version: 4, migrate: () => ({ noteSpese: seedNoteSpese(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
+}), { name: 'sibylla.hr-gestione', version: 5, migrate: () => ({ noteSpese: seedNoteSpese(), buoniPasto: seedBuoni(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
 
 /** Ferie godute (approvate) nell'anno solare corrente per dipendente. */
 export function ferieGodute(richieste: RichiestaAssenza[], dipendenteId: number, anno = new Date().getFullYear()) {

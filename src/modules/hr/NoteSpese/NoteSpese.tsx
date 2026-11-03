@@ -6,16 +6,17 @@ import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import Pagination from '../../../core/components/Pagination'
 import Ico from '../../../core/icons/Ico'
-import { SelectField, InputField, DatePickerField, DateRangeField, TextareaField } from '../../../core/components/form'
+import { SelectField, DateRangeField, TextareaField } from '../../../core/components/form'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import {
-  useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, CATEGORIE_SPESA, STATI_SPESA,
-  nomeDipendente, repartoDipendente, fmtDataHr, eurHr, todayIsoHr,
-  type NotaSpesa, type CategoriaSpesa, type StatoSpesa,
+  useHrGestioneStore, REPARTI_HR, CATEGORIE_SPESA, STATI_SPESA,
+  nomeDipendente, repartoDipendente, fmtDataHr, eurHr,
+  type NotaSpesa, type StatoSpesa,
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
+import ModaleNota from './ModaleNota'
 import './NoteSpese.sass'
 
 /**
@@ -29,19 +30,8 @@ const PAGE_SIZE = 10
 const statoCls = (s: StatoSpesa) =>
   s === 'Da approvare' ? 'attesa' : s === 'Approvata' ? 'info' : s === 'Rimborsata' ? 'ok' : 'ko'
 
-interface Bozza {
-  dipendenteId: string
-  data: string
-  categoria: CategoriaSpesa
-  importo: string
-  descrizione: string
-  giustificativo: string
-}
-const BOZZA_VUOTA = (): Bozza => ({ dipendenteId: '', data: todayIsoHr(), categoria: 'Trasporto', importo: '', descrizione: '', giustificativo: '' })
-
 export default function NoteSpese({ navigate }: { navigate: (p: string) => void }) {
   const noteSpese = useHrGestioneStore(s => s.noteSpese)
-  const aggiungi = useHrGestioneStore(s => s.aggiungiSpesa)
   const setStato = useHrGestioneStore(s => s.setStatoSpesa)
   const elimina = useHrGestioneStore(s => s.eliminaSpesa)
   const confirm = useConfirmStore(s => s.confirm)
@@ -52,8 +42,7 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
   const [dal, setDal] = useState('')
   const [al, setAl] = useState('')
   const [page, setPage] = useState(1)
-  const [nuova, setNuova] = useState<Bozza | null>(null)
-  const [errori, setErrori] = useState<Record<string, string>>({})
+  const [nuova, setNuova] = useState(false)
   const [rifiuto, setRifiuto] = useState<{ row: NotaSpesa; motivo: string } | null>(null)
   const [dettaglio, setDettaglio] = useState<NotaSpesa | null>(null)
 
@@ -110,27 +99,7 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
     toast.success('Spesa eliminata.', 'Eliminata')
   }
 
-  const salvaNuova = () => {
-    if (!nuova) return
-    const e: Record<string, string> = {}
-    const importo = Number(nuova.importo.replace(',', '.'))
-    if (!nuova.dipendenteId) e.dipendenteId = 'Scegli il dipendente'
-    if (!nuova.data) e.data = 'Indica la data'
-    if (!(importo > 0)) e.importo = 'Importo non valido'
-    if (!nuova.descrizione.trim()) e.descrizione = 'Descrivi la spesa'
-    setErrori(e)
-    if (Object.keys(e).length) return
-    aggiungi({
-      dipendenteId: Number(nuova.dipendenteId),
-      data: nuova.data,
-      categoria: nuova.categoria,
-      importo,
-      descrizione: nuova.descrizione.trim(),
-      giustificativo: nuova.giustificativo || undefined,
-    })
-    toast.success('Spesa registrata: è in attesa di approvazione.', 'Spesa aggiunta')
-    setNuova(null)
-  }
+  const apriFoglio = (n: NotaSpesa) => navigate(`hr-note-spese-mese:${n.dipendenteId}:${n.data.slice(0, 7)}`)
 
   const esporta = () => exportXls('nota-spese', ['Data', 'Dipendente', 'Reparto', 'Categoria', 'Descrizione', 'Giustificativo', 'Importo', 'Stato', 'Motivo rifiuto'],
     sorted.map(n => [fmtDataHr(n.data), n.dipendente, n.reparto, n.categoria, n.descrizione, n.giustificativo ?? '', eurHr(n.importo), n.stato, n.motivo ?? '']))
@@ -150,9 +119,14 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
         subtitle="Approva, rifiuta e rimborsa le spese anticipate dal personale"
         onBack={() => navigate('home')}
         actions={
-          <button type="button" className="sib-btn sib-btn--primary" onClick={() => { setErrori({}); setNuova(BOZZA_VUOTA()) }}>
-            <Ico n="plus" s={14} c="currentColor" /> Nuova spesa
-          </button>
+          <>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('hr-note-spese-mese')}>
+              <i className="fa-solid fa-table-list" aria-hidden="true" /> Nota spese mensile
+            </button>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={() => setNuova(true)}>
+              <Ico n="plus" s={14} c="currentColor" /> Aggiungi nota
+            </button>
+          </>
         }
       />
 
@@ -202,7 +176,11 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
             {pageRows.map(n => (
               <tr key={n.id}>
                 <td><TruncatedText text={fmtDataHr(n.data)} /></td>
-                <td className="nsp__strong"><TruncatedText text={n.dipendente} /></td>
+                <td className="nsp__strong">
+                  <Tooltip text="Apri la nota spese mensile">
+                    <button type="button" className="nsp__link" onClick={() => apriFoglio(n)}><TruncatedText text={n.dipendente} /></button>
+                  </Tooltip>
+                </td>
                 <td><TruncatedText text={n.reparto} /></td>
                 <td><TruncatedText text={n.categoria} /></td>
                 <td><TruncatedText text={n.descrizione} /></td>
@@ -227,7 +205,11 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
                     </>}
                     {n.stato === 'Approvata' && act('Segna come rimborsata', 'money-bill', () => rimborsa(n))}
                     {(n.stato === 'Da approvare' || n.stato === 'Rifiutata') && act('Elimina', 'trash', () => cancella(n))}
-                    {n.stato === 'Rimborsata' && <span className="nsp__dash">-</span>}
+                    <Tooltip text="Apri la nota spese mensile">
+                      <button type="button" className="nsp__act" onClick={() => apriFoglio(n)} aria-label="Apri la nota spese mensile">
+                        <i className="fa-solid fa-table-list" aria-hidden="true" />
+                      </button>
+                    </Tooltip>
                   </span>
                 </td>
               </tr>
@@ -246,39 +228,7 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
 
       <div className="nsp__pag"><Pagination page={page} totalPages={totalPages} onPageChange={setPage} /></div>
 
-      {/* ── Nuova spesa ── */}
-      <Modal open={!!nuova} onClose={() => setNuova(null)} title="Nuova spesa" size="md">
-        {nuova && (
-          <div className="nsp-modal">
-            <div className="nsp-modal__grid">
-              <SelectField name="ns-dip" label="Dipendente" required value={nuova.dipendenteId} error={errori.dipendenteId}
-                onChange={e => setNuova({ ...nuova, dipendenteId: e.target.value })}
-                options={[{ value: '', label: 'Seleziona…' }, ...DIPENDENTI_HR.map(d => ({ value: d.id, label: `${d.nome} ${d.cognome}` }))]} />
-              <DatePickerField name="ns-data" label="Data della spesa" required value={nuova.data} max={todayIsoHr()} error={errori.data}
-                onChange={e => setNuova({ ...nuova, data: e.target.value })} />
-              <SelectField name="ns-cat" label="Categoria" value={nuova.categoria}
-                onChange={e => setNuova({ ...nuova, categoria: e.target.value as CategoriaSpesa })}
-                options={CATEGORIE_SPESA.map(c => ({ value: c, label: c }))} />
-              <InputField name="ns-imp" label="Importo (€)" required type="number" min={0} step={0.01} value={nuova.importo} error={errori.importo}
-                onChange={e => setNuova({ ...nuova, importo: e.target.value })} />
-            </div>
-            <TextareaField name="ns-desc" label="Descrizione" required rows={3} value={nuova.descrizione} error={errori.descrizione}
-              onChange={e => setNuova({ ...nuova, descrizione: e.target.value })} />
-            <div className="nsp-modal__file">
-              <span className="nsp-modal__label">Giustificativo</span>
-              <label className="sib-btn sib-btn--secondary nsp-modal__upload">
-                <Ico n="upload" s={13} c="currentColor" /> {nuova.giustificativo ? 'Sostituisci file' : 'Allega scontrino o fattura'}
-                <input type="file" accept=".pdf,image/*" hidden onChange={e => setNuova({ ...nuova, giustificativo: e.target.files?.[0]?.name ?? '' })} />
-              </label>
-              {nuova.giustificativo && <span className="nsp-modal__filename"><TruncatedText text={nuova.giustificativo} /></span>}
-            </div>
-            <div className="nsp-modal__actions">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setNuova(null)}>Annulla</button>
-              <button type="button" className="sib-btn sib-btn--primary" onClick={salvaNuova}>Registra spesa</button>
-            </div>
-          </div>
-        )}
-      </Modal>
+      <ModaleNota open={nuova} onClose={() => setNuova(false)} />
 
       {/* ── Rifiuto ── */}
       <Modal open={!!rifiuto} onClose={() => setRifiuto(null)} title="Rifiuta spesa" size="sm">

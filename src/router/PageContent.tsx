@@ -184,6 +184,7 @@ import MonitoraggioPerformance     from '../modules/hr/MonitoraggioPerformance/M
 import HrOverview                  from '../modules/hr/HrOverview/HrOverview';
 import ProfileAnalysis             from '../modules/hr/ProfileAnalysis/ProfileAnalysis';
 import NoteSpese                   from '../modules/hr/NoteSpese/NoteSpese';
+import NotaSpeseMensile            from '../modules/hr/NoteSpese/NotaSpeseMensile';
 import Cedolini                    from '../modules/hr/Cedolini/Cedolini';
 import RichiesteFerie              from '../modules/hr/RichiesteFerie/RichiesteFerie';
 import PianoFerie                  from '../modules/hr/PianoFerie/PianoFerie';
@@ -499,6 +500,10 @@ export default function PageContent({ page, navigate }: Props) {
     return <ProfileAnalysis navigate={navigate} dipendenteId={Number.isFinite(id) ? id : undefined} key={page}/>;
   }
   if (page === 'hr-note-spese')         return <NoteSpese navigate={navigate}/>;
+  if (page === 'hr-note-spese-mese' || page.startsWith('hr-note-spese-mese:')) {
+    const [, id, ym] = page.split(':');
+    return <NotaSpeseMensile navigate={navigate} dipendenteId={id ? Number(id) : undefined} mese={ym} key={page}/>;
+  }
   if (page === 'hr-cedolini')           return <Cedolini navigate={navigate}/>;
   if (page === 'hr-richieste-ferie')    return <RichiesteFerie navigate={navigate}/>;
   if (page === 'hr-piano-ferie')        return <PianoFerie navigate={navigate}/>;

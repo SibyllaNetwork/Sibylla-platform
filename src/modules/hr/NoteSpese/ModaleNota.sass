@@ -1,0 +1,50 @@
+@use '../../../styles/tokens' as *
+
+.mnota
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.mnota__file
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.mnota__label
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: var(--color-primary)
+
+.mnota__req
+  color: $error
+
+.mnota__file-row
+  display: flex
+  align-items: center
+  gap: 10px
+  min-width: 0
+
+.mnota__upload
+  flex: none
+  cursor: pointer
+
+.mnota__filename
+  min-width: 0
+  font-size: 12px
+  color: var(--color-text-inactive)
+
+.mnota__hint
+  font-size: 11px
+  line-height: 1.4
+  color: var(--color-text-inactive)
+
+.mnota__err
+  font-size: 11px
+  color: $error
+
+.mnota__actions
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+  padding-top: 4px

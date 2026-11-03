@@ -1,0 +1,668 @@
+// ─── NOTA SPESE MENSILE ─────────────────────────────────────────────────────────
+// Foglio del dipendente: navigazione del mese, barra del report di fine mese e
+// tabella giorni × voci. Colori di gruppo dai token (teal trasporti, oro vitto,
+// viola buoni, blu Platform totali): stessa lettura del modulo cartaceo.
+@use '../../../styles/tokens' as *
+
+.nsm
+  --g-tr: var(--chart-5)
+  --g-vi: var(--chart-4)
+  --g-bu: var(--chart-7)
+  --g-to: var(--color-primary)
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+  container-name: nsm
+
+// ── Mese ──────────────────────────────────────────────────────────────────────
+.nsm__nav
+  display: flex
+  align-items: center
+  gap: 8px
+
+.nsm__navbtn
+  height: 30px
+  padding-inline: 10px
+  gap: 6px
+
+  i
+    font-size: 10px
+
+.nsm__mese
+  margin-left: 6px
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+  color: var(--color-primary)
+
+// ── Report di fine mese ───────────────────────────────────────────────────────
+.nsm__report
+  display: flex
+  align-items: center
+  gap: 14px
+  padding: 10px 14px
+  border: 1px solid $border
+  border-left: 3px solid var(--color-primary)
+  border-radius: 10px
+  background: var(--color-surface)
+
+.nsm__report-txt
+  display: flex
+  flex-direction: column
+  min-width: 0
+
+.nsm__report-tit
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 700
+  color: var(--color-primary)
+
+.nsm__report-sub
+  font-size: 11.5px
+  color: var(--color-text-inactive)
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.nsm__report-acts
+  display: flex
+  align-items: center
+  gap: 8px
+  margin-left: auto
+  flex: none
+
+  .sib-btn
+    gap: 6px
+    white-space: nowrap
+
+.nsm__report-sel
+  width: 250px
+
+// ── Foglio ────────────────────────────────────────────────────────────────────
+.nsm__sheet
+  display: flex
+  flex-direction: column
+  gap: 12px
+  padding: 16px 18px 14px
+  border: 1px solid $border
+  border-radius: 12px
+  background: var(--color-surface)
+
+.nsm__sheet-head
+  display: flex
+  align-items: flex-end
+  justify-content: space-between
+  gap: 16px
+
+.nsm__sheet-tit
+  display: flex
+  flex-direction: column
+  gap: 2px
+  min-width: 0
+
+.nsm__eyebrow
+  font-family: $font-heading
+  font-size: 10.5px
+  font-weight: 700
+  letter-spacing: .12em
+  color: var(--g-tr)
+
+.nsm__h2
+  margin: 0
+  font-family: $font-heading
+  font-size: 22px
+  font-weight: 700
+  color: var(--color-primary)
+
+.nsm__sheet-fields
+  display: flex
+  gap: 10px
+  flex: none
+
+.nsm__f-dip
+  width: 220px
+
+.nsm__f-mese
+  width: 170px
+
+.nsm__stato
+  align-self: flex-start
+  max-width: 100%
+  margin-top: 4px
+  padding: 1px 9px
+  border-radius: 999px
+  font-size: 11px
+  font-weight: 600
+  white-space: nowrap
+
+  &--attesa
+    background: color-mix(in srgb, $warning 14%, transparent)
+    color: $warning
+
+  &--info
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent)
+    color: var(--color-primary)
+
+  &--ok
+    background: color-mix(in srgb, $success 14%, transparent)
+    color: $success
+
+  &--vuoto
+    background: color-mix(in srgb, $border 60%, transparent)
+    color: var(--color-text-inactive)
+
+.nsm__summary
+  display: flex
+  align-items: center
+  flex-wrap: wrap
+  gap: 8px
+
+.nsm__chip
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 3px 10px
+  border: 1px solid $border
+  border-radius: 999px
+  font-size: 12px
+  color: var(--color-text-active)
+
+  strong
+    color: var(--color-primary)
+
+.nsm__summary-push
+  display: flex
+  gap: 8px
+  margin-left: auto
+
+  .sib-btn
+    gap: 6px
+
+// Pallino di stato: stessi colori di cella, chip e legenda
+.nsm__dot
+  width: 7px
+  height: 7px
+  flex: none
+  border-radius: 50%
+  background: var(--st, var(--color-text-inactive))
+
+.nsm__chip--attesa,
+.nsm__val--attesa,
+.nsm__key--attesa
+  --st: #{$warning}
+
+.nsm__chip--info,
+.nsm__val--info,
+.nsm__key--info
+  --st: var(--color-primary)
+
+.nsm__chip--ok,
+.nsm__val--ok,
+.nsm__key--ok
+  --st: #{$success}
+
+.nsm__chip--ko,
+.nsm__val--ko,
+.nsm__key--ko
+  --st: #{$error}
+
+.nsm__val--misto
+  --st: var(--g-vi)
+
+// ── Tabella ───────────────────────────────────────────────────────────────────
+.nsm__wrap
+  border: 1px solid $border
+  border-radius: 10px
+  overflow: hidden
+
+.nsm .nsm__table
+  table-layout: fixed
+  width: 100%
+  font-size: 12px
+
+  th,
+  td
+    padding: 0 8px
+    height: 26px
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  thead th
+    height: 28px
+    font-size: 11.5px
+
+.nsm__col-data
+  width: 9%
+
+.nsm__col-trasf
+  width: 7%
+
+.nsm__col-voce
+  width: 9%
+
+.nsm__col-buono
+  width: 8%
+
+.nsm__col-tot
+  width: 13%
+
+// Due classi: a pari specificità vincerebbe l'allineamento di .sib-table
+.nsm .nsm__num
+  text-align: right
+  font-variant-numeric: tabular-nums
+
+.nsm .nsm__c
+  text-align: center
+
+.nsm .nsm__sep
+  border-left: 1px solid $border
+
+// Riga dei gruppi: etichetta maiuscoletta col colore del gruppo
+.nsm .nsm__groups th
+  height: 24px
+  padding-top: 6px
+  border-bottom: 0
+  font-family: $font-heading
+  font-size: 10px
+  font-weight: 700
+  letter-spacing: .1em
+  text-transform: uppercase
+  text-align: left
+
+.nsm .nsm__g
+  border-left: 1px solid $border
+  box-shadow: inset 0 3px 0 var(--g)
+
+  &--tr
+    --g: var(--g-tr)
+    color: var(--g-tr)
+
+  &--vi
+    --g: var(--g-vi)
+    color: var(--g-vi)
+
+  &--bu
+    --g: var(--g-bu)
+    color: var(--g-bu)
+
+  &--to
+    --g: var(--g-to)
+    color: var(--g-to)
+
+// Weekend in tinta leggera (informazione, non zebra); oggi evidenziato
+.nsm .nsm__row--we td
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface))
+
+.nsm .nsm__row--oggi td
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))
+
+  .nsm__day-n
+    color: var(--color-primary)
+    font-weight: 700
+
+.nsm .nsm__row--fut td
+  color: var(--color-text-inactive)
+  opacity: .55
+
+.nsm__day
+  display: inline-flex
+  align-items: baseline
+  gap: 6px
+  padding: 0
+  border: 0
+  background: none
+  font: inherit
+  color: inherit
+  cursor: pointer
+
+  &:disabled
+    cursor: default
+
+  &:not(:disabled):hover .nsm__day-n
+    color: var(--color-primary)
+    text-decoration: underline
+
+.nsm__day-n
+  font-variant-numeric: tabular-nums
+  color: var(--color-text-active)
+
+.nsm__day-w
+  font-size: 10.5px
+  color: var(--color-text-inactive)
+
+// Cella con importo: pallino di stato + cifra; più note → contatore
+.nsm__val
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  max-width: 100%
+  padding: 1px 6px
+  border: 0
+  border-radius: 6px
+  background: none
+  font: inherit
+  font-weight: 600
+  color: var(--color-primary)
+  cursor: pointer
+  font-variant-numeric: tabular-nums
+
+  &:hover
+    background: color-mix(in srgb, var(--st) 12%, transparent)
+
+  &--ko
+    color: var(--color-text-inactive)
+    text-decoration: line-through
+
+.nsm__count
+  min-width: 15px
+  height: 15px
+  padding: 0 4px
+  border-radius: 999px
+  background: var(--color-primary)
+  color: #fff
+  font-size: 9.5px
+  line-height: 15px
+  text-align: center
+
+// Cella vuota: il "+" compare al passaggio del mouse
+.nsm__add
+  width: 20px
+  height: 20px
+  padding: 0
+  border: 1px dashed transparent
+  border-radius: 5px
+  background: none
+  color: var(--color-primary)
+  font-size: 9px
+  opacity: 0
+  cursor: pointer
+  transition: opacity 120ms ease
+
+.nsm__cell--vuota:hover .nsm__add,
+.nsm__add:focus-visible
+  opacity: 1
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent)
+
+.nsm__check
+  width: 15px
+  height: 15px
+  accent-color: var(--g-bu)
+  cursor: pointer
+
+  &:disabled
+    cursor: default
+
+.nsm .nsm__tot
+  font-weight: 700
+  color: var(--color-primary)
+  background: color-mix(in srgb, var(--g-to) 4%, transparent)
+
+// Totali del mese: fascia scura con la tinta del gruppo
+.nsm .nsm__foot td
+  height: 34px
+  border-top: 0
+  background: #1E293B
+  color: #fff
+  font-family: $font-heading
+  font-weight: 700
+
+.nsm .nsm__foot
+  .nsm__foot--tr
+    background: color-mix(in srgb, var(--g-tr) 78%, #0f172a)
+
+  .nsm__foot--vi
+    background: color-mix(in srgb, var(--g-vi) 70%, #0f172a)
+
+  .nsm__foot--bu
+    background: color-mix(in srgb, var(--g-bu) 72%, #0f172a)
+
+  .nsm__foot--to
+    background: #0f172a
+
+.nsm__legend
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  font-size: 11.5px
+  color: var(--color-text-inactive)
+
+.nsm__legend-st
+  display: flex
+  flex-wrap: wrap
+  gap: 14px
+
+.nsm__key
+  display: inline-flex
+  align-items: center
+  gap: 6px
+
+  &::before
+    content: ''
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    background: var(--st)
+
+.nsm__legend-tot strong
+  color: var(--color-primary)
+
+// ── Modale note del giorno ────────────────────────────────────────────────────
+.nsm-day
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.nsm-day__intro
+  margin: 0
+  font-size: 13px
+
+.nsm-day__list
+  display: flex
+  flex-direction: column
+  margin: 0
+  padding: 0
+  list-style: none
+
+.nsm-day__item
+  display: grid
+  grid-template-columns: 86px minmax(0, 1fr) auto 96px auto
+  align-items: center
+  gap: 10px
+  padding: 9px 0
+  border-bottom: 1px solid $border
+
+.nsm-day__voce
+  justify-self: start
+  padding: 1px 8px
+  border-radius: 999px
+  font-size: 11px
+  font-weight: 600
+
+  &--tr
+    background: color-mix(in srgb, var(--chart-5) 14%, transparent)
+    color: var(--chart-5)
+
+  &--vi
+    background: color-mix(in srgb, var(--chart-4) 16%, transparent)
+    color: var(--chart-4)
+
+.nsm-day__txt
+  display: flex
+  flex-direction: column
+  gap: 2px
+  min-width: 0
+
+.nsm-day__descr
+  font-weight: 600
+  color: var(--color-text-active)
+
+.nsm-day__file
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  min-width: 0
+  font-size: 11px
+  color: var(--color-text-inactive)
+
+  i
+    color: var(--color-primary)
+
+.nsm-day__missing
+  color: $error
+
+  i
+    color: $error
+
+.nsm-day__motivo
+  font-size: 11px
+  color: $error
+
+.nsm-day__imp
+  font-family: $font-heading
+  font-weight: 700
+  color: var(--color-primary)
+  font-variant-numeric: tabular-nums
+  white-space: nowrap
+
+.nsm-day__stato
+  font-size: 12px
+  font-weight: 600
+  white-space: nowrap
+
+  &--attesa
+    color: $warning
+
+  &--info
+    color: var(--color-primary)
+
+  &--ok
+    color: $success
+
+  &--ko
+    color: $error
+
+.nsm-day__acts
+  display: inline-flex
+  gap: 10px
+
+.nsm-day__act
+  padding: 0
+  border: 0
+  background: none
+  color: var(--color-primary)
+  font-size: 16px
+  cursor: pointer
+
+.nsm-day__empty
+  padding: 14px 0
+  color: var(--color-text-inactive)
+
+.nsm-day__foot
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+
+  .sib-btn
+    gap: 6px
+
+// ── Total view ────────────────────────────────────────────────────────────────
+.nsm-tv
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.nsm-tv__wrap
+  border: 1px solid $border
+
+.nsm-tv .nsm-tv__table
+  table-layout: fixed
+  width: 100%
+  font-size: 12.5px
+
+  td,
+  th
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+.nsm-tv__c-dip
+  width: 20%
+
+.nsm-tv__c-n
+  width: 7%
+
+.nsm-tv__c-e
+  width: 12%
+
+.nsm-tv__c-st
+  width: 18%
+
+.nsm-tv .nsm-tv__row
+  cursor: pointer
+
+  &:hover td
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent)
+
+  &--on td
+    background: color-mix(in srgb, var(--color-primary) 9%, transparent)
+
+.nsm-tv__name
+  display: block
+  overflow: hidden
+  text-overflow: ellipsis
+  font-weight: 600
+  color: var(--color-primary)
+
+.nsm-tv .nsm-tv__foot td
+  font-weight: 700
+  color: var(--color-primary)
+  border-top: 2px solid var(--color-primary)
+
+.nsm-tv .nsm-tv__table td
+  height: 36px
+  padding-top: 0
+  padding-bottom: 0
+
+.nsm-tv .nsm-tv__st
+  font-weight: 600
+
+  &--attesa
+    color: $warning
+
+  &--info
+    color: var(--color-primary)
+
+  &--ok
+    color: $success
+
+  &--vuoto
+    color: var(--color-text-inactive)
+    font-weight: 400
+
+.nsm-tv__hint
+  margin: 0
+  font-size: 11.5px
+  color: var(--color-text-inactive)
+
+// ── Larghezze strette (laptop con menu aperto) ────────────────────────────────
+@container nsm (max-width: 1100px)
+  .nsm__report
+    flex-wrap: wrap
+
+  .nsm__report-acts
+    margin-left: 0
+    flex-wrap: wrap
+
+  .nsm .nsm__table
+    font-size: 11.5px
+
+    th,
+    td
+      padding: 0 5px
+
+  .nsm__day-w
+    display: none

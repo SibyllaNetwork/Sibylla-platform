@@ -111,6 +111,7 @@ const PARENT_MAP: Record<string, string> = {
   'analisi-dist-sales':   'analisi-dist-exec',
   'editor-template-soggiorno': 'crea-preventivo',
   'crea-preventivo-template':  'crea-preventivo',
+  'hr-note-spese-mese':   'hr-note-spese',
 }
 
 export function resolveActivePage(pageId: string): string {
@@ -119,5 +120,7 @@ export function resolveActivePage(pageId: string): string {
   // Le pagine parametriche (es. `prenotazioni-ids-dett:2026-09-06|Hotel Luce`)
   // ereditano la madre della loro base.
   const base = pageId.split(':')[0]
-  return PARENT_MAP[pageId] || PARENT_MAP[base] || pageId
+  if (PARENT_MAP[pageId] || PARENT_MAP[base]) return PARENT_MAP[pageId] || PARENT_MAP[base]
+  // Pagina parametrica di una voce di menu (es. `profile-analysis:3`): vale la voce
+  return findByPage(MENU_FULL, base) ? base : pageId
 }

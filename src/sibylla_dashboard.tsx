@@ -9,7 +9,7 @@ import ProfileLogin from './modules/auth/ProfileLogin/ProfileLogin'
 import { useAccessStore } from './store/useAccessStore'
 import { isPlatformAdminPage } from './navigation/platformAdminMenu'
 import { useAuth } from './hooks/useAuth'
-import { buildCrumbs, findByPage } from './navigation/menuHelpers'
+import { buildCrumbs, findByPage, resolveActivePage } from './navigation/menuHelpers'
 import MENU from './navigation/menuFull'
 import { useViewModeStore } from './store/useViewModeStore'
 import { useSectionThemeStore, sectionForPage, SECTION_COLORS } from './store/useSectionThemeStore'
@@ -156,7 +156,8 @@ export default function App() {
   // I dati Food & Beverage seguono la struttura selezionata in alto.
   useFbStrutturaSync()
 
-  const crumbs = buildCrumbs(MENU, currentPage) || []
+  // Pagine interne (dettagli, pagine parametriche): breadcrumb della pagina madre
+  const crumbs = buildCrumbs(MENU, currentPage) || buildCrumbs(MENU, resolveActivePage(currentPage)) || []
 
   // Titoli per pagine raggiunte fuori dal menu (es. da notifica): senza questo
   // la tab/breadcrumb ripiegherebbe sul pageId grezzo.
