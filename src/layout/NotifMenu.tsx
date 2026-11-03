@@ -3,6 +3,7 @@ import T from '../core/tokens'
 import Ico from '../core/icons/Ico'
 import { useChatStore } from '../store/useChatStore'
 import { useNotifPrefsStore } from '../store/useNotifPrefsStore'
+import { useTurniPersonaleStore, etichettaSettimana, suggerimentiPerCadenza } from '../store/useTurniPersonaleStore'
 import { useVccEmesseStore, useVccRows, vccScadute } from '../store/useVccEmesseStore'
 import { usePreventiviSoggiornoStore } from '../store/usePreventiviSoggiornoStore'
 import './notif.sass'
@@ -112,7 +113,30 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
         pagamento: { preventivo: p.id, tentativo: t.id },
       } as Notif
     })
-  const tutte = [...pagamenti, ...visibili]
+  // Turni del personale: ultimo suggerimento di Sibylla e ultimo turno pubblicato
+  // (il dettaglio, con Scarica PDF e Visualizza turno, è nel Centro notifiche).
+  const turniOn = useNotifPrefsStore(s => s.turniPersonale)
+  const turniCadenza = useNotifPrefsStore(s => s.turniCadenza)
+  const ultimaPubbl = useTurniPersonaleStore(s => s.pubblicazioni[0])
+  const [turniLetti, setTurniLetti] = useState<Set<number>>(new Set())
+  const sugg = turniOn ? suggerimentiPerCadenza(turniCadenza)[0] : undefined
+  const turniNotifs: Notif[] = [
+    ...(sugg ? [{
+      id: 6000, sev: 'info' as Sev, origin: 'platform' as Origin,
+      title: 'Suggerimento turni del personale',
+      text: `Sibylla ha preparato il turno della settimana ${etichettaSettimana(sugg.lunedi)} su occupazione e richieste di assenza.`,
+      ref: '', date: sugg.giorniFa === 0 ? 'Oggi 08:00' : `${sugg.giorniFa} gg fa`, read: turniLetti.has(6000),
+      reportPage: 'centro-notifiche', reportLabel: 'Apri nel Centro notifiche',
+    }] : []),
+    ...(ultimaPubbl ? [{
+      id: 6001, sev: 'info' as Sev, origin: 'platform' as Origin,
+      title: 'Turno settimanale pubblicato',
+      text: `È disponibile il turno della settimana ${etichettaSettimana(ultimaPubbl.lunedi)}.`,
+      ref: '', date: new Date(ultimaPubbl.at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+      read: turniLetti.has(6001), reportPage: 'centro-notifiche', reportLabel: 'Apri nel Centro notifiche',
+    }] : []),
+  ]
+  const tutte = [...turniNotifs, ...pagamenti, ...visibili]
 
   const unreadCount = tutte.filter(n => !n.read).length
 
@@ -126,11 +150,12 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   }, [])
 
   const markAllRead = () => {
-    setVccLetta(true); setNotifs(prev => prev.map(n => ({ ...n, read: true })))
+    setVccLetta(true); setTurniLetti(new Set([6000, 6001])); setNotifs(prev => prev.map(n => ({ ...n, read: true })))
     pagamenti.forEach(n => n.pagamento && segnaPagamentoLetto(n.pagamento.preventivo, n.pagamento.tentativo))
   }
   const markRead    = (id: number) => {
     if (id === VCC_ID) setVccLetta(true)
+    if (id === 6000 || id === 6001) setTurniLetti(prev => new Set(prev).add(id))
     const pg = pagamenti.find(n => n.id === id)?.pagamento
     if (pg) segnaPagamentoLetto(pg.preventivo, pg.tentativo)
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))

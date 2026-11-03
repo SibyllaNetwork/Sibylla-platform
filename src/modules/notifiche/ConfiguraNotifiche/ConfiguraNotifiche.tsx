@@ -5,7 +5,9 @@ import Ico from '../../../core/icons/Ico';
 import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { useEfficienzaStore } from '../../../store/useEfficienzaStore'
-import { useNotifPrefsStore } from '../../../store/useNotifPrefsStore'
+import { useNotifPrefsStore, type CadenzaTurni } from '../../../store/useNotifPrefsStore'
+import { CADENZE_TURNI } from '../../../store/useTurniPersonaleStore'
+import { SelectField } from '../../../core/components/form'
 import './ConfiguraNotifiche.sass'
 
 type NotifRow  = {label:string;cn:boolean;email:boolean;scad:boolean;gg:number|null};
@@ -20,11 +22,15 @@ const REPORT_PICKUP_LABEL = "Report Pickup";
 // Riga il cui flag "Centro notifiche" abilita la notifica "Report City Tax"
 // (disponibilità del report settimanale della tassa di soggiorno).
 const REPORT_CITYTAX_LABEL = "Report City Tax";
+// Riga dei suggerimenti di Sibylla sui turni del personale (ferie/permessi/
+// malattie + occupazione): flag "Centro notifiche" e cadenza di invio.
+const TURNI_LABEL = "Turni del personale";
 
 const GENERALI_INIT:NotifRow[] = [
   {label:EFF_LABEL,                         cn:true, email:false,scad:false,gg:null},
   {label:REPORT_PICKUP_LABEL,              cn:true, email:true, scad:false,gg:null},
   {label:REPORT_CITYTAX_LABEL,             cn:true, email:true, scad:false,gg:null},
+  {label:TURNI_LABEL,                      cn:true, email:false,scad:false,gg:null},
   {label:"Richiesta prenotazione extra",   cn:true, email:true, scad:false,gg:null},
   {label:"Scadenza opzione",               cn:true, email:true, scad:true, gg:8},
   {label:"Richiesta acquisto lotti",       cn:true, email:true, scad:true, gg:1},
@@ -66,12 +72,16 @@ export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void
   const setNotificaEffOn = useEfficienzaStore(s=>s.setNotificaOn);
   const setReportPickupOn = useNotifPrefsStore(s=>s.setReportPickup);
   const setReportCityTaxOn = useNotifPrefsStore(s=>s.setReportCityTax);
+  const setTurniOn = useNotifPrefsStore(s=>s.setTurniPersonale);
+  const turniCadenza = useNotifPrefsStore(s=>s.turniCadenza);
+  const setTurniCadenza = useNotifPrefsStore(s=>s.setTurniCadenza);
 
   const [rows,     setRows]     = useState<NotifRow[]>(
     ()=>GENERALI_INIT.map(r=>
       r.label===EFF_LABEL ? {...r, cn:useEfficienzaStore.getState().notificaOn}
       : r.label===REPORT_PICKUP_LABEL ? {...r, cn:useNotifPrefsStore.getState().reportPickup}
       : r.label===REPORT_CITYTAX_LABEL ? {...r, cn:useNotifPrefsStore.getState().reportCityTax}
+      : r.label===TURNI_LABEL ? {...r, cn:useNotifPrefsStore.getState().turniPersonale}
       : {...r}));
   const [person,   setPerson]   = useState<PersonRow[]>(PERSON_INIT.map(r=>({...r})));
   const [carrello, setCarrello] = useState<PersonRow[]>(CARRELLO_INIT.map(r=>({...r})));
@@ -87,6 +97,8 @@ export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void
       if(field==="cn" && r.label===REPORT_PICKUP_LABEL) setReportPickupOn(nv);
       // idem per il Report City Tax
       if(field==="cn" && r.label===REPORT_CITYTAX_LABEL) setReportCityTaxOn(nv);
+      // idem per i suggerimenti sui turni del personale
+      if(field==="cn" && r.label===TURNI_LABEL) setTurniOn(nv);
       return {...r,[field]:nv};
     }));
   const setGg   = (ri:number, v:number) =>
@@ -142,7 +154,22 @@ export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void
               <tbody>
                 {rows.map((r,ri)=>(
                   <tr key={ri} className={`cn-table__row ${ri<rows.length-1?'cn-table__row--border':''}`} {...rowHover}>
-                    <td className="cn-table__td-label">{r.label}</td>
+                    <td className="cn-table__td-label">
+                      {r.label===TURNI_LABEL ? (
+                        <div className="cn-cadenza-row">
+                          <span>{r.label}</span>
+                          <SelectField
+                            name="turni-cadenza"
+                            ariaLabel="Cadenza dei suggerimenti sui turni del personale"
+                            className="cn-cadenza"
+                            value={turniCadenza}
+                            disabled={!r.cn}
+                            onChange={e=>setTurniCadenza(e.target.value as CadenzaTurni)}
+                            options={CADENZE_TURNI}
+                          />
+                        </div>
+                      ) : r.label}
+                    </td>
                     <td className="cn-table__td-center">
                       <div className="cn-table__chk-wrap"><Chk checked={r.cn} onChange={()=>toggle(ri,"cn")}/></div>
                     </td>

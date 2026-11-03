@@ -1,0 +1,662 @@
+// ─── TURNI DEL PERSONALE ─────────────────────────────────────────────────────
+// Impostazione di Calendario strategie: filtri + status bar + (elenco personale
+// | settimana a 7 righe). Colori dei reparti dalla palette --chart-* (data-rep).
+@use 'sass:math'
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+$reparti: (1: var(--chart-1), 2: var(--chart-2), 3: var(--chart-5), 4: var(--chart-4), 5: var(--chart-7), 6: var(--chart-3))
+
+.tpe
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+  container-name: turni
+
+  [data-rep]
+    --rep: #{$primary}
+
+  @each $i, $c in $reparti
+    [data-rep="#{$i}"]
+      --rep: #{$c}
+
+// ── Filtri ──
+.tpe__filters
+  display: flex
+  align-items: flex-end
+  gap: 12px
+  flex-wrap: wrap
+
+.tpe__field
+  width: 190px
+
+  &--struttura
+    width: 220px
+
+.tpe__week
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.tpe__week-label
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.tpe__week-nav
+  display: flex
+  align-items: center
+  gap: 8px
+  height: 34px
+
+.tpe__nav-btn
+  width: 34px
+  height: 34px
+  border: 1px solid $border
+  border-radius: 8px
+  background: var(--color-surface)
+  color: var(--color-primary)
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+
+  &:hover
+    border-color: var(--color-primary)
+
+.tpe__week-txt
+  min-width: 150px
+  text-align: center
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $text-active
+  white-space: nowrap
+
+.tpe__today
+  height: 34px
+
+.tpe__spacer
+  flex: 1 1 auto
+
+.tpe__btn
+  height: 34px
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  white-space: nowrap
+
+// ── Status bar ──
+.tpe__statusbar
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 8px 14px
+  border: 1px solid $primary-200
+  border-radius: 8px
+  background: $primary-50
+  font-size: 12px
+  color: $text-active
+
+  strong
+    color: $primary
+    font-weight: 700
+
+.tpe__statusbar-ico
+  color: $primary
+  font-size: 14px
+
+.tpe__sep
+  margin: 0 8px
+  color: $text-disabled
+
+.tpe__meta
+  color: $text-inactive
+
+.tpe__statusbar-link
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $link
+
+  &:hover
+    text-decoration: underline
+
+.tpe__statusbar-stato
+  margin-left: auto
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+  white-space: nowrap
+
+.tpe__dot
+  width: 12px
+  height: 12px
+  flex-shrink: 0
+  border-radius: 50%
+  background: var(--rep)
+
+// ── Layout ──
+.tpe__layout
+  display: grid
+  grid-template-columns: 270px minmax(0, 1fr)
+  gap: 14px
+  align-items: start
+
+// ── Elenco del personale ──
+.tpe__sidebar
+  position: sticky
+  top: 12px
+  display: flex
+  flex-direction: column
+  max-height: calc(100vh - 140px)
+  overflow: hidden
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: var(--color-surface)
+
+.tpe__sidebar-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 12px 14px
+  border-bottom: 1px solid $border
+
+.tpe__sidebar-title
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+
+.tpe__sidebar-count
+  min-width: 24px
+  height: 20px
+  padding: 0 7px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 1px solid $border
+  border-radius: 10px
+  background: $bg
+  font-size: 11px
+  font-weight: 700
+  color: $text-inactive
+
+.tpe__sidebar-search
+  padding: 10px 12px
+  border-bottom: 1px solid $border
+
+.tpe__list
+  flex: 1 1 auto
+  overflow-y: auto
+  padding: 6px
+  display: flex
+  flex-direction: column
+  gap: 2px
+  +custom-scrollbar
+
+.tpe__list-empty
+  padding: 18px 14px
+  text-align: center
+  font-size: 12px
+  color: $text-disabled
+
+.tpe__emp
+  position: relative
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 8px 10px 8px 8px
+  border: 1px solid transparent
+  border-radius: 8px
+  cursor: grab
+  user-select: none
+  transition: $transition-fast
+
+  &::before
+    content: ''
+    position: absolute
+    left: 0
+    top: 8px
+    bottom: 8px
+    width: 3px
+    border-radius: 0 3px 3px 0
+    background: var(--rep)
+
+  &:hover:not(.tpe__emp--active)
+    background: $bg
+
+  &:active
+    cursor: grabbing
+
+  &:focus-visible
+    outline: 2px solid $link
+    outline-offset: 1px
+
+  &--active
+    border-color: $primary-200
+    background: $primary-50
+
+.tpe__grip
+  color: $text-disabled
+  font-size: 12px
+
+.tpe__emp-body
+  flex: 1 1 auto
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 1px
+
+.tpe__emp-name
+  display: block
+  min-width: 0
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+  .tpe__emp--active &
+    color: $primary
+    font-weight: 700
+
+.tpe__emp-sub
+  display: block
+  min-width: 0
+  font-size: 10.5px
+  color: $text-inactive
+
+.tpe__emp-abs
+  font-size: 13px
+  color: $warning
+  cursor: help
+
+  &--attesa
+    color: $text-disabled
+
+// Cerchietto: giorni ancora assegnabili secondo il contratto.
+.tpe__count
+  flex-shrink: 0
+  width: 26px
+  height: 26px
+  border-radius: 50%
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: var(--color-primary)
+  color: #fff
+  font-size: 12px
+  font-weight: 700
+  cursor: help
+
+  &--done
+    background: $bg
+    border: 1px solid $border
+    color: $text-disabled
+
+  &--over
+    background: $error
+
+.tpe__sidebar-foot
+  display: grid
+  grid-template-columns: 1fr
+  gap: 6px
+  padding: 10px 12px
+  border-top: 1px solid $border
+  background: $bg
+
+.tpe__tool
+  height: 32px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  gap: 6px
+  border: 1px solid $border
+  border-radius: 6px
+  background: var(--color-surface)
+  color: $text-inactive
+  font-family: $font-body
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+
+  &:hover:not(:disabled)
+    border-color: $primary
+    color: $primary
+
+  &:disabled
+    opacity: .5
+    cursor: not-allowed
+
+.tpe__save
+  height: 36px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  gap: 6px
+
+// ── Settimana ──
+.tpe__week-grid
+  --tpe-cols: 70px 120px minmax(0, 1fr) 76px
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 6px
+  padding: 14px
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: var(--color-surface)
+
+.tpe__head
+  display: grid
+  grid-template-columns: var(--tpe-cols)
+  gap: 12px
+  padding: 0 10px 4px
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+.tpe__head-r
+  text-align: right
+
+.tpe__day
+  display: grid
+  grid-template-columns: var(--tpe-cols)
+  align-items: center
+  gap: 12px
+  min-height: 64px
+  padding: 8px 10px
+  border: 1px dashed transparent
+  border-radius: 10px
+  background: $bg
+  transition: $transition-fast
+
+  &--today
+    box-shadow: inset 0 0 0 1px $link
+
+  &--clickable
+    cursor: copy
+
+    &:hover
+      border-color: $primary-300
+
+  &--over
+    border-color: var(--color-primary)
+    background: $primary-50
+
+.tpe__badge
+  align-self: stretch
+  min-height: 46px
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  border-radius: 10px
+  background: var(--color-primary)
+  color: #fff
+
+  &--we
+    background: $primary-700
+
+.tpe__badge-wd
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 800
+  line-height: 1.1
+
+.tpe__badge-dm
+  font-size: 10px
+  font-weight: 600
+  opacity: .85
+
+.tpe__occ
+  min-width: 0
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 5px
+
+.tpe__occ-val
+  cursor: help
+  font-weight: 700
+  color: $text-active
+
+.tpe__occ-bar
+  width: 100%
+  height: 6px
+  border-radius: 3px
+  background: $border
+  overflow: hidden
+
+.tpe__occ-fill
+  display: block
+  height: 100%
+  border-radius: 3px
+
+  &--basso
+    background: $success
+
+  &--medio
+    background: $warning
+
+  &--alto
+    background: $error
+
+  @for $i from 0 through 20
+    &[data-occ="#{$i * 5}"]
+      width: math.percentage(math.div($i * 5, 100))
+
+.tpe__chips
+  min-width: 0
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: 6px
+
+.tpe__drop-hint
+  font-size: 12px
+  color: $text-disabled
+
+.tpe__chip
+  max-width: 170px
+  min-width: 0
+  height: 28px
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 0 6px 0 10px
+  border: 1px solid $border
+  border-left: 3px solid var(--rep)
+  border-radius: 6px
+  background: var(--color-surface)
+  cursor: grab
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+  &--attesa
+    border-style: dashed
+    border-left-style: solid
+
+  &--assente
+    border-left-color: $text-disabled
+    background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(15, 17, 23, .05) 4px, rgba(15, 17, 23, .05) 8px)
+    color: $text-inactive
+    font-weight: 500
+    cursor: default
+    padding-right: 10px
+
+  &--assente-attesa
+    border-style: dashed
+    border-left-style: solid
+
+.tpe__chip-name
+  display: block
+  min-width: 0
+
+.tpe__chip-x
+  border: 0
+  background: none
+  padding: 2px
+  cursor: pointer
+  display: inline-flex
+  color: var(--color-primary)
+  font-size: 12px
+
+  &:hover
+    color: $error
+
+.tpe__cop
+  justify-self: end
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-weight: 700
+  cursor: help
+
+  &--ok
+    color: $success
+
+  &--sotto
+    color: $warning
+
+.tpe__legend
+  list-style: none
+  margin: 6px 0 0
+  padding: 0
+  display: flex
+  flex-wrap: wrap
+  gap: 6px 14px
+  font-size: 12px
+  color: $text-inactive
+
+  li
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+.tpe__sw
+  width: 16px
+  height: 12px
+  border: 1px solid $border
+  border-radius: 3px
+
+  &--assente
+    background: repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(15, 17, 23, .12) 2px, rgba(15, 17, 23, .12) 4px)
+
+  &--attesa
+    border-style: dashed
+    border-color: $text-inactive
+
+// ── Modale suggerimento ──
+.tpe-modal
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 4px 0 0
+
+.tpe-modal__lead
+  margin: 0
+  font-size: 13px
+  color: $text-active
+
+.tpe-modal__kpi
+  margin: 0
+  display: grid
+  grid-template-columns: repeat(4, minmax(0, 1fr))
+  gap: 10px
+
+  div
+    padding: 10px 12px
+    border: 1px solid $border
+    border-radius: 8px
+
+  dt
+    font-size: 11px
+    color: $text-inactive
+
+  dd
+    margin: 2px 0 0
+    font-weight: 700
+    color: $text-active
+
+.tpe-modal__days
+  display: grid
+  grid-template-columns: repeat(7, minmax(0, 1fr))
+  gap: 6px
+
+.tpe-modal__day
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 2px
+  padding: 8px 4px
+  border-radius: 8px
+  background: $bg
+
+.tpe-modal__day-wd
+  font-size: 11px
+  font-weight: 700
+  color: $primary
+
+.tpe-modal__day-n
+  font-family: $font-heading
+  font-size: 18px
+  font-weight: 700
+  color: $text-active
+
+.tpe-modal__day-occ
+  font-size: 11px
+  color: $text-inactive
+
+.tpe-modal__notes
+  margin: 0
+  padding-left: 18px
+  display: flex
+  flex-direction: column
+  gap: 5px
+  font-size: 12px
+  color: $text-active
+
+.tpe-modal__warn
+  margin: 0
+  display: flex
+  align-items: center
+  gap: 6px
+  padding: 8px 12px
+  border-radius: 8px
+  background: $warning-light
+  font-size: 12px
+  color: $text-active
+
+  i
+    color: $warning
+
+.tpe-modal__actions
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+
+// ── Responsività (container query sul root pagina) ──
+@container turni (max-width: 1180px)
+  .tpe__layout
+    grid-template-columns: 230px minmax(0, 1fr)
+
+  .tpe__week-grid
+    --tpe-cols: 60px 90px minmax(0, 1fr) 64px
+
+  .tpe__chip
+    max-width: 140px
+
+@container turni (max-width: 900px)
+  .tpe__layout
+    grid-template-columns: 1fr
+
+  .tpe__sidebar
+    position: static
+    max-height: 340px

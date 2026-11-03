@@ -15,6 +15,13 @@ import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useNotifPrefsStore } from '../../../store/useNotifPrefsStore'
 import { toast } from '../../../core/components/Toast/useToast'
 import { exportReportPickupPdf } from './reportPickupPdf'
+import { useHrGestioneStore } from '../../../store/useHrGestioneStore'
+import {
+  useTurniPersonaleStore, suggerisciTurni, suggerimentiPerCadenza, etichettaSettimana, giornoMese, GIORNI_LUNGHI,
+  giorniSettimana,
+} from '../../../store/useTurniPersonaleStore'
+import TurnoSettimanale from '../../hr/TurniPersonale/TurnoSettimanale'
+import { scaricaTurnoPdf } from '../../hr/TurniPersonale/turnoPdf'
 import './CentroNotifiche.sass'
 
 interface ExtraBookingInfo {
@@ -51,6 +58,8 @@ interface NotificaUI {
   reportTipo?: string
   /** canale di consegna (es. "Email"): mostrato come badge al posto della severità */
   channel?: string
+  /** Turni del personale: suggerimento di Sibylla (HR) o turno pubblicato (dipendente). */
+  turni?: { kind: 'suggerimento'; lunedi: string } | { kind: 'pubblicato'; pubblicazioneId: string }
 }
 
 const fmtEUR = (n: number) =>
@@ -380,9 +389,71 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     }]
   }, [vccRows, notificaVccOn])
 
+  // Turni del personale — suggerimenti di Sibylla all'HR (cadenza e attivazione
+  // dalla riga "Turni del personale" di Configura notifiche) e turni pubblicati
+  // che arrivano ai dipendenti con "Scarica PDF" e "Visualizza turno".
+  const turniOn = useNotifPrefsStore((s) => s.turniPersonale)
+  const turniCadenza = useNotifPrefsStore((s) => s.turniCadenza)
+  const richiesteHr = useHrGestioneStore((s) => s.richieste)
+  const pubblicazioniTurni = useTurniPersonaleStore((s) => s.pubblicazioni)
+  const turniNotifs: NotificaUI[] = useMemo(() => {
+    const sugg: NotificaUI[] = !turniOn ? [] : suggerimentiPerCadenza(turniCadenza).map((x, i) => {
+      const sg = suggerisciTurni(x.lunedi, richiesteHr)
+      const wd = GIORNI_LUNGHI[giorniSettimana(x.lunedi).indexOf(sg.picco.iso)].toLowerCase()
+      return {
+        id: 940000 + i,
+        sev: sg.scoperture.length ? 'warning' : 'info',
+        title: 'Suggerimento turni del personale',
+        text: `Settimana ${etichettaSettimana(x.lunedi)}: occupazione media ${sg.occupazioneMedia}%, picco ${wd} ${giornoMese(sg.picco.iso)} (${sg.picco.occ}%). Il turno proposto tiene conto di ${sg.assenzeConsiderate.length} assenze tra ferie, permessi e malattia.`,
+        ref: '',
+        ...quando(x.giorniFa), time: '08:00',
+        read: x.giorniFa > 0, source: 'platform' as const,
+        turni: { kind: 'suggerimento' as const, lunedi: x.lunedi },
+      }
+    })
+    const pubbl: NotificaUI[] = pubblicazioniTurni.map((p, i) => {
+      const d = new Date(p.at)
+      const today = new Date()
+      const sameDay = d.toDateString() === today.toDateString()
+      const sameMonth = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
+      return {
+        id: 945000 + i,
+        sev: 'info' as const,
+        title: 'Turno settimanale pubblicato',
+        text: `È disponibile il turno della settimana ${etichettaSettimana(p.lunedi)}: scaricalo in PDF o visualizzalo online.`,
+        ref: '',
+        date: `${WEEKDAYS[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MONTHS[d.getMonth()]}`,
+        time: d.toTimeString().slice(0, 5),
+        group: (sameDay ? 'oggi' : sameMonth ? 'mese-corrente' : 'precedenti') as NotificaUI['group'],
+        read: i > 0, source: 'platform' as const,
+        turni: { kind: 'pubblicato' as const, pubblicazioneId: p.id },
+      }
+    })
+    return [...sugg, ...pubbl]
+  }, [turniOn, turniCadenza, richiesteHr, pubblicazioniTurni])
+  const applicaSuggerimentoTurni = useTurniPersonaleStore((s) => s.applicaSuggerimento)
+  const setFocusTurni = useTurniPersonaleStore((s) => s.setFocus)
+  const assegnazioniTurni = useTurniPersonaleStore((s) => s.assegnazioni)
+  const [turnoVistaId, setTurnoVistaId] = useState<string | null>(null)
+  const apriTurni = (lunedi: string) => { setFocusTurni(lunedi); navigate('turni-personale') }
+  const applicaTurni = async (lunedi: string) => {
+    const giaInseriti = giorniSettimana(lunedi).reduce((n, g) => n + (assegnazioniTurni[g] ?? []).length, 0)
+    if (giaInseriti > 0) {
+      const ok = await confirm({
+        title: 'Applica suggerimento',
+        message: <>La settimana <strong>{etichettaSettimana(lunedi)}</strong> ha già {giaInseriti} turni: il suggerimento di Sibylla li sostituisce.</>,
+        confirmLabel: 'Applica', danger: false,
+      })
+      if (!ok) return
+    }
+    applicaSuggerimentoTurni(suggerisciTurni(lunedi, richiesteHr))
+    toast.success(`Turno della settimana ${etichettaSettimana(lunedi)} generato da Sibylla.`, 'Turni del personale')
+    apriTurni(lunedi)
+  }
+
   const allNotifications = useMemo(
-    () => [...pagamentiNotifs, ...vccNotifs, ...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
-    [pagamentiNotifs, vccNotifs, cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
+    () => [...turniNotifs, ...pagamentiNotifs, ...vccNotifs, ...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
+    [turniNotifs, pagamentiNotifs, vccNotifs, cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
   )
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),
@@ -610,7 +681,65 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                 <p className="notifiche__detail-lead">{selectedNotif.text}</p>
               )}
 
-              {selectedNotif.report ? (
+              {selectedNotif.turni?.kind === 'suggerimento' ? (() => {
+                const lun = selectedNotif.turni.lunedi
+                const sg = suggerisciTurni(lun, richiesteHr)
+                return (
+                  <>
+                    <dl className="notifiche__detail-list">
+                      <div className="notifiche__detail-list-row"><dt>Settimana</dt><dd>{etichettaSettimana(lun)}</dd></div>
+                      <div className="notifiche__detail-list-row"><dt>Occupazione media</dt><dd>{sg.occupazioneMedia}%</dd></div>
+                      <div className="notifiche__detail-list-row"><dt>Picco</dt><dd>{GIORNI_LUNGHI[giorniSettimana(lun).indexOf(sg.picco.iso)]} {giornoMese(sg.picco.iso)} · {sg.picco.occ}%</dd></div>
+                      <div className="notifiche__detail-list-row"><dt>Turni proposti</dt><dd>{sg.turni} su {sg.fabbisognoTot} necessari</dd></div>
+                      <div className="notifiche__detail-list-row"><dt>Assenze considerate</dt><dd>{sg.assenzeConsiderate.length}</dd></div>
+                    </dl>
+                    <ul className="notifiche__detail-notes">
+                      {sg.note.map((n, i) => <li key={i}>{n}</li>)}
+                    </ul>
+                    <div className="notifiche__detail-actions">
+                      <button type="button" className="sib-btn sib-btn--secondary" onClick={() => apriTurni(lun)}>
+                        <i className="fa-light fa-calendar-week" aria-hidden="true" /> Apri Turni del personale
+                      </button>
+                      <button type="button" className="sib-btn sib-btn--primary" onClick={() => applicaTurni(lun)}>
+                        <i className="fa-light fa-wand-magic-sparkles" aria-hidden="true" /> Applica suggerimento
+                      </button>
+                    </div>
+                  </>
+                )
+              })() : selectedNotif.turni?.kind === 'pubblicato' ? (() => {
+                const pid = selectedNotif.turni.pubblicazioneId
+                const p = pubblicazioniTurni.find(x => x.id === pid)
+                if (!p) return null
+                const at = new Date(p.at)
+                return (
+                  <>
+                    <dl className="notifiche__detail-list">
+                      <div className="notifiche__detail-list-row"><dt>Settimana</dt><dd>{etichettaSettimana(p.lunedi)}</dd></div>
+                      <div className="notifiche__detail-list-row"><dt>Pubblicato il</dt><dd>{at.toLocaleDateString('it-IT')} · {at.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</dd></div>
+                      <div className="notifiche__detail-list-row"><dt>Dipendenti in turno</dt><dd>{p.destinatari}</dd></div>
+                    </dl>
+                    <div className="notifiche__detail-actions">
+                      <button
+                        type="button"
+                        className="sib-btn sib-btn--secondary"
+                        onClick={async () => {
+                          try {
+                            await scaricaTurnoPdf(p)
+                            toast.success('Download del turno avviato.', 'Turni del personale')
+                          } catch {
+                            toast.error('Impossibile generare il PDF del turno.', 'Turni del personale')
+                          }
+                        }}
+                      >
+                        <i className="fa-light fa-file-pdf" aria-hidden="true" /> Scarica PDF
+                      </button>
+                      <button type="button" className="sib-btn sib-btn--primary" onClick={() => setTurnoVistaId(p.id)}>
+                        <i className="fa-light fa-eye" aria-hidden="true" /> Visualizza turno
+                      </button>
+                    </div>
+                  </>
+                )
+              })() : selectedNotif.report ? (
                 <>
                   <dl className="notifiche__detail-list">
                     <div className="notifiche__detail-list-row">
@@ -775,6 +904,16 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
           )}
         </aside>
       </div>
+
+      {/* Turno settimanale pubblicato: visualizzazione digitale, senza download */}
+      {(() => {
+        const p = turnoVistaId ? pubblicazioniTurni.find(x => x.id === turnoVistaId) : null
+        return (
+          <Modal open={!!p} onClose={() => setTurnoVistaId(null)} title={p ? `Turno della settimana ${etichettaSettimana(p.lunedi)}` : ''} size="xl">
+            {p && <TurnoSettimanale lunedi={p.lunedi} assegnazioni={p.assegnazioni} />}
+          </Modal>
+        )
+      })()}
 
       {/* Storico visualizzazioni: chi ha già visto la notifica */}
       <Modal

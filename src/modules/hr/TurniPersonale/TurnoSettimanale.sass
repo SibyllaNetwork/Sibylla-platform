@@ -1,0 +1,60 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+.tsv
+  border: 1px solid $border
+  overflow-x: hidden
+  max-height: 62vh
+  overflow-y: auto
+
+.tsv .tsv__table
+  +table-fit
+
+.tsv__col-dip
+  width: 23%
+.tsv__col-day
+  width: 10%
+.tsv__col-tot
+  width: 7%
+
+// Due classi: a pari specificità vincerebbe l'allineamento di .sib-table th/td.
+.tsv .tsv__c
+  text-align: center
+
+.tsv__wd
+  display: block
+  font-weight: 700
+
+.tsv__dm
+  display: block
+  font-size: 11px
+  font-weight: 400
+  color: $text-inactive
+
+.tsv .tsv__group td
+  background: $bg
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 700
+  color: var(--color-primary)
+
+.tsv__name
+  display: block
+  min-width: 0
+
+.tsv .tsv__on
+  color: var(--color-primary)
+  font-size: 16px
+
+.tsv .tsv__abs
+  color: $warning
+  font-size: 12px
+  font-weight: 600
+
+.tsv__riposo
+  font-size: 12px
+  color: $text-disabled
+
+.tsv .tsv__tot
+  font-weight: 700
+  color: $text-active

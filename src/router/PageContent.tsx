@@ -225,7 +225,7 @@ import ArchivioContratti           from '../modules/finance/ArchivioContratti/Ar
 import BenchmarkFinanziario        from '../modules/finance/BenchmarkFinanziario/BenchmarkFinanziario';
 import InserisciContrattoAcquisto  from '../modules/purchasing/InserisciContrattoAcquisto/InserisciContrattoAcquisto';
 import MieiContrattiAcquisto       from '../modules/purchasing/MieiContrattiAcquisto/MieiContrattiAcquisto';
-import TurniPersonale              from '../modules/operation/TurniPersonale/TurniPersonale';
+import TurniPersonale              from '../modules/hr/TurniPersonale/TurniPersonale';
 import AgoraShell                  from '../modules/purchasing/Agora/AgoraShell';
 import { renderPortedPage }        from '../modules/_scaffold/portedPages';
 import GenericPage                 from '../modules/GenericPage';
