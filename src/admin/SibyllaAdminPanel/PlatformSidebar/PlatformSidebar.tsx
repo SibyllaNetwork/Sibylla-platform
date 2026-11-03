@@ -38,7 +38,7 @@ const SECTIONS: SectionItem[] = [
   {
     id: 'sibylla-op',
     label: 'Sibylla Op!',
-    description: 'Clienti indipendenti dell\'app Op!',
+    description: 'Aziende dell\'app Op! integrate con Platform',
     icon: 'mobile',
   },
 ]

@@ -1,7 +1,7 @@
 // ─── SIBYLLA OP! ──────────────────────────────────────────────────────────────
-//  Clienti indipendenti dell'app Op!: tabella standard .sib-table (testo su una
-//  riga con ellipsis e tooltip, icone d'azione solid blu 16px senza box) e
-//  scheda del cliente con le tre sezioni.
+//  Aziende dell'app Op!: tabella standard .sib-table (testo su una riga con
+//  ellipsis e tooltip, icone d'azione solid blu 16px senza box), nuova azienda
+//  integrata a sezioni (Card) e scheda dell'azienda a tab.
 @use '../../../styles/tokens' as *
 
 .sibylla-op
@@ -49,21 +49,42 @@
       white-space: nowrap
 
   &__c-nome
-    width: 22%
+    width: 17%
   &__c-piva
-    width: 12%
+    width: 10%
+  &__c-platform
+    width: 15%
   &__c-piano
-    width: 10%
+    width: 8%
   &__c-stato
-    width: 9%
-  &__c-scade
-    width: 10%
-  &__c-dip
-    width: 10%
-  &__c-reparti
-    width: 20%
-  &__c-azioni
     width: 7%
+  &__c-dal
+    width: 8%
+  &__c-scade
+    width: 8%
+  &__c-dip
+    width: 7%
+  &__c-reparti
+    width: 14%
+  &__c-azioni
+    width: 6%
+
+  &__tenue
+    color: $text-inactive
+
+  &__azioni-testa
+    display: flex
+    align-items: center
+    gap: $space-sm
+
+  &__riga
+    display: flex
+    align-items: flex-end
+    gap: $space-sm
+
+  &__riga-campo
+    flex: 1 1 auto
+    max-width: 480px
 
   &__testo
     display: block
@@ -120,5 +141,9 @@
   grid-template-columns: repeat(3, 1fr)
   gap: $space-md
 
-  &__note
+  &__largo
     grid-column: 1 / -1
+
+@container sibylla-op (max-width: 760px)
+  .sibylla-op-form
+    grid-template-columns: 1fr
