@@ -121,7 +121,7 @@ const MACRO_AREAS: MacroArea[] = [
     id: 'tradezone',
     title: 'Trade Zone',
     icon: 'display-chart-up',
-    href: '/announcements',
+    href: '/trade-zone',
     delta: 18,
     stats: [
       { label: 'Annunci pubblicati', value: '12' },

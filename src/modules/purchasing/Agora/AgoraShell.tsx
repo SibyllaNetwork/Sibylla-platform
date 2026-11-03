@@ -45,6 +45,7 @@ import { ElearningPage } from './pages/ElearningPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { AnnouncementsPage } from './pages/AnnouncementsPage';
+import { TradeZoneAnnouncementsPage } from './pages/TradeZoneAnnouncementsPage';
 import ComponiAnnunci from '../../sales/ricavi/ComponiAnnunci/ComponiAnnunci';
 import { MatchZonePage } from './pages/MatchZonePage';
 import { GroupPurchasesPage } from './pages/GroupPurchasesPage';
@@ -89,6 +90,8 @@ function AgoraRoutes() {
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/announcements" element={<AnnouncementsPage />} />
+      {/* Trade Zone (icona della Dashboard Agorà): annunci a schede di vendita/acquisto lotti */}
+      <Route path="/trade-zone" element={<TradeZoneAnnouncementsPage />} />
       <Route path="/announcements/manage" element={<ComponiAnnunci navigate={() => {}} />} />
       <Route path="/match-zone" element={<MatchZonePage />} />
       <Route path="/group-purchases" element={<GroupPurchasesPage />} />
