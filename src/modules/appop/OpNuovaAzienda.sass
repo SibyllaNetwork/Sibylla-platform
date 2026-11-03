@@ -1,0 +1,104 @@
+// ─── NUOVA AZIENDA OP! (Sibylla Admin → Piattaforma → Sibylla Op!) ────────────
+@use '../../styles/tokens' as *
+
+.op-nuova
+  display: flex
+  flex-direction: column
+  gap: $space-md
+  container-type: inline-size
+  container-name: op-nuova
+
+  &__testa
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: $space-md
+
+  &__titolo
+    margin: 0
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 600
+    color: $text-active
+
+  &__sezione
+    margin: 0
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  &__sotto
+    margin: 0
+    color: $text-inactive
+    font-size: 13px
+    line-height: 1.5
+
+  &__errore
+    margin: 0
+    color: var(--color-error)
+    font-size: 12px
+
+  &__riquadro
+    display: flex
+    flex-direction: column
+    gap: $space-sm
+    padding: 18px 20px
+    border: 1px solid $border
+    border-radius: $radius-lg
+    background: var(--color-surface)
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: $space-sm $space-md
+
+    &--tre
+      grid-template-columns: repeat(3, minmax(0, 1fr))
+
+  &__largo
+    grid-column: 1 / -1
+
+  &__riga
+    display: flex
+    align-items: flex-end
+    gap: $space-sm
+
+  &__flex
+    flex: 1
+    min-width: 0
+
+  &__azioni
+    display: flex
+    flex-wrap: wrap
+    justify-content: flex-end
+    gap: $space-sm
+
+    a.sib-btn
+      text-decoration: none
+
+  &__codice
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    padding: $space-md
+    border-radius: $radius-md
+    background: $bg
+
+  &__codice-etichetta
+    color: $text-inactive
+    font-size: 12px
+
+  &__codice-testo
+    font-family: $font-heading
+    font-size: 26px
+    font-weight: 700
+    letter-spacing: 3px
+    color: $text-active
+    user-select: all
+
+@container op-nuova (max-width: 640px)
+  .op-nuova__griglia,
+  .op-nuova__griglia--tre
+    grid-template-columns: minmax(0, 1fr)

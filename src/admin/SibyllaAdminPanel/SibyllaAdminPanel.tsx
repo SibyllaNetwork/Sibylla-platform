@@ -993,7 +993,7 @@ const PLATFORM_SECTION_META: Record<PlatformSection, { title: string; subtitle: 
   'servizi':       { title: 'Servizi',               subtitle: 'Escursioni, noleggi, eventi e altri servizi con listini Agorà / B2B / B2C' },
   'banner':        { title: 'Banner & affiliazione', subtitle: 'Genera banner di ricerca e prenotazione da pubblicare sui siti di terzi per promuovere Sibylla' },
   'agora-console': { title: 'Piattaforma admin',     subtitle: 'Strutture, contenuti e impostazioni dei canali Agorà / B2B / B2C' },
-  'sibylla-op':    { title: 'Sibylla Op!',           subtitle: 'Clienti indipendenti dell’app Op!: aziende che la usano senza Sibylla Platform' },
+  'sibylla-op':    { title: 'Sibylla Op!',           subtitle: 'Aziende dell’app Op!: creazione come su sibyllaop.it/admin, con il collegamento a un’azienda di Sibylla Platform' },
 }
 
 function PlatformHeader({ section }: { section: PlatformSection }) {

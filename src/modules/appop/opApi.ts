@@ -49,6 +49,8 @@ async function opFetch<T>(path: string, method = 'GET', body?: unknown): Promise
 
 export type StatoCliente = 'attivo' | 'sospeso'
 export type PianoCliente = 'base' | 'completo' | 'personalizzato'
+/** "struttura": l'azienda è l'albergo (una sola struttura); "gruppo": più strutture, ognuna con piani e camere. */
+export type TipoAziendaOp = 'struttura' | 'gruppo'
 
 export interface ClienteOp {
   id: number
@@ -61,12 +63,19 @@ export interface ClienteOp {
   dipendenti: number
   dipendentiAttivi: number
   reparti: RepartoOp[]
+  /** Azienda di Sibylla Platform collegata (null: non collegata). */
+  idAziendaPlatform?: number | null
 }
 
 export interface DatiCliente {
   ragioneSociale: string
   partitaIva: string | null
+  /** Sede operativa. */
   indirizzo: string | null
+  sedeLegale?: string | null
+  /** Contatto PEC. */
+  pec?: string | null
+  tipo?: TipoAziendaOp
   referente: string | null
   emailReferente: string | null
   telefono: string | null
@@ -82,6 +91,20 @@ export interface DettaglioCliente extends DatiCliente {
   creatoIl: string
   reparti: RepartiModuli
   strutture: { id: number; nome: string; indirizzo: string | null }[]
+  /** Azienda di Sibylla Platform collegata (null: non collegata). */
+  idAziendaPlatform?: number | null
+}
+
+/**
+ * Nuova azienda Op, come sibyllaop.it/admin → Nuova azienda: una sola struttura (`nomeSede`, l'insegna) o un gruppo
+ * (`strutture`), e in più l'azienda di Sibylla Platform a cui collegarla subito (null: non collegata).
+ */
+export interface NuovaAziendaOp {
+  dati: DatiCliente
+  reparti: Partial<Record<RepartoOp, string[] | null>>
+  nomeSede?: string
+  strutture?: string[]
+  idAziendaPlatform?: number | null
 }
 
 export type StatoDipendente = 'invitato' | 'attivo' | 'bloccato'
@@ -128,8 +151,12 @@ const B = '/admin/indipendenti'
 export const opAdminApi = {
   clienti: () => opFetch<ClienteOp[]>(B),
   cliente: (id: number) => opFetch<DettaglioCliente>(`${B}/${id}`),
-  nuovoCliente: (dati: DatiCliente, reparti: Partial<Record<RepartoOp, string[] | null>>, nomeSede?: string) =>
-    opFetch<DettaglioCliente>(B, 'POST', { dati, reparti, nomeSede }),
+  nuovoCliente: (r: NuovaAziendaOp) => opFetch<DettaglioCliente>(B, 'POST', r),
+  /** Amministratore dell'azienda: riceve l'invito via email e configura l'azienda su sibyllaop.it/azienda. */
+  nuovoAmministratore: (id: number, d: { nome: string; cognome: string; email: string }) =>
+    opFetch<{ dipendente: DipendenteOp; invito: InvitoOp | null }>(`${B}/${id}/dipendenti`, 'POST', {
+      ...d, livello: 'amministratore', reparti: [], responsabileReparti: [], hr: false, inviaInvito: true,
+    }),
   aggiornaCliente: (id: number, dati: DatiCliente) => opFetch<DettaglioCliente>(`${B}/${id}`, 'PUT', dati),
   stato: (id: number, stato: StatoCliente) => opFetch<void>(`${B}/${id}/stato`, 'PUT', { stato }),
   reparti: (id: number, reparti: RepartiModuli) => opFetch<DettaglioCliente>(`${B}/${id}/reparti`, 'PUT', { reparti }),

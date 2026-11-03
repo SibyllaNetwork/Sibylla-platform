@@ -1,4 +1,4 @@
-// ─── SIBYLLA OP! (collegamento alle aree admin del sito di Op) ─────────────────
+// ─── SIBYLLA OP! (aziende dell'app Op!: elenco, creazione, collegamento a Platform) ──
 @use '../../../styles/tokens' as *
 
 .sibylla-op
@@ -7,52 +7,59 @@
   gap: $space-md
   font-size: 13px
   container-type: inline-size
+  container-name: sibylla-op
 
   &__intro
     margin: 0
     color: $text-inactive
     font-size: 13px
+    line-height: 1.5
 
-  &__aree
-    display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
-    gap: $space-md
-
-  &__area
-    display: flex
-    flex-direction: column
-    align-items: flex-start
-    gap: 8px
-    padding: 18px 20px
-    border: 1px solid $border
-    border-radius: $radius-lg
-    background: var(--color-surface)
-
-    h3
-      margin: 0
-      font-family: $font-heading
-      font-size: 15px
+    a
+      color: var(--color-primary)
       font-weight: 600
-      color: $text-active
 
-    p
-      margin: 0
-      flex: 1
-      color: $text-inactive
-      line-height: 1.5
+  &__barra
+    display: flex
+    flex-wrap: nowrap
+    align-items: center
+    gap: $space-sm
 
-    code
-      font-size: 12px
-      color: $text-active
+  &__cerca
+    flex: 1 1 260px
+    min-width: 0
+    max-width: 420px
 
-    .sib-btn
-      margin-top: 6px
-      text-decoration: none
+  &__tabella
+    th,
+    td
+      white-space: nowrap
 
-  &__ico
-    font-size: 16px
-    color: var(--color-primary)
+  &__nome
+    display: block
+    max-width: 220px
+    font-weight: 600
 
-@container (max-width: 760px)
-  .sibylla-op__aree
-    grid-template-columns: minmax(0, 1fr)
+  &__reparti
+    display: block
+    max-width: 200px
+
+  &__apri
+    text-decoration: none
+
+@container sibylla-op (max-width: 1000px)
+  .sibylla-op__tabella
+    font-size: 12px
+
+    thead th
+      font-size: 11px
+
+    th,
+    td
+      padding-inline: 4px
+
+  .sibylla-op__nome
+    max-width: 150px
+
+  .sibylla-op__reparti
+    max-width: 120px

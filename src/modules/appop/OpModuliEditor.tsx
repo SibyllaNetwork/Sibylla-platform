@@ -1,7 +1,7 @@
 import React from 'react'
 import { CheckboxField, ToggleSwitch } from '../../core/components/form'
 import Tooltip from '../../core/components/Tooltip'
-import { MODULI_COMUNI, MODULI_SPECIFICI, ordinaModuli, REPARTI_OP, type RepartiModuli, type RepartoOp } from './opCatalogo'
+import { MODULI_COMUNI, MODULI_OP, MODULI_SPECIFICI, ordinaModuli, REPARTI_OP, type RepartiModuli, type RepartoOp } from './opCatalogo'
 import './OpModuliEditor.sass'
 
 interface Props {
@@ -9,15 +9,21 @@ interface Props {
   onChange: (value: RepartiModuli) => void
   /** Cliente indipendente: le funzioni del gestionale alberghiero sono segnalate (nessun dato da cui leggerle). */
   indipendente?: boolean
+  /**
+   * Come sibyllaop.it/admin: le funzioni del gestionale alberghiero non si offrono e restano fuori dai predefiniti
+   * (l'azienda creata in Op non ha un gestionale da cui leggerle, anche se collegata a Platform).
+   */
+  senzaPms?: boolean
 }
 
 // ─── REPARTI E MODULI DELL'APP OP! ────────────────────────────────────────────
 //  Un riquadro per reparto: si attiva il reparto (con i moduli predefiniti) e se
 //  ne scelgono i moduli. Un modulo si può assegnare a qualsiasi reparto.
-export default function OpModuliEditor({ value, onChange, indipendente = false }: Props) {
+export default function OpModuliEditor({ value, onChange, indipendente = false, senzaPms = false }: Props) {
+  const ammesso = (key: string) => !senzaPms || !MODULI_OP.find(m => m.key === key)?.pms
   const attiva = (r: RepartoOp, on: boolean) => {
     const next = { ...value }
-    if (on) next[r] = REPARTI_OP.find(x => x.key === r)!.predefiniti
+    if (on) next[r] = REPARTI_OP.find(x => x.key === r)!.predefiniti.filter(ammesso)
     else delete next[r]
     onChange(next)
   }
@@ -44,7 +50,7 @@ export default function OpModuliEditor({ value, onChange, indipendente = false }
                   <div key={g.titolo} className="op-moduli__gruppo">
                     <p className="op-moduli__titolo">{g.titolo}</p>
                     <div className="op-moduli__voci">
-                      {g.voci.map(m => {
+                      {g.voci.filter(m => ammesso(m.key)).map(m => {
                         const box = (
                           <CheckboxField
                             key={m.key}
