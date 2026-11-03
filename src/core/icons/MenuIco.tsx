@@ -283,7 +283,9 @@ const MENU_MAP: Record<string, string> = {
   // Impostazioni — Dispositivi
   'totem':                      'fa-display',
   'i-miei-totem':               'fa-display',
-  'gest-advertising':           'fa-rectangle-ad',
+  'gest-advertising':           'fa-tower-broadcast',
+  'totem-editor':               'fa-pen-ruler',
+  'noleggia-spazi':             'fa-hand-holding-dollar',
 
   // ══ GIORNALE IMPRESA — pagine foglia senza icona dedicata ═════════════════
   // Coprono i titoli delle card "page" della vista estesa (tutti i tab),

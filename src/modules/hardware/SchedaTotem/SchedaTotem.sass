@@ -1,0 +1,570 @@
+@use 'sass:math'
+@use '../../../styles/tokens' as *
+
+.stm
+  display: flex
+  flex-direction: column
+  gap: 14px
+  font-size: 13px
+  container-type: inline-size
+  container-name: stm
+
+.stm__head-acts
+  display: flex
+  gap: 8px
+  flex-wrap: wrap
+
+.stm__layout
+  display: grid
+  grid-template-columns: minmax(0, 1fr) 230px
+  gap: 18px
+  align-items: start
+
+.stm__main
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.stm__aside
+  position: sticky
+  top: 12px
+
+.stm__cap
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  flex-wrap: wrap
+  justify-content: center
+
+  strong
+    color: $text-active
+
+.stm__live
+  padding: 2px 6px
+  border-radius: 4px
+  background: $error
+  color: #fff
+  font-size: 10px
+  font-weight: 800
+  letter-spacing: .06em
+
+  &--off
+    background: $text-disabled
+
+.stm__assist
+  align-self: flex-start
+
+.stm__muted
+  color: $text-inactive
+  font-size: 12px
+
+.stm__warn
+  color: $warning
+
+// ── Card ──
+.stm__grid
+  display: grid
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 14px
+
+.stm__card
+  min-width: 0
+  padding: 16px
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: var(--color-surface)
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.stm__card-title
+  margin: 0
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.stm__card-row
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  flex-wrap: wrap
+
+.stm__health
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 12px
+  border-radius: 10px
+  background: $success-light
+
+  > i
+    font-size: 22px
+    color: $success
+
+  > span
+    display: flex
+    flex-direction: column
+    gap: 2px
+    font-size: 12px
+    color: $text-inactive
+
+  strong
+    font-size: 13px
+    color: $text-active
+
+  &--ko
+    background: $error-light
+
+    > i
+      color: $error
+
+.stm-meter
+  display: flex
+  flex-direction: column
+  gap: 5px
+
+.stm-meter__top
+  display: flex
+  justify-content: space-between
+  font-size: 12px
+  color: $text-inactive
+
+  strong
+    color: $text-active
+
+.stm-meter__bar,
+.stm-pal__sat
+  height: 6px
+  border-radius: 3px
+  background: $border
+  overflow: hidden
+  display: block
+
+.stm-meter__fill,
+.stm-pal__sat-fill,
+.stm-curve__fill
+  display: block
+  height: 100%
+  border-radius: 3px
+  background: var(--color-primary)
+
+  &--warn,
+  &--hi
+    background: $warning
+
+  @for $i from 0 through 20
+    &[data-v="#{$i * 5}"]
+      width: math.percentage(math.div($i * 5, 100))
+
+.stm-meter__hint
+  font-size: 11px
+  color: $text-disabled
+
+.stm__big
+  margin: 0
+  color: $text-inactive
+
+  strong
+    font-family: $font-heading
+    font-size: 22px
+    color: $text-active
+
+.stm-curve
+  display: grid
+  grid-template-columns: repeat(4, minmax(0, 1fr))
+  gap: 10px
+  align-items: end
+
+.stm-curve__col
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 4px
+
+.stm-curve__bar
+  width: 100%
+  height: 90px
+  display: flex
+  align-items: flex-end
+  justify-content: center
+  border-radius: 6px
+  background: $bg
+
+// La colonna cresce in altezza: riuso i data-v come altezza.
+.stm .stm-curve__fill
+  width: 60%
+  border-radius: 6px 6px 0 0
+  background: $primary-300
+
+  &--top
+    background: var(--color-primary)
+
+  @for $i from 0 through 20
+    &[data-v="#{$i * 5}"]
+      width: 60%
+      height: math.percentage(math.div($i * 5, 100))
+
+.stm-curve__lbl
+  font-size: 11px
+  color: $text-inactive
+
+.stm-curve__n
+  font-size: 12px
+  font-weight: 700
+  color: $text-active
+
+.stm__tip
+  margin: 0
+  display: flex
+  gap: 8px
+  padding: 10px 12px
+  border-radius: 8px
+  background: $primary-50
+  font-size: 12px
+  color: $text-active
+
+  i
+    color: #a2864c
+    margin-top: 2px
+
+.stm__dl
+  margin: 0
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+  div
+    display: flex
+    justify-content: space-between
+    gap: 12px
+    padding-bottom: 8px
+    border-bottom: 1px solid $border
+
+  div:last-child
+    border-bottom: 0
+    padding-bottom: 0
+
+  dt
+    color: $text-inactive
+
+  dd
+    margin: 0
+    font-weight: 600
+    color: $text-active
+    text-align: right
+
+.stm__log
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+  li
+    display: grid
+    grid-template-columns: 22px 1fr auto
+    gap: 8px
+    align-items: center
+    color: $text-active
+
+  i
+    color: var(--color-primary)
+
+// ── Configurazione ──
+.stm__form-grid
+  display: grid
+  grid-template-columns: repeat(3, minmax(0, 1fr))
+  gap: 22px
+
+.stm__group
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.stm__row2
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 10px
+
+.stm__hint
+  margin: 0
+  font-size: 12px
+  color: $text-inactive
+
+.stm__save
+  display: flex
+  align-items: center
+  justify-content: flex-end
+  gap: 10px
+  padding-top: 12px
+  border-top: 1px solid $border
+
+// ── Palinsesto ──
+.stm__legend
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  flex-wrap: wrap
+  font-size: 12px
+  color: $text-inactive
+
+.stm__sw
+  width: 12px
+  height: 12px
+  border-radius: 3px
+  margin-left: 6px
+
+  &--own
+    background: var(--color-primary)
+  &--terzi
+    background: #a2864c
+
+.stm-pal
+  display: grid
+  grid-template-columns: 64px repeat(4, minmax(0, 1fr))
+  gap: 6px
+
+.stm-pal__h
+  display: flex
+  flex-direction: column
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+  small
+    font-weight: 400
+    color: $text-disabled
+
+.stm-pal__day
+  display: flex
+  flex-direction: column
+  justify-content: center
+  align-items: center
+  border-radius: 8px
+  background: var(--color-primary)
+  color: #fff
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 700
+
+  small
+    font-family: $font-body
+    font-weight: 500
+    opacity: .8
+
+  &--today
+    background: #a2864c
+
+.stm-pal__cell
+  min-width: 0
+  min-height: 62px
+  display: flex
+  flex-direction: column
+  gap: 4px
+  padding: 6px
+  border-radius: 8px
+  background: $bg
+
+.stm-pal__chip
+  max-width: 100%
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+  padding: 2px 7px
+  border-radius: 5px
+  font-size: 11px
+  font-weight: 600
+  color: #fff
+
+  &--own
+    background: var(--color-primary)
+  &--terzi
+    background: #a2864c
+
+.stm-pal__free
+  flex: 1
+  font-size: 11px
+  color: $text-disabled
+
+.stm-pal__sat
+  margin-top: auto
+
+// ── Spazi in vendita ──
+.stm-spazi
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+  &--off
+    opacity: .5
+    pointer-events: none
+
+.stm-spazi__prezzi
+  display: grid
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto
+  gap: 10px
+  align-items: end
+
+.stm-spazi__save
+  height: 34px
+
+.stm-spazi__bar
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 10px
+  flex-wrap: wrap
+
+.stm__tabs-mini
+  display: inline-flex
+  padding: 3px
+  gap: 2px
+  border: 1px solid $border
+  border-radius: 9px
+  background: $bg
+
+.stm__tab-mini
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  height: 28px
+  padding: 0 12px
+  border: 0
+  border-radius: 6px
+  background: transparent
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+  span
+    padding: 0 6px
+    border-radius: 9px
+    background: $border
+    font-size: 11px
+
+  &--on
+    background: var(--color-surface)
+    color: var(--color-primary)
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .12)
+
+.stm__tools
+  display: inline-flex
+  gap: 6px
+
+.stm__tool
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  height: 30px
+  padding: 0 12px
+  border: 1px solid $border
+  border-radius: 6px
+  background: var(--color-surface)
+  color: $text-inactive
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+
+  &--on
+    border-color: var(--color-primary)
+    background: $primary-50
+    color: var(--color-primary)
+
+.stm-cal
+  display: grid
+  grid-template-columns: 58px repeat(31, minmax(0, 1fr))
+  gap: 4px
+  user-select: none
+
+.stm-cal__n
+  text-align: center
+  font-size: 10px
+  font-weight: 700
+  color: $text-disabled
+
+.stm-cal__mese
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 3px
+  border-radius: 6px
+  background: var(--color-primary)
+  color: #fff
+  font-size: 11px
+  font-weight: 700
+
+  small
+    font-weight: 500
+    opacity: .75
+
+.stm-cal__x
+  display: block
+
+.stm-cal__d
+  aspect-ratio: 1
+  width: 100%
+  padding: 0
+  border: 0
+  border-radius: 50%
+  cursor: pointer
+  transition: transform .1s
+
+  &:hover:not(:disabled)
+    transform: scale(1.2)
+
+  &--no
+    background: $border
+  &--vendita
+    background: $success
+  &--venduto
+    background: #a2864c
+    cursor: not-allowed
+  &--past
+    opacity: .35
+    cursor: default
+  &--today
+    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 3px $link
+
+  &--leg
+    display: inline-block
+    width: 11px
+    height: 11px
+    margin-left: 8px
+    cursor: default
+
+.stm-spazi__foot
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  flex-wrap: wrap
+  font-size: 12px
+  color: $text-inactive
+
+  strong
+    color: $text-active
+
+// ── Responsività ──
+@container stm (max-width: 1100px)
+  .stm__layout
+    grid-template-columns: minmax(0, 1fr) 190px
+
+  .stm__form-grid
+    grid-template-columns: 1fr 1fr
+
+  .stm-spazi__prezzi
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+@container stm (max-width: 860px)
+  .stm__layout,
+  .stm__grid
+    grid-template-columns: 1fr
+
+  .stm__aside
+    position: static
+    max-width: 220px

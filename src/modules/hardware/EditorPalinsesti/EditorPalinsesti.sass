@@ -1,0 +1,532 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+.edp
+  display: flex
+  flex-direction: column
+  gap: 14px
+  font-size: 13px
+  container-type: inline-size
+  container-name: edp
+
+.edp__head-acts
+  display: flex
+  gap: 8px
+
+.edp__layout
+  display: grid
+  grid-template-columns: 240px minmax(0, 1fr) 280px
+  gap: 14px
+  align-items: stretch
+
+// ── Pannelli laterali ──
+.edp__panel
+  min-width: 0
+  display: flex
+  flex-direction: column
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: var(--color-surface)
+  overflow: hidden
+
+.edp__panel-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 8px
+  padding: 12px 14px
+  border-bottom: 1px solid $border
+
+.edp__panel-title
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+
+.edp__icon
+  width: 28px
+  height: 28px
+  border: 0
+  border-radius: 6px
+  background: var(--color-primary)
+  color: #fff
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+
+  &--sm
+    width: 24px
+    height: 24px
+    background: transparent
+    color: var(--color-primary)
+    font-size: 13px
+
+    &:hover
+      background: $primary-50
+
+.edp__search
+  padding: 10px 12px
+  border-bottom: 1px solid $border
+
+.edp__tree
+  flex: 1
+  overflow-y: auto
+  padding: 8px
+  max-height: 620px
+  +custom-scrollbar
+
+.edp__folder
+  margin-bottom: 10px
+
+.edp__folder-name
+  display: flex
+  align-items: center
+  gap: 7px
+  padding: 4px 6px
+  font-size: 11px
+  font-weight: 700
+  color: $text-inactive
+
+  i
+    color: #a2864c
+
+.edp__proj
+  position: relative
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 6px
+  border: 1px solid transparent
+  border-radius: 8px
+  cursor: pointer
+
+  &:hover
+    background: $bg
+
+    .edp__proj-acts
+      opacity: 1
+
+  &--on
+    border-color: $primary-200
+    background: $primary-50
+
+.edp__proj-thumb
+  flex-shrink: 0
+  width: 34px
+  border-radius: 4px
+  overflow: hidden
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .25)
+
+.edp__proj-txt
+  min-width: 0
+  flex: 1
+  display: flex
+  flex-direction: column
+
+.edp__proj-name
+  display: block
+  min-width: 0
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.edp__proj-meta
+  font-size: 10.5px
+  color: $text-inactive
+
+.edp__proj-acts
+  position: absolute
+  top: 50%
+  right: 6px
+  transform: translateY(-50%)
+  display: flex
+  padding: 2px
+  border-radius: 6px
+  background: var(--color-surface)
+  box-shadow: 0 1px 4px rgba(15, 23, 42, .15)
+  opacity: 0
+  transition: opacity .15s
+
+// ── Tela ──
+.edp__canvas-col
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.edp__toolbar
+  display: flex
+  align-items: center
+  gap: 6px
+  flex-wrap: wrap
+  padding: 8px
+  border: 1px solid $border
+  border-radius: 10px
+  background: var(--color-surface)
+
+.edp__name
+  width: 210px
+
+.edp__sep
+  width: 1px
+  height: 24px
+  margin: 0 4px
+  background: $border
+
+.edp__tool
+  height: 34px
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 0 10px
+  border: 1px solid transparent
+  border-radius: 7px
+  background: transparent
+  color: $text-active
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+
+  i
+    color: var(--color-primary)
+    font-size: 14px
+
+  &:hover
+    border-color: $primary-200
+    background: $primary-50
+
+.edp__stage-wrap
+  flex: 1
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 10px
+  padding: 18px
+  border-radius: $radius-xl
+  background: repeating-conic-gradient(var(--color-surface) 0% 25%, $bg 0% 50%) 50% / 22px 22px
+  border: 1px solid $border
+
+.edp__stage
+  width: min(330px, 100%)
+  border-radius: 10px
+  box-shadow: 0 18px 40px -14px rgba(15, 23, 42, .45)
+  overflow: hidden
+  touch-action: none
+
+.edp__stage-hint
+  font-size: 11px
+  color: $text-inactive
+
+.edp__el
+  display: contents
+
+  .spot-el
+    cursor: move
+
+.edp__frame
+  position: absolute
+  left: var(--x)
+  top: var(--y)
+  width: var(--w)
+  height: var(--h)
+  border: 1.5px dashed #ffd166
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .35)
+  pointer-events: none
+
+.edp__handle
+  position: absolute
+  left: var(--x)
+  top: var(--y)
+  width: 12px
+  height: 12px
+  margin: -6px 0 0 -6px
+  border: 2px solid #fff
+  border-radius: 3px
+  background: #a2864c
+  cursor: nwse-resize
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .4)
+
+.edp__empty
+  padding: 60px 20px
+  text-align: center
+  color: $text-disabled
+  border: 1px dashed $border
+  border-radius: $radius-xl
+
+// ── Proprietà ──
+.edp__props-body
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding-bottom: 14px
+
+  > *:not(.edp__panel-head)
+    margin: 0 14px
+
+.edp__props-acts
+  display: inline-flex
+  gap: 2px
+
+.edp__row2
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 10px
+
+.edp__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.edp__lbl
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.edp__seg
+  height: 34px
+  display: inline-flex
+  border: 1px solid $border
+  border-radius: 8px
+  overflow: hidden
+
+.edp__seg-btn
+  flex: 1
+  border: 0
+  background: var(--color-surface)
+  color: $text-inactive
+  cursor: pointer
+
+  & + &
+    border-left: 1px solid $border
+
+  &--on
+    background: var(--color-primary)
+    color: #fff
+
+.edp__swatches,
+.edp__bgs
+  display: flex
+  flex-wrap: wrap
+  gap: 7px
+
+.edp__swatch
+  width: 24px
+  height: 24px
+  border: 1px solid $border
+  border-radius: 50%
+  background: var(--sw)
+  cursor: pointer
+
+  &--on
+    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)
+
+.edp__bg
+  width: 34px
+  height: 48px
+  padding: 0
+  border: 1px solid $border
+  border-radius: 6px
+  cursor: pointer
+
+  &--on
+    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)
+
+.edp__icons
+  display: grid
+  grid-template-columns: repeat(5, 1fr)
+  gap: 6px
+
+.edp__ic
+  height: 36px
+  border: 1px solid $border
+  border-radius: 7px
+  background: var(--color-surface)
+  color: var(--color-primary)
+  font-size: 15px
+  cursor: pointer
+
+  &--on
+    border-color: var(--color-primary)
+    background: $primary-50
+
+.edp__box
+  display: flex
+  flex-direction: column
+  gap: 10px
+  padding: 12px
+  border-radius: 10px
+  background: $bg
+
+.edp__box-title
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  font-size: 12px
+  font-weight: 700
+  color: $text-active
+
+  i
+    color: #a2864c
+
+.edp__checks
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  flex-direction: column
+  gap: 7px
+  font-size: 12px
+  color: $text-active
+
+  li
+    display: flex
+    gap: 7px
+
+  i
+    margin-top: 2px
+
+.edp__check--ok i
+  color: $success
+
+.edp__check--ko i
+  color: $warning
+
+.edp__hint
+  font-size: 11px
+  color: $text-inactive
+
+// ── Timeline ──
+.edp__timeline
+  display: flex
+  flex-direction: column
+  gap: 8px
+  padding: 12px 14px 14px
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: #10233a
+
+  .edp__panel-title
+    color: #fff
+
+.edp__tl-head
+  display: flex
+  align-items: center
+  gap: 14px
+
+.edp__tl-tot
+  font-size: 12px
+  color: #a9b8c9
+
+  strong
+    color: #fff
+
+.edp__tl-add
+  margin-left: auto
+
+.edp__ruler
+  position: relative
+  height: 14px
+  border-bottom: 1px solid rgba(255, 255, 255, .15)
+
+.edp__tick
+  position: absolute
+  left: var(--pos)
+  transform: translateX(-50%)
+  font-size: 10px
+  color: #7f93a8
+
+  &:first-child
+    transform: none
+
+.edp__track
+  display: flex
+  gap: 4px
+
+.edp__clip
+  flex: var(--grow) 1 0
+  min-width: 0
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 6px
+  border: 2px solid transparent
+  border-radius: 8px
+  background: rgba(255, 255, 255, .07)
+  cursor: pointer
+  color: #fff
+
+  &:hover
+    background: rgba(255, 255, 255, .12)
+
+  &--on
+    border-color: #a2864c
+    background: rgba(162, 134, 76, .18)
+
+.edp__clip-thumb
+  flex-shrink: 0
+  width: 30px
+  border-radius: 3px
+  overflow: hidden
+
+.edp__clip-txt
+  min-width: 0
+  flex: 1
+  display: flex
+  flex-direction: column
+  font-size: 11px
+
+  strong
+    font-size: 12px
+
+  span
+    color: #a9b8c9
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+.edp__clip-acts
+  display: flex
+
+  .edp__icon--sm
+    color: #c9d6e3
+
+    &:hover
+      background: rgba(255, 255, 255, .12)
+
+.edp__preview
+  display: flex
+  justify-content: center
+  padding: 6px 0 4px
+
+  .totem-frame
+    width: 250px
+
+.edp__new
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.edp__new-acts
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+
+// ── Responsività ──
+@container edp (max-width: 1040px)
+  .edp__layout
+    grid-template-columns: 200px minmax(0, 1fr) 250px
+
+  .edp__tool span
+    display: none
+
+@container edp (max-width: 900px)
+  .edp__layout
+    grid-template-columns: 1fr
+
+  .edp__tree
+    max-height: 220px

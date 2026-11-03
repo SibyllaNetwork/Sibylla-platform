@@ -1,0 +1,258 @@
+// ─── Spot 9:16 ────────────────────────────────────────────────────────────────
+// Unità di riferimento: slide larga 360 px → 1px = 100cqw / 360.
+@use '../../../styles/tokens' as *
+
+.spot
+  position: relative
+  width: 100%
+  aspect-ratio: 9 / 16
+  overflow: hidden
+  container-type: inline-size
+  border-radius: inherit
+  background: #1d3a57
+  color: #fff
+  user-select: none
+
+  &--oceano
+    background: linear-gradient(160deg, #0b4f7c 0%, #1477a8 45%, #57b6d9 100%)
+  &--tramonto
+    background: linear-gradient(170deg, #3b1d4a 0%, #b8475a 50%, #f39a5c 100%)
+  &--notte
+    background: radial-gradient(120% 80% at 50% 0%, #2a4f78 0%, #142a44 55%, #0a1626 100%)
+  &--oro
+    background: linear-gradient(160deg, #e9d7a8 0%, #c7a764 50%, #a2864c 100%)
+  &--smeraldo
+    background: linear-gradient(165deg, #0d5c4a 0%, #13866a 55%, #48c49a 100%)
+  &--bianco
+    background: #ffffff
+    color: #1e293b
+
+  &--vuoto
+    display: flex
+    align-items: center
+    justify-content: center
+    background: repeating-linear-gradient(-45deg, #18283a, #18283a 10px, #1c2f44 10px, #1c2f44 20px)
+
+.spot__vuoto
+  font-size: calc(14 * 100cqw / 360)
+  color: rgba(255, 255, 255, .6)
+  text-align: center
+  padding: 0 10%
+
+.spot__stage
+  position: absolute
+  inset: 0
+  animation: spot-fade .7s ease both
+
+  &--scorrimento
+    animation-name: spot-slide
+  &--zoom
+    animation-name: spot-zoom
+
+@keyframes spot-fade
+  from
+    opacity: 0
+  to
+    opacity: 1
+
+@keyframes spot-slide
+  from
+    opacity: 0
+    transform: translateY(6%)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes spot-zoom
+  from
+    opacity: 0
+    transform: scale(1.08)
+  to
+    opacity: 1
+    transform: none
+
+// ── Elementi ──
+.spot-el
+  position: absolute
+  left: var(--x)
+  top: var(--y)
+  width: var(--w)
+  height: var(--h)
+  display: flex
+  align-items: center
+  justify-content: var(--justify, center)
+  color: var(--color)
+  background: var(--bg)
+  border-radius: var(--radius)
+  font-family: var(--font), 'Poppins', sans-serif
+  font-weight: var(--weight)
+  font-size: calc(var(--size) * 100cqw / 360)
+  line-height: 1.1
+  text-align: var(--align)
+
+.spot-el__txt
+  width: 100%
+  overflow: hidden
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .18)
+
+.spot-el--forma .spot-el__txt
+  display: none
+
+.spot-el__prezzo
+  width: 100%
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 2px
+
+.spot-el__live
+  padding: .15em .7em
+  border-radius: 99px
+  background: rgba(255, 255, 255, .2)
+  font-family: 'Poppins', sans-serif
+  font-size: calc(10 * 100cqw / 360)
+  font-weight: 600
+  letter-spacing: .04em
+  text-transform: uppercase
+
+.spot-el__ico
+  font-size: calc(var(--size) * 2.4 * 100cqw / 360)
+  width: 100%
+  text-align: center
+
+.spot-el__img
+  width: 100%
+  height: 100%
+  object-fit: cover
+  border-radius: var(--radius)
+
+.spot-el__placeholder
+  width: 100%
+  height: 100%
+  display: flex
+  align-items: center
+  justify-content: center
+  border: 1px dashed rgba(255, 255, 255, .5)
+  border-radius: var(--radius)
+  font-size: calc(28 * 100cqw / 360)
+  opacity: .7
+
+// ── Avanzamento slide ──
+.spot__progress
+  position: absolute
+  left: 5%
+  right: 5%
+  top: 2.2%
+  display: flex
+  gap: 4px
+
+.spot__seg
+  flex: 1
+  height: 3px
+  border-radius: 2px
+  background: rgba(255, 255, 255, .3)
+  overflow: hidden
+  position: relative
+
+  &::after
+    content: ''
+    position: absolute
+    inset: 0
+    background: #fff
+    transform-origin: left
+    transform: scaleX(0)
+
+  &--done::after
+    transform: scaleX(1)
+
+  &--run::after
+    animation: spot-run var(--dur) linear forwards
+
+@keyframes spot-run
+  to
+    transform: scaleX(1)
+
+// ── Creatività di terzi ──
+.spot--creativita .spot__stage
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 4%
+  padding: 0 8%
+  text-align: center
+
+.spot-cr__ico
+  font-size: calc(54 * 100cqw / 360)
+
+.spot-cr__tit
+  font-family: 'Bebas Neue', 'Poppins', sans-serif
+  font-size: calc(40 * 100cqw / 360)
+  line-height: 1
+
+.spot-cr__sub
+  font-size: calc(15 * 100cqw / 360)
+  opacity: .85
+
+.spot-cr__tag
+  position: absolute
+  bottom: 4%
+  right: 5%
+  padding: .2em .7em
+  border-radius: 99px
+  background: rgba(0, 0, 0, .3)
+  font-size: calc(10 * 100cqw / 360)
+  font-weight: 600
+
+// ─── Cornice del totem ───────────────────────────────────────────────────────
+.totem-frame
+  margin: 0
+  display: flex
+  flex-direction: column
+  align-items: center
+
+.totem-frame__body
+  position: relative
+  width: 100%
+  padding: 6% 5% 9%
+  border-radius: 18px
+  background: linear-gradient(160deg, #2b2f36, #0e1013 60%)
+  box-shadow: 0 24px 50px -18px rgba(15, 23, 42, .55), inset 0 0 0 1px rgba(255, 255, 255, .06)
+
+.totem-frame__screen
+  overflow: hidden
+  border-radius: 6px
+  background: #000
+  box-shadow: 0 0 0 2px #000
+
+  .totem-frame--off &
+    filter: grayscale(1) brightness(.35)
+
+.totem-frame__cam
+  position: absolute
+  top: 2.6%
+  left: 50%
+  width: 6px
+  height: 6px
+  margin-left: -3px
+  border-radius: 50%
+  background: #3a4048
+
+.totem-frame__neck
+  width: 18%
+  height: 22px
+  background: linear-gradient(90deg, #15181c, #3a3f46, #15181c)
+
+.totem-frame__base
+  width: 72%
+  height: 16px
+  border-radius: 8px 8px 4px 4px
+  background: linear-gradient(180deg, #3a3f46, #111316)
+  box-shadow: 0 10px 18px -8px rgba(15, 23, 42, .5)
+
+.totem-frame__caption
+  margin-top: 12px
+  width: 100%
+  text-align: center
+  font-size: 12px
+  color: $text-inactive

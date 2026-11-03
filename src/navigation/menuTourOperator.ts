@@ -192,7 +192,9 @@ const MENU_TO:any[]=[
     {id:"dispositivi",label:"Dispositivi",children:[
       {id:"totem",label:"Totem",children:[
         {id:"i-miei-totem",label:"I miei totem",page:"i-miei-totem"},
-        {id:"gest-advertising",label:"Gestione dell'advertising",page:"gest-advertising"},
+        {id:"totem-editor",label:"Editor palinsesti",page:"totem-editor"},
+        {id:"gest-advertising",label:"Pianifica trasmissioni",page:"gest-advertising"},
+        {id:"noleggia-spazi",label:"Spazi pubblicitari",page:"noleggia-spazi"},
       ]},
     ]},
   ]},

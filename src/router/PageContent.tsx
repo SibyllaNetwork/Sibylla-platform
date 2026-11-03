@@ -207,12 +207,11 @@ import Inventario                  from '../modules/stanze/Inventario/Inventario
 import InventarioCamere            from '../modules/impostazioni/InventarioCamere/InventarioCamere';
 import RiepilogoBacheche           from '../modules/impostazioni/RiepilogoBacheche/RiepilogoBacheche';
 import Forniture                   from '../modules/purchasing/Forniture/Forniture';
-import Totem                       from '../modules/hardware/Totem/Totem';
 import IMieiTotem                  from '../modules/hardware/IMieiTotem/IMieiTotem';
-import GestioneAdvertising         from '../modules/hardware/GestioneAdvertising/GestioneAdvertising';
-import NoleggiaSpazi               from '../modules/hardware/NoleggiaSpazi/NoleggiaSpazi';
-import PianificaCampagna           from '../modules/hardware/PianificaCampagna/PianificaCampagna';
-import RiepilogoCampagna           from '../modules/hardware/RiepilogoCampagna/RiepilogoCampagna';
+import SchedaTotem                 from '../modules/hardware/SchedaTotem/SchedaTotem';
+import EditorPalinsesti            from '../modules/hardware/EditorPalinsesti/EditorPalinsesti';
+import PianificaTrasmissioni       from '../modules/hardware/PianificaTrasmissioni/PianificaTrasmissioni';
+import SpaziPubblicitari           from '../modules/hardware/SpaziPubblicitari/SpaziPubblicitari';
 import SysadminIndex               from '../modules/sysadmin/Index/SysadminIndex';
 import GestioneAziende             from '../modules/sysadmin/GestioneAziende/GestioneAziende';
 import GestioneUtenti              from '../modules/sysadmin/GestioneUtenti/GestioneUtenti';
@@ -527,13 +526,13 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'riepilogo-bacheche')    return <RiepilogoBacheche navigate={navigate}/>;
   if (page === 'forniture')             return <Forniture navigate={navigate}/>;
   if (page === 'inventario-stanze')     return <Inventario navigate={navigate}/>;
-  if (page === 'totem')                 return <Totem navigate={navigate}/>;
-  if (page === 'i-miei-totem')          return <IMieiTotem navigate={navigate}/>;
-  if (page === 'gest-advertising')      return <GestioneAdvertising navigate={navigate}/>;
-  if (page === 'noleggia-spazi')        return <NoleggiaSpazi navigate={navigate}/>;
-  if (page === 'pianifica-campagna')    return <PianificaCampagna navigate={navigate}/>;
-  if (page === 'riepilogo-campagna')    return <RiepilogoCampagna navigate={navigate}/>;
-  if (page === 'totem-adv')             return <Totem navigate={navigate}/>;
+  // Dispositivi › Totem (le vecchie pagine totem/pianifica/riepilogo portano alle nuove).
+  if (page === 'i-miei-totem' || page === 'totem' || page === 'totem-adv') return <IMieiTotem navigate={navigate}/>;
+  if (page.startsWith('totem-scheda:')) { const [id, tab] = page.slice('totem-scheda:'.length).split(':'); return <SchedaTotem navigate={navigate} totemId={id} tabIniziale={tab} key={page}/>; }
+  if (page === 'totem-editor')          return <EditorPalinsesti navigate={navigate}/>;
+  if (page === 'gest-advertising' || page === 'pianifica-campagna' || page === 'riepilogo-campagna') return <PianificaTrasmissioni navigate={navigate}/>;
+  if (page.startsWith('gest-advertising:')) return <PianificaTrasmissioni navigate={navigate} totemId={page.slice('gest-advertising:'.length)} key={page}/>;
+  if (page === 'noleggia-spazi')        return <SpaziPubblicitari navigate={navigate}/>;
   // ── Food & Beverage ──
   // Tutte native: operative, configurazione e amministrazione della sezione.
   if (page === 'sala-ristorante') return <SalaRistoranteFb navigate={navigate}/>;

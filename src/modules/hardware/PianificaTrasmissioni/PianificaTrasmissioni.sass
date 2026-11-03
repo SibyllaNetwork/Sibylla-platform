@@ -1,0 +1,474 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+.ptr
+  display: flex
+  flex-direction: column
+  gap: 16px
+  font-size: 13px
+  container-type: inline-size
+  container-name: ptr
+
+.ptr__layout
+  display: grid
+  grid-template-columns: minmax(0, 1fr) 250px
+  gap: 18px
+  align-items: start
+
+.ptr__steps
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.ptr__card
+  padding: 16px
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: var(--color-surface)
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.ptr__step
+  margin: 0
+  display: flex
+  align-items: center
+  gap: 10px
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+  color: $primary
+
+  span
+    width: 26px
+    height: 26px
+    border-radius: 50%
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+
+.ptr__step-row
+  display: flex
+  align-items: center
+  gap: 12px
+
+  .ptr__link
+    margin-left: auto
+
+.ptr__link
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $link
+
+.ptr__strong
+  display: block
+  min-width: 0
+  font-weight: 600
+  color: $text-active
+
+.ptr__sub
+  font-size: 11.5px
+  color: $text-inactive
+
+// ── 1 · Spot ──
+.ptr__spots
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr))
+  gap: 10px
+
+.ptr__spot
+  position: relative
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 8px
+  border: 1px solid $border
+  border-radius: 10px
+  background: var(--color-surface)
+  cursor: pointer
+  text-align: left
+  transition: $transition-fast
+
+  &:hover
+    border-color: $primary-300
+
+  &--on
+    border-color: var(--color-primary)
+    background: $primary-50
+    box-shadow: 0 0 0 1px var(--color-primary)
+
+  &--new
+    justify-content: center
+    border-style: dashed
+    color: var(--color-primary)
+    font-weight: 600
+
+.ptr__spot-thumb
+  flex-shrink: 0
+  width: 38px
+  border-radius: 4px
+  overflow: hidden
+
+.ptr__spot-txt
+  min-width: 0
+  display: flex
+  flex-direction: column
+
+.ptr__spot-ok
+  position: absolute
+  top: 6px
+  right: 6px
+  color: var(--color-primary)
+
+// ── 2 · Totem ──
+.ptr__where
+  display: grid
+  grid-template-columns: 190px minmax(0, 1fr)
+  gap: 16px
+
+.ptr__totem-list
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.ptr__regioni
+  max-height: 300px
+  overflow-y: auto
+  display: flex
+  flex-direction: column
+  gap: 10px
+  +custom-scrollbar
+
+.ptr__reg-head
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  font-size: 12px
+  font-weight: 700
+  color: $text-active
+
+  i
+    color: $text-disabled
+
+  span
+    padding: 0 6px
+    border-radius: 9px
+    background: $bg
+    font-size: 11px
+    color: $text-inactive
+
+  &--on i
+    color: var(--color-primary)
+
+.ptr__chips
+  display: flex
+  flex-wrap: wrap
+  gap: 6px
+  margin-top: 6px
+
+.ptr__chip
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  height: 28px
+  padding: 0 11px
+  border: 1px solid $border
+  border-radius: 99px
+  background: var(--color-surface)
+  color: $text-active
+  font-size: 12px
+  cursor: pointer
+
+  &--on
+    border-color: var(--color-primary)
+    background: var(--color-primary)
+    color: #fff
+
+  &--warn i
+    color: $warning
+
+  &--on.ptr__chip--warn i
+    color: #ffd166
+
+// ── 3 · Quando ──
+.ptr__when
+  display: grid
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 16px 22px
+
+.ptr__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.ptr__lbl
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.ptr__fasce
+  display: grid
+  grid-template-columns: repeat(4, minmax(0, 1fr))
+  gap: 6px
+
+.ptr__fascia
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 2px
+  padding: 8px 4px
+  border: 1px solid $border
+  border-radius: 9px
+  background: var(--color-surface)
+  cursor: pointer
+  color: $text-inactive
+  font-size: 11px
+
+  i
+    font-size: 15px
+    color: $text-disabled
+
+  strong
+    font-size: 12px
+    color: $text-active
+
+  &--on
+    border-color: var(--color-primary)
+    background: $primary-50
+
+    i
+      color: #a2864c
+
+// ── Riepilogo ──
+.ptr__summary
+  position: sticky
+  top: 12px
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+  .totem-frame
+    width: 190px
+    align-self: center
+
+.ptr__kpi
+  margin: 0
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 8px
+
+  div
+    padding: 8px 10px
+    border-radius: 8px
+    background: $bg
+
+  dt
+    font-size: 11px
+    color: $text-inactive
+
+  dd
+    margin: 0
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 700
+    color: $text-active
+
+.ptr__checks
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  flex-direction: column
+  gap: 7px
+  font-size: 12px
+  color: $text-active
+
+  li
+    display: flex
+    gap: 7px
+
+  i
+    margin-top: 2px
+
+.ptr__check--ok i
+  color: $success
+.ptr__check--ko i
+  color: $warning
+.ptr__check--info i
+  color: #a2864c
+
+.ptr__go
+  justify-content: center
+  height: 40px
+
+.ptr__go-hint
+  text-align: center
+
+// ── Elenco ──
+.ptr__list
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.ptr__list-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  flex-wrap: wrap
+
+.ptr__title
+  margin: 0
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+  color: $primary
+
+.ptr__tabs
+  display: inline-flex
+  padding: 3px
+  gap: 2px
+  border: 1px solid $border
+  border-radius: 9px
+  background: $bg
+
+.ptr__tab
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  height: 28px
+  padding: 0 11px
+  border: 0
+  border-radius: 6px
+  background: transparent
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+  span
+    padding: 0 6px
+    border-radius: 9px
+    background: $border
+    font-size: 11px
+
+  &--on
+    background: var(--color-surface)
+    color: var(--color-primary)
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .12)
+
+.ptr__wrap
+  overflow-x: hidden
+
+.ptr .ptr__table
+  +table-fit
+
+.ptr__col-spot
+  width: 26%
+.ptr__col-totem
+  width: 18%
+.ptr__col-per
+  width: 15%
+.ptr__col-fasce
+  width: 15%
+.ptr__col-pass
+  width: 8%
+.ptr__col-stato
+  width: 11%
+.ptr__col-act
+  width: 7%
+
++th-labels
+
+.ptr .ptr__r
+  text-align: right
+.ptr .ptr__c
+  text-align: center
+
+.ptr__cell-spot
+  display: flex
+  align-items: center
+  gap: 8px
+  min-width: 0
+
+.ptr__mini
+  flex-shrink: 0
+  width: 20px
+  border-radius: 3px
+  overflow: hidden
+
+.ptr__alta
+  color: #a2864c
+
+.ptr__stato
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-weight: 600
+
+  &--live
+    color: $error
+  &--plan
+    color: var(--color-primary)
+  &--done
+    color: $text-disabled
+  &--pause
+    color: $warning
+
+.ptr__pulse
+  width: 8px
+  height: 8px
+  border-radius: 50%
+  background: $error
+  animation: ptr-pulse 1.4s ease-in-out infinite
+
+@keyframes ptr-pulse
+  50%
+    opacity: .3
+
+.ptr__acts
+  display: inline-flex
+  gap: 14px
+
+.ptr__act
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  color: var(--color-primary)
+  font-size: 16px
+  display: inline-flex
+
+.ptr__empty
+  padding: 22px
+  text-align: center
+  color: $text-disabled
+
+@container ptr (max-width: 1150px)
+  .ptr__when
+    grid-template-columns: 1fr
+
+  .ptr
+    +th-compact
+
+@container ptr (max-width: 900px)
+  .ptr__layout,
+  .ptr__where
+    grid-template-columns: 1fr
+
+  .ptr__summary
+    position: static

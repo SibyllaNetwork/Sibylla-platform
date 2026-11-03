@@ -36,9 +36,10 @@ export const useModuliStore = create<State>()(
     // v3: App Op! con le sue pagine di menu; i moduli del catalogo si riallineano, quelli creati a mano restano.
     // v4: le voci di App Op! sono quelle del gruppo AppOp! di Operation.
     // v5: Human Resources riorganizzato (Gestione delle presenze: Nota spese, Cedolini, Richieste, Piano ferie).
+    // v6: Dispositivi › Totem rifatto (Editor palinsesti, Pianifica trasmissioni, Spazi pubblicitari).
     {
       name: 'sibylla.moduli',
-      version: 5,
+      version: 6,
       migrate: (salvato) => {
         const creati = ((salvato as { moduli?: Modulo[] } | undefined)?.moduli ?? []).filter(m => !PACCHETTI_INIT.some(p => p.id === m.id))
         return { moduli: [...PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })), ...creati] } as State

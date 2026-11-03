@@ -1,0 +1,339 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+.spp
+  display: flex
+  flex-direction: column
+  gap: 14px
+  font-size: 13px
+  container-type: inline-size
+  container-name: spp
+
+.spp__tabs
+  align-self: flex-start
+  display: inline-flex
+  padding: 3px
+  gap: 2px
+  border: 1px solid $border
+  border-radius: 9px
+  background: $bg
+
+.spp__tab
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  height: 30px
+  padding: 0 13px
+  border: 0
+  border-radius: 6px
+  background: transparent
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+  span
+    padding: 0 6px
+    border-radius: 9px
+    background: $border
+    font-size: 11px
+
+  .spp__tab-hot
+    background: $warning
+    color: #fff
+
+  &--on
+    background: var(--color-surface)
+    color: var(--color-primary)
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .12)
+
+.spp__empty
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 8px
+  padding: 50px
+  border: 1px dashed $border
+  border-radius: $radius-xl
+  color: $text-disabled
+
+  i
+    font-size: 26px
+
+// ── Richieste ──
+.spp__reqs
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(460px, 1fr))
+  gap: 14px
+
+.spp__req
+  display: flex
+  gap: 14px
+  padding: 14px
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: var(--color-surface)
+
+.spp__req-prev
+  flex-shrink: 0
+  width: 110px
+  align-self: flex-start
+  border-radius: 8px
+  overflow: hidden
+  box-shadow: 0 8px 20px -8px rgba(15, 23, 42, .4)
+
+.spp__req-body
+  min-width: 0
+  flex: 1
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.spp__req-head
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+  gap: 10px
+
+  > span:first-child
+    display: flex
+    flex-direction: column
+    gap: 4px
+    align-items: flex-start
+
+.spp__req-name
+  font-family: $font-heading
+  font-size: 14px
+  color: $text-active
+
+.spp__tag
+  display: inline-block
+  margin-left: 6px
+  padding: 1px 8px
+  border-radius: 99px
+  background: $bg
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+
+  .spp__req-head &
+    margin-left: 0
+
+  &--gold
+    background: rgba(162, 134, 76, .15)
+    color: #8a6f3a
+
+.spp__val
+  flex-shrink: 0
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 3px 10px
+  border-radius: 99px
+  font-size: 12px
+  font-weight: 600
+
+  &--ok
+    background: $success-light
+    color: $success
+  &--warn
+    background: $warning-light
+    color: $warning
+  &--ko
+    background: $error-light
+    color: $error
+
+.spp__req-dl
+  margin: 0
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 8px 14px
+
+  dt
+    font-size: 11px
+    color: $text-inactive
+
+  dd
+    margin: 0
+    font-weight: 600
+    color: $text-active
+
+.spp__money
+  font-family: $font-heading
+  font-size: 15px
+
+  small
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 400
+    color: $text-inactive
+
+.spp__motivi
+  list-style: none
+  margin: 0
+  padding: 10px 12px
+  border-radius: 8px
+  background: $bg
+  display: flex
+  flex-direction: column
+  gap: 5px
+  font-size: 12px
+  color: $text-active
+
+  li
+    display: flex
+    gap: 7px
+
+  i
+    margin-top: 2px
+
+.spp__m--ok i
+  color: $success
+.spp__m--warn i
+  color: $warning
+.spp__m--ko i
+  color: $error
+
+.spp__req-acts
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+  margin-top: auto
+
+// ── Tabelle ──
+.spp__wrap
+  overflow-x: hidden
+
+.spp .spp__table
+  +table-fit
+
++th-labels
+
+.spp .spp__r
+  text-align: right
+.spp .spp__c
+  text-align: center
+
+.spp__strong
+  display: block
+  min-width: 0
+  font-weight: 600
+  color: $text-active
+
+.spp__sub
+  display: block
+  font-size: 11px
+  color: $text-inactive
+
+.spp__dim
+  color: $text-disabled
+
+.spp__toggle
+  display: inline-flex
+
+.spp__act
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  color: var(--color-primary)
+  font-size: 16px
+  display: inline-flex
+
+.spp__st
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-weight: 600
+
+  &--live
+    color: $success
+  &--plan
+    color: var(--color-primary)
+  &--done
+    color: $text-disabled
+  &--ko
+    color: $error
+    cursor: help
+
+.spp .spp__row--cur td
+  background: $primary-50
+
+.spp__c-ins
+  width: 22%
+.spp__c-tot
+  width: 20%
+.spp__c-per
+  width: 16%
+.spp__c-fa
+  width: 11%
+.spp__c-imp
+  width: 10%
+.spp__c-quota
+  width: 10%
+.spp__c-st
+  width: 11%
+
+.spp__c-mese
+  width: 60%
+.spp__c-val
+  width: 40%
+
+.spp__c-tt
+  width: 26%
+.spp__c-on
+  width: 10%
+.spp__c-pr
+  width: 10%
+.spp__c-gg
+  width: 14%
+.spp__c-cal
+  width: 10%
+
+// ── Ricavi ──
+.spp__ricavi
+  display: grid
+  grid-template-columns: minmax(0, 1fr) 300px
+  gap: 16px
+  align-items: start
+
+.spp__payout
+  display: flex
+  gap: 12px
+  padding: 14px
+  border-radius: $radius-xl
+  background: linear-gradient(150deg, #204769, #10233a)
+  color: #d6e1ec
+  font-size: 12px
+  line-height: 1.5
+
+  i
+    font-size: 20px
+    color: #e9d7a8
+
+  strong
+    display: block
+    font-family: $font-heading
+    font-size: 20px
+    color: #fff
+
+.spp__modal
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.spp__modal-acts
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+
+@container spp (max-width: 1100px)
+  .spp
+    +th-compact
+
+  .spp__reqs
+    grid-template-columns: 1fr
+
+@container spp (max-width: 860px)
+  .spp__ricavi
+    grid-template-columns: 1fr
