@@ -24,10 +24,10 @@ const ITEMS: MenuItem[] = [
   {
     id: 'cons-annunci',
     title: 'Tradezone',
-    to: '/announcements',
+    to: '/trade-zone',
     icon: <Icon family="regular" name="display-chart-up" />,
     subItems: [
-      { id: 'sub-annunci', label: 'Annunci', icon: 'megaphone', iconFamily: 'regular', to: '/announcements' },
+      { id: 'sub-annunci', label: 'Annunci', icon: 'megaphone', iconFamily: 'regular', to: '/trade-zone' },
       { id: 'sub-acquisti', label: 'Acquisti di Rete', icon: 'users', to: '/group-purchases' },
       { id: 'sub-match', label: 'Match Zone', icon: 'circle-nodes', to: '/match-zone' },
     ],
