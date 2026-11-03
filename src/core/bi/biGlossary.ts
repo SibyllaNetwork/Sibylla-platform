@@ -236,6 +236,31 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     description: 'Dipendenti in forza',
     formula: 'Rapporti di lavoro attivi a fine periodo, qualunque sia il contratto (indeterminato, determinato, stagionale)',
   },
+  RAL: {
+    term: 'RAL',
+    description: 'Retribuzione annua lorda',
+    formula: 'Somma delle mensilità lorde dell’anno (tredicesima e quattordicesima comprese), prima di tasse e contributi a carico del dipendente',
+  },
+  CCNL: {
+    term: 'CCNL',
+    description: 'Contratto collettivo nazionale di lavoro',
+    formula: 'Per il turismo fissa livelli, minimi retributivi, scatti di anzianità e orario: il livello del dipendente ne determina la paga base',
+  },
+  straordinari: {
+    term: 'Straordinari',
+    description: 'Ore lavorate oltre l’orario del contratto',
+    formula: 'Ore registrate in presenza oltre quelle contrattuali; la quota si calcola sulle ore da contratto del periodo',
+  },
+  compliance: {
+    term: 'Compliance',
+    description: 'Formazione obbligatoria in regola',
+    formula: 'Corsi obbligatori validi o in scadenza diviso i corsi richiesti dal ruolo (sicurezza, antincendio, primo soccorso, privacy e specifici di reparto)',
+  },
+  premioRisultato: {
+    term: 'Premio di risultato',
+    description: 'Bonus legato agli obiettivi',
+    formula: 'Raggiungimento ponderato degli obiettivi (risultato, soddisfazione ospiti, presenza) applicato al premio massimo; sotto il 50% non matura',
+  },
   turnover: {
     term: 'Turnover',
     description: 'Ricambio del personale',

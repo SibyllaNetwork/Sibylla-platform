@@ -1,0 +1,823 @@
+// ─── PROFILE ANALYSIS ───────────────────────────────────────────────────────────
+// Griglia a schermo fisso: colonna profilo a tutta altezza + indicatori, carriera
+// (2 colonne) e premio, poi tempo, competenze e formazione.
+@use '../../../styles/tokens' as *
+
+.pa
+  &__grid
+    grid-template-columns: minmax(230px, 0.82fr) repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.18fr) minmax(0, 1fr)
+    grid-template-areas: 'prof kpi kpi kpi' 'prof main main bonus' 'prof tempo comp form'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__bonus
+    grid-area: bonus
+
+  &__tempo
+    grid-area: tempo
+
+  &__comp
+    grid-area: comp
+
+  &__form
+    grid-area: form
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 120px
+
+    &--wide
+      width: 260px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Colonna profilo ──────────────────────────────────────────────────────────
+  &__prof
+    grid-area: prof
+    display: flex
+    flex-direction: column
+    min-height: 0
+    overflow: hidden
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    animation: pa-in 520ms cubic-bezier(0.32, 0.72, 0, 1) both
+
+  &__hero
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: center
+    flex: none
+    padding: 12px 14px 14px
+    color: #fff
+    text-align: center
+    background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--color-primary) 70%, #5fa8d3) 0%, var(--color-primary) 55%, color-mix(in srgb, var(--color-primary) 75%, #000) 100%)
+    overflow: hidden
+
+    // Trama luminosa: due cerchi sfumati in movimento lento
+    &::before,
+    &::after
+      content: ''
+      position: absolute
+      border-radius: 50%
+      background: radial-gradient(circle, rgba(255, 255, 255, .18), transparent 70%)
+      pointer-events: none
+
+    &::before
+      width: 180px
+      height: 180px
+      top: -70px
+      left: -50px
+      animation: pa-float 9s ease-in-out infinite alternate
+
+    &::after
+      width: 140px
+      height: 140px
+      bottom: -60px
+      right: -40px
+      animation: pa-float 11s ease-in-out infinite alternate-reverse
+
+  &__nav
+    position: relative
+    z-index: 1
+    display: flex
+    align-items: center
+    justify-content: space-between
+    align-self: stretch
+    margin-bottom: 4px
+
+  &__nav-btn
+    width: 26px
+    height: 26px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: 1px solid rgba(255, 255, 255, .28)
+    border-radius: 50%
+    background: rgba(255, 255, 255, .1)
+    color: #fff
+    font-size: 11px
+    cursor: pointer
+    transition: background 160ms ease, transform 160ms ease
+
+    &:hover
+      background: rgba(255, 255, 255, .22)
+      transform: scale(1.06)
+
+  &__nav-pos
+    font-family: var(--font-body)
+    font-size: 11px
+    opacity: .8
+
+  // L'anello è l'anzianità in azienda (un giro = 10 anni)
+  &__avatar
+    position: relative
+    z-index: 1
+    width: 84px
+    height: 84px
+    padding: 4px
+    border-radius: 50%
+    background: conic-gradient(#ffd166 var(--anz, 0%), rgba(255, 255, 255, .2) 0)
+    animation: pa-pop 620ms cubic-bezier(0.34, 1.56, 0.64, 1) both
+
+  &__avatar-in
+    width: 100%
+    height: 100%
+    display: flex
+    align-items: center
+    justify-content: center
+    border: 3px solid var(--color-primary)
+    border-radius: 50%
+    background: linear-gradient(135deg, #fff, #dfe9f3)
+    color: var(--color-primary)
+    font-family: var(--font-heading)
+    font-size: 26px
+    font-weight: 700
+    letter-spacing: .5px
+
+  &__name
+    position: relative
+    z-index: 1
+    max-width: 100%
+    color: #fff
+    margin: 8px 0 0
+    font-family: var(--font-heading)
+    font-size: 17px
+    font-weight: 700
+    line-height: 1.2
+
+  // Il TruncatedText porta il suo colore: nel banner scuro va forzato al bianco
+  &__name.pa__name *,
+  &__role.pa__role *
+    color: inherit
+
+  &__role
+    position: relative
+    z-index: 1
+    max-width: 100%
+    margin: 2px 0 0
+    font-family: var(--font-body)
+    font-size: 12px
+    opacity: .85
+
+  &__chips
+    position: relative
+    z-index: 1
+    display: flex
+    flex-wrap: wrap
+    justify-content: center
+    gap: 6px
+    margin-top: 8px
+
+  &__chip
+    padding: 2px 9px
+    border-radius: 999px
+    background: rgba(255, 255, 255, .16)
+    font-family: var(--font-body)
+    font-size: 11px
+    font-weight: 600
+    white-space: nowrap
+
+    &--lv
+      background: #ffd166
+      color: #3b2a00
+
+  &__facts
+    display: flex
+    flex-direction: column
+    flex: none
+    margin: 0
+    padding: 6px 14px
+
+  &__fact
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    min-width: 0
+    padding: 5px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+    dt
+      display: inline-flex
+      align-items: center
+      gap: 7px
+      flex: none
+      font-family: var(--font-body)
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+      i
+        width: 14px
+        color: var(--color-primary)
+        font-size: 12px
+        text-align: center
+
+    dd
+      min-width: 0
+      margin: 0
+      font-family: var(--font-heading)
+      font-size: 12px
+      font-weight: 600
+      color: var(--color-primary)
+      text-align: right
+      white-space: nowrap
+      overflow: hidden
+      text-overflow: ellipsis
+
+  &__insight
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+    margin: 4px 10px 0
+    padding: 10px 10px 8px
+    border-radius: 10px
+    background: linear-gradient(160deg, color-mix(in srgb, var(--chart-forecast) 14%, var(--color-surface)), var(--color-surface) 75%)
+    border: 1px solid color-mix(in srgb, var(--chart-forecast) 35%, var(--color-border))
+    overflow: hidden
+
+  &__insight-tit
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 700
+    color: var(--color-primary)
+
+    i
+      color: var(--chart-forecast)
+
+  &__insight-list
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin: 8px 0 0
+    padding: 0
+    list-style: none
+
+  &__ins
+    display: grid
+    grid-template-columns: 20px 1fr
+    align-items: start
+    gap: 6px
+    font-family: var(--font-body)
+    font-size: 11.5px
+    line-height: 1.35
+    color: var(--color-text-active)
+    animation: pa-in 480ms cubic-bezier(0.32, 0.72, 0, 1) both
+    animation-delay: calc(240ms + var(--i, 0) * 110ms)
+
+    i
+      width: 20px
+      height: 20px
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      border-radius: 6px
+      font-size: 10px
+
+    &--good i
+      background: color-mix(in srgb, var(--chart-good) 16%, transparent)
+      color: var(--chart-good)
+
+    &--warn i
+      background: color-mix(in srgb, var(--chart-4) 18%, transparent)
+      color: var(--chart-4)
+
+    &--bad i
+      background: color-mix(in srgb, var(--chart-bad) 16%, transparent)
+      color: var(--chart-bad)
+
+  &__links
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 8px
+    flex: none
+    padding: 10px
+
+  &__link
+    justify-content: center
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__icobtn
+    width: 26px
+    height: 26px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: 0
+    border-radius: 6px
+    background: transparent
+    color: var(--color-primary)
+    font-size: 13px
+    cursor: pointer
+
+    &:hover
+      background: color-mix(in srgb, var(--color-primary) 10%, transparent)
+
+  // ── Tachimetro ───────────────────────────────────────────────────────────────
+  &__tach
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: center
+    flex: 1
+    min-height: 0
+
+  &__tach-svg
+    width: 100%
+    max-width: 230px
+    flex: 1
+    min-height: 64px
+    overflow: visible
+
+  &__tach-track
+    fill: none
+    stroke: color-mix(in srgb, var(--color-border) 70%, transparent)
+    stroke-width: 16
+    stroke-linecap: round
+
+  &__tach-val
+    fill: none
+    stroke-width: 16
+    stroke-linecap: round
+    stroke-dasharray: calc(var(--g, 0) * 1px) 100px
+    transition: stroke-dasharray 1100ms cubic-bezier(0.32, 0.72, 0, 1)
+
+  &__tach-soglia
+    stroke: var(--chart-ink)
+    stroke-width: 2
+    opacity: .45
+
+  &__tach-needle
+    transform-origin: 100px 100px
+    transform: rotate(var(--ang, -90deg))
+    transition: transform 1100ms cubic-bezier(0.34, 1.3, 0.64, 1)
+
+    line
+      stroke: var(--chart-ink)
+      stroke-width: 3
+      stroke-linecap: round
+
+    circle
+      fill: var(--chart-ink)
+      stroke: var(--chart-surface)
+      stroke-width: 3
+
+  &__tach-tick
+    fill: var(--chart-ink-muted)
+    font-family: var(--font-body)
+    font-size: 9px
+    text-anchor: middle
+
+    &--mid
+      font-weight: 600
+
+  &__tach-fig
+    display: flex
+    flex-direction: column
+    align-items: center
+    flex: none
+    margin-top: 2px
+
+  &__tach-val-txt
+    font-family: var(--font-heading)
+    font-size: 20px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    line-height: 1.1
+
+  &__tach-sub
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  &__drivers
+    display: flex
+    flex-direction: column
+    gap: 6px
+    flex: none
+    margin: 8px 0 0
+    padding: 0
+    list-style: none
+
+  &__driver
+    display: grid
+    grid-template-columns: minmax(0, 1.25fr) minmax(40px, 1fr) 34px
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+  &__driver-lbl
+    min-width: 0
+    font-family: var(--font-heading)
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__driver-pct
+    text-align: right
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__bar
+    display: block
+    height: 6px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--color-border) 60%, transparent)
+    overflow: hidden
+
+  &__bar-fill
+    display: block
+    width: var(--w, 0%)
+    height: 100%
+    border-radius: 999px
+    background: linear-gradient(90deg, var(--chart-1), var(--chart-5))
+    transform-origin: left
+    animation: pa-grow 900ms cubic-bezier(0.32, 0.72, 0, 1) both
+    animation-delay: calc(300ms + var(--i, 0) * 120ms)
+
+    &--low
+      background: var(--chart-bad)
+
+  // ── Competenze ───────────────────────────────────────────────────────────────
+  &__radar-leg
+    display: flex
+    justify-content: center
+    gap: 14px
+    flex: none
+
+  &__radar-key
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+    &::before
+      content: ''
+      width: 14px
+      height: 0
+      border-top: 2.5px solid var(--chart-1)
+
+    &--rep::before
+      border-top: 2px dashed var(--chart-ly)
+
+  // ── Dove va il tempo ─────────────────────────────────────────────────────────
+  &__tempo-body
+    display: grid
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr)
+    align-items: center
+    gap: 10px
+    flex: 1
+    min-height: 0
+
+  &__donut
+    position: relative
+    height: 100%
+    min-height: 0
+
+  &__donut-center
+    position: absolute
+    inset: 0
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    pointer-events: none
+    text-align: center
+
+  &__donut-val
+    font-family: var(--font-heading)
+    font-size: 18px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    line-height: 1.1
+
+  &__donut-lbl
+    max-width: 70%
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__tempo-list
+    display: flex
+    flex-direction: column
+    gap: 2px
+    min-width: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__tempo-row
+    display: grid
+    grid-template-columns: 10px minmax(0, 1fr) auto
+    align-items: center
+    gap: 6px
+    padding: 3px 4px
+    border-radius: 6px
+    cursor: default
+    transition: opacity 160ms ease, background 160ms ease
+
+    &:hover
+      background: color-mix(in srgb, var(--c) 10%, transparent)
+
+    &--off
+      opacity: .4
+
+  &__tempo-dot
+    width: 10px
+    height: 10px
+    border-radius: 3px
+    background: var(--c)
+
+  &__tempo-lbl
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 11.5px
+    color: var(--color-text-active)
+
+  &__tempo-ore
+    font-family: var(--font-heading)
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  // ── Formazione obbligatoria ──────────────────────────────────────────────────
+  &__form .chart-card__body
+    flex-direction: row
+    align-items: center
+    gap: 12px
+
+  &__comp-ring
+    position: relative
+    flex: none
+    width: 86px
+    height: 86px
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    background: conic-gradient(var(--chart-good) var(--pct, 0%), color-mix(in srgb, var(--chart-bad) 70%, transparent) 0)
+    animation: pa-pop 620ms cubic-bezier(0.34, 1.56, 0.64, 1) both
+
+    &::before
+      content: ''
+      position: absolute
+      inset: 8px
+      border-radius: 50%
+      background: var(--color-surface)
+
+  &__comp-ring-val,
+  &__comp-ring-lbl
+    position: relative
+
+  &__comp-ring-val
+    font-family: var(--font-heading)
+    font-size: 17px
+    font-weight: 700
+    color: var(--color-primary)
+    line-height: 1.1
+
+  &__comp-ring-lbl
+    font-family: var(--font-body)
+    font-size: 9.5px
+    color: var(--color-text-inactive)
+
+  &__corsi
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 3px
+    flex: 1
+    min-width: 0
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+    overflow: hidden
+
+  &__corso
+    display: grid
+    grid-template-columns: 14px minmax(0, 1fr) auto
+    align-items: center
+    gap: 6px
+    padding: 3px 6px
+    border-radius: 6px
+
+    i
+      font-size: 12px
+
+    &--valido i
+      color: var(--chart-good)
+
+    &--scadenza
+      background: color-mix(in srgb, var(--chart-4) 12%, transparent)
+
+      i
+        color: var(--chart-4)
+
+    &--scaduto
+      background: color-mix(in srgb, var(--chart-bad) 10%, transparent)
+
+      i
+        color: var(--chart-bad)
+
+  &__corso-nome
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 11.5px
+    color: var(--color-text-active)
+
+  &__corso-scad
+    font-family: var(--font-heading)
+    font-size: 10.5px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+    .pa__corso--scaduto &
+      color: var(--chart-bad)
+
+// In tema scuro --color-primary è l'accento chiaro: il banner resta un blu profondo
+// perché il testo bianco abbia contrasto.
+[data-theme=dark] .pa__hero.pa__hero
+  background: radial-gradient(120% 90% at 50% 0%, #2c5a85 0%, #1a3753 55%, #10233a 100%)
+
+[data-theme=dark] .pa__avatar-in.pa__avatar-in
+  border-color: #1a3753
+  color: #1a3753
+
+@keyframes pa-in
+  from
+    opacity: 0
+    transform: translateY(8px)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes pa-pop
+  from
+    opacity: 0
+    transform: scale(.7)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes pa-grow
+  from
+    transform: scaleX(0)
+  to
+    transform: scaleX(1)
+
+@keyframes pa-float
+  from
+    transform: translate(0, 0)
+  to
+    transform: translate(30px, 18px)
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .pa
+    &__grid
+      grid-template-columns: minmax(200px, 0.75fr) repeat(3, minmax(0, 1fr))
+
+    &__kpis
+      gap: 8px
+
+    &__filter--wide
+      width: 220px
+
+    &__note
+      display: none
+
+    // Sotto questa larghezza l'anello ruba spazio ai corsi: la quota resta nel badge
+    &__comp-ring
+      display: none
+
+    &__main .chart-card__badge
+      display: none
+
+    &__tempo-body
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr)
+      gap: 6px
+
+// Schermi bassi: si recupera altezza nella colonna profilo
+@media (max-height: 900px)
+  .pa
+    // Il radar ha bisogno di altezza: la frase di sintesi lascia il posto al grafico
+    &__comp .chart-card__footer
+      display: none
+
+    &__ins:nth-child(n+4)
+      display: none
+
+    &__avatar
+      width: 68px
+      height: 68px
+
+    &__avatar-in
+      font-size: 21px
+
+    &__fact
+      padding: 3px 0
+
+    &__drivers
+      gap: 4px
+
+@media (max-height: 820px)
+  .pa
+    &__grid
+      grid-template-rows: auto minmax(0, 1fr) minmax(0, 1.08fr)
+
+    &__ins:nth-child(n+3)
+      display: none
+
+    &__tempo-row
+      padding: 1px 4px
+
+    &__drivers
+      margin-top: 4px
+
+    &__tach-val-txt
+      font-size: 17px
+
+    &__tach-svg
+      min-height: 46px
+
+    // La riga "maturati su" lascia spazio ai driver: il massimo resta nella tooltip
+    &__tach-sub
+      display: none
+
+    &__hero
+      padding: 8px 12px 10px
+
+    &__chips
+      margin-top: 5px
+
+    &__fact:nth-child(4)
+      display: none
+
+    &__corso
+      padding: 1px 6px
+
+@media (prefers-reduced-motion: reduce)
+  .pa
+    &__prof,
+    &__avatar,
+    &__ins,
+    &__bar-fill,
+    &__comp-ring,
+    &__hero::before,
+    &__hero::after
+      animation: none
+
+    &__tach-val,
+    &__tach-needle
+      transition: none

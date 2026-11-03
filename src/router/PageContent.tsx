@@ -182,6 +182,7 @@ import CreaAnagrafica              from '../modules/hr/CreaAnagrafica/CreaAnagra
 import AssegnaObiettivo            from '../modules/hr/AssegnaObiettivo/AssegnaObiettivo';
 import MonitoraggioPerformance     from '../modules/hr/MonitoraggioPerformance/MonitoraggioPerformance';
 import HrOverview                  from '../modules/hr/HrOverview/HrOverview';
+import ProfileAnalysis             from '../modules/hr/ProfileAnalysis/ProfileAnalysis';
 import NoteSpese                   from '../modules/hr/NoteSpese/NoteSpese';
 import Cedolini                    from '../modules/hr/Cedolini/Cedolini';
 import RichiesteFerie              from '../modules/hr/RichiesteFerie/RichiesteFerie';
@@ -493,6 +494,10 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'assegna-obiettivo')     return <AssegnaObiettivo navigate={navigate}/>;
   if (page === 'monitoraggio-perf')     return <MonitoraggioPerformance navigate={navigate}/>;
   if (page === 'hr-overview')           return <HrOverview navigate={navigate}/>;
+  if (page === 'profile-analysis' || page.startsWith('profile-analysis:')) {
+    const id = Number(page.split(':')[1]);
+    return <ProfileAnalysis navigate={navigate} dipendenteId={Number.isFinite(id) ? id : undefined} key={page}/>;
+  }
   if (page === 'hr-note-spese')         return <NoteSpese navigate={navigate}/>;
   if (page === 'hr-cedolini')           return <Cedolini navigate={navigate}/>;
   if (page === 'hr-richieste-ferie')    return <RichiesteFerie navigate={navigate}/>;

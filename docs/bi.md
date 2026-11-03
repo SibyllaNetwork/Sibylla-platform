@@ -180,7 +180,7 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 | Pagina | Stato | Fascia KPI | Card |
 |---|---|---|---|
 | HR overview | ⏳ | FTE · Costo personale · Incidenza su ricavi · Straordinari · Turnover | Organico per reparto · Costo per camera occupata e per coperto · Produttività · Assenze |
-| Profile analysis | ⏳ | Organico · Contratti · Seniority · Età media | Composizione per reparto · Tipologia contratto · Anzianità · Formazione |
+| Profile analysis | ✅ | RAL · Ore lavorate · Assenteismo · Straordinari (scheda del singolo dipendente, come il legacy) | Colonna profilo con lettura di Sibylla · Carriera e retribuzione (+ viste Presenze e Cedolini) · Premio di risultato a tachimetro · Dove va il tempo · Competenze vs reparto · Formazione obbligatoria |
 | Panoramica acquisti | ⏳ | Spesa · Ordini · Risparmio da gruppi d'acquisto · Lead time fornitori | Spesa per area merceologica · Top fornitori · Andamento prezzi · Incidenza su ricavi |
 | Fatturazione passiva | ⏳ | Fatture · Importo · In scadenza · Insoluti | Fatture per fornitore · Scadenze · Stato · Dettaglio |
 
