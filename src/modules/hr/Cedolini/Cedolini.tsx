@@ -5,6 +5,7 @@ import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import Pagination from '../../../core/components/Pagination'
+import { useColFilters } from '../../../core/components/ColFilters'
 import Ico from '../../../core/icons/Ico'
 import { SelectField, SearchField, CheckboxField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
@@ -24,6 +25,8 @@ import './Cedolini.sass'
  */
 
 const PAGE_SIZE = 12
+/** Valori del filtro di colonna "Visto" (le bozze non sono ancora visibili al dipendente). */
+const VISTO_OPZ = ['Aperto', 'Non aperto', 'Non pubblicato']
 
 const meseCorrente = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` }
 const mesePrecedente = () => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` }
@@ -34,6 +37,7 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
   const pubblica = useHrGestioneStore(s => s.pubblicaCedolini)
   const elimina = useHrGestioneStore(s => s.eliminaCedolino)
   const confirm = useConfirmStore(s => s.confirm)
+  const cf = useColFilters()
 
   const mesi = useMemo(() => Array.from(new Set([meseCorrente(), ...cedolini.map(c => c.mese)])).sort().reverse(), [cedolini])
   const [mese, setMese] = useState(() => (cedolini.some(c => c.mese === mesePrecedente()) ? mesePrecedente() : mesi[0]))
@@ -46,15 +50,31 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
 
   const delMese = useMemo(() => cedolini.filter(c => c.mese === mese), [cedolini, mese])
   const rows = useMemo(() => delMese
-    .map(c => ({ ...c, dipendente: nomeDipendente(c.dipendenteId), reparto: repartoDipendente(c.dipendenteId) }))
+    .map(c => ({
+      ...c,
+      dipendente: nomeDipendente(c.dipendenteId),
+      reparto: repartoDipendente(c.dipendenteId),
+      pubblicato: c.pubblicatoAt ?? '',
+      vistoLbl: c.stato === 'Bozza' ? VISTO_OPZ[2] : c.visto ? VISTO_OPZ[0] : VISTO_OPZ[1],
+    }))
     .filter(c => !reparto || c.reparto === reparto)
     .filter(c => !stato || c.stato === stato)
     .filter(c => !cerca.trim() || c.dipendente.toLowerCase().includes(cerca.trim().toLowerCase()))
-    .sort((a, b) => a.dipendente.localeCompare(b.dipendente)), [delMese, reparto, stato, cerca])
+    .filter(c =>
+      cf.matchText(c.dipendente, 'dipendente') &&
+      cf.matchMulti(c.reparto, 'reparto') &&
+      cf.matchMulti(c.stato, 'stato') &&
+      cf.matchMulti(c.vistoLbl, 'visto'))
+    .sort((a, b) => a.dipendente.localeCompare(b.dipendente)),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [delMese, reparto, stato, cerca, cf.text, cf.multi])
+  const sorted = useMemo(() => cf.sortRows(rows),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [rows, cf.sort])
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [mese, reparto, stato, cerca])
-  const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
+  useEffect(() => { setPage(1) }, [mese, reparto, stato, cerca, cf.text, cf.multi])
+  const pageRows = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const bozze = delMese.filter(c => c.stato === 'Bozza')
   const pubblicati = delMese.filter(c => c.stato === 'Pubblicato')
@@ -157,14 +177,14 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
           </colgroup>
           <thead>
             <tr>
-              <th><ThLabel full="Dipendente" /></th>
-              <th><ThLabel full="Reparto" /></th>
+              <th><span className="sib-colf-head"><ThLabel full="Dipendente" short="Dip." />{cf.th('dipendente', 'dipendente', { search: true, sort: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Reparto" short="Rep." />{cf.th('reparto', 'reparto', { options: REPARTI_HR, sort: true })}</span></th>
               <th><ThLabel full="Mese" /></th>
-              <th className="ced__r"><ThLabel full="Lordo" /></th>
-              <th className="ced__r"><ThLabel full="Netto" /></th>
-              <th><ThLabel full="Stato" /></th>
-              <th><ThLabel full="Pubblicato il" short="Pubbl. il" /></th>
-              <th className="ced__c"><ThLabel full="Visto" /></th>
+              <th className="ced__r"><span className="sib-colf-head"><ThLabel full="Lordo" />{cf.th('lordo', 'lordo', { sort: true })}</span></th>
+              <th className="ced__r"><span className="sib-colf-head"><ThLabel full="Netto" />{cf.th('netto', 'netto', { sort: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Stato" />{cf.th('stato', 'stato', { options: ['Bozza', 'Pubblicato'] })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Pubblicato il" short="Pubbl. il" />{cf.th('pubblicato', 'pubblicato il', { sort: true })}</span></th>
+              <th className="ced__c"><span className="sib-colf-head"><ThLabel full="Visto" />{cf.th('visto', 'visto', { options: VISTO_OPZ })}</span></th>
               <th className="ced__c"><ThLabel full="Azioni" /></th>
             </tr>
           </thead>
