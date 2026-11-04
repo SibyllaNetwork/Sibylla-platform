@@ -52,6 +52,8 @@ const MACRO_AREAS: MacroArea[] = [
   { id: 'prodotti-tipici', label: 'Prodotti Tipici DOP/IGP',  icon: 'fa-award' },
   { id: 'cereali-pasta',   label: 'Cereali e Pasta',          icon: 'fa-wheat-awn' },
   { id: 'bio-certificati', label: 'Bio e Certificati',        icon: 'fa-apple-whole' },
+  // Ditte di servizi in appalto: i loro addetti sono i collaboratori esterni di HR
+  { id: 'servizi',         label: 'Servizi in appalto',       icon: 'fa-screwdriver-wrench' },
 ]
 
 const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
@@ -277,7 +279,7 @@ export default function Forniture({ navigate }: { navigate: (p: string) => void 
           certifications: f.certificazioni,
           characteristics: f.caratteristiche,
           productsCount: prods.length,
-          categories: catNome ? [catNome] : [],
+          categories: catNome ? [catNome] : f.appalto ? ['Servizi in appalto'] : [],
           image: f.immagineUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200',
           macroArea: f.macroArea,
           products: prods.map(p => ({

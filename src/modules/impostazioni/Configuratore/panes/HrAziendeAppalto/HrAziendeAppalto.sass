@@ -1,0 +1,227 @@
+// ─── RISORSE UMANE › AZIENDE IN APPALTO ───────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.cfg-hrapp
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+
+  &__layout
+    display: grid
+    grid-template-columns: 270px minmax(0, 1fr)
+    gap: 18px
+    align-items: start
+
+  // ── Elenco ─────────────────────────────────────────────────────────────────
+  &__list
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__item
+    display: flex
+    align-items: center
+    gap: 10px
+    width: 100%
+    padding: 10px 12px
+    text-align: left
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: $radius-md
+    cursor: pointer
+    transition: border-color $motion-fast $motion-ease, box-shadow $motion-fast $motion-ease
+
+    &:hover
+      border-color: $primary-300
+
+    &.is-active
+      border-color: $primary
+      box-shadow: 0 0 0 1px $primary
+
+  &__item-ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 32px
+    height: 32px
+    flex-shrink: 0
+    border-radius: $radius-md
+    background: $primary-50
+    color: $primary
+    font-size: 15px
+
+  &__item-text
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-width: 0
+    gap: 2px
+
+  &__item-name
+    font-weight: 600
+    color: $text-active
+
+  &__item-meta
+    font-size: 11px
+    color: $text-inactive
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__item-warn
+    flex-shrink: 0
+
+    &--ko
+      color: $error
+
+    &--warn
+      color: $warning
+
+  &__list .cfg-hrapp__add
+    justify-content: center
+
+  // ── Scheda ─────────────────────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    gap: 12px
+    min-width: 0
+    padding: 16px 18px 18px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: $radius-md
+
+  &__head-text
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__head-name
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 600
+    color: $text-active
+
+  &__head-meta
+    font-size: 12px
+    color: $text-inactive
+
+  &__avvisi
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__avviso
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 24px
+    padding: 0 10px
+    border-radius: 12px
+    font-size: 11.5px
+    font-weight: 600
+
+    &--ko
+      color: $error
+      background: alpha($error, .1)
+
+    &--warn
+      color: $warning
+      background: alpha($warning, .13)
+
+  &__sub
+    margin: 8px 0 0
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px
+
+  &__span2
+    grid-column: span 2
+
+  &__coll-bar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+    margin-top: 6px
+    padding-top: 14px
+    border-top: 1px solid $border
+
+  &__coll-acts
+    display: flex
+    gap: 8px
+    flex-wrap: wrap
+
+  &__nome
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+    font-weight: 600
+    color: $text-active
+
+  &__code
+    font-size: 11.5px
+    font-weight: 600
+    letter-spacing: .4px
+    color: $text-inactive
+
+  &__badge
+    display: inline-block
+    height: 22px
+    line-height: 22px
+    padding: 0 8px
+    border-radius: 11px
+    font-size: 11px
+    font-weight: 600
+    white-space: nowrap
+
+    &--attiva
+      color: $success
+      background: alpha($success, .12)
+
+    &--in-scadenza
+      color: $warning
+      background: alpha($warning, .13)
+
+    &--scaduta
+      color: $error
+      background: alpha($error, .1)
+
+    &--futura
+      color: $text-inactive
+      background: alpha($text-inactive, .1)
+
+  &__actions
+    text-align: right
+    white-space: nowrap
+
+@container (max-width: 900px)
+  .cfg-hrapp__layout
+    grid-template-columns: 1fr
+
+  .cfg-hrapp__list
+    flex-direction: row
+    flex-wrap: wrap
+
+    .cfg-hrapp__item
+      width: auto
+      flex: 1 1 220px
+
+@container (max-width: 560px)
+  .cfg-hrapp__grid
+    grid-template-columns: 1fr
+
+  .cfg-hrapp__span2
+    grid-column: auto

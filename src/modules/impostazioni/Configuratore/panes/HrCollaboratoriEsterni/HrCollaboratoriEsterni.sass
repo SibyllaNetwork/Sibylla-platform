@@ -1,0 +1,79 @@
+// ─── RISORSE UMANE › COLLABORATORI ESTERNI ────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.cfg-hrest
+  display: flex
+  flex-direction: column
+  gap: 22px
+  font-size: 13px
+
+  &__section
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__title
+    margin: 0
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $text-active
+
+  &__desc
+    margin: 2px 0 0
+    font-size: 12.5px
+    color: $text-inactive
+
+  &__name
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+    font-weight: 600
+    color: $text-active
+
+  &__strong
+    font-weight: 600
+    color: $text-active
+
+  &__row--off td
+    color: $text-inactive
+
+  &__num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__actions
+    text-align: right
+    white-space: nowrap
+
+  // ── Badge: impostazioni + anteprima ────────────────────────────────────────
+  &__badge
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto
+    gap: 22px
+    align-items: start
+
+  &__badge-form
+    display: flex
+    flex-direction: column
+    gap: 14px
+    min-width: 0
+
+  &__toggles
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 10px 18px
+
+  &__badge-prev
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 12px
+    border: 1px dashed $border
+    border-radius: $radius-md
+    background: $bg
+
+@container (max-width: 980px)
+  .cfg-hrest__badge
+    grid-template-columns: 1fr

@@ -1,7 +1,9 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import {
   CATEGORIE_INIT,
   FORNITORI_INIT,
+  FORNITORI_APPALTO_INIT,
   PRODOTTI_INIT,
 } from '../admin/SibyllaAdminPanel/catalogo/mockData'
 import type {
@@ -74,9 +76,9 @@ interface CatalogoState {
 
 const newId = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 
-export const useCatalogoStore = create<CatalogoState>((set, get) => ({
+export const useCatalogoStore = create<CatalogoState>()(persist((set, get) => ({
   categorie: CATEGORIE_INIT,
-  fornitori: FORNITORI_INIT,
+  fornitori: [...FORNITORI_INIT, ...FORNITORI_APPALTO_INIT],
   prodotti:  PRODOTTI_INIT,
   movimenti: [],
   magazzini: [],
@@ -148,4 +150,23 @@ export const useCatalogoStore = create<CatalogoState>((set, get) => ({
     }, 0),
   isBarcodeUsed: (barcode, exceptId) =>
     get().prodotti.some(p => p.barcode === barcode && p.id !== exceptId),
+}), {
+  // Si persistono SOLO le ditte di servizi in appalto (dati identificativi modificati in
+  // HR › Configurazione › Aziende in appalto, ditte aggiunte dalla scheda del collaboratore):
+  // il resto del catalogo resta demo in memoria.
+  name: 'sibylla.catalogo-appalto',
+  version: 2,
+  partialize: (s) => ({ fornitori: s.fornitori.filter(f => f.appalto) }) as any,
+  migrate: (persisted: any) => persisted,
+  merge: (persisted: any, current) => {
+    const salvati = ((persisted?.fornitori ?? []) as Fornitore[])
+    const byId = new Map(salvati.map(f => [f.id, f]))
+    return {
+      ...current,
+      fornitori: [
+        ...current.fornitori.map(f => byId.get(f.id) ?? f),
+        ...salvati.filter(f => !current.fornitori.some(c => c.id === f.id)),
+      ],
+    }
+  },
 }))

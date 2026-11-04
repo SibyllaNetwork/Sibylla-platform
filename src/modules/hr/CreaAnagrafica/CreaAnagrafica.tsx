@@ -1,9 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
-import AlertBanner from '../../../core/components/AlertBanner'
 import TruncatedText from '../../../core/components/TruncatedText'
-import { toast } from '../../../core/components/Toast/useToast'
-import { InputField, SelectField, DatePickerField, ToggleSwitch, CheckboxField } from '../../../core/components/form'
+import { InputField, SelectField, DatePickerField } from '../../../core/components/form'
 import { withFlag } from '../../../core/utils/countryFlags'
 import { apiFetchSibylla } from '../../../services/api'
 import { useContrattiPersonaleStore } from '../../../store/useContrattiPersonaleStore'
@@ -16,10 +14,7 @@ import {
 } from '../../../store/useHrConfigStore'
 import { useAnagraficaOpStore, abilitazioneVuota, type AbilitazioneOp } from '../../../store/useAnagraficaOpStore'
 import { useModuloAttivo } from '../../../hooks/useModuloAttivo'
-import { REPARTI_OP, LIVELLI_OP, type LivelloOp, type RepartoOp } from '../../appop/opCatalogo'
-import { formatoData, type InvitoOp } from '../../appop/opApi'
-import OpInvitoModal from '../../appop/OpInvitoModal'
-import { emailValida, invitaDipendenteOp, leggiStatoOp, useStrutturaOp, type StatoOpDipendente } from '../../appop/invitoAnagrafica'
+import OpAccessoAnagrafica from '../../appop/OpAccessoAnagrafica'
 import './CreaAnagrafica.sass'
 import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
@@ -384,121 +379,6 @@ function ContrattiSection({ anagraficaId, nomeDefault, inq, navigate }: {
   )
 }
 
-// ─── App Op! ──────────────────────────────────────────────────────────────────
-// Abilitazione del dipendente all'App Op! (solo con il modulo attivo): grado e
-// reparti dell'app, e invio del token di invito all'email aziendale, con cui il
-// dipendente attiva il proprio accesso come dipendente dell'azienda.
-function AppOpSection({ anagraficaId, persona, emailAziendale, onEmail, abil, onAbil, repartoOpSuggerito }: {
-  anagraficaId: string
-  persona: { nome: string; cognome: string }
-  emailAziendale: string
-  onEmail: (v: string) => void
-  abil: AbilitazioneOp
-  onAbil: (p: Partial<AbilitazioneOp>) => void
-  repartoOpSuggerito?: RepartoOp
-}) {
-  const struttura = useStrutturaOp()
-  const [stato, setStato] = useState<StatoOpDipendente | null>(null)
-  const [invio, setInvio] = useState(false)
-  const [invito, setInvito] = useState<InvitoOp | null>(null)
-  const [errore, setErrore] = useState<string | null>(null)
-  const ultimo = useAnagraficaOpStore((s) => s.abilitazioni[anagraficaId]?.ultimoInvito)
-  const full = { ...abil, emailAziendale }
-
-  // Stato dell'utenza nell'App Op! (fonte e invito già inviato), letto quando si abilita
-  useEffect(() => {
-    if (!abil.abilitato) return
-    let off = false
-    leggiStatoOp(full, struttura).then((r) => { if (!off) setStato(r) }).catch(() => { if (!off) setStato(null) })
-    return () => { off = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abil.abilitato, struttura, invito])
-
-  const abilita = (v: boolean) => onAbil({
-    abilitato: v,
-    ...(v && abil.reparti.length === 0 && repartoOpSuggerito ? { reparti: [repartoOpSuggerito] } : {}),
-  })
-  const toggleReparto = (k: RepartoOp, on: boolean) =>
-    onAbil({ reparti: on ? [...abil.reparti, k] : abil.reparti.filter((x) => x !== k) })
-
-  const invia = async () => {
-    setErrore(null); setInvio(true)
-    try {
-      const inv = await invitaDipendenteOp(anagraficaId, persona, full, struttura)
-      setInvito(inv)
-      toast.success(`Token di invito inviato a ${inv.emailMascherata}`, 'App Op!')
-    } catch (e) {
-      setErrore(e instanceof Error ? e.message : 'Invito non inviato.')
-    } finally {
-      setInvio(false)
-    }
-  }
-
-  const dip = stato?.dipendente
-  const emailOk = emailValida(emailAziendale)
-
-  return (
-    <Section icon="fa-mobile-screen" title="App Op!">
-      <ToggleSwitch
-        label="Abilita l’accesso all’App Op!"
-        description="Il dipendente riceve all’email aziendale il token di invito con cui attiva l’app come dipendente dell’azienda."
-        checked={abil.abilitato}
-        onChange={abilita}
-      />
-
-      {abil.abilitato && (
-        <div className="crea-anag__op">
-          {stato?.fonte === 'prova' && (
-            <AlertBanner type="warning">
-              Dati di prova salvati in questo browser: il Portal non espone ancora le API dell’App Op!, l’invito non parte davvero per email.
-            </AlertBanner>
-          )}
-          {errore && <p className="crea-anag__error"><i className="fa-light fa-circle-exclamation" /> {errore}</p>}
-
-          <div className="crea-anag__grid crea-anag__grid--3">
-            <InputField name="op_email" label="E-mail aziendale" type="email" required value={emailAziendale}
-              onChange={(e) => onEmail(e.target.value)} placeholder="nome.cognome@azienda.it" iconLeft="fa-light fa-envelope"
-              error={emailAziendale && !emailOk ? 'Email non valida' : undefined} />
-            <SelectField name="op_livello" label="Grado nell’app" value={abil.livello}
-              onChange={(e) => onAbil({ livello: e.target.value as LivelloOp })} options={LIVELLI_OP} />
-            <div className="crea-anag__op-flags">
-              <ToggleSwitch label="Responsabile dei suoi reparti" checked={abil.responsabile} onChange={(v) => onAbil({ responsabile: v })} />
-              <ToggleSwitch label="Accesso alle funzioni HR" checked={abil.hr} onChange={(v) => onAbil({ hr: v })} />
-            </div>
-          </div>
-
-          <div className="crea-anag__op-reparti">
-            <span className="crea-anag__label">Reparti dell’app</span>
-            <div className="crea-anag__op-reparti-list">
-              {REPARTI_OP.filter((r) => r.key !== 'businessIntelligence').map((r) => (
-                <CheckboxField key={r.key} name={`op_rep_${r.key}`} label={r.nome}
-                  checked={abil.reparti.includes(r.key)} onChange={(e) => toggleReparto(r.key, e.target.checked)} />
-              ))}
-            </div>
-          </div>
-
-          <div className="crea-anag__op-bar">
-            <span className="crea-anag__op-stato">
-              {dip?.stato === 'attivo'
-                ? <><i className="fa-solid fa-circle-check crea-anag__op-ok" /> Accesso attivo nell’App Op!{dip.ultimoAccesso ? ` · ultimo accesso ${formatoData(dip.ultimoAccesso)}` : ''}</>
-                : dip?.stato === 'bloccato'
-                  ? <><i className="fa-solid fa-lock crea-anag__op-ko" /> Accesso bloccato in Utenti e ruoli</>
-                  : ultimo
-                    ? <><i className="fa-solid fa-paper-plane crea-anag__op-wait" /> Invito inviato a {ultimo.emailMascherata} il {formatoData(ultimo.inviatoIl)} · valido fino al {formatoData(ultimo.scadeIl)}</>
-                    : <><i className="fa-light fa-envelope crea-anag__op-wait" /> Nessun invito inviato</>}
-            </span>
-            <button type="button" className="sib-btn sib-btn--primary" disabled={invio || !emailOk || abil.reparti.length === 0 || dip?.stato === 'attivo'} onClick={invia}>
-              <i className="fa-light fa-paper-plane" /> {invio ? 'Invio in corso…' : ultimo || dip ? 'Invia nuovo token' : 'Invia token di invito'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <OpInvitoModal invito={invito} nome={`${persona.nome} ${persona.cognome}`.trim()} onClose={() => setInvito(null)} />
-    </Section>
-  )
-}
-
 export default function CreaAnagrafica({ navigate, editing = false }: { navigate: (p: string) => void; editing?: boolean }) {
   // Strutture abilitabili: quelle del cliente corrente.
   const { elenco: STRUTTURE } = useStrutturaCorrente()
@@ -681,15 +561,17 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
           inq={{ repartoId: form.repartoId, orarioId: form.orarioId, schemaTurniId: form.schemaTurniId }} />
 
         {appOpAttivo && (
-          <AppOpSection
-            anagraficaId={anagId}
-            persona={{ nome: form.nome, cognome: form.cognome }}
-            emailAziendale={form.email_aziendale}
-            onEmail={(v) => set('email_aziendale', v)}
-            abil={abilOp}
-            onAbil={(p) => setAbilOp((a) => ({ ...a, ...p }))}
-            repartoOpSuggerito={findById(repartiHr, form.repartoId)?.repartoOp}
-          />
+          <Section icon="fa-mobile-screen" title="App Op!">
+            <OpAccessoAnagrafica
+              anagraficaId={anagId}
+              persona={{ nome: form.nome, cognome: form.cognome }}
+              email={form.email_aziendale}
+              onEmail={(v) => set('email_aziendale', v)}
+              abil={abilOp}
+              onAbil={(p) => setAbilOp((a) => ({ ...a, ...p }))}
+              repartiSuggeriti={(() => { const r = findById(repartiHr, form.repartoId)?.repartoOp; return r ? [r] : [] })()}
+            />
+          </Section>
         )}
 
         <Section icon="fa-folder-open" title="Documenti e allegati">

@@ -25,6 +25,33 @@ export interface Fornitore {
   macroArea: string
   immagineUrl: string
   pubblicato: boolean
+  /** Ditta di servizi in appalto (pulizie, manutenzione…): i suoi addetti
+   *  possono essere registrati in HR come collaboratori esterni e invitati all'App Op!. */
+  appalto?: boolean
+  /** Dati identificativi dell'impresa in appalto (HR › Configurazione › Aziende in appalto). */
+  datiAppalto?: DatiAppalto
+}
+
+/** Dati per identificare l'impresa appaltatrice e i suoi addetti (badge art. 26 c. 8 D.Lgs. 81/2008, L. 136/2010). */
+export interface DatiAppalto {
+  ragioneSociale: string
+  partitaIva: string
+  codiceFiscale: string
+  sedeLegale: string
+  /** Attività oggetto dell'appalto (es. pulizia camere e aree comuni). */
+  oggetto: string
+  referente: string
+  referenteTelefono: string
+  referenteEmail: string
+  contrattoNumero: string
+  contrattoData: string
+  contrattoScadenza: string
+  durcScadenza: string
+  posizioneInps: string
+  posizioneInail: string
+  /** L'impresa lavora in subappalto: sul badge va l'autorizzazione. */
+  subappalto: boolean
+  subappaltoAutorizzazione: string
 }
 
 export type UnitaMisura = 'pz' | 'kg' | 'g' | 'l' | 'ml' | 'cassa' | 'box' | 'conf'

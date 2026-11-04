@@ -245,6 +245,7 @@ const MENU_MAP: Record<string, string> = {
   'crea-anagrafica':            'fa-user-plus',
   'archivio-personale':         'fa-folder-open',
   'hr-configurazione':          'fa-sliders',
+  'crea-collaboratore-esterno': 'fa-user-helmet-safety',
   'profile-analysis':           'fa-id-card',
 
   // HR — Premio performance

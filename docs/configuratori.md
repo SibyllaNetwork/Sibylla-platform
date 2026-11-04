@@ -605,3 +605,17 @@ livello, tipologia, RAL minima, prova, spettanze ferie/permessi riproporzionate 
 nell'Archivio del personale (colonna Reparto, inquadramento nel dettaglio), tramite i campi di
 inquadramento di `useContrattiPersonaleStore`. Sezione App Op! della scheda e azione «Invita Op!»
 dell'Archivio: `src/modules/appop/invitoAnagrafica.ts` + `useAnagraficaOpStore`.
+
+### Collaboratori esterni e aziende in appalto (nov 2026)
+
+- Voci `hr-aziende-appalto` (imprese = fornitori di Purchasing con `appalto: true` + `datiAppalto`:
+  P. IVA, sede, oggetto e contratto d'appalto, DURC, INPS/INAIL, referente, subappalto; lista dei
+  collaboratori e stampa dei badge) e `hr-collaboratori-esterni` (categorie con reparti App Op!,
+  documenti e durata massima dell'autorizzazione; configurazione del badge con anteprima).
+- Scheda `crea-collaboratore-esterno` / `modifica-collaboratore-esterno:<id>` /
+  `nuovo-collaboratore-esterno:<fornitoreId>`; Archivio del personale con schede Dipendenti /
+  Collaboratori esterni (`archivio-personale:esterni`). Store `useCollaboratoriEsterniStore`.
+- Badge: `src/modules/hr/_badge` — una sola sorgente HTML per anteprima (iframe) e stampa
+  (A4 o CR80), campi obbligatori art. 26 c. 8 D.Lgs. 81/2008 e L. 136/2010.
+- App Op!: `OpAccessoAnagrafica` (sezione condivisa dipendenti/esterni) e «Invita collaboratore
+  esterno» in Configuratore › App Op! › Utenze (`OpInvitaEsternoModal`).

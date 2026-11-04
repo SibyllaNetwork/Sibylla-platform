@@ -6,6 +6,9 @@ import { apiFetchSibylla } from '../../../services/api'
 import { avatarUrl } from '../../../core/avatar'
 import { setEditingAnagrafica } from '../CreaAnagrafica/_state'
 import { useContrattiPersonaleStore, type ContrattoPersonale } from '../../../store/useContrattiPersonaleStore'
+import Tabs from '../../../core/components/Tabs'
+import EsterniTable from './EsterniTable'
+import { useCollaboratoriEsterniStore } from '../../../store/useCollaboratoriEsterniStore'
 import './ArchivioPersonale.sass'
 import TruncatedText from '../../../core/components/TruncatedText'
 import { toast } from '../../../core/components/Toast/useToast'
@@ -137,7 +140,9 @@ const COLS: Col[] = [
 const cella = (v?: string | number | null) =>
   v != null && String(v) !== '' ? <TruncatedText text={String(v)} /> : <span className="text-text-muted">-</span>
 
-export default function ArchivioPersonale({ navigate }: { navigate: (p: string) => void }) {
+export default function ArchivioPersonale({ navigate, vista = 'dipendenti' }: { navigate: (p: string) => void; vista?: 'dipendenti' | 'esterni' }) {
+  const [tab, setTab] = useState<'dipendenti' | 'esterni'>(vista)
+  const nEsterni = useCollaboratoriEsterniStore((s) => s.collaboratori.length)
   const [items, setItems] = useState<PersonaleItem[]>(FALLBACK)
   const [filters, setFilters] = useState<Record<string, string>>({})
   const [openFilter, setOpenFilter] = useState<string | null>(null)
@@ -207,13 +212,27 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
         subtitle="Gestione dei dati anagrafici e contrattuali di tutto il personale, con accesso rapido agli archivi contrattuali e possibilità di creare nuovi profili"
       />
 
-      <div className="flex justify-end mb-4">
-        <button className="sib-btn sib-btn--primary" onClick={() => navigate('crea-anagrafica')}>
-          <i className="fa-light fa-id-card" /> Crea anagrafica profilo
-        </button>
+      <div className="arch-pers__bar">
+        <Tabs
+          className="arch-pers__tabs"
+          active={tab}
+          onChange={(id) => setTab(id as 'dipendenti' | 'esterni')}
+          tabs={[{ id: 'dipendenti', label: `Dipendenti (${items.length})` }, { id: 'esterni', label: `Collaboratori esterni (${nEsterni})` }]}
+        />
+        {tab === 'dipendenti' ? (
+          <button className="sib-btn sib-btn--primary" onClick={() => navigate('crea-anagrafica')}>
+            <i className="fa-light fa-id-card" /> Crea anagrafica profilo
+          </button>
+        ) : (
+          <button className="sib-btn sib-btn--primary" onClick={() => navigate('crea-collaboratore-esterno')}>
+            <i className="fa-light fa-user-helmet-safety" /> Nuovo collaboratore esterno
+          </button>
+        )}
       </div>
 
-      <div className="sib-table-wrap">
+      {tab === 'esterni' && <EsterniTable navigate={navigate} />}
+
+      {tab === 'dipendenti' && <div className="sib-table-wrap">
         <table className="sib-table arch-pers__table">
           <colgroup>
             {COLS.map((c) => <col key={c.key} className={`arch-pers__col--${c.key}`} />)}
@@ -344,7 +363,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
 
       <DocIdentitaModal persona={docPerson} onClose={() => setDocPerson(null)} />
       <ContrattiModal persona={contrattiPerson} onClose={() => setContrattiPerson(null)} />

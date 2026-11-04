@@ -214,6 +214,7 @@ const MENU:any[]=[
       {id:"hr-configurazione",label:"Configurazione",page:"hr-configurazione"},
       {id:"gest-anagrafiche",label:"Gestione delle anagrafiche",children:[
         {id:"crea-anagrafica",label:"Crea anagrafica personale",page:"crea-anagrafica"},
+        {id:"crea-collaboratore-esterno",label:"Crea collaboratore esterno",page:"crea-collaboratore-esterno"},
         {id:"archivio-personale",label:"Archivio del personale",page:"archivio-personale"},
         {id:"profile-analysis",label:"Profile analysis",page:"profile-analysis"},
       ]},

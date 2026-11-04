@@ -10,6 +10,8 @@ import OpDipendenteModal from '../../../../appop/OpDipendenteModal'
 import OpDipendentiTable from '../../../../appop/OpDipendentiTable'
 import OpInvitoModal from '../../../../appop/OpInvitoModal'
 import OpQrGenerator from '../../../../appop/OpQrGenerator'
+import OpInvitaEsternoModal from '../../../../appop/OpInvitaEsternoModal'
+import type { CfgPaneComponentProps } from '../../Configuratore'
 import { appOpSibylla, type FonteAppOp } from '../../../../appop/appOpSibylla'
 import { CATEGORIE_STRUTTURA, CLIENTS_INIT } from '../../../../../admin/SibyllaAdminPanel/constants'
 import { useStrutturaCorrente } from '../../../../../hooks/useStrutturaCorrente'
@@ -46,7 +48,7 @@ function strutturaSync(c: (typeof CLIENTS_INIT)[number]): StrutturaSync {
   }
 }
 
-export default function AppOp() {
+export default function AppOp({ navigate }: CfgPaneComponentProps) {
   // Struttura di cui si configura l'App Op!: quella selezionata in alto (assistenza, profilo caricato o organizzazione).
   // Ognuna ha la sua azienda in Op.
   const { struttura: nomeStruttura } = useStrutturaCorrente()
@@ -65,6 +67,7 @@ export default function AppOp() {
   const [problema, setProblema] = useState<string | null>(null)
   const [modifica, setModifica] = useState<DipendenteOp | null | undefined>(undefined)
   const [invito, setInvito] = useState<{ invito: InvitoOp; nome: string } | null>(null)
+  const [invitaEsterno, setInvitaEsterno] = useState(false)
 
   const carica = useCallback(async () => {
     try {
@@ -130,7 +133,12 @@ export default function AppOp() {
               Crea l’utenza del dipendente con reparto e grado: riceve un codice di invito via email, con cui crea la password
               nell’app ed entra direttamente nel suo reparto.
             </p>
-            <Button icon="plus" onClick={() => setModifica(null)} disabled={attivi.length === 0}>Nuova utenza</Button>
+            <div className="app-op__azioni">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInvitaEsterno(true)} disabled={attivi.length === 0}>
+                <i className="fa-light fa-user-helmet-safety" aria-hidden="true" /> Invita collaboratore esterno
+              </button>
+              <Button icon="plus" onClick={() => setModifica(null)} disabled={attivi.length === 0}>Nuova utenza</Button>
+            </div>
           </div>
           <OpDipendentiTable dipendenti={dipendenti} onModifica={setModifica} onInvito={invita} />
           <p className="app-op__nota">Blocco ed eliminazione degli account seguono gli utenti di Sibylla Platform (Utenti e ruoli).</p>
@@ -161,6 +169,14 @@ export default function AppOp() {
       />
 
       <OpDipendenteModal open={modifica !== undefined} dipendente={modifica} reparti={attivi} moduli={salvati} onClose={() => setModifica(undefined)} onSalva={salvaUtente} />
+      <OpInvitaEsternoModal
+        open={invitaEsterno}
+        onClose={() => setInvitaEsterno(false)}
+        dipendenti={dipendenti}
+        struttura={struttura}
+        onInvitato={(inv, nome) => { setInvito({ invito: inv, nome }); toast.success(`Invito inviato a ${inv.emailMascherata}`, 'App Op!'); carica() }}
+        onNuovo={navigate ? () => navigate('crea-collaboratore-esterno') : undefined}
+      />
       <OpInvitoModal invito={invito?.invito ?? null} nome={invito?.nome ?? ''} onClose={() => setInvito(null)} />
     </div>
   )

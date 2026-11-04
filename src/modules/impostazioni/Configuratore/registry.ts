@@ -64,6 +64,8 @@ export type ConfiguratoreId =
   | 'hr-turnistica'
   | 'hr-tipologie-contratto'
   | 'hr-ccnl'
+  | 'hr-aziende-appalto'
+  | 'hr-collaboratori-esterni'
 
 // ─── Gruppi tematici (le 7 corsie) ────────────────────────────────────────────
 
@@ -370,6 +372,16 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
     id: 'hr-ccnl', label: 'Contratti collettivi', icon: 'file-contract', group: 'risorse-umane',
     description: 'CCNL applicati con livelli e minimi, ferie e permessi annui, maturazione, maggiorazioni, enti e fondi.',
     keywords: ['ccnl', 'livelli', 'ferie', 'permessi', 'rol', 'ex festività', 'maturazione', 'ratei', 'scatti', 'minimi tabellari', 'mensilità'],
+  },
+  {
+    id: 'hr-aziende-appalto', label: 'Aziende in appalto', icon: 'building-user', group: 'risorse-umane',
+    description: 'Imprese esterne (fornitori di Purchasing) con i dati identificativi, il contratto d’appalto, il DURC e i collaboratori che lavorano per loro.',
+    keywords: ['appalto', 'imprese esterne', 'ditte', 'fornitori', 'partita iva', 'durc', 'inail', 'inps', 'subappalto', 'badge'],
+  },
+  {
+    id: 'hr-collaboratori-esterni', label: 'Collaboratori esterni', icon: 'user-helmet-safety', group: 'risorse-umane',
+    description: 'Categorie degli addetti di ditte in appalto (reparti App Op!, documenti, durata dell’autorizzazione) e badge di riconoscimento.',
+    keywords: ['esterni', 'appalto', 'fornitori', 'pulizie', 'manutentori', 'facchini', 'durc', 'duvri', 'app op', 'autorizzazione'],
   },
 ]
 

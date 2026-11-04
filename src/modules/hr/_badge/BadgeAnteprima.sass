@@ -1,0 +1,25 @@
+// ─── ANTEPRIMA BADGE ──────────────────────────────────────────────────────────
+// Iframe dimensionato sulla tessera CR80 (85,6×54 mm) + padding del documento;
+// con il retro le due facce stanno una sotto l'altra.
+@use '../../../styles/tokens' as *
+
+.badge-prev
+  display: block
+  border: 0
+  max-width: 100%
+  background: transparent
+
+  &--h
+    width: calc(85.6mm + 12mm)
+    height: calc(54mm + 12mm)
+
+  &--v
+    width: calc(54mm + 12mm)
+    height: calc(85.6mm + 12mm)
+
+  // Con il retro le due facce sono impilate (fronte sopra, retro sotto)
+  &--h.badge-prev--retro
+    height: calc(54mm * 2 + 18mm)
+
+  &--v.badge-prev--retro
+    height: calc(85.6mm * 2 + 18mm)

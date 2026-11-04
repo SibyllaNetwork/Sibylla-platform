@@ -1,0 +1,129 @@
+// ─── ARCHIVIO › COLLABORATORI ESTERNI ─────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.arch-est
+  display: flex
+  flex-direction: column
+  gap: 14px
+  container-type: inline-size
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
+
+    > :first-child
+      flex: 1 1 260px
+
+    > :not(:first-child)
+      flex: 0 1 220px
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th, td
+      white-space: nowrap
+      overflow: hidden
+
+  &__c-nome
+    width: 21%
+  &__c-az
+    width: 16%
+  &__c-cat
+    width: 13%
+  &__c-rep
+    width: 11%
+  &__c-aut
+    width: 15%
+  &__c-stato
+    width: 11%
+  &__c-act
+    width: 13%
+
+  // Due classi: .sib-table th fissa l'allineamento a sinistra
+  &__table .arch-est__th-act
+    text-align: right
+
+  &__nome
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+    > :nth-child(2), > span:first-child
+      min-width: 0
+
+  &__warn
+    padding: 0
+    border: 0
+    background: transparent
+    color: $warning
+    cursor: pointer
+
+  &__tip
+    text-align: left
+    font-size: 12px
+
+    ul
+      margin: 4px 0 0
+      padding-left: 16px
+
+  &__tag
+    flex-shrink: 0
+    padding: 0 6px
+    border-radius: 4px
+    font-size: 10px
+    font-weight: 700
+    letter-spacing: .3px
+    line-height: 18px
+    color: $primary
+    background: $primary-50
+
+  // Etichetta di stato: il testo (TruncatedText) va in ellissi con tooltip se non entra
+  &__badge
+    display: inline-flex
+    align-items: center
+    max-width: 100%
+    min-width: 0
+    vertical-align: middle
+    height: 22px
+    line-height: 22px
+    padding: 0 8px
+    border-radius: 11px
+    font-size: 11px
+    font-weight: 600
+
+    &--attiva
+      color: $success
+      background: alpha($success, .12)
+
+    &--in-scadenza
+      color: $warning
+      background: alpha($warning, .13)
+
+    &--scaduta
+      color: $error
+      background: alpha($error, .1)
+
+    &--futura
+      color: $text-inactive
+      background: alpha($text-inactive, .1)
+
+  &__acts
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 2px
+
+@container (max-width: 1000px)
+  .arch-est .arch-est__table th, .arch-est .arch-est__table td
+    padding-left: 6px
+    padding-right: 6px
+    font-size: 12px
+
+  .arch-est .arch-est__acts .sib-btn--icon
+    width: 22px
+    min-width: 22px
+    padding: 0

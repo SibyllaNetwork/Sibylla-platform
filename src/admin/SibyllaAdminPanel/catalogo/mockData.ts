@@ -1,4 +1,4 @@
-import type { Categoria, Fornitore, Prodotto, UnitaMisura } from './types'
+import type { Categoria, DatiAppalto, Fornitore, Prodotto, UnitaMisura } from './types'
 import { CATEGORIE, areeOf } from './classificazione'
 import { ean13FromBase } from './helpers'
 
@@ -153,3 +153,42 @@ export const PRODOTTI_INIT: Prodotto[] = (() => {
   }
   return out
 })()
+
+// ─── Fornitori di servizi in appalto ─────────────────────────────────────────
+// Ditte esterne i cui addetti lavorano in struttura (pulizie, manutenzione,
+// facchinaggio): in HR › Collaboratori esterni si registrano gli addetti e li
+// si invita all'App Op! nel reparto operativo della loro categoria.
+const appalto = (id: string, nome: string, descrizione: string, citta: string, regione: string, caratteristiche: string[], dati: Partial<DatiAppalto> = {}): Fornitore => {
+  const slug = slugify(nome)
+  const datiAppalto: DatiAppalto = {
+    ragioneSociale: nome, partitaIva: '', codiceFiscale: '', sedeLegale: `Via dell’Industria 12, ${citta}`, oggetto: descrizione,
+    referente: '', referenteTelefono: '', referenteEmail: '', contrattoNumero: '', contrattoData: '', contrattoScadenza: '',
+    durcScadenza: '', posizioneInps: '', posizioneInail: '', subappalto: false, subappaltoAutorizzazione: '', ...dati,
+  }
+  return {
+    datiAppalto,
+    id, nome, descrizione, storia: '', indirizzo: 'Via dell’Industria 12', citta, regione, cap: '00100',
+    telefono: '+39 06 0000000', email: `commerciale@${slug}.it`, sito: `www.${slug}.it`, annoFondazione: 2008,
+    certificazioni: ['ISO 9001', 'ISO 14001'], caratteristiche, categoriaId: '', macroArea: 'servizi',
+    immagineUrl: '', pubblicato: true, appalto: true,
+  }
+}
+
+export const FORNITORI_APPALTO_INIT: Fornitore[] = [
+  appalto('forn-app-splendor', 'Splendor Servizi Integrati', 'Pulizie camere, aree comuni e lavanderia in appalto.', 'Roma', 'Lazio',
+    ['Pulizie camere e aree comuni', 'Lavanderia e guardaroba', 'Personale formato HACCP'],
+    { ragioneSociale: 'Splendor Servizi Integrati S.r.l.', partitaIva: '09876543210', codiceFiscale: '09876543210', referente: 'Laura Fabbri', referenteTelefono: '+39 06 5550101',
+      referenteEmail: 'l.fabbri@splendorservizi.it', contrattoNumero: 'APP-2026/014', contrattoData: '2026-02-15', contrattoScadenza: '2027-02-28', durcScadenza: '2027-01-15',
+      posizioneInps: '7012345678', posizioneInail: '12345678/90' }),
+  appalto('forn-app-tecnoimpianti', 'Tecno Impianti Hotel', 'Manutenzione ordinaria e straordinaria di impianti e camere.', 'Roma', 'Lazio',
+    ['Impianti elettrici e idraulici', 'Climatizzazione', 'Pronto intervento 24/7'],
+    { ragioneSociale: 'Tecno Impianti Hotel S.p.A.', partitaIva: '01234567890', codiceFiscale: '01234567890', referente: 'Marco Serra', referenteTelefono: '+39 06 5550202',
+      referenteEmail: 'm.serra@tecnoimpiantihotel.it', contrattoNumero: 'APP-2025/031', contrattoData: '2025-12-10', contrattoScadenza: '2026-12-31', durcScadenza: '2026-11-22',
+      posizioneInps: '7023456789', posizioneInail: '23456789/01' }),
+  appalto('forn-app-movi', 'Movi Facchinaggio', 'Facchinaggio, movimentazione bagagli e allestimenti sale.', 'Fiumicino', 'Lazio',
+    ['Facchinaggio ai piani', 'Allestimento sale meeting', 'Gestione magazzino'],
+    { ragioneSociale: 'Movi Facchinaggio Soc. Coop.', partitaIva: '05554443332', codiceFiscale: '05554443332', referente: 'Paolo Rinaldi', referenteTelefono: '+39 06 5550303',
+      contrattoNumero: 'APP-2026/022', contrattoData: '2026-04-20', contrattoScadenza: '2026-10-31', durcScadenza: '2026-09-30',
+      subappalto: true, subappaltoAutorizzazione: 'Autorizzazione al subappalto n. 7/2026 del 22/04/2026 (appaltatore principale: Splendor Servizi Integrati)' }),
+]
+

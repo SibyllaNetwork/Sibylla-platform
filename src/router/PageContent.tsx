@@ -179,6 +179,7 @@ import ConfiguraServizio           from '../modules/sales/preventivi/ConfiguraSe
 import ImpostaCentroDiCosto        from '../modules/finance/ImpostaCentroDiCosto/ImpostaCentroDiCosto';
 import ArchivioPersonale           from '../modules/hr/ArchivioPersonale/ArchivioPersonale';
 import CreaAnagrafica              from '../modules/hr/CreaAnagrafica/CreaAnagrafica';
+import CollaboratoreEsterno        from '../modules/hr/CollaboratoreEsterno/CollaboratoreEsterno';
 import AssegnaObiettivo            from '../modules/hr/AssegnaObiettivo/AssegnaObiettivo';
 import MonitoraggioPerformance     from '../modules/hr/MonitoraggioPerformance/MonitoraggioPerformance';
 import HrOverview                  from '../modules/hr/HrOverview/HrOverview';
@@ -484,7 +485,13 @@ export default function PageContent({ page, navigate }: Props) {
     return <EditorTemplateSoggiorno navigate={navigate} param={page.slice('editor-template-soggiorno:'.length)} key={page}/>;
   if (page.startsWith('crea-preventivo:')) return <CreaPreventivo navigate={navigate} preventivoId={page.slice('crea-preventivo:'.length)} key={page}/>;
   if (page === 'centro-costo')          return <ImpostaCentroDiCosto navigate={navigate}/>;
-  if (page === 'archivio-personale')    return <ArchivioPersonale navigate={navigate}/>;
+  if (page === 'archivio-personale' || page === 'archivio-personale:esterni')
+    return <ArchivioPersonale navigate={navigate} vista={page.endsWith(':esterni') ? 'esterni' : 'dipendenti'} key={page}/>;
+  if (page === 'crea-collaboratore-esterno') return <CollaboratoreEsterno navigate={navigate} key={page}/>;
+  if (page.startsWith('nuovo-collaboratore-esterno:'))
+    return <CollaboratoreEsterno navigate={navigate} fornitoreId={page.slice('nuovo-collaboratore-esterno:'.length)} key={page}/>;
+  if (page.startsWith('modifica-collaboratore-esterno:'))
+    return <CollaboratoreEsterno navigate={navigate} id={page.slice('modifica-collaboratore-esterno:'.length)} key={page}/>;
   if (page === 'archivio-contratti')    return <ArchivioContratti navigate={navigate}/>;
   if (page === 'benchmark-fin')         return <BenchmarkFinanziario navigate={navigate}/>;
   if (page === 'inserisci-contratto-a') return <InserisciContrattoAcquisto navigate={navigate} key="ins-contr-a"/>;
@@ -533,7 +540,7 @@ export default function PageContent({ page, navigate }: Props) {
     return <Configuratore navigate={navigate} group="risorse-umane" key={page}
       initialPane={page.includes(':') ? page.slice('hr-configurazione:'.length) : undefined}
       title="Configurazione HR"
-      subtitle="Reparti, orari, turnistica, tipologie di contratto e CCNL con cui inquadrare il personale"/>;
+      subtitle="Reparti, orari, turnistica, contratti e collaboratori esterni con cui inquadrare il personale"/>;
   }
   if (page === 'crea-struttura')        return <CreaStruttura navigate={navigate}/>;
   if (page === 'crea-outlet')           return <CreaStruttura navigate={navigate} autoOpenType="outlet"/>;

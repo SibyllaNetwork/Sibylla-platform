@@ -4,6 +4,8 @@ import Tooltip from '../../core/components/Tooltip'
 import TruncatedText from '../../core/components/TruncatedText'
 import { labelLivello, nomeReparto } from './opCatalogo'
 import { formatoData, type DipendenteOp } from './opApi'
+import { useCollaboratoriEsterniStore } from '../../store/useCollaboratoriEsterniStore'
+import { useCatalogoStore } from '../../store/useCatalogoStore'
 import './OpDipendentiTable.sass'
 
 interface Props {
@@ -24,6 +26,10 @@ const STATI = {
 //  Elenco delle utenze con grado, reparti, stato dell'accesso e azioni. Le azioni
 //  distruttive (blocco, eliminazione) le conferma chi usa il componente.
 export default function OpDipendentiTable({ dipendenti, onModifica, onInvito, onBlocco, onElimina }: Props) {
+  // Collaboratori esterni (HR) riconosciuti dall'email: etichetta «Esterno» e azienda al posto del grado
+  const esterni = useCollaboratoriEsterniStore(s => s.collaboratori)
+  const fornitori = useCatalogoStore(s => s.fornitori)
+  const esternoDi = (email: string) => esterni.find(c => c.email && c.email.toLowerCase() === email.toLowerCase())
   return (
     <div className="sib-table-wrap op-dipendenti">
       <table className="sib-table">
@@ -40,11 +46,19 @@ export default function OpDipendentiTable({ dipendenti, onModifica, onInvito, on
           )}
           {dipendenti.map(d => {
             const reparti = d.reparti.map(r => `${nomeReparto(r)}${d.responsabileReparti.includes(r) ? ' (resp.)' : ''}`).join(', ')
-            const grado = `${labelLivello(d.livello)}${d.hr ? ' · HR' : ''}`
+            const est = esternoDi(d.email)
+            const grado = est
+              ? `Esterno · ${fornitori.find(f => f.id === est.fornitoreId)?.nome ?? 'ditta in appalto'}`
+              : `${labelLivello(d.livello)}${d.hr ? ' · HR' : ''}`
             const stato = STATI[d.stato]
             return (
               <tr key={d.id}>
-                <td><TruncatedText text={`${d.nome} ${d.cognome}`} className="op-dipendenti__testo" /></td>
+                <td>
+                  <span className="op-dipendenti__nome">
+                    <TruncatedText text={`${d.nome} ${d.cognome}`} className="op-dipendenti__testo" />
+                    {est && <span className="op-dipendenti__tag">Esterno</span>}
+                  </span>
+                </td>
                 <td><TruncatedText text={d.email} className="op-dipendenti__testo" /></td>
                 <td><TruncatedText text={grado} className="op-dipendenti__testo" /></td>
                 <td><TruncatedText text={reparti} className="op-dipendenti__testo" /></td>

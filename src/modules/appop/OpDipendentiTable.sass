@@ -7,6 +7,24 @@
   container-type: inline-size
   container-name: op-dipendenti
 
+  // Nome + etichetta «Esterno» (collaboratori di ditte in appalto)
+  &__nome
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+  &__tag
+    flex-shrink: 0
+    padding: 0 6px
+    border-radius: 4px
+    font-size: 10px
+    font-weight: 700
+    letter-spacing: .3px
+    line-height: 18px
+    color: $primary
+    background: $primary-50
+
   table
     table-layout: fixed
     width: 100%

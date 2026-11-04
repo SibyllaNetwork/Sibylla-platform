@@ -9,6 +9,23 @@ $cols: (matricola: 7%, nome: 9%, cognome: 8%, reparto: 10%, telefono: 9%, nato_i
 .arch-pers
   container-type: inline-size
 
+  // Schede Dipendenti / Collaboratori esterni + azione a destra
+  &__bar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 12px
+    margin-bottom: 16px
+    border-bottom: 1px solid $border
+
+    > .sib-btn
+      margin-bottom: 8px
+
+  // Le schede usano il bordo della barra: due classi per battere le utility di Tabs
+  &__bar .arch-pers__tabs
+    margin-bottom: -1px
+    border-bottom: 0
+
   &__table
     table-layout: fixed
     width: 100%

@@ -28,6 +28,9 @@ export const abilitazioneVuota = (): AbilitazioneOp => ({
 const SEED: Record<string, AbilitazioneOp> = {
   '66': { abilitato: true, emailAziendale: 'p.aragona@hotelnoto.it', livello: 'amministratore', reparti: ['frontOffice', 'risorseUmane'], responsabile: true, hr: true },
   '89': { abilitato: true, emailAziendale: 'm.campo@hotelnoto.it', livello: 'impiegato', reparti: ['frontOffice'], responsabile: false, hr: false },
+  // Collaboratori esterni (chiave est-<id>, vedi useCollaboratoriEsterniStore)
+  'est-ce-1': { abilitato: true, emailAziendale: 'e.morra@splendorservizi.it', livello: 'impiegato', reparti: ['pulizie'], responsabile: false, hr: false },
+  'est-ce-2': { abilitato: true, emailAziendale: 'd.lupo@tecnoimpiantihotel.it', livello: 'impiegato', reparti: ['manutenzione'], responsabile: false, hr: false },
 }
 
 interface State {
@@ -43,6 +46,11 @@ export const useAnagraficaOpStore = create<State>()(
       set: (id, a) => set(s => ({ abilitazioni: { ...s.abilitazioni, [id]: a } })),
       patch: (id, p) => set(s => ({ abilitazioni: { ...s.abilitazioni, [id]: { ...(s.abilitazioni[id] ?? abilitazioneVuota()), ...p } } })),
     }),
-    { name: 'sibylla.anagrafica-op', version: 1 },
+    {
+      name: 'sibylla.anagrafica-op',
+      version: 2,
+      // v2: abilitazioni dei collaboratori esterni di esempio
+      migrate: (persisted: any) => ({ abilitazioni: { ...SEED, ...(persisted?.abilitazioni ?? {}) } }) as any,
+    },
   ),
 )

@@ -164,6 +164,52 @@ export interface CcnlHr {
   livelli: LivelloCcnl[]
 }
 
+// ── Collaboratori esterni ────────────────────────────────────────────────────
+//  Addetti di ditte in appalto (fornitori di Purchasing con `appalto`), non
+//  dipendenti: niente CCNL, ferie o cedolini. La categoria fissa i reparti
+//  dell'App Op! a cui possono accedere, i documenti richiesti e la durata
+//  massima dell'autorizzazione (alla scadenza l'accesso all'app si spegne).
+export interface CategoriaEsterniHr {
+  id: string
+  nome: string
+  repartiOp: RepartoOp[]
+  documenti: string[]
+  durataMaxMesi: number
+  colore: number
+  attiva: boolean
+}
+
+/** Badge di riconoscimento dei collaboratori esterni (tessera art. 26 c. 8 D.Lgs. 81/2008). */
+export interface BadgeConfigHr {
+  /** Intestazione (committente): vuoto = nome della struttura corrente. */
+  intestazione: string
+  /** Colore della banda (palette --chart-*, come reparti e turni). */
+  colore: number
+  orientamento: 'orizzontale' | 'verticale'
+  /** cr80 = una tessera per pagina (stampanti di card), a4 = foglio con più tessere da ritagliare. */
+  formatoStampa: 'cr80' | 'a4'
+  mostraNascita: boolean
+  mostraCategoria: boolean
+  mostraValidita: boolean
+  mostraPartitaIva: boolean
+  mostraQr: boolean
+  /** Stampa anche il retro con dicitura e recapiti. */
+  retro: boolean
+  dicitura: string
+  testoRetro: string
+}
+
+export const BADGE_DEFAULT: BadgeConfigHr = {
+  intestazione: '', colore: 1, orientamento: 'orizzontale', formatoStampa: 'a4',
+  mostraNascita: true, mostraCategoria: true, mostraValidita: true, mostraPartitaIva: true, mostraQr: true, retro: true,
+  dicitura: 'Tessera di riconoscimento — art. 26 c. 8 D.Lgs. 81/2008 e art. 5 L. 136/2010',
+  testoRetro: 'Il titolare è autorizzato ad accedere alla struttura solo nel periodo indicato. In caso di smarrimento avvisare il ricevimento. La tessera va esposta in modo visibile durante il servizio.',
+}
+
+export const DOCUMENTI_ESTERNI = [
+  'Contratto d’appalto', 'DURC', 'Formazione sicurezza', 'DUVRI', 'Documento d’identità', 'Attestato HACCP', 'Idoneità sanitaria',
+]
+
 // ─── Seed ─────────────────────────────────────────────────────────────────────
 
 const SEED_REPARTI: RepartoHr[] = [
@@ -219,6 +265,12 @@ const SEED_TIPOLOGIE: TipologiaContrattoHr[] = [
   { id: 'tip-som',  nome: 'Somministrazione',             codice: 'A.07.00', conScadenza: true, durataMaxMesi: 24, periodoProva: false, attiva: true },
   { id: 'tip-coco', nome: 'Collaborazione (Co.co.co.)',   codice: 'A.09.00', conScadenza: true, periodoProva: false, attiva: true },
   { id: 'tip-tir',  nome: 'Tirocinio / Stage',            codice: 'C.01.00', conScadenza: true, durataMaxMesi: 6, periodoProva: false, attiva: true },
+]
+
+const SEED_CATEGORIE_ESTERNI: CategoriaEsterniHr[] = [
+  { id: 'cest-pul', nome: 'Addetto pulizie', repartiOp: ['pulizie'], documenti: ['Contratto d’appalto', 'DURC', 'Formazione sicurezza', 'Documento d’identità'], durataMaxMesi: 12, colore: 3, attiva: true },
+  { id: 'cest-man', nome: 'Manutentore', repartiOp: ['manutenzione'], documenti: ['Contratto d’appalto', 'DURC', 'Formazione sicurezza', 'DUVRI', 'Documento d’identità'], durataMaxMesi: 12, colore: 4, attiva: true },
+  { id: 'cest-fac', nome: 'Facchino', repartiOp: ['frontOffice', 'magazzino'], documenti: ['Contratto d’appalto', 'DURC', 'Documento d’identità'], durataMaxMesi: 6, colore: 1, attiva: true },
 ]
 
 const lv = (id: string, codice: string, descrizione: string, categoria: CategoriaLivello, minimoMensile: number, scattoImporto: number, provaGiorni: number, preavvisoGiorni: number): LivelloCcnl =>
@@ -348,6 +400,8 @@ export interface HrConfigData {
   schemi: SchemaTurniHr[]
   tipologie: TipologiaContrattoHr[]
   ccnl: CcnlHr[]
+  categorieEsterni: CategoriaEsterniHr[]
+  badge: BadgeConfigHr
 }
 
 interface HrConfigState extends HrConfigData {
@@ -356,11 +410,13 @@ interface HrConfigState extends HrConfigData {
   setTurnistica: (turni: TurnoHr[], schemi: SchemaTurniHr[]) => void
   setTipologie: (v: TipologiaContrattoHr[]) => void
   setCcnl: (v: CcnlHr[]) => void
+  setCategorieEsterni: (v: CategoriaEsterniHr[]) => void
+  setBadge: (v: BadgeConfigHr) => void
 }
 
 export const HR_CONFIG_SEED: HrConfigData = {
   reparti: SEED_REPARTI, orari: SEED_ORARI, turni: SEED_TURNI, schemi: SEED_SCHEMI,
-  tipologie: SEED_TIPOLOGIE, ccnl: SEED_CCNL,
+  tipologie: SEED_TIPOLOGIE, ccnl: SEED_CCNL, categorieEsterni: SEED_CATEGORIE_ESTERNI, badge: BADGE_DEFAULT,
 }
 
 export const useHrConfigStore = create<HrConfigState>()(
@@ -372,8 +428,19 @@ export const useHrConfigStore = create<HrConfigState>()(
       setTurnistica: (turni, schemi) => set({ turni, schemi }),
       setTipologie: (tipologie) => set({ tipologie }),
       setCcnl: (ccnl) => set({ ccnl }),
+      setCategorieEsterni: (categorieEsterni) => set({ categorieEsterni }),
+      setBadge: (badge) => set({ badge }),
     }),
-    { name: 'sibylla.hr-config', version: 1 },
+    {
+      name: 'sibylla.hr-config',
+      version: 3,
+      // v2: categorie dei collaboratori esterni; v3: badge (le altre voci restano com'erano)
+      migrate: (persisted: any) => ({
+        ...HR_CONFIG_SEED, ...(persisted ?? {}),
+        categorieEsterni: persisted?.categorieEsterni ?? SEED_CATEGORIE_ESTERNI,
+        badge: { ...BADGE_DEFAULT, ...(persisted?.badge ?? {}) },
+      }) as any,
+    },
   ),
 )
 

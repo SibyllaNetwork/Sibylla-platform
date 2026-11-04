@@ -1,0 +1,52 @@
+// ─── INVITA COLLABORATORE ESTERNO (App Op!) ───────────────────────────────────
+@use '../../styles/tokens' as *
+
+.modal__box.op-inv-est
+  width: min(580px, calc(100vw - 48px))
+
+.op-inv-est
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__nota
+    margin: 0
+    font-size: 12.5px
+    color: $text-inactive
+
+  &__muted
+    margin: 0
+    font-size: 11.5px
+    color: $text-inactive
+
+  &__info
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 10px 18px
+    margin: 0
+    padding: 12px 14px
+    border-radius: $radius-md
+    background: $primary-50
+
+    dt
+      font-size: 11px
+      color: $text-inactive
+
+    dd
+      margin: 0
+      font-size: 13px
+      font-weight: 600
+      color: $text-active
+
+  &__footer
+    display: flex
+    flex-wrap: wrap
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 18px
+    padding-top: 14px
+    border-top: 1px solid $border
+
+  &__footer .op-inv-est__new
+    margin-right: auto
