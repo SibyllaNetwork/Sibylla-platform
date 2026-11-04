@@ -108,6 +108,56 @@
     align-items: flex-start
     flex-wrap: wrap
 
+  // Foto del badge (accanto all'anteprima)
+  &__foto
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__foto-row
+    display: flex
+    gap: 14px
+    align-items: flex-start
+
+  &__foto-thumb
+    flex-shrink: 0
+    width: 72px
+    height: 90px
+    padding: 0
+    border: 1px dashed $border
+    border-radius: $radius-md
+    background: $bg
+    overflow: hidden
+    cursor: pointer
+    display: flex
+    align-items: center
+    justify-content: center
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+    i
+      font-size: 28px
+      color: $text-disabled
+
+    &:hover
+      border-color: $primary-300
+
+  &__foto-btns
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 6px
+
+    > .colest__muted
+      flex-basis: 100%
+      font-size: 11.5px
+
+  &__foto-btns .colest__foto-del
+    color: $error
+
   &__tessera-side
     display: flex
     flex-direction: column

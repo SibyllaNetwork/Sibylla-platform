@@ -19,6 +19,7 @@ import OpAccessoAnagrafica from '../../appop/OpAccessoAnagrafica'
 import { emailValida } from '../../appop/invitoAnagrafica'
 import BadgeAnteprima from '../_badge/BadgeAnteprima'
 import { stampaBadge } from '../_badge/badgeEsterno'
+import { leggiFotoTessera } from '../_badge/fotoTessera'
 import './CollaboratoreEsterno.sass'
 
 // ─── HUMAN RESOURCES › COLLABORATORE ESTERNO ─────────────────────────────────
@@ -62,6 +63,7 @@ export default function CollaboratoreEsterno({ navigate, id, fornitoreId }: { na
   const appOpAttivo = useModuloAttivo('app-op')
   const { elenco: strutture, struttura } = useStrutturaCorrente()
   const fotoRef = useRef<HTMLInputElement>(null)
+  const camRef = useRef<HTMLInputElement>(null)
 
   const esistente = id ? collaboratori.find((c) => c.id === id) : undefined
   const [form, setForm] = useState<Omit<Collab, 'id' | 'createdAt'>>(() => esistente ?? {
@@ -143,13 +145,17 @@ export default function CollaboratoreEsterno({ navigate, id, fornitoreId }: { na
     navigate('archivio-personale:esterni')
   }
 
-  const onFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Foto del badge: da file o fotocamera, ritagliata in formato tessera 4:5 e ridotta
+  const onFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     e.target.value = ''
     if (!f) return
-    const r = new FileReader()
-    r.onload = () => set('foto', r.result as string)
-    r.readAsDataURL(f)
+    try {
+      set('foto', await leggiFotoTessera(f))
+      toast.success('Foto allegata al badge: salva la scheda per conservarla.', 'Badge')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Foto non caricata.', 'Badge')
+    }
   }
 
   const datiBadge = {
@@ -190,6 +196,7 @@ export default function CollaboratoreEsterno({ navigate, id, fornitoreId }: { na
             <span className="colest__muted">Foto per il badge</span>
             {form.foto && <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => set('foto', undefined)}>Rimuovi</button>}
             <input ref={fotoRef} type="file" accept="image/*" className="hidden" onChange={onFoto} />
+            <input ref={camRef} type="file" accept="image/*" capture="user" className="hidden" onChange={onFoto} />
           </div>
           <div className="colest__grid">
             <InputField name="ce_nome" label="Nome" required value={form.nome} onChange={(e) => set('nome', e.target.value)} />
@@ -281,6 +288,28 @@ export default function CollaboratoreEsterno({ navigate, id, fornitoreId }: { na
           <div className="colest__tessera">
             <BadgeAnteprima dati={datiBadge} />
             <div className="colest__tessera-side">
+              <div className="colest__foto">
+                <span className="colest__label">Foto del badge</span>
+                <div className="colest__foto-row">
+                  <button type="button" className="colest__foto-thumb" onClick={() => fotoRef.current?.click()} aria-label={form.foto ? 'Sostituisci la foto' : 'Allega la foto'}>
+                    {form.foto ? <img src={form.foto} alt="Foto del badge" /> : <i className="fa-duotone fa-user" aria-hidden="true" />}
+                  </button>
+                  <div className="colest__foto-btns">
+                    <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => fotoRef.current?.click()}>
+                      <i className="fa-light fa-folder-open" /> {form.foto ? 'Sostituisci foto' : 'Carica foto'}
+                    </button>
+                    <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => camRef.current?.click()}>
+                      <i className="fa-light fa-camera" /> Scatta foto
+                    </button>
+                    {form.foto && (
+                      <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm colest__foto-del" onClick={() => set('foto', undefined)}>
+                        <i className="fa-light fa-trash-can" /> Rimuovi
+                      </button>
+                    )}
+                    <span className="colest__muted">JPG o PNG, ritagliata in formato tessera 4:5.</span>
+                  </div>
+                </div>
+              </div>
               {!form.foto && <AlertBanner type="warning">Manca la foto: sul badge comparirebbero le iniziali, ma per legge la tessera deve avere la fotografia.</AlertBanner>}
               {!form.dataAssunzione && <AlertBanner type="warning">Indica la data di assunzione presso l’impresa: è obbligatoria sul badge.</AlertBanner>}
               <p className="colest__hint">Campi, colore e formato si impostano in Human Resources › Configurazione › Collaboratori esterni.</p>
