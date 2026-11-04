@@ -1,15 +1,16 @@
 import React, { useState } from 'react'
-import { InputField, SelectField, ToggleSwitch, CheckboxField, DatePickerField } from '../../../../../core/components/form'
+import { InputField, SelectField, ToggleSwitch } from '../../../../../core/components/form'
 import TruncatedText from '../../../../../core/components/TruncatedText'
 import { CfgToolbar, CfgTable, CfgSaveBar } from '../../../../../core/cfg'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import {
-  useHrConfigStore, nuovoId, oreGiorno, oreSettimanaliOrario, giorniLavorativiOrario,
+  useHrConfigStore, nuovoId, oreSettimanaliOrario, giorniLavorativiOrario, minutiGiorno,
   GIORNI_SETTIMANA, REGIMI_ORARIO, type OrarioHr, type RegimeOrario,
 } from '../../../../../store/useHrConfigStore'
 import { useHrDraft, diffCount } from '../_hr/useHrDraft'
 import HrFormModal from '../_hr/HrFormModal'
 import HrRowActions from '../_hr/HrRowActions'
+import SettimanaOrario, { MODELLI } from './SettimanaOrario'
 import './HrOrari.sass'
 
 // ─── RISORSE UMANE › ORARI DI LAVORO ─────────────────────────────────────────
@@ -21,21 +22,29 @@ import './HrOrari.sass'
 
 const vuoto = (): OrarioHr => ({
   id: '', nome: '', regime: 'full-time', aTurni: false, oreSettimanali: 40, giorniSettimana: 5, flessibilitaMin: 10,
-  giorni: GIORNI_SETTIMANA.map((_, i) => ({ attivo: i < 5, entrata: '09:00', uscita: '18:00', pausaMin: 60 })),
+  giorni: MODELLI[0].giorni(),
 })
 const completion = (v: OrarioHr[]) => (v.length ? 'configured' as const : 'empty' as const)
 const fmtOre = (h: number) => (Number.isInteger(h) ? `${h}` : h.toFixed(2).replace('.', ',').replace(/0$/, ''))
 const labelRegime = (r: RegimeOrario) => REGIMI_ORARIO.find(x => x.value === r)?.label ?? r
 
+/** Descrizione compatta: giorni consecutivi con le stesse fasce raggruppati (es. «Lun–Ven 09:00–13:00 · 14:00–18:00, Sab 08:30–11:00»). */
 function riepilogo(o: OrarioHr) {
   if (o.aTurni) return `A turni · ${o.giorniSettimana} giorni su 7`
-  const attivi = o.giorni.map((f, i) => ({ f, i })).filter(x => x.f.attivo)
-  if (!attivi.length) return '—'
-  const stesso = attivi.every(x => x.f.entrata === attivi[0].f.entrata && x.f.uscita === attivi[0].f.uscita)
-  const giorni = attivi.length > 2 && attivi.every((x, k) => k === 0 || x.i === attivi[k - 1].i + 1)
-    ? `${GIORNI_SETTIMANA[attivi[0].i]}–${GIORNI_SETTIMANA[attivi[attivi.length - 1].i]}`
-    : attivi.map(x => GIORNI_SETTIMANA[x.i]).join(', ')
-  return stesso ? `${giorni} ${attivi[0].f.entrata}–${attivi[0].f.uscita}` : `${giorni} · orari variabili`
+  const firma = (i: number) => {
+    const g = o.giorni[i]
+    return g?.attivo && minutiGiorno(g) > 0 ? g.fasce.map(f => `${f.inizio}–${f.fine}`).join(' · ') : ''
+  }
+  const gruppi: { da: number; a: number; f: string }[] = []
+  GIORNI_SETTIMANA.forEach((_, i) => {
+    const f = firma(i)
+    if (!f) return
+    const ultimo = gruppi[gruppi.length - 1]
+    if (ultimo && ultimo.f === f && ultimo.a === i - 1) ultimo.a = i
+    else gruppi.push({ da: i, a: i, f })
+  })
+  if (!gruppi.length) return '—'
+  return gruppi.map(g => `${GIORNI_SETTIMANA[g.da]}${g.a > g.da ? `–${GIORNI_SETTIMANA[g.a]}` : ''} ${g.f}`).join(', ')
 }
 
 export default function HrOrari() {
@@ -46,14 +55,11 @@ export default function HrOrari() {
 
   const [form, setForm] = useState<OrarioHr | null>(null)
   const set = <K extends keyof OrarioHr>(k: K, v: OrarioHr[K]) => setForm(f => (f ? { ...f, [k]: v } : f))
-  const setGiorno = (i: number, p: Partial<OrarioHr['giorni'][number]>) =>
-    setForm(f => (f ? { ...f, giorni: f.giorni.map((g, k) => (k === i ? { ...g, ...p } : g)) } : f))
-  const copiaSuTutti = (i: number) =>
-    setForm(f => (f ? { ...f, giorni: f.giorni.map(g => (g.attivo ? { ...f.giorni[i], attivo: true } : g)) } : f))
 
   const submit = () => {
     if (!form) return
-    const o = { ...form, nome: form.nome.trim() }
+    // fasce non valide (fine non successiva all'inizio) scartate; formato hh:mm → confronto lessicografico
+    const o = { ...form, nome: form.nome.trim(), giorni: form.giorni.map(g => ({ ...g, fasce: g.fasce.filter(f => f.fine > f.inizio) })) }
     if (!o.aTurni) { o.oreSettimanali = oreSettimanaliOrario(o); o.giorniSettimana = giorniLavorativiOrario(o) }
     setDraft(d => (o.id ? d.map(x => (x.id === o.id ? o : x)) : [...d, { ...o, id: nuovoId('ora') }]))
     setForm(null)
@@ -131,28 +137,7 @@ export default function HrOrari() {
                   onChange={(e) => set('giorniSettimana', Math.min(7, Number(e.target.value) || 0))} />
               </div>
             ) : (
-              <div className="cfg-hrora__week">
-                <div className="cfg-hrora__week-head">
-                  <span>Giorno</span><span>Entrata</span><span>Uscita</span><span>Pausa (min)</span><span>Ore</span><span />
-                </div>
-                {form.giorni.map((g, i) => (
-                  <div key={GIORNI_SETTIMANA[i]} className={`cfg-hrora__week-row${g.attivo ? '' : ' is-off'}`}>
-                    <CheckboxField name={`ora-g${i}`} label={GIORNI_SETTIMANA[i]} checked={g.attivo}
-                      onChange={(e) => setGiorno(i, { attivo: e.target.checked, entrata: g.entrata || '09:00', uscita: g.uscita || '18:00' })} />
-                    <DatePickerField name={`ora-in${i}`} type="time" value={g.entrata} disabled={!g.attivo} onChange={(e) => setGiorno(i, { entrata: e.target.value })} />
-                    <DatePickerField name={`ora-out${i}`} type="time" value={g.uscita} disabled={!g.attivo} onChange={(e) => setGiorno(i, { uscita: e.target.value })} />
-                    <InputField name={`ora-p${i}`} type="number" min={0} step={5} value={g.pausaMin} disabled={!g.attivo} ariaLabel={`Pausa ${GIORNI_SETTIMANA[i]}`}
-                      onChange={(e) => setGiorno(i, { pausaMin: Number(e.target.value) || 0 })} />
-                    <span className="cfg-hrora__week-ore">{g.attivo ? `${fmtOre(oreGiorno(g))} h` : '—'}</span>
-                    <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm cfg-hrora__copy" disabled={!g.attivo} onClick={() => copiaSuTutti(i)}>
-                      Copia sui giorni attivi
-                    </button>
-                  </div>
-                ))}
-                <div className="cfg-hrora__week-total">
-                  Totale settimanale <strong>{fmtOre(oreSettimanaliOrario(form))} h</strong> su {giorniLavorativiOrario(form)} giorni
-                </div>
-              </div>
+              <SettimanaOrario value={form.giorni} onChange={(giorni) => set('giorni', giorni)} />
             )}
           </>
         )}

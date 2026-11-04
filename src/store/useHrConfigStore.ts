@@ -38,7 +38,10 @@ export const REGIMI_ORARIO: { value: RegimeOrario; label: string }[] = [
   { value: 'part-time-misto',       label: 'Part time misto' },
 ]
 
-export interface FasciaGiorno { attivo: boolean; entrata: string; uscita: string; pausaMin: number }
+/** Intervallo di lavoro nella giornata (hh:mm, fine > inizio). */
+export interface IntervalloOrario { inizio: string; fine: string }
+/** Giornata dell'orario: una o più fasce (giornata spezzata) e pausa non retribuita dentro le fasce. */
+export interface FasciaGiorno { attivo: boolean; fasce: IntervalloOrario[]; pausaMin: number }
 
 export interface OrarioHr {
   id: string
@@ -223,21 +226,32 @@ const SEED_REPARTI: RepartoHr[] = [
   { id: 'rep-mkt',  nome: 'Marketing',       codice: 'MKT', responsabile: '',               centroCosto: 'CDC-05 Sede',          colore: 8, attivo: false },
 ]
 
-const g = (attivo: boolean, entrata = '09:00', uscita = '18:00', pausaMin = 60): FasciaGiorno => ({ attivo, entrata, uscita, pausaMin })
-const OFF = g(false, '', '', 0)
+const g = (...fasce: [string, string][]): FasciaGiorno => ({ attivo: true, fasce: fasce.map(([inizio, fine]) => ({ inizio, fine })), pausaMin: 0 })
+const gp = (pausaMin: number, inizio: string, fine: string): FasciaGiorno => ({ attivo: true, fasce: [{ inizio, fine }], pausaMin })
+const OFF: FasciaGiorno = { attivo: false, fasce: [], pausaMin: 0 }
 
+const SPEZZATO = g(['09:00', '13:00'], ['14:00', '18:00'])
 const SEED_ORARI: OrarioHr[] = [
   { id: 'ora-ft5', nome: 'Full time 40 h · 5 giorni', regime: 'full-time', aTurni: false, oreSettimanali: 40, giorniSettimana: 5, flessibilitaMin: 15,
-    giorni: [g(true), g(true), g(true), g(true), g(true), OFF, OFF] },
+    giorni: [SPEZZATO, SPEZZATO, SPEZZATO, SPEZZATO, SPEZZATO, OFF, OFF] },
   { id: 'ora-ft6', nome: 'Full time 40 h · 6 giorni', regime: 'full-time', aTurni: false, oreSettimanali: 40, giorniSettimana: 6, flessibilitaMin: 10,
-    giorni: [g(true, '08:00', '15:10', 30), g(true, '08:00', '15:10', 30), g(true, '08:00', '15:10', 30), g(true, '08:00', '15:10', 30), g(true, '08:00', '15:10', 30), g(true, '08:00', '15:10', 30), OFF] },
+    giorni: [...Array.from({ length: 6 }, () => gp(30, '08:00', '15:10')), OFF] },
+  { id: 'ora-ftsab', nome: 'Full time 40 h · sabato mattina', regime: 'full-time', aTurni: false, oreSettimanali: 40, giorniSettimana: 6, flessibilitaMin: 10,
+    giorni: [...Array.from({ length: 5 }, () => g(['08:30', '12:30'], ['13:30', '17:00'])), g(['08:30', '11:00']), OFF] },
   { id: 'ora-tur', nome: 'Turnista 40 h · 6 giorni', regime: 'full-time', aTurni: true, oreSettimanali: 40, giorniSettimana: 6, flessibilitaMin: 0,
     giorni: Array.from({ length: 7 }, () => ({ ...OFF })) },
   { id: 'ora-pt30', nome: 'Part time 30 h orizzontale', regime: 'part-time-orizzontale', aTurni: false, oreSettimanali: 30, giorniSettimana: 5, flessibilitaMin: 10,
-    giorni: [g(true, '09:00', '15:00', 0), g(true, '09:00', '15:00', 0), g(true, '09:00', '15:00', 0), g(true, '09:00', '15:00', 0), g(true, '09:00', '15:00', 0), OFF, OFF] },
+    giorni: [...Array.from({ length: 5 }, () => g(['09:00', '15:00'])), OFF, OFF] },
   { id: 'ora-pt24', nome: 'Part time 24 h verticale', regime: 'part-time-verticale', aTurni: false, oreSettimanali: 24, giorniSettimana: 3, flessibilitaMin: 10,
-    giorni: [g(true, '08:00', '16:30', 30), g(true, '08:00', '16:30', 30), g(true, '08:00', '16:30', 30), OFF, OFF, OFF, OFF] },
+    giorni: [...Array.from({ length: 3 }, () => gp(30, '08:00', '16:30')), OFF, OFF, OFF, OFF] },
 ]
+
+/** Giornata nel formato attuale (gli orari salvati prima avevano entrata/uscita singole). */
+export function normalizzaGiorno(d: any): FasciaGiorno {
+  if (d && Array.isArray(d.fasce)) return { attivo: !!d.attivo, fasce: d.fasce, pausaMin: Number(d.pausaMin) || 0 }
+  const fasce = d?.attivo && d.entrata && d.uscita ? [{ inizio: d.entrata, fine: d.uscita }] : []
+  return { attivo: !!d?.attivo, fasce, pausaMin: Number(d?.pausaMin) || 0 }
+}
 
 const SEED_TURNI: TurnoHr[] = [
   { id: 'tur-m', sigla: 'M', nome: 'Mattina',    inizio: '07:00', fine: '15:00', pausaMin: 30, colore: 1, reparti: [] },
@@ -330,8 +344,10 @@ export const durataMin = (inizio: string, fine: string) => {
   return d < 0 ? d + 1440 : d
 }
 
-export const oreGiorno = (f: FasciaGiorno) =>
-  f.attivo ? Math.max(0, durataMin(f.entrata, f.uscita) - f.pausaMin) / 60 : 0
+/** Minuti lavorati nelle fasce della giornata, al netto della pausa. */
+export const minutiGiorno = (f: FasciaGiorno) =>
+  f.attivo ? Math.max(0, f.fasce.reduce((a, x) => a + durataMin(x.inizio, x.fine), 0) - f.pausaMin) : 0
+export const oreGiorno = (f: FasciaGiorno) => minutiGiorno(f) / 60
 
 /** Ore settimanali effettive dell'orario. */
 export const oreSettimanaliOrario = (o: OrarioHr) =>
@@ -433,10 +449,11 @@ export const useHrConfigStore = create<HrConfigState>()(
     }),
     {
       name: 'sibylla.hr-config',
-      version: 3,
-      // v2: categorie dei collaboratori esterni; v3: badge (le altre voci restano com'erano)
+      version: 4,
+      // v2: categorie dei collaboratori esterni; v3: badge; v4: orari con più fasce al giorno
       migrate: (persisted: any) => ({
         ...HR_CONFIG_SEED, ...(persisted ?? {}),
+        orari: ((persisted?.orari ?? HR_CONFIG_SEED.orari) as any[]).map(o => ({ ...o, giorni: (o.giorni ?? []).map(normalizzaGiorno) })),
         categorieEsterni: persisted?.categorieEsterni ?? SEED_CATEGORIE_ESTERNI,
         badge: { ...BADGE_DEFAULT, ...(persisted?.badge ?? {}) },
       }) as any,

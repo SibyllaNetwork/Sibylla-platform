@@ -1,0 +1,275 @@
+// ─── EDITOR SETTIMANALE DELL'ORARIO ───────────────────────────────────────────
+// Posizioni delle fasce: custom property --a (inizio) e --w (durata) in % del
+// giorno, impostate dal componente; tutto il resto qui (niente stili inline).
+@use '../../../../../styles/tokens' as *
+
+.sett-ora
+  display: flex
+  flex-direction: column
+  gap: 12px
+  user-select: none
+
+  &__toolbar
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 6px
+
+  &__label
+    margin-right: 4px
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__chip
+    height: 28px
+    padding: 0 12px
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+    font-size: 12px
+    color: $text-active
+    cursor: pointer
+    transition: border-color $motion-fast $motion-ease, background $motion-fast $motion-ease
+
+    &:hover
+      border-color: $primary-300
+      background: $primary-50
+
+  // ── Griglia: [giorno][barra 24h][ore][azioni] ──────────────────────────────
+  &__grid
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 12px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: var(--color-surface)
+
+  &__scale, &__row
+    display: grid
+    grid-template-columns: 52px minmax(0, 1fr) 58px 32px
+    gap: 10px
+    align-items: center
+
+  &__ticks
+    position: relative
+    height: 16px
+
+    span
+      position: absolute
+      left: var(--x)
+      transform: translateX(-50%)
+      font-size: 10.5px
+      color: $text-inactive
+      font-variant-numeric: tabular-nums
+
+  &__row
+    position: relative
+
+    &.is-off .sett-ora__track
+      opacity: .55
+
+  &__day
+    height: 32px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $bg
+    font-family: $font-heading
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: all $motion-fast $motion-ease
+
+    &.is-on
+      color: $white
+      background: $primary
+      border-color: $primary
+
+  &__track
+    position: relative
+    height: 38px
+    border-radius: $radius-md
+    background-color: $bg
+    // griglia delle ore (linee ogni ora, più marcate ogni 6)
+    // --ore = ore visibili nella barra (finestra 06–24 o più ampia)
+    background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(100% / var(--ore) - 1px), alpha($border, .9) calc(100% / var(--ore) - 1px), alpha($border, .9) calc(100% / var(--ore)))
+    border: 1px solid $border
+    cursor: crosshair
+    touch-action: none
+    overflow: hidden
+
+  // Fasce notturne (22–6) appena ombreggiate
+  &__notte
+    position: absolute
+    top: 0
+    bottom: 0
+    background: alpha($primary, .05)
+    pointer-events: none
+
+    &--a
+      left: 0
+      width: var(--notte-a)
+
+    &--b
+      right: 0
+      width: var(--notte-b)
+
+  &__block
+    position: absolute
+    top: 4px
+    bottom: 4px
+    left: var(--a)
+    width: var(--w)
+    min-width: 6px
+    display: flex
+    align-items: center
+    justify-content: center
+    border-radius: 6px
+    background: $primary
+    color: $white
+    font-size: 11px
+    font-weight: 600
+    cursor: grab
+    box-shadow: 0 1px 2px alpha($primary-900, .25)
+    transition: box-shadow $motion-fast $motion-ease, background $motion-fast $motion-ease
+
+    &:hover
+      background: $primary-700
+
+    &:focus-visible, &.is-sel
+      outline: none
+      box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px $primary-300
+
+    &.is-muted
+      background: $text-disabled
+
+    &.is-ghost
+      background: alpha($primary, .35)
+      border: 1px dashed $primary
+      pointer-events: none
+
+  &__block-txt
+    padding: 0 8px
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+    font-variant-numeric: tabular-nums
+    pointer-events: none
+
+  &__handle
+    position: absolute
+    top: 0
+    bottom: 0
+    width: 8px
+    cursor: ew-resize
+
+    &--a
+      left: 0
+
+    &--b
+      right: 0
+
+    &::after
+      content: ''
+      position: absolute
+      top: 30%
+      bottom: 30%
+      left: 3px
+      width: 2px
+      border-radius: 1px
+      background: alpha($white, .7)
+
+  &__ore
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-active
+    text-align: right
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  // ── Copia su… ─────────────────────────────────────────────────────────────
+  &__copy
+    grid-column: 1 / -1
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 6px
+    padding: 8px 10px
+    border: 1px dashed $primary-300
+    border-radius: $radius-md
+    background: $primary-50
+    font-size: 12px
+    color: $text-active
+
+  &__copy-day
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    height: 26px
+    padding: 0 10px
+    border: 1px solid $border
+    border-radius: 13px
+    background: var(--color-surface)
+    cursor: pointer
+
+    input
+      accent-color: $primary
+
+    &.is-on
+      border-color: $primary
+      color: $primary
+      font-weight: 600
+
+  // ── Dettaglio fascia ───────────────────────────────────────────────────────
+  &__detail
+    display: grid
+    grid-template-columns: auto 130px 130px minmax(0, 220px) auto
+    gap: 12px
+    align-items: end
+    padding: 10px 12px
+    border-radius: $radius-md
+    background: $primary-50
+
+  &__detail-title
+    align-self: center
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: $font-heading
+    font-size: 12.5px
+    font-weight: 600
+    color: $primary
+    white-space: nowrap
+
+  &__detail .sett-ora__del
+    color: $error
+
+  &__hint
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $primary
+
+  &__total
+    font-size: 12.5px
+    color: $text-inactive
+    text-align: right
+
+    strong
+      color: $text-active
+
+@media (max-width: 760px)
+  .sett-ora__detail
+    grid-template-columns: 1fr 1fr
+
+  .sett-ora__scale, .sett-ora__row
+    grid-template-columns: 44px minmax(0, 1fr) 50px 28px
+    gap: 6px
