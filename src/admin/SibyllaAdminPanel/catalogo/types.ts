@@ -52,6 +52,41 @@ export interface DatiAppalto {
   /** L'impresa lavora in subappalto: sul badge va l'autorizzazione. */
   subappalto: boolean
   subappaltoAutorizzazione: string
+  /** Valutazione dei rischi da interferenze (art. 26 c. 3 D.Lgs. 81/2008). */
+  duvri?: DuvriAppalto
+  /** Verifica dell'idoneità tecnico-professionale (art. 26 c. 1 D.Lgs. 81/2008). */
+  idoneita?: IdoneitaAppalto
+}
+
+/** Allegato (PDF/immagine) salvato con i dati dell'impresa. */
+export interface AllegatoAppalto {
+  nome: string
+  dataUrl?: string
+}
+
+export type EsenzioneDuvri = 'intellettuale' | 'forniture' | 'cinque-uomini-giorno' | ''
+
+/** DUVRI dell'appalto: redatto dal committente, sottoscritto dall'impresa, allegato al contratto. */
+export interface DuvriAppalto {
+  dovuto: boolean
+  allegato?: AllegatoAppalto
+  dataRedazione: string
+  dataSottoscrizione: string
+  revisione: string
+  /** Da riesaminare entro questa data (o prima, se cambiano attività, luoghi o rischi). */
+  prossimoAggiornamento: string
+  /** Costi della sicurezza da interferenze, non soggetti a ribasso (€). */
+  costiSicurezza: number
+  /** Senza DUVRI: motivo dell'esenzione e incaricato per cooperazione e coordinamento. */
+  esenzione: EsenzioneDuvri
+  incaricatoCoordinamento: string
+}
+
+export interface IdoneitaAppalto {
+  visura?: AllegatoAppalto
+  visuraData: string
+  autocertificazione?: AllegatoAppalto
+  autocertificazioneData: string
 }
 
 export type UnitaMisura = 'pz' | 'kg' | 'g' | 'l' | 'ml' | 'cassa' | 'box' | 'conf'

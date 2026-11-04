@@ -242,6 +242,39 @@
     border: 1px solid $border
     border-radius: $radius-md
 
+  // Stato del DUVRI dell'appalto (sola lettura)
+  &__duvri
+    display: flex
+    align-items: center
+    gap: 10px
+    flex-wrap: wrap
+    padding: 10px 14px
+    border-radius: $radius-md
+    font-size: 12.5px
+    color: $text-active
+
+    > span
+      flex: 1
+      min-width: 200px
+
+    &--ok
+      background: alpha($success, .08)
+
+      > i
+        color: $success
+
+    &--warn
+      background: alpha($warning, .1)
+
+      > i
+        color: $warning
+
+    &--ko
+      background: alpha($error, .07)
+
+      > i
+        color: $error
+
   &__doc-label
     display: flex
     flex-direction: column

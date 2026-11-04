@@ -619,3 +619,6 @@ dell'Archivio: `src/modules/appop/invitoAnagrafica.ts` + `useAnagraficaOpStore`.
   (A4 o CR80), campi obbligatori art. 26 c. 8 D.Lgs. 81/2008 e L. 136/2010.
 - App Op!: `OpAccessoAnagrafica` (sezione condivisa dipendenti/esterni) e «Invita collaboratore
   esterno» in Configuratore › App Op! › Utenze (`OpInvitaEsternoModal`).
+- DUVRI e idoneità tecnico-professionale sono dati dell'APPALTO (`datiAppalto.duvri`, `datiAppalto.idoneita`)
+  gestiti in Aziende in appalto, con avvisi su allegato, sottoscrizione, aggiornamento, esenzione e visura;
+  la scheda del collaboratore ne mostra solo lo stato. Il DUVRI non è più tra i documenti dei singoli addetti.

@@ -19,6 +19,7 @@ import OpAccessoAnagrafica from '../../appop/OpAccessoAnagrafica'
 import { emailValida } from '../../appop/invitoAnagrafica'
 import BadgeAnteprima from '../_badge/BadgeAnteprima'
 import { stampaBadge } from '../_badge/badgeEsterno'
+import type { DuvriAppalto } from '../../../admin/SibyllaAdminPanel/catalogo/types'
 import { leggiFotoTessera } from '../_badge/fotoTessera'
 import './CollaboratoreEsterno.sass'
 
@@ -263,6 +264,8 @@ export default function CollaboratoreEsterno({ navigate, id, fornitoreId }: { na
                   <DocRow key={d} nome={d} doc={form.documenti[d]} onChange={(p) => setDoc(d, p)} />
                 ))}
               </div>
+              <DuvriAzienda duvri={fornitori.find((f) => f.id === form.fornitoreId)?.datiAppalto?.duvri}
+                azienda={fornitori.find((f) => f.id === form.fornitoreId)?.nome} onApri={() => navigate('hr-configurazione:hr-aziende-appalto')} />
             </>
           )}
         </Section>
@@ -354,6 +357,27 @@ export default function CollaboratoreEsterno({ navigate, id, fornitoreId }: { na
           </>
         )}
       </Modal>
+    </div>
+  )
+}
+
+// DUVRI: è dell'appalto, non del singolo addetto → qui solo lo stato, si gestisce in Aziende in appalto
+function DuvriAzienda({ duvri, azienda, onApri }: { duvri?: DuvriAppalto; azienda?: string; onApri: () => void }) {
+  if (!azienda) return null
+  const scaduto = !!duvri?.prossimoAggiornamento && duvri.prossimoAggiornamento < oggi()
+  let stato: 'ok' | 'ko' | 'warn' = 'ok'
+  let testo: string
+  if (!duvri) { stato = 'ko'; testo = 'DUVRI dell’appalto non compilato' }
+  else if (!duvri.dovuto) { stato = duvri.esenzione ? 'ok' : 'warn'; testo = `DUVRI non dovuto${duvri.incaricatoCoordinamento ? ` · coordinamento: ${duvri.incaricatoCoordinamento}` : ''}` }
+  else if (!duvri.allegato) { stato = 'ko'; testo = 'DUVRI dell’appalto non allegato' }
+  else if (scaduto) { stato = 'ko'; testo = `DUVRI da aggiornare dal ${fmt(duvri.prossimoAggiornamento)}` }
+  else if (!duvri.dataSottoscrizione) { stato = 'warn'; testo = `DUVRI${duvri.revisione ? ` rev. ${duvri.revisione}` : ''} non ancora sottoscritto dall’impresa` }
+  else testo = `DUVRI${duvri.revisione ? ` rev. ${duvri.revisione}` : ''} sottoscritto il ${fmt(duvri.dataSottoscrizione)}${duvri.prossimoAggiornamento ? ` · da riesaminare entro il ${fmt(duvri.prossimoAggiornamento)}` : ''}`
+  return (
+    <div className={`colest__duvri colest__duvri--${stato}`}>
+      <i className={`fa-solid ${stato === 'ok' ? 'fa-shield-check' : 'fa-triangle-exclamation'}`} aria-hidden="true" />
+      <span><strong>{azienda}</strong> · {testo}</span>
+      <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={onApri}>Gestisci in Aziende in appalto</button>
     </div>
   )
 }

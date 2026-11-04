@@ -164,7 +164,11 @@ export const useCatalogoStore = create<CatalogoState>()(persist((set, get) => ({
     return {
       ...current,
       fornitori: [
-        ...current.fornitori.map(f => byId.get(f.id) ?? f),
+        // le ditte salvate prevalgono, ma i campi aggiunti dopo (es. DUVRI) arrivano dal seed
+        ...current.fornitori.map(f => {
+          const p = byId.get(f.id)
+          return p ? { ...f, ...p, datiAppalto: f.datiAppalto || p.datiAppalto ? { ...f.datiAppalto, ...p.datiAppalto } as any : undefined } : f
+        }),
         ...salvati.filter(f => !current.fornitori.some(c => c.id === f.id)),
       ],
     }

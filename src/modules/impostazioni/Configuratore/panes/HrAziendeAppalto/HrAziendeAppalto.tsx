@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react'
-import { InputField, ToggleSwitch, DatePickerField } from '../../../../../core/components/form'
+import React, { useCallback, useRef, useState } from 'react'
+import { InputField, ToggleSwitch, DatePickerField, SelectField } from '../../../../../core/components/form'
 import TruncatedText from '../../../../../core/components/TruncatedText'
 import Tooltip from '../../../../../core/components/Tooltip'
 import { toast } from '../../../../../core/components/Toast/useToast'
@@ -10,7 +10,7 @@ import {
   useCollaboratoriEsterniStore, statoAutorizzazione, documentiMancanti, STATO_AUT_LABEL,
 } from '../../../../../store/useCollaboratoriEsterniStore'
 import { useStrutturaCorrente } from '../../../../../hooks/useStrutturaCorrente'
-import type { DatiAppalto, Fornitore } from '../../../../../admin/SibyllaAdminPanel/catalogo/types'
+import type { AllegatoAppalto, DatiAppalto, DuvriAppalto, EsenzioneDuvri, Fornitore, IdoneitaAppalto } from '../../../../../admin/SibyllaAdminPanel/catalogo/types'
 import { stampaBadge } from '../../../../hr/_badge/badgeEsterno'
 import type { CfgPaneComponentProps } from '../../Configuratore'
 import { useHrDraft, diffCount } from '../_hr/useHrDraft'
@@ -27,6 +27,19 @@ import './HrAziendeAppalto.sass'
 const oggi = () => new Date().toISOString().slice(0, 10)
 const tra30 = () => new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10)
 const fmt = (iso?: string) => (iso ? iso.split('-').reverse().join('/') : '—')
+
+const duvriVuoto = (): DuvriAppalto => ({
+  dovuto: true, dataRedazione: '', dataSottoscrizione: '', revisione: '', prossimoAggiornamento: '', costiSicurezza: 0, esenzione: '', incaricatoCoordinamento: '',
+})
+const idoneitaVuota = (): IdoneitaAppalto => ({ visuraData: '', autocertificazioneData: '' })
+const ESENZIONI: { value: EsenzioneDuvri; label: string }[] = [
+  { value: '', label: 'Seleziona il motivo' },
+  { value: 'intellettuale', label: 'Servizi di natura intellettuale' },
+  { value: 'forniture', label: 'Mere forniture di materiali o attrezzature' },
+  { value: 'cinque-uomini-giorno', label: 'Lavori o servizi entro 5 uomini-giorno, senza rischi particolari' },
+]
+const ALLEGATO_MAX_MB = 2
+const seiMesiFa = () => { const d = new Date(); d.setMonth(d.getMonth() - 6); return d.toISOString().slice(0, 10) }
 
 const datiVuoti = (f: Fornitore): DatiAppalto => ({
   ragioneSociale: f.nome, partitaIva: '', codiceFiscale: '', sedeLegale: [f.indirizzo, f.citta].filter(Boolean).join(', '), oggetto: f.descrizione,
@@ -45,6 +58,17 @@ function avvisi(d?: DatiAppalto): { livello: 'ko' | 'warn'; testo: string }[] {
   else if (d.durcScadenza < oggi()) out.push({ livello: 'ko', testo: `DURC scaduto il ${fmt(d.durcScadenza)}` })
   else if (d.durcScadenza <= tra30()) out.push({ livello: 'warn', testo: `DURC in scadenza il ${fmt(d.durcScadenza)}` })
   if (d.subappalto && !d.subappaltoAutorizzazione) out.push({ livello: 'ko', testo: 'Subappalto senza autorizzazione' })
+  const du = d.duvri
+  if (!du) out.push({ livello: 'ko', testo: 'DUVRI da compilare' })
+  else if (du.dovuto) {
+    if (!du.allegato) out.push({ livello: 'ko', testo: 'DUVRI non allegato' })
+    else if (!du.dataSottoscrizione) out.push({ livello: 'warn', testo: 'DUVRI non sottoscritto dall’impresa' })
+    if (du.prossimoAggiornamento && du.prossimoAggiornamento < oggi()) out.push({ livello: 'ko', testo: `DUVRI da aggiornare dal ${fmt(du.prossimoAggiornamento)}` })
+    else if (du.prossimoAggiornamento && du.prossimoAggiornamento <= tra30()) out.push({ livello: 'warn', testo: `DUVRI da aggiornare entro il ${fmt(du.prossimoAggiornamento)}` })
+  } else if (!du.esenzione || !du.incaricatoCoordinamento) out.push({ livello: 'warn', testo: 'Esenzione DUVRI: indica motivo e incaricato' })
+  const id = d.idoneita
+  if (!id?.visura || !id?.autocertificazione) out.push({ livello: 'warn', testo: 'Idoneità tecnico-professionale incompleta' })
+  else if (id.visuraData && id.visuraData < seiMesiFa()) out.push({ livello: 'warn', testo: 'Visura camerale più vecchia di 6 mesi' })
   return out
 }
 
@@ -80,6 +104,10 @@ export default function HrAziendeAppalto({ navigate }: CfgPaneComponentProps) {
   const upd = (p: Partial<DatiAppalto>) => sel && setDraft(list => list.map(f => (f.id === sel.id
     ? { ...f, nome: p.ragioneSociale ?? f.nome, datiAppalto: { ...(f.datiAppalto ?? datiVuoti(f)), ...p } }
     : f)))
+  const du = d?.duvri ?? duvriVuoto()
+  const updDuvri = (p: Partial<DuvriAppalto>) => upd({ duvri: { ...du, ...p } })
+  const ido = d?.idoneita ?? idoneitaVuota()
+  const updIdo = (p: Partial<IdoneitaAppalto>) => upd({ idoneita: { ...ido, ...p } })
   const txt = (k: keyof DatiAppalto) => (e: React.ChangeEvent<HTMLInputElement>) => upd({ [k]: e.target.value } as Partial<DatiAppalto>)
 
   const aggiungi = () => { const f = nuovaAzienda(); setDraft(l => [...l, f]); setSelId(f.id) }
@@ -170,6 +198,41 @@ export default function HrAziendeAppalto({ navigate }: CfgPaneComponentProps) {
                   placeholder="Es. Autorizzazione n. 7/2026 del 22/04/2026" />
               )}
 
+              <h4 className="cfg-hrapp__sub">Sicurezza e DUVRI</h4>
+              <ToggleSwitch label="DUVRI dovuto per questo appalto"
+                description="Documento unico di valutazione dei rischi da interferenze (art. 26 c. 3 D.Lgs. 81/2008): lo redige la struttura, lo sottoscrive l’impresa, va allegato al contratto."
+                checked={du.dovuto} onChange={(v) => updDuvri({ dovuto: v })} />
+              {du.dovuto ? (
+                <>
+                  <AllegatoField label="DUVRI firmato (PDF)" value={du.allegato} onChange={(a) => updDuvri({ allegato: a })} />
+                  <div className="cfg-hrapp__grid">
+                    <DatePickerField name="duvri-red" label="Redatto il" value={du.dataRedazione} onChange={(e) => updDuvri({ dataRedazione: e.target.value })} />
+                    <DatePickerField name="duvri-sot" label="Sottoscritto dall’impresa il" value={du.dataSottoscrizione} onChange={(e) => updDuvri({ dataSottoscrizione: e.target.value })} />
+                    <InputField name="duvri-rev" label="Revisione" value={du.revisione} onChange={(e) => updDuvri({ revisione: e.target.value })} placeholder="Es. 2" />
+                    <DatePickerField name="duvri-agg" label="Prossimo aggiornamento" value={du.prossimoAggiornamento} onChange={(e) => updDuvri({ prossimoAggiornamento: e.target.value })}
+                      hint="Va aggiornato anche prima se cambiano attività, luoghi o rischi." />
+                    <InputField name="duvri-costi" label="Costi della sicurezza da interferenze (€)" type="number" min={0} value={du.costiSicurezza}
+                      onChange={(e) => updDuvri({ costiSicurezza: Number(e.target.value) || 0 })} iconLeft="fa-light fa-euro-sign"
+                      hint="Da indicare nel contratto, non soggetti a ribasso." />
+                  </div>
+                </>
+              ) : (
+                <div className="cfg-hrapp__grid">
+                  <SelectField name="duvri-es" label="Motivo dell’esenzione" value={du.esenzione} onChange={(e) => updDuvri({ esenzione: e.target.value as EsenzioneDuvri })} options={ESENZIONI} />
+                  <InputField name="duvri-inc" label="Incaricato per cooperazione e coordinamento" value={du.incaricatoCoordinamento}
+                    onChange={(e) => updDuvri({ incaricatoCoordinamento: e.target.value })} placeholder="Nome e cognome" />
+                </div>
+              )}
+
+              <h4 className="cfg-hrapp__sub">Idoneità tecnico-professionale</h4>
+              <p className="cfg-hrapp__hint">Verifica prima dell’affidamento (art. 26 c. 1 D.Lgs. 81/2008): visura camerale e autocertificazione dell’impresa.</p>
+              <div className="cfg-hrapp__docs">
+                <AllegatoField label="Visura camerale" value={ido.visura} onChange={(a) => updIdo({ visura: a })}
+                  data={ido.visuraData} onData={(v) => updIdo({ visuraData: v })} labelData="Rilasciata il" />
+                <AllegatoField label="Autocertificazione dei requisiti" value={ido.autocertificazione} onChange={(a) => updIdo({ autocertificazione: a })}
+                  data={ido.autocertificazioneData} onData={(v) => updIdo({ autocertificazioneData: v })} labelData="Firmata il" />
+              </div>
+
               <h4 className="cfg-hrapp__sub">Referente</h4>
               <div className="cfg-hrapp__grid">
                 <InputField name="app-ref" label="Nome e cognome" value={d.referente} onChange={txt('referente')} />
@@ -245,6 +308,61 @@ export default function HrAziendeAppalto({ navigate }: CfgPaneComponentProps) {
       </div>
 
       <CfgSaveBar count={dirty} onSave={save} onCancel={cancel} successMessage="Aziende in appalto salvate (anche in Purchasing)" />
+    </div>
+  )
+}
+
+// ─── Allegato dell'impresa (DUVRI, visura, autocertificazione) ────────────────
+function AllegatoField({ label, value, onChange, data, onData, labelData }: {
+  label: string
+  value?: AllegatoAppalto
+  onChange: (a: AllegatoAppalto | undefined) => void
+  data?: string
+  onData?: (v: string) => void
+  labelData?: string
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    if (f.size > ALLEGATO_MAX_MB * 1024 * 1024) { toast.error(`Il file supera i ${ALLEGATO_MAX_MB} MB.`, label); return }
+    const r = new FileReader()
+    r.onload = () => onChange({ nome: f.name, dataUrl: r.result as string })
+    r.readAsDataURL(f)
+  }
+  return (
+    <div className="cfg-hrapp__doc">
+      <div className="cfg-hrapp__doc-label">
+        <span className="cfg-hrapp__doc-name">{label}</span>
+        {value
+          ? <span className="cfg-hrapp__badge cfg-hrapp__badge--attiva"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Allegato</span>
+          : <span className="cfg-hrapp__badge cfg-hrapp__badge--scaduta"><i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /> Mancante</span>}
+      </div>
+      <div className="cfg-hrapp__doc-main">
+        {value && (
+          <span className="cfg-hrapp__doc-file">
+            <i className="fa-light fa-file-pdf" aria-hidden="true" /> <TruncatedText text={value.nome} />
+            {value.dataUrl && (
+              <Tooltip text="Visualizza">
+                <button type="button" className="sib-btn sib-btn--icon" aria-label={`Visualizza ${label}`} onClick={() => window.open(value.dataUrl!, '_blank')}>
+                  <i className="fa-solid fa-eye" aria-hidden="true" />
+                </button>
+              </Tooltip>
+            )}
+            <Tooltip text="Rimuovi">
+              <button type="button" className="sib-btn sib-btn--icon" aria-label={`Rimuovi ${label}`} onClick={() => onChange(undefined)}>
+                <i className="fa-solid fa-trash-can" aria-hidden="true" />
+              </button>
+            </Tooltip>
+          </span>
+        )}
+        {onData && <DatePickerField name={`all-${label}`} label={labelData} value={data ?? ''} onChange={(e) => onData(e.target.value)} className="cfg-hrapp__doc-date" />}
+        <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => ref.current?.click()}>
+          <i className="fa-light fa-folder-open" aria-hidden="true" /> {value ? 'Sostituisci' : 'Carica'}
+        </button>
+        <input ref={ref} type="file" accept="application/pdf,image/*" className="hidden" onChange={onFile} />
+      </div>
     </div>
   )
 }

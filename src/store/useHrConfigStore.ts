@@ -209,8 +209,9 @@ export const BADGE_DEFAULT: BadgeConfigHr = {
   testoRetro: 'Il titolare è autorizzato ad accedere alla struttura solo nel periodo indicato. In caso di smarrimento avvisare il ricevimento. La tessera va esposta in modo visibile durante il servizio.',
 }
 
+// Il DUVRI NON è un documento del singolo addetto: è dell'appalto (Aziende in appalto).
 export const DOCUMENTI_ESTERNI = [
-  'Contratto d’appalto', 'DURC', 'Formazione sicurezza', 'DUVRI', 'Documento d’identità', 'Attestato HACCP', 'Idoneità sanitaria',
+  'Contratto d’appalto', 'DURC', 'Formazione sicurezza', 'Documento d’identità', 'Attestato HACCP', 'Idoneità sanitaria',
 ]
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────
@@ -283,7 +284,7 @@ const SEED_TIPOLOGIE: TipologiaContrattoHr[] = [
 
 const SEED_CATEGORIE_ESTERNI: CategoriaEsterniHr[] = [
   { id: 'cest-pul', nome: 'Addetto pulizie', repartiOp: ['pulizie'], documenti: ['Contratto d’appalto', 'DURC', 'Formazione sicurezza', 'Documento d’identità'], durataMaxMesi: 12, colore: 3, attiva: true },
-  { id: 'cest-man', nome: 'Manutentore', repartiOp: ['manutenzione'], documenti: ['Contratto d’appalto', 'DURC', 'Formazione sicurezza', 'DUVRI', 'Documento d’identità'], durataMaxMesi: 12, colore: 4, attiva: true },
+  { id: 'cest-man', nome: 'Manutentore', repartiOp: ['manutenzione'], documenti: ['Contratto d’appalto', 'DURC', 'Formazione sicurezza', 'Documento d’identità'], durataMaxMesi: 12, colore: 4, attiva: true },
   { id: 'cest-fac', nome: 'Facchino', repartiOp: ['frontOffice', 'magazzino'], documenti: ['Contratto d’appalto', 'DURC', 'Documento d’identità'], durataMaxMesi: 6, colore: 1, attiva: true },
 ]
 
@@ -449,12 +450,14 @@ export const useHrConfigStore = create<HrConfigState>()(
     }),
     {
       name: 'sibylla.hr-config',
-      version: 4,
-      // v2: categorie dei collaboratori esterni; v3: badge; v4: orari con più fasce al giorno
+      version: 5,
+      // v2: categorie dei collaboratori esterni; v3: badge; v4: orari con più fasce al giorno;
+      // v5: il DUVRI esce dai documenti dei singoli addetti (è dell'appalto)
       migrate: (persisted: any) => ({
         ...HR_CONFIG_SEED, ...(persisted ?? {}),
         orari: ((persisted?.orari ?? HR_CONFIG_SEED.orari) as any[]).map(o => ({ ...o, giorni: (o.giorni ?? []).map(normalizzaGiorno) })),
-        categorieEsterni: persisted?.categorieEsterni ?? SEED_CATEGORIE_ESTERNI,
+        categorieEsterni: ((persisted?.categorieEsterni ?? SEED_CATEGORIE_ESTERNI) as CategoriaEsterniHr[])
+          .map(c => ({ ...c, documenti: c.documenti.filter(d => d !== 'DUVRI') })),
         badge: { ...BADGE_DEFAULT, ...(persisted?.badge ?? {}) },
       }) as any,
     },

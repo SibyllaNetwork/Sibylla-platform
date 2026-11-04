@@ -148,6 +148,62 @@
   &__span2
     grid-column: span 2
 
+  &__hint
+    margin: -4px 0 0
+    font-size: 12px
+    color: $text-inactive
+
+  // ── Allegati (DUVRI, visura, autocertificazione) ───────────────────────────
+  &__docs
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__doc
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 14px
+    flex-wrap: wrap
+    padding: 10px 14px
+    border: 1px solid $border
+    border-radius: $radius-md
+
+  &__doc-label
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    align-self: center
+    gap: 4px
+
+  &__doc-name
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__doc-main
+    display: flex
+    align-items: flex-end
+    gap: 10px
+    flex-wrap: wrap
+    min-width: 0
+
+  &__doc-file
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    max-width: 280px
+    min-width: 0
+    align-self: center
+    font-size: 12px
+    color: $text-inactive
+
+    > i
+      color: $primary
+
+  &__doc-date
+    width: 170px
+
   &__coll-bar
     display: flex
     align-items: flex-end
