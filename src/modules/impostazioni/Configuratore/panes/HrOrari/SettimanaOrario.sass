@@ -37,42 +37,46 @@
       border-color: $primary-300
       background: $primary-50
 
-  // ── Griglia: [giorno][barra 24h][ore][azioni] ──────────────────────────────
+  // ── Griglia: una riga per giorno = [giorno][fasce][pausa][ore][azioni] + barra ──
   &__grid
     display: flex
     flex-direction: column
-    gap: 6px
-    padding: 12px
+    padding: 4px 14px 8px
     border: 1px solid $border
     border-radius: $radius-md
     background: var(--color-surface)
 
-  &__scale, &__row
+  &__head, &__row
     display: grid
-    grid-template-columns: 52px minmax(0, 1fr) 58px 32px
-    gap: 10px
+    grid-template-columns: 52px minmax(0, 1fr) 84px 56px 32px
+    column-gap: 10px
     align-items: center
 
-  &__ticks
-    position: relative
-    height: 16px
+  &__head
+    padding: 8px 0
+    border-bottom: 1px solid $border
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
 
-    span
-      position: absolute
-      left: var(--x)
-      transform: translateX(-50%)
-      font-size: 10.5px
-      color: $text-inactive
-      font-variant-numeric: tabular-nums
+    > :nth-child(4)
+      text-align: right
 
   &__row
     position: relative
+    row-gap: 6px
+    padding: 10px 0
+    border-bottom: 1px solid alpha($border, .7)
+
+    &:last-child
+      border-bottom: 0
 
     &.is-off .sett-ora__track
-      opacity: .55
+      opacity: .45
 
   &__day
-    height: 32px
+    height: 34px
     border: 1px solid $border
     border-radius: $radius-md
     background: $bg
@@ -88,9 +92,103 @@
       background: $primary
       border-color: $primary
 
+  // Fasce scritte a mano: [dalle] – [alle] ×, poi «+ fascia»
+  &__fasce
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 6px
+    min-width: 0
+
+  &__fascia
+    display: inline-flex
+    align-items: center
+    gap: 3px
+    padding: 2px 2px 2px 2px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $bg
+    transition: border-color $motion-fast $motion-ease
+
+    &.is-sel
+      border-color: $primary-300
+
+    &.is-err
+      border-color: $error
+      background: alpha($error, .05)
+
+  // Due classi: il wrapper del campo data impone la larghezza piena
+  &__fascia .sett-ora__time
+    width: 92px
+
+  // campo orario compatto: meno padding interno
+  &__fascia .sett-ora__time .sib-input
+    padding-left: 8px
+    padding-right: 4px
+
+  &__dash
+    color: $text-inactive
+
+  &__x
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 22px
+    height: 22px
+    padding: 0
+    border: 0
+    border-radius: 50%
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+
+    &:hover
+      color: $error
+      background: alpha($error, .08)
+
+  &__add
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    height: 30px
+    padding: 0 10px
+    border: 1px dashed $primary-300
+    border-radius: $radius-md
+    background: transparent
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      background: $primary-50
+
+  &__riposo
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    font-size: 12.5px
+    font-style: italic
+    color: $text-inactive
+
+  &__pausa
+    display: flex
+    align-items: center
+    gap: 4px
+
+    > :first-child
+      flex: 1
+      min-width: 0
+
+  &__unit
+    font-size: 11.5px
+    color: $text-inactive
+
+  // La barra del giorno occupa la seconda riga, sotto fasce/pausa/ore
   &__track
+    grid-column: 2 / -1
     position: relative
-    height: 38px
+    height: 30px
     border-radius: $radius-md
     background-color: $bg
     // griglia delle ore (linee ogni ora, più marcate ogni 6)
@@ -100,6 +198,17 @@
     cursor: crosshair
     touch-action: none
     overflow: hidden
+
+  // Ore della barra (ogni 2 h), in alto a sinistra di ogni linea
+  &__tick
+    position: absolute
+    top: 1px
+    left: var(--x)
+    transform: translateX(3px)
+    font-size: 9px
+    line-height: 1
+    color: $text-inactive
+    pointer-events: none
 
   // Fasce notturne (22–6) appena ombreggiate
   &__notte
@@ -119,8 +228,8 @@
 
   &__block
     position: absolute
-    top: 4px
-    bottom: 4px
+    top: 11px
+    bottom: 3px
     left: var(--a)
     width: var(--w)
     min-width: 6px
@@ -223,30 +332,6 @@
       color: $primary
       font-weight: 600
 
-  // ── Dettaglio fascia ───────────────────────────────────────────────────────
-  &__detail
-    display: grid
-    grid-template-columns: auto 130px 130px minmax(0, 220px) auto
-    gap: 12px
-    align-items: end
-    padding: 10px 12px
-    border-radius: $radius-md
-    background: $primary-50
-
-  &__detail-title
-    align-self: center
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    font-family: $font-heading
-    font-size: 12.5px
-    font-weight: 600
-    color: $primary
-    white-space: nowrap
-
-  &__detail .sett-ora__del
-    color: $error
-
   &__hint
     display: flex
     align-items: center
@@ -258,18 +343,28 @@
     i
       color: $primary
 
+  &__foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+
   &__total
     font-size: 12.5px
     color: $text-inactive
     text-align: right
+    white-space: nowrap
 
     strong
       color: $text-active
 
 @media (max-width: 760px)
-  .sett-ora__detail
-    grid-template-columns: 1fr 1fr
+  .sett-ora__head
+    display: none
 
-  .sett-ora__scale, .sett-ora__row
-    grid-template-columns: 44px minmax(0, 1fr) 50px 28px
-    gap: 6px
+  .sett-ora__row
+    grid-template-columns: 48px minmax(0, 1fr) 56px 28px
+
+    .sett-ora__pausa
+      grid-column: 2 / 3

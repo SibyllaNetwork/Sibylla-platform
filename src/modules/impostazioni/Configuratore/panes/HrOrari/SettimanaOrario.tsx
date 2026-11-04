@@ -166,8 +166,33 @@ export default function SettimanaOrario({ value, onChange }: { value: FasciaGior
 
   const totale = value.reduce((a, g) => a + minutiGiorno(g), 0)
   const s = sel && value[sel.giorno]?.fasce[sel.idx] ? sel : null
-  const fasciaSel = s ? value[s.giorno].fasce[s.idx] : null
   const d = drag.current
+
+  // ── Inserimento manuale ──────────────────────────────────────────────────
+  const setFascia = (i: number, k: number, p: Partial<IntervalloOrario>) => {
+    const g = value[i]
+    setGiorno(i, { ...g, fasce: g.fasce.map((f, x) => (x === k ? { ...f, ...p } : f)) })
+  }
+  const aggiungiFascia = (i: number) => {
+    const g = value[i]
+    const fine = g.fasce.length ? Math.max(...g.fasce.map(f => toMin(f.fine))) : 0
+    let a = g.fasce.length ? Math.min(fine + 60, GIORNO - 60) : 9 * 60
+    let b = Math.min(GIORNO, a + 4 * 60)
+    if (b - a < PASSO) { a = GIORNO - 60; b = GIORNO }
+    setGiorno(i, { ...g, attivo: true, fasce: [...g.fasce, { inizio: toHHMM(a), fine: toHHMM(b) }] })
+  }
+  const attivaGiorno = (i: number, on: boolean) => {
+    const g = value[i]
+    setGiorno(i, on ? { ...g, attivo: true, fasce: g.fasce.length ? g.fasce : [{ inizio: '09:00', fine: '13:00' }, { inizio: '14:00', fine: '18:00' }] } : { ...g, attivo: false })
+  }
+  /** Fascia non valida: fine non successiva all'inizio o sovrapposta a un'altra dello stesso giorno. */
+  const erroreFascia = (g: FasciaGiorno, k: number) => {
+    const f = g.fasce[k]
+    const a = toMin(f.inizio), b = toMin(f.fine)
+    if (!f.inizio || !f.fine || b <= a) return 'L’orario di fine deve essere dopo l’inizio'
+    if (g.fasce.some((x, j) => j !== k && toMin(x.inizio) < b && toMin(x.fine) > a)) return 'Si sovrappone a un’altra fascia'
+    return ''
+  }
 
   return (
     <div className="sett-ora">
@@ -179,14 +204,8 @@ export default function SettimanaOrario({ value, onChange }: { value: FasciaGior
       </div>
 
       <div className="sett-ora__grid" role="group" aria-label="Orario settimanale">
-        <div className="sett-ora__scale" aria-hidden="true">
-          <span />
-          <div className="sett-ora__ticks">
-            {Array.from({ length: SPAN / 120 + 1 }, (_, i) => DA + i * 120).map(m => (
-              <span key={m} style={{ ['--x' as any]: pct(m) }}>{String(m / 60).padStart(2, '0')}</span>
-            ))}
-          </div>
-          <span />
+        <div className="sett-ora__head" aria-hidden="true">
+          <span>Giorno</span><span>Fasce di lavoro (dalle – alle)</span><span>Pausa</span><span>Ore</span><span />
         </div>
 
         {value.map((g, i) => {
@@ -194,37 +213,55 @@ export default function SettimanaOrario({ value, onChange }: { value: FasciaGior
           return (
             <div key={GIORNI_SETTIMANA[i]} className={`sett-ora__row${g.attivo ? '' : ' is-off'}`}>
               <button type="button" className={`sett-ora__day${g.attivo ? ' is-on' : ''}`} aria-pressed={g.attivo}
-                onClick={() => setGiorno(i, g.attivo ? { ...g, attivo: false } : { ...g, attivo: true, fasce: g.fasce.length ? g.fasce : [{ inizio: '09:00', fine: '13:00' }, { inizio: '14:00', fine: '18:00' }] })}>
+                title={g.attivo ? `Segna ${GIORNI_SETTIMANA[i]} come riposo` : `Imposta l’orario di ${GIORNI_SETTIMANA[i]}`}
+                onClick={() => attivaGiorno(i, !g.attivo)}>
                 {GIORNI_SETTIMANA[i]}
               </button>
 
-              <div className="sett-ora__track" style={{ ['--ore' as any]: SPAN / 60, ['--notte-a' as any]: pctW(Math.max(0, 360 - DA)), ['--notte-b' as any]: pctW(120) }} onPointerDown={(e) => startCrea(e, i)} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
-                <div className="sett-ora__notte sett-ora__notte--a" aria-hidden="true" />
-                <div className="sett-ora__notte sett-ora__notte--b" aria-hidden="true" />
-                {g.fasce.map((f, k) => {
-                  const a = toMin(f.inizio), b = toMin(f.fine)
-                  const attiva = s?.giorno === i && s.idx === k
-                  return (
-                    <div key={k} role="button" tabIndex={0}
-                      className={`sett-ora__block${attiva ? ' is-sel' : ''}${g.attivo ? '' : ' is-muted'}`}
-                      style={{ ['--a' as any]: pct(a), ['--w' as any]: pctW(b - a) }}
-                      aria-label={`${GIORNI_SETTIMANA[i]} dalle ${f.inizio} alle ${f.fine}`}
-                      onPointerDown={(e) => startBlocco(e, i, k, 'sposta')}
-                      onKeyDown={(e) => onKey(e, i, k)}
-                      onFocus={() => setSel({ giorno: i, idx: k })}>
-                      <span className="sett-ora__handle sett-ora__handle--a" onPointerDown={(e) => startBlocco(e, i, k, 'inizio')} />
-                      {/* fasce strette: solo l'inizio, o niente (l'orario completo è nel dettaglio) */}
-                      {b - a >= 75 && <span className="sett-ora__block-txt">{b - a >= 180 ? `${f.inizio}–${f.fine}` : f.inizio}</span>}
-                      <span className="sett-ora__handle sett-ora__handle--b" onPointerDown={(e) => startBlocco(e, i, k, 'fine')} />
-                    </div>
-                  )
-                })}
-                {d && d.modo === 'crea' && d.giorno === i && d.b0 > d.a0 && (
-                  <div className="sett-ora__block is-ghost" style={{ ['--a' as any]: pct(d.a0), ['--w' as any]: pctW(d.b0 - d.a0) }}>
-                    <span className="sett-ora__block-txt">{toHHMM(d.a0)}–{toHHMM(d.b0)}</span>
-                  </div>
+              <div className="sett-ora__fasce">
+                {!g.attivo ? (
+                  <span className="sett-ora__riposo">
+                    Riposo
+                    <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => attivaGiorno(i, true)}>
+                      <i className="fa-light fa-circle-plus" aria-hidden="true" /> Imposta orario
+                    </button>
+                  </span>
+                ) : (
+                  <>
+                    {g.fasce.map((f, k) => {
+                      const err = erroreFascia(g, k)
+                      return (
+                        <span key={k} className={`sett-ora__fascia${err ? ' is-err' : ''}${s?.giorno === i && s.idx === k ? ' is-sel' : ''}`} title={err || undefined}>
+                          <DatePickerField name={`so-${i}-${k}-in`} type="time" value={f.inizio} className="sett-ora__time"
+                            onChange={(e) => setFascia(i, k, { inizio: e.target.value })} />
+                          <span className="sett-ora__dash">–</span>
+                          <DatePickerField name={`so-${i}-${k}-out`} type="time" value={f.fine} className="sett-ora__time"
+                            onChange={(e) => setFascia(i, k, { fine: e.target.value })} />
+                          <Tooltip text="Togli questa fascia">
+                            <button type="button" className="sett-ora__x" aria-label={`Togli la fascia ${f.inizio}–${f.fine} di ${GIORNI_SETTIMANA[i]}`} onClick={() => elimina(i, k)}>
+                              <i className="fa-solid fa-xmark" aria-hidden="true" />
+                            </button>
+                          </Tooltip>
+                        </span>
+                      )
+                    })}
+                    {g.fasce.length < 4 && (
+                      <button type="button" className="sett-ora__add" onClick={() => aggiungiFascia(i)}>
+                        <i className="fa-light fa-plus" aria-hidden="true" /> fascia
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
+
+              <span className="sett-ora__pausa">
+                {g.attivo && (
+                  <InputField name={`so-${i}-pausa`} type="number" min={0} step={5} value={g.pausaMin || ''} placeholder="0" dense
+                    ariaLabel={`Pausa non retribuita di ${GIORNI_SETTIMANA[i]} in minuti`}
+                    onChange={(e) => setGiorno(i, { ...g, pausaMin: Number(e.target.value) || 0 })} />
+                )}
+                {g.attivo && <span className="sett-ora__unit">min</span>}
+              </span>
 
               <span className="sett-ora__ore">{g.attivo && min ? fmtOre(min) : '—'}</span>
 
@@ -236,6 +273,39 @@ export default function SettimanaOrario({ value, onChange }: { value: FasciaGior
                   </button>
                 </Tooltip>
               </span>
+
+              {/* Barra grafica del giorno: riflette le fasce e si può trascinare */}
+              <div className="sett-ora__track" style={{ ['--ore' as any]: SPAN / 60, ['--notte-a' as any]: pctW(Math.max(0, 360 - DA)), ['--notte-b' as any]: pctW(120) }}
+                onPointerDown={(e) => startCrea(e, i)} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+                <div className="sett-ora__notte sett-ora__notte--a" aria-hidden="true" />
+                <div className="sett-ora__notte sett-ora__notte--b" aria-hidden="true" />
+                {Array.from({ length: SPAN / 120 + 1 }, (_, x) => DA + x * 120).map(m => (
+                  <span key={m} className="sett-ora__tick" style={{ ['--x' as any]: pct(m) }} aria-hidden="true">{String(m / 60).padStart(2, '0')}</span>
+                ))}
+                {g.fasce.map((f, k) => {
+                  const a = toMin(f.inizio), b = toMin(f.fine)
+                  if (!(b > a)) return null
+                  const attiva = s?.giorno === i && s.idx === k
+                  return (
+                    <div key={k} role="button" tabIndex={0}
+                      className={`sett-ora__block${attiva ? ' is-sel' : ''}${g.attivo ? '' : ' is-muted'}`}
+                      style={{ ['--a' as any]: pct(Math.max(DA, a)), ['--w' as any]: pctW(b - Math.max(DA, a)) }}
+                      aria-label={`${GIORNI_SETTIMANA[i]} dalle ${f.inizio} alle ${f.fine}`}
+                      onPointerDown={(e) => startBlocco(e, i, k, 'sposta')}
+                      onKeyDown={(e) => onKey(e, i, k)}
+                      onFocus={() => setSel({ giorno: i, idx: k })}>
+                      <span className="sett-ora__handle sett-ora__handle--a" onPointerDown={(e) => startBlocco(e, i, k, 'inizio')} />
+                      {b - a >= 75 && <span className="sett-ora__block-txt">{b - a >= 180 ? `${f.inizio}–${f.fine}` : f.inizio}</span>}
+                      <span className="sett-ora__handle sett-ora__handle--b" onPointerDown={(e) => startBlocco(e, i, k, 'fine')} />
+                    </div>
+                  )
+                })}
+                {d && d.modo === 'crea' && d.giorno === i && d.b0 > d.a0 && (
+                  <div className="sett-ora__block is-ghost" style={{ ['--a' as any]: pct(d.a0), ['--w' as any]: pctW(d.b0 - d.a0) }}>
+                    <span className="sett-ora__block-txt">{toHHMM(d.a0)}–{toHHMM(d.b0)}</span>
+                  </div>
+                )}
+              </div>
 
               {copia?.da === i && (
                 <div className="sett-ora__copy">
@@ -257,29 +327,11 @@ export default function SettimanaOrario({ value, onChange }: { value: FasciaGior
         })}
       </div>
 
-      {/* Dettaglio della fascia selezionata */}
-      {s && fasciaSel ? (
-        <div className="sett-ora__detail">
-          <span className="sett-ora__detail-title"><i className="fa-light fa-clock" aria-hidden="true" /> {GIORNI_SETTIMANA[s.giorno]} · fascia {s.idx + 1} di {value[s.giorno].fasce.length}</span>
-          <DatePickerField name="so-in" label="Dalle" type="time" value={fasciaSel.inizio}
-            onChange={(e) => { const fasce = [...value[s.giorno].fasce]; fasce[s.idx] = { ...fasciaSel, inizio: e.target.value }; setGiorno(s.giorno, { ...value[s.giorno], fasce }) }} />
-          <DatePickerField name="so-out" label="Alle" type="time" value={fasciaSel.fine}
-            error={toMin(fasciaSel.fine) <= toMin(fasciaSel.inizio) ? 'Deve finire dopo l’inizio' : undefined}
-            onChange={(e) => { const fasce = [...value[s.giorno].fasce]; fasce[s.idx] = { ...fasciaSel, fine: e.target.value }; setGiorno(s.giorno, { ...value[s.giorno], fasce }) }} />
-          <InputField name="so-pausa" label={`Pausa non retribuita ${GIORNI_SETTIMANA[s.giorno]} (min)`} type="number" min={0} step={5} value={value[s.giorno].pausaMin}
-            onChange={(e) => setGiorno(s.giorno, { ...value[s.giorno], pausaMin: Number(e.target.value) || 0 })} />
-          <button type="button" className="sib-btn sib-btn--ghost sett-ora__del" onClick={() => elimina(s.giorno, s.idx)}>
-            <i className="fa-light fa-trash-can" aria-hidden="true" /> Elimina fascia
-          </button>
-        </div>
-      ) : (
+      <div className="sett-ora__foot">
         <p className="sett-ora__hint">
-          <i className="fa-light fa-hand-pointer" aria-hidden="true" /> Trascina sulla barra di un giorno per disegnare una fascia; trascina la fascia o i suoi bordi per modificarla, cliccala per gli orari esatti.
+          <i className="fa-light fa-keyboard" aria-hidden="true" /> Scrivi gli orari di ogni fascia, oppure trascina sulla barra del giorno: si disegna una fascia, si sposta, se ne allungano i bordi. Clic sul giorno = lavorativo / riposo.
         </p>
-      )}
-
-      <div className="sett-ora__total">
-        Totale settimanale <strong>{fmtOre(totale)}</strong> su {value.filter(g => g.attivo && minutiGiorno(g) > 0).length} giorni
+        <span className="sett-ora__total">Totale settimanale <strong>{fmtOre(totale)}</strong> su {value.filter(g => g.attivo && minutiGiorno(g) > 0).length} giorni</span>
       </div>
     </div>
   )
