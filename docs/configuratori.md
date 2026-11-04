@@ -622,3 +622,7 @@ dell'Archivio: `src/modules/appop/invitoAnagrafica.ts` + `useAnagraficaOpStore`.
 - DUVRI e idoneità tecnico-professionale sono dati dell'APPALTO (`datiAppalto.duvri`, `datiAppalto.idoneita`)
   gestiti in Aziende in appalto, con avvisi su allegato, sottoscrizione, aggiornamento, esenzione e visura;
   la scheda del collaboratore ne mostra solo lo stato. Il DUVRI non è più tra i documenti dei singoli addetti.
+- Scheda azienda a schede: Anagrafica e contratto · Sicurezza (DUVRI, idoneità, informativa rischi ed
+  emergenze con presa visione) · Pagamenti e fisco (responsabilità solidale art. 29 D.Lgs. 276/2003 con data
+  di conservazione, art. 17-bis con DURF o F24 per pagamento, DURC verificato a ogni pagamento) · Privacy
+  (informativa agli addetti, accordo art. 28 GDPR) · Collaboratori. Allegati salvati nel browser, max 2 MB.

@@ -1,7 +1,9 @@
 import React, { useCallback, useRef, useState } from 'react'
-import { InputField, ToggleSwitch, DatePickerField, SelectField } from '../../../../../core/components/form'
+import { InputField, ToggleSwitch, DatePickerField, SelectField, CheckboxField } from '../../../../../core/components/form'
 import TruncatedText from '../../../../../core/components/TruncatedText'
 import Tooltip from '../../../../../core/components/Tooltip'
+import Tabs from '../../../../../core/components/Tabs'
+import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { toast } from '../../../../../core/components/Toast/useToast'
 import { CfgTable, CfgSaveBar, CfgEmpty } from '../../../../../core/cfg'
 import { useCatalogoStore } from '../../../../../store/useCatalogoStore'
@@ -10,7 +12,9 @@ import {
   useCollaboratoriEsterniStore, statoAutorizzazione, documentiMancanti, STATO_AUT_LABEL,
 } from '../../../../../store/useCollaboratoriEsterniStore'
 import { useStrutturaCorrente } from '../../../../../hooks/useStrutturaCorrente'
-import type { AllegatoAppalto, DatiAppalto, DuvriAppalto, EsenzioneDuvri, Fornitore, IdoneitaAppalto } from '../../../../../admin/SibyllaAdminPanel/catalogo/types'
+import type {
+  AllegatoAppalto, DatiAppalto, DuvriAppalto, EsenzioneDuvri, FiscoAppalto, Fornitore, IdoneitaAppalto, InformativaRischiAppalto, PagamentoAppalto, PrivacyAppalto,
+} from '../../../../../admin/SibyllaAdminPanel/catalogo/types'
 import { stampaBadge } from '../../../../hr/_badge/badgeEsterno'
 import type { CfgPaneComponentProps } from '../../Configuratore'
 import { useHrDraft, diffCount } from '../_hr/useHrDraft'
@@ -32,6 +36,12 @@ const duvriVuoto = (): DuvriAppalto => ({
   dovuto: true, dataRedazione: '', dataSottoscrizione: '', revisione: '', prossimoAggiornamento: '', costiSicurezza: 0, esenzione: '', incaricatoCoordinamento: '',
 })
 const idoneitaVuota = (): IdoneitaAppalto => ({ visuraData: '', autocertificazioneData: '' })
+const informativaVuota = (): InformativaRischiAppalto => ({ dataConsegna: '', presaVisioneData: '', presaVisioneFirmatario: '' })
+const fiscoVuoto = (): FiscoAppalto => ({ art17bis: false, durfScadenza: '', pagamenti: [] })
+const privacyVuota = (): PrivacyAppalto => ({ informativaData: '', responsabileNecessario: false, accordoData: '' })
+const nuovoPagamento = (): PagamentoAppalto => ({ id: `pag-${Date.now().toString(36)}`, periodo: new Date().toISOString().slice(0, 7), fattura: '', importo: 0, dataPagamento: '', durcVerificato: false })
+const piuAnni = (iso: string, n: number) => `${Number(iso.slice(0, 4)) + n}${iso.slice(4)}`
+type Scheda = 'anagrafica' | 'sicurezza' | 'fisco' | 'privacy' | 'collaboratori'
 const ESENZIONI: { value: EsenzioneDuvri; label: string }[] = [
   { value: '', label: 'Seleziona il motivo' },
   { value: 'intellettuale', label: 'Servizi di natura intellettuale' },
@@ -66,6 +76,22 @@ function avvisi(d?: DatiAppalto): { livello: 'ko' | 'warn'; testo: string }[] {
     if (du.prossimoAggiornamento && du.prossimoAggiornamento < oggi()) out.push({ livello: 'ko', testo: `DUVRI da aggiornare dal ${fmt(du.prossimoAggiornamento)}` })
     else if (du.prossimoAggiornamento && du.prossimoAggiornamento <= tra30()) out.push({ livello: 'warn', testo: `DUVRI da aggiornare entro il ${fmt(du.prossimoAggiornamento)}` })
   } else if (!du.esenzione || !du.incaricatoCoordinamento) out.push({ livello: 'warn', testo: 'Esenzione DUVRI: indica motivo e incaricato' })
+  const inf = d.informativaRischi
+  if (!inf?.allegato || !inf.dataConsegna) out.push({ livello: 'warn', testo: 'Informativa rischi ed emergenze non consegnata' })
+  else if (!inf.presaVisioneData) out.push({ livello: 'warn', testo: 'Manca la presa visione dell’informativa rischi' })
+  const fi = d.fisco
+  if (fi?.art17bis) {
+    if (fi.durf && fi.durfScadenza && fi.durfScadenza < oggi()) out.push({ livello: 'ko', testo: `DURF scaduto il ${fmt(fi.durfScadenza)}` })
+    if (!fi.durf || (fi.durfScadenza && fi.durfScadenza < oggi())) {
+      const senza = fi.pagamenti.filter(p => p.dataPagamento && !p.f24).length
+      if (senza) out.push({ livello: 'ko', testo: `${senza} pagamenti senza F24 delle ritenute` })
+    }
+  }
+  const nonVerificati = (fi?.pagamenti ?? []).filter(p => p.dataPagamento && !p.durcVerificato).length
+  if (nonVerificati) out.push({ livello: 'warn', testo: `${nonVerificati} pagamenti senza verifica del DURC` })
+  const pr = d.privacy
+  if (!pr?.informativa) out.push({ livello: 'warn', testo: 'Informativa privacy agli addetti mancante' })
+  if (pr?.responsabileNecessario && !pr.accordo) out.push({ livello: 'ko', testo: 'Manca l’accordo art. 28 GDPR' })
   const id = d.idoneita
   if (!id?.visura || !id?.autocertificazione) out.push({ livello: 'warn', testo: 'Idoneità tecnico-professionale incompleta' })
   else if (id.visuraData && id.visuraData < seiMesiFa()) out.push({ livello: 'warn', testo: 'Visura camerale più vecchia di 6 mesi' })
@@ -108,6 +134,20 @@ export default function HrAziendeAppalto({ navigate }: CfgPaneComponentProps) {
   const updDuvri = (p: Partial<DuvriAppalto>) => upd({ duvri: { ...du, ...p } })
   const ido = d?.idoneita ?? idoneitaVuota()
   const updIdo = (p: Partial<IdoneitaAppalto>) => upd({ idoneita: { ...ido, ...p } })
+  const inf = d?.informativaRischi ?? informativaVuota()
+  const updInf = (p: Partial<InformativaRischiAppalto>) => upd({ informativaRischi: { ...inf, ...p } })
+  const fi = d?.fisco ?? fiscoVuoto()
+  const updFi = (p: Partial<FiscoAppalto>) => upd({ fisco: { ...fi, ...p } })
+  const updPag = (pid: string, p: Partial<PagamentoAppalto>) => updFi({ pagamenti: fi.pagamenti.map(x => (x.id === pid ? { ...x, ...p } : x)) })
+  const confirm = useConfirmStore(s => s.confirm)
+  const eliminaPag = async (pid: string) => {
+    if (await confirm({ title: 'Elimina pagamento', message: 'Eliminare questa registrazione di pagamento?', confirmLabel: 'Elimina', danger: true })) {
+      updFi({ pagamenti: fi.pagamenti.filter(x => x.id !== pid) })
+    }
+  }
+  const pr = d?.privacy ?? privacyVuota()
+  const updPr = (p: Partial<PrivacyAppalto>) => upd({ privacy: { ...pr, ...p } })
+  const [scheda, setScheda] = useState<Scheda>('anagrafica')
   const txt = (k: keyof DatiAppalto) => (e: React.ChangeEvent<HTMLInputElement>) => upd({ [k]: e.target.value } as Partial<DatiAppalto>)
 
   const aggiungi = () => { const f = nuovaAzienda(); setDraft(l => [...l, f]); setSelId(f.id) }
@@ -173,6 +213,20 @@ export default function HrAziendeAppalto({ navigate }: CfgPaneComponentProps) {
                 </ul>
               )}
 
+              <Tabs
+                className="cfg-hrapp__tabs"
+                active={scheda}
+                onChange={(id) => setScheda(id as Scheda)}
+                tabs={[
+                  { id: 'anagrafica', label: 'Anagrafica e contratto' },
+                  { id: 'sicurezza', label: 'Sicurezza' },
+                  { id: 'fisco', label: 'Pagamenti e fisco' },
+                  { id: 'privacy', label: 'Privacy' },
+                  { id: 'collaboratori', label: `Collaboratori (${addetti.length})` },
+                ]}
+              />
+
+              {scheda === 'anagrafica' && (<>
               <h4 className="cfg-hrapp__sub">Dati identificativi dell’impresa</h4>
               <div className="cfg-hrapp__grid">
                 <InputField name="app-rs" label="Ragione sociale" required value={d.ragioneSociale} onChange={txt('ragioneSociale')} className="cfg-hrapp__span2" />
@@ -198,6 +252,16 @@ export default function HrAziendeAppalto({ navigate }: CfgPaneComponentProps) {
                   placeholder="Es. Autorizzazione n. 7/2026 del 22/04/2026" />
               )}
 
+              <h4 className="cfg-hrapp__sub">Referente</h4>
+              <div className="cfg-hrapp__grid">
+                <InputField name="app-ref" label="Nome e cognome" value={d.referente} onChange={txt('referente')} />
+                <InputField name="app-reft" label="Telefono" type="tel" value={d.referenteTelefono} onChange={txt('referenteTelefono')} />
+                <InputField name="app-refe" label="E-mail" type="email" value={d.referenteEmail} onChange={txt('referenteEmail')} className="cfg-hrapp__span2" />
+              </div>
+
+              </>)}
+
+              {scheda === 'sicurezza' && (<>
               <h4 className="cfg-hrapp__sub">Sicurezza e DUVRI</h4>
               <ToggleSwitch label="DUVRI dovuto per questo appalto"
                 description="Documento unico di valutazione dei rischi da interferenze (art. 26 c. 3 D.Lgs. 81/2008): lo redige la struttura, lo sottoscrive l’impresa, va allegato al contratto."
@@ -233,13 +297,90 @@ export default function HrAziendeAppalto({ navigate }: CfgPaneComponentProps) {
                   data={ido.autocertificazioneData} onData={(v) => updIdo({ autocertificazioneData: v })} labelData="Firmata il" />
               </div>
 
-              <h4 className="cfg-hrapp__sub">Referente</h4>
-              <div className="cfg-hrapp__grid">
-                <InputField name="app-ref" label="Nome e cognome" value={d.referente} onChange={txt('referente')} />
-                <InputField name="app-reft" label="Telefono" type="tel" value={d.referenteTelefono} onChange={txt('referenteTelefono')} />
-                <InputField name="app-refe" label="E-mail" type="email" value={d.referenteEmail} onChange={txt('referenteEmail')} className="cfg-hrapp__span2" />
-              </div>
 
+              <h4 className="cfg-hrapp__sub">Rischi specifici e misure di emergenza</h4>
+              <p className="cfg-hrapp__hint">Informazioni da dare all’impresa sui rischi dei luoghi in cui opererà e sulle misure di prevenzione ed emergenza (art. 26 c. 1 lett. b D.Lgs. 81/2008).</p>
+              <AllegatoField label="Informativa rischi ed emergenze" value={inf.allegato} onChange={(a) => updInf({ allegato: a })}
+                data={inf.dataConsegna} onData={(v) => updInf({ dataConsegna: v })} labelData="Consegnata il" />
+              <div className="cfg-hrapp__grid">
+                <DatePickerField name="inf-pv" label="Presa visione il" value={inf.presaVisioneData} onChange={(e) => updInf({ presaVisioneData: e.target.value })} />
+                <InputField name="inf-firm" label="Firmata da (per l’impresa)" value={inf.presaVisioneFirmatario} onChange={(e) => updInf({ presaVisioneFirmatario: e.target.value })} placeholder="Nome e cognome" />
+              </div>
+              </>)}
+
+              {scheda === 'fisco' && (<>
+              <h4 className="cfg-hrapp__sub">Responsabilità solidale</h4>
+              <p className="cfg-hrapp__hint">
+                Per 2 anni dalla fine dell’appalto la struttura risponde in solido dei trattamenti retributivi, contributivi e assicurativi dei lavoratori dell’impresa
+                (art. 29 c. 2 D.Lgs. 276/2003): conserva contratto, DURC e prove di pagamento{d.contrattoScadenza ? <> almeno fino al <strong>{fmt(piuAnni(d.contrattoScadenza, 2))}</strong></> : ''}.
+              </p>
+              <ToggleSwitch label="Appalto soggetto alle verifiche sulle ritenute (art. 17-bis D.Lgs. 241/1997)"
+                description="Oltre 200.000 € l’anno, con prevalente manodopera presso le sedi della struttura: servono gli F24 delle ritenute o, in alternativa, il DURF."
+                checked={fi.art17bis} onChange={(v) => updFi({ art17bis: v })} />
+              {fi.art17bis && (
+                <AllegatoField label="DURF — certificato di affidabilità fiscale" value={fi.durf} onChange={(a) => updFi({ durf: a })}
+                  data={fi.durfScadenza} onData={(v) => updFi({ durfScadenza: v })} labelData="Valido fino al" />
+              )}
+              <div className="cfg-hrapp__coll-bar">
+                <h4 className="cfg-hrapp__sub">Pagamenti ({fi.pagamenti.length})</h4>
+                <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={() => updFi({ pagamenti: [...fi.pagamenti, nuovoPagamento()] })}>
+                  <i className="fa-light fa-circle-plus" aria-hidden="true" /> Registra pagamento
+                </button>
+              </div>
+              <CfgTable
+                columns={[
+                  { key: 'per', label: 'Competenza', width: '19%' },
+                  { key: 'ft', label: 'Fattura', width: '15%' },
+                  { key: 'imp', label: 'Importo (€)', width: '12%' },
+                  { key: 'pag', label: 'Pagata il', width: '19%' },
+                  { key: 'durc', label: <TruncatedText text="DURC ok" full="DURC regolare verificato prima del pagamento" />, width: '9%', align: 'center' },
+                  { key: 'f24', label: <TruncatedText text="F24 ritenute" full="F24 delle ritenute dei lavoratori (art. 17-bis)" />, width: '16%' },
+                  { key: 'az', label: 'Azioni', width: '10%', align: 'right' },
+                ]}
+                className="cfg-hrapp__pagamenti"
+                empty={<span className="cfg-table__empty-text">Nessun pagamento registrato.</span>}
+              >
+                {fi.pagamenti.map(pg => (
+                  <tr key={pg.id}>
+                    <td><DatePickerField name={`pg-per-${pg.id}`} type="month" value={pg.periodo} onChange={(e) => updPag(pg.id, { periodo: e.target.value })} /></td>
+                    <td><InputField name={`pg-ft-${pg.id}`} dense ariaLabel="Numero fattura" value={pg.fattura} onChange={(e) => updPag(pg.id, { fattura: e.target.value })} /></td>
+                    <td><InputField name={`pg-imp-${pg.id}`} dense ariaLabel="Importo" type="number" min={0} value={pg.importo || ''} onChange={(e) => updPag(pg.id, { importo: Number(e.target.value) || 0 })} /></td>
+                    <td><DatePickerField name={`pg-pag-${pg.id}`} value={pg.dataPagamento} onChange={(e) => updPag(pg.id, { dataPagamento: e.target.value })} /></td>
+                    <td className="cfg-hrapp__center">
+                      <CheckboxField name={`pg-durc-${pg.id}`} checked={pg.durcVerificato} onChange={(e) => updPag(pg.id, { durcVerificato: e.target.checked })} />
+                    </td>
+                    <td><F24Cell value={pg.f24} richiesto={fi.art17bis && !fi.durf} onChange={(a) => updPag(pg.id, { f24: a })} /></td>
+                    <td className="cfg-hrapp__actions">
+                      <Tooltip text="Elimina pagamento">
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina pagamento" onClick={() => eliminaPag(pg.id)}>
+                          <i className="fa-solid fa-trash-can" aria-hidden="true" />
+                        </button>
+                      </Tooltip>
+                    </td>
+                  </tr>
+                ))}
+              </CfgTable>
+              {fi.pagamenti.length > 0 && (
+                <p className="cfg-hrapp__hint">Totale registrato: <strong>€ {fi.pagamenti.reduce((a, x) => a + (x.importo || 0), 0).toLocaleString('it-IT')}</strong></p>
+              )}
+              </>)}
+
+              {scheda === 'privacy' && (<>
+              <h4 className="cfg-hrapp__sub">Dati degli addetti</h4>
+              <p className="cfg-hrapp__hint">La struttura tratta dati degli addetti esterni (anagrafica, foto del badge, accessi, timbrature nell’App Op!): serve un’informativa con finalità e tempi di conservazione (art. 13 GDPR).</p>
+              <AllegatoField label="Informativa privacy agli addetti" value={pr.informativa} onChange={(a) => updPr({ informativa: a })}
+                data={pr.informativaData} onData={(v) => updPr({ informativaData: v })} labelData="Consegnata il" />
+              <h4 className="cfg-hrapp__sub">Dati della struttura trattati dall’impresa</h4>
+              <ToggleSwitch label="L’impresa tratta dati della struttura (es. ospiti, camere, documenti)"
+                description="In questo caso va nominata responsabile del trattamento con un accordo scritto (art. 28 GDPR)."
+                checked={pr.responsabileNecessario} onChange={(v) => updPr({ responsabileNecessario: v })} />
+              {pr.responsabileNecessario && (
+                <AllegatoField label="Accordo di nomina a responsabile (art. 28)" value={pr.accordo} onChange={(a) => updPr({ accordo: a })}
+                  data={pr.accordoData} onData={(v) => updPr({ accordoData: v })} labelData="Firmato il" />
+              )}
+              </>)}
+
+              {scheda === 'collaboratori' && (<>
               {/* ── Collaboratori dell'azienda ─────────────────────────────── */}
               <div className="cfg-hrapp__coll-bar">
                 <h4 className="cfg-hrapp__sub">Collaboratori ({addetti.length})</h4>
@@ -302,6 +443,7 @@ export default function HrAziendeAppalto({ navigate }: CfgPaneComponentProps) {
                   )
                 })}
               </CfgTable>
+              </>)}
             </>
           )}
         </section>
@@ -364,5 +506,40 @@ function AllegatoField({ label, value, onChange, data, onData, labelData }: {
         <input ref={ref} type="file" accept="application/pdf,image/*" className="hidden" onChange={onFile} />
       </div>
     </div>
+  )
+}
+
+// ─── F24 delle ritenute nella riga del pagamento ──────────────────────────────
+function F24Cell({ value, richiesto, onChange }: { value?: AllegatoAppalto; richiesto: boolean; onChange: (a: AllegatoAppalto | undefined) => void }) {
+  const ref = useRef<HTMLInputElement>(null)
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    if (f.size > ALLEGATO_MAX_MB * 1024 * 1024) { toast.error(`Il file supera i ${ALLEGATO_MAX_MB} MB.`, 'F24'); return }
+    const r = new FileReader()
+    r.onload = () => onChange({ nome: f.name, dataUrl: r.result as string })
+    r.readAsDataURL(f)
+  }
+  return (
+    <span className="cfg-hrapp__f24">
+      {value ? (
+        <>
+          <TruncatedText text={value.nome} />
+          <Tooltip text="Rimuovi F24">
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Rimuovi F24" onClick={() => onChange(undefined)}>
+              <i className="fa-solid fa-xmark" aria-hidden="true" />
+            </button>
+          </Tooltip>
+        </>
+      ) : (
+        <Tooltip text={richiesto ? 'Allega l’F24 delle ritenute (richiesto)' : 'Allega l’F24'}>
+          <button type="button" className={`sib-btn sib-btn--icon${richiesto ? ' cfg-hrapp__f24-req' : ''}`} aria-label="Allega F24" onClick={() => ref.current?.click()}>
+            <i className="fa-solid fa-paperclip" aria-hidden="true" />
+          </button>
+        </Tooltip>
+      )}
+      <input ref={ref} type="file" accept="application/pdf,image/*" className="hidden" onChange={onFile} />
+    </span>
   )
 }

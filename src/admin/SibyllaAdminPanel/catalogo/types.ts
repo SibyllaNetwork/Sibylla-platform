@@ -56,6 +56,52 @@ export interface DatiAppalto {
   duvri?: DuvriAppalto
   /** Verifica dell'idoneità tecnico-professionale (art. 26 c. 1 D.Lgs. 81/2008). */
   idoneita?: IdoneitaAppalto
+  /** Informazioni sui rischi specifici e sulle misure di emergenza (art. 26 c. 1 lett. b). */
+  informativaRischi?: InformativaRischiAppalto
+  /** Pagamenti, DURC alla data e ritenute (art. 29 D.Lgs. 276/2003, art. 17-bis D.Lgs. 241/1997). */
+  fisco?: FiscoAppalto
+  /** Privacy degli addetti e accordo con l'impresa (GDPR artt. 13 e 28). */
+  privacy?: PrivacyAppalto
+}
+
+export interface InformativaRischiAppalto {
+  allegato?: AllegatoAppalto
+  dataConsegna: string
+  presaVisioneData: string
+  /** Chi ha firmato la presa visione per l'impresa. */
+  presaVisioneFirmatario: string
+}
+
+export interface PagamentoAppalto {
+  id: string
+  /** Mese di competenza (yyyy-mm). */
+  periodo: string
+  fattura: string
+  importo: number
+  dataPagamento: string
+  /** DURC regolare verificato prima del pagamento. */
+  durcVerificato: boolean
+  /** F24 delle ritenute dei lavoratori impiegati (art. 17-bis). */
+  f24?: AllegatoAppalto
+}
+
+export interface FiscoAppalto {
+  /** Appalto oltre 200.000 €/anno con prevalente manodopera presso le sedi del committente. */
+  art17bis: boolean
+  /** Certificato di affidabilità fiscale (in alternativa agli F24, vale 4 mesi). */
+  durf?: AllegatoAppalto
+  durfScadenza: string
+  pagamenti: PagamentoAppalto[]
+}
+
+export interface PrivacyAppalto {
+  /** Informativa privacy consegnata agli addetti (dati, foto del badge, accessi, timbrature). */
+  informativa?: AllegatoAppalto
+  informativaData: string
+  /** L'impresa tratta dati della struttura (es. ospiti): serve l'accordo art. 28. */
+  responsabileNecessario: boolean
+  accordo?: AllegatoAppalto
+  accordoData: string
 }
 
 /** Allegato (PDF/immagine) salvato con i dati dell'impresa. */

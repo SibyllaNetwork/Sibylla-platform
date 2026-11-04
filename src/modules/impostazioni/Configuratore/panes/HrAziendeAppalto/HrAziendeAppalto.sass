@@ -148,6 +148,34 @@
   &__span2
     grid-column: span 2
 
+  // Le schede usano tutta la larghezza: due classi per battere il margine delle utility di Tabs
+  &__detail .cfg-hrapp__tabs
+    margin-bottom: 4px
+
+  &__center
+    text-align: center
+
+  // Campi nelle celle dei pagamenti: compatti, così date e mesi stanno per intero
+  &__pagamenti .sib-table td
+    padding-left: 6px
+    padding-right: 6px
+
+  &__pagamenti .sib-table td .sib-input
+    padding-left: 8px
+    padding-right: 4px
+    font-size: 12px
+
+  &__f24
+    display: flex
+    align-items: center
+    gap: 4px
+    min-width: 0
+    font-size: 12px
+
+  // Icona «allega» in evidenza quando l'F24 è richiesto
+  &__f24 .cfg-hrapp__f24-req i
+    color: $error
+
   &__hint
     margin: -4px 0 0
     font-size: 12px
