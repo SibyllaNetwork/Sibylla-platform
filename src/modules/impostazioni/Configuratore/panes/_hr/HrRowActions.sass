@@ -1,0 +1,46 @@
+// ─── AZIONI DI RIGA + compattazione tabelle — pane Risorse umane ─────────────
+.cfg-hr-actions
+  display: inline-flex
+  align-items: center
+  justify-content: flex-end
+  gap: 4px
+
+// Radice di ogni pane HR: le tabelle si compattano sulla larghezza del pane
+// (container query), così non sforano né nel Configuratore classico con la
+// sidebar né nella pagina diretta di Human Resources.
+.cfg-hr-pane
+  container-type: inline-size
+
+  // Badge di stato: mai oltre la cella, eventualmente con ellissi
+  td [class*="__badge"]
+    display: inline-block
+    line-height: 22px
+    vertical-align: middle
+    max-width: 100%
+    overflow: hidden
+    text-overflow: ellipsis
+
+@container (max-width: 760px)
+  .cfg-hr-pane .sib-table th, .cfg-hr-pane .sib-table td
+    padding-left: 6px
+    padding-right: 6px
+    font-size: 12px
+
+  .cfg-hr-pane .cfg-hr-actions
+    gap: 0
+
+  .cfg-hr-pane .cfg-hr-actions .sib-btn--icon
+    width: 24px
+    min-width: 24px
+    padding: 0
+
+    i
+      font-size: 14px
+
+  .cfg-hr-pane td [class*="__badge"]
+    padding: 0 6px
+
+@container (max-width: 520px)
+  .cfg-hr-pane .sib-table th, .cfg-hr-pane .sib-table td
+    padding-left: 4px
+    padding-right: 4px

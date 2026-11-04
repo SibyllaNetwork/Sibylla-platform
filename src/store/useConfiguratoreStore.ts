@@ -57,6 +57,12 @@ const SEED_COMPLETION: Partial<Record<ConfiguratoreId, CfgCompletion>> = {
   'fb-web-menu':              'partial',
   'fb-allergeni':             'configured',
   'fb-stampanti':             'configured',
+  // Risorse umane (seed di useHrConfigStore)
+  'hr-reparti':               'configured',
+  'hr-orari':                 'configured',
+  'hr-turnistica':            'configured',
+  'hr-tipologie-contratto':   'configured',
+  'hr-ccnl':                  'configured',
 }
 
 interface ConfiguratoreState {
@@ -89,10 +95,13 @@ export const useConfiguratoreStore = create<ConfiguratoreState>()(
     }),
     {
       name: 'sibylla.configuratore',
-      version: 1,
+      version: 2,
       // Persistiamo solo il completamento: il dirty state è transitorio.
       partialize: (s) => ({ completion: s.completion }),
-      migrate: () => ({ completion: { ...SEED_COMPLETION } as Record<string, CfgCompletion> }),
+      // v2: voci Risorse umane. Il seed riempie solo le voci mai toccate.
+      migrate: (persisted: any) => ({
+        completion: { ...SEED_COMPLETION, ...(persisted?.completion ?? {}) } as Record<string, CfgCompletion>,
+      }),
     },
   ),
 )

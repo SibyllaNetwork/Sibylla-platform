@@ -528,6 +528,13 @@ export default function PageContent({ page, navigate }: Props) {
   }
   if (page.startsWith('configuratore:')) return <Configuratore navigate={navigate} initialPane={page.slice('configuratore:'.length)} key={page}/>;
   if (page === 'configuratore')         return <Configuratore navigate={navigate}/>;
+  // Human Resources › Configurazione: il Configuratore ristretto al gruppo Risorse umane
+  if (page === 'hr-configurazione' || page.startsWith('hr-configurazione:')) {
+    return <Configuratore navigate={navigate} group="risorse-umane" key={page}
+      initialPane={page.includes(':') ? page.slice('hr-configurazione:'.length) : undefined}
+      title="Configurazione HR"
+      subtitle="Reparti, orari, turnistica, tipologie di contratto e CCNL con cui inquadrare il personale"/>;
+  }
   if (page === 'crea-struttura')        return <CreaStruttura navigate={navigate}/>;
   if (page === 'crea-outlet')           return <CreaStruttura navigate={navigate} autoOpenType="outlet"/>;
   if (page === 'monitoraggio-canali')   return <MonitoraggioCanali navigate={navigate}/>;

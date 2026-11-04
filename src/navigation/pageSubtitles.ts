@@ -12,6 +12,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "analisi-occ": "Monitoraggio dei livelli di occupazione e dei trend di prenotazione",
   "analisi-scenari-mensili": "Monitoraggio e confronto delle performance su base mensile",
   "archivio-contratti": "Panoramica completa dei contratti registrati",
+  "hr-configurazione": "Reparti, orari, turnistica, tipologie di contratto e CCNL con cui inquadrare il personale",
   "archivio-personale": "Visualizza e gestisci tutte le anagrafiche dei dipendenti, con dettagli aggiornati e storico operativo",
   "area-merceologica": "Classificazione e gestione delle categorie merceologiche",
   "arrivi-partenze": "Gestione operativa dei movimenti in struttura",

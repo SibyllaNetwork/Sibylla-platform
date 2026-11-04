@@ -211,6 +211,7 @@ const MENU:any[]=[
       ]},
     ]},
     {id:"hr",label:"Human Resources",color:"#9B59B6",children:[
+      {id:"hr-configurazione",label:"Configurazione",page:"hr-configurazione"},
       {id:"gest-anagrafiche",label:"Gestione delle anagrafiche",children:[
         {id:"crea-anagrafica",label:"Crea anagrafica personale",page:"crea-anagrafica"},
         {id:"archivio-personale",label:"Archivio del personale",page:"archivio-personale"},

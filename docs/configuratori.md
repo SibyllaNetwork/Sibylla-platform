@@ -587,3 +587,21 @@ interni di tutti i pane, il secondo page-head della sub-app F&B, tutti gli hex d
 - Persistenza: i pane salvano su store persistiti e mock `apiFetchSibylla`, senza backend.
 - Da §4.1, fuori da questa sezione: in "Inventario camere → Allestisci camera" il campo
   **Nome** deve diventare read-only, perché deriva da Mapping camere.
+
+---
+
+## Risorse umane (gruppo `risorse-umane`, nov 2026)
+
+Cinque voci — `hr-reparti`, `hr-orari`, `hr-turnistica`, `hr-tipologie-contratto`, `hr-ccnl` —
+con i dati in `src/store/useHrConfigStore.ts` (fonte unica). **Stesse voci, due viste**:
+
+- vista classica: Impostazioni › Configuratore, corsia «Risorse umane» (hub + sidebar + CfgPane);
+- accesso diretto: Human Resources › **Configurazione** (pagina `hr-configurazione[:<id>]`),
+  `Configuratore` con `group="risorse-umane"` → `ConfiguratoreSezione`: schede in alto e pane in
+  pagina, senza hub, sidebar né card.
+
+I dati confluiscono in Crea anagrafica personale (reparto, orario, turnazione; contratto con CCNL,
+livello, tipologia, RAL minima, prova, spettanze ferie/permessi riproporzionate al part time) e
+nell'Archivio del personale (colonna Reparto, inquadramento nel dettaglio), tramite i campi di
+inquadramento di `useContrattiPersonaleStore`. Sezione App Op! della scheda e azione «Invita Op!»
+dell'Archivio: `src/modules/appop/invitoAnagrafica.ts` + `useAnagraficaOpStore`.

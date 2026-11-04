@@ -7,6 +7,7 @@ import {
   cfgGroupById,
   configuratoreById,
   isConfiguratoreId,
+  type CfgGroupId,
   type ConfiguratoreDef,
   type ConfiguratoreId,
 } from './registry'
@@ -21,6 +22,7 @@ import { useConfirmStore } from '../../../store/useConfirmStore'
 import ConfiguratoreHub from './ConfiguratoreHub'
 import ConfiguratoreSidebar, { type SidebarLane } from './ConfiguratoreSidebar'
 import ConfiguratorePalette from './ConfiguratorePalette'
+import ConfiguratoreSezione from './ConfiguratoreSezione'
 import './Configuratore.sass'
 
 import ScaglioniOccupazione   from './panes/ScaglioniOccupazione/ScaglioniOccupazione'
@@ -49,6 +51,11 @@ import IntestazioniFiscali    from './panes/IntestazioniFiscali/IntestazioniFisc
 import BusinessCentral        from './panes/BusinessCentral/BusinessCentral'
 import CostiMapping           from './panes/CostiMapping/CostiMapping'
 import AppOp from './panes/AppOp/AppOp'
+import HrReparti             from './panes/HrReparti/HrReparti'
+import HrOrari               from './panes/HrOrari/HrOrari'
+import HrTurnistica          from './panes/HrTurnistica/HrTurnistica'
+import HrTipologieContratto  from './panes/HrTipologieContratto/HrTipologieContratto'
+import HrCcnl                from './panes/HrCcnl/HrCcnl'
 // Le voci F&B «Crea outlet» e «Sale e tavoli» sono LE STESSE pagine di
 // Impostazioni → Il mio business: si montano qui in modalità embedded (senza il
 // loro PageHead, che nel pane lo dà CfgPane), non si duplicano.
@@ -120,9 +127,23 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   'business-central':         BusinessCentral,
   'costi-mapping':            CostiMapping,
   'app-op':                   AppOp,
+  'hr-reparti':               HrReparti,
+  'hr-orari':                 HrOrari,
+  'hr-turnistica':            HrTurnistica,
+  'hr-tipologie-contratto':   HrTipologieContratto,
+  'hr-ccnl':                  HrCcnl,
 }
 
-export default function Configuratore({ navigate, initialPane }: { navigate: (p: string) => void; initialPane?: string }) {
+export interface ConfiguratoreProps {
+  navigate: (p: string) => void
+  initialPane?: string
+  /** Solo le voci di un gruppo (es. «Configurazione» di Human Resources → 'risorse-umane'). */
+  group?: CfgGroupId
+  title?: string
+  subtitle?: string
+}
+
+export default function Configuratore({ navigate, initialPane, group, title, subtitle }: ConfiguratoreProps) {
   // ── Voci visibili in base ai moduli del cliente: in assistenza quelli della struttura assistita, altrimenti quelli
   //    del profilo caricato (es. modulo Ristoranti = solo F&B, App Op! = gruppo App Op!). Nessuno dei due = tutto.
   const currentProfileId = useAccessStore(s => s.currentProfileId)
@@ -140,10 +161,12 @@ export default function Configuratore({ navigate, initialPane }: { navigate: (p:
   )
 
   const visibleDefs = useMemo(
-    () => CONFIGURATORI
+    // Configuratore di sezione (es. HR): le voci del gruppo, senza il filtro per moduli
+    // — l'accesso lo dà già la voce di menu della sezione.
+    () => group ? CONFIGURATORI.filter(d => d.group === group) : CONFIGURATORI
       .filter(d => !allowed || allowed.has(d.id) || (!!d.modulo && !!moduliProfilo?.includes(d.modulo)))
       .filter(d => !d.modulo || !moduliProfilo || moduliProfilo.includes(d.modulo) || moduliProfilo.includes('full')),
-    [allowed, moduliProfilo],
+    [allowed, moduliProfilo, group],
   )
 
   // ── Stato di completamento + dirty state (store della sezione)
@@ -174,7 +197,8 @@ export default function Configuratore({ navigate, initialPane }: { navigate: (p:
     && visibleDefs.some(d => d.id === initialPane)
     ? (initialPane as ConfiguratoreId)
     : null
-  const [activeId, setActiveId] = useState<ConfiguratoreId | null>(validInitial)
+  // Configuratore di sezione: niente hub, si apre sulla prima voce del gruppo
+  const [activeId, setActiveId] = useState<ConfiguratoreId | null>(validInitial ?? (group ? visibleDefs[0]?.id ?? null : null))
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [entering, setEntering] = useState(false)
 
@@ -223,11 +247,27 @@ export default function Configuratore({ navigate, initialPane }: { navigate: (p:
   const activeDef = activeId ? configuratoreById(activeId) : undefined
   const activeGroup = activeDef ? cfgGroupById(activeDef.group) : undefined
 
+  // ── Configuratore di sezione (es. Human Resources › Configurazione): impaginato
+  //    come una pagina della sezione, senza hub, sidebar né card di CfgPane.
+  if (group) {
+    const items = lanes.flatMap(l => l.items)
+    return (
+      <div className="configuratore">
+        <PageHead title={title ?? 'Configuratore'} subtitle={subtitle} />
+        {activeDef && (
+          <ConfiguratoreSezione items={items} activeId={activeDef.id} onSelect={guardedGo}>
+            <PaneSwitch def={activeDef} completion={completion} onGoTo={guardedGo} navigate={navigate} />
+          </ConfiguratoreSezione>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="configuratore">
       <PageHead
-        title="Configuratore"
-        subtitle="Personalizza il sistema per una gestione efficiente e su misura"
+        title={title ?? 'Configuratore'}
+        subtitle={subtitle ?? 'Personalizza il sistema per una gestione efficiente e su misura'}
       />
 
       {activeDef == null ? (
@@ -251,7 +291,7 @@ export default function Configuratore({ navigate, initialPane }: { navigate: (p:
               transizione (crossfade + slide corto, vedi .sass) */}
           <div className="configuratore__paneview" key={activeDef.id}>
             <CfgPane
-              trail={['Configuratore', activeGroup?.label ?? '']}
+              trail={[title ?? 'Configuratore', activeGroup?.label ?? '']}
               onTrail={() => { void guardedGo(null) }}
               title={activeDef.label}
               description={activeDef.description}

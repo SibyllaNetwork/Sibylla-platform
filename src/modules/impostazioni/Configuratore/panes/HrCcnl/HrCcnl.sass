@@ -1,0 +1,216 @@
+// ─── RISORSE UMANE › CONTRATTI COLLETTIVI (CCNL) ──────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.cfg-hrccnl
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+
+  &__layout
+    display: grid
+    grid-template-columns: 260px minmax(0, 1fr)
+    gap: 18px
+    align-items: start
+
+  // ── Elenco ─────────────────────────────────────────────────────────────────
+  &__list
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__item
+    display: flex
+    align-items: center
+    gap: 10px
+    width: 100%
+    padding: 10px 12px
+    text-align: left
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: $radius-md
+    cursor: pointer
+    transition: border-color $motion-fast $motion-ease, box-shadow $motion-fast $motion-ease
+
+    &:hover
+      border-color: $primary-300
+
+    &.is-active
+      border-color: $primary
+      box-shadow: 0 0 0 1px $primary
+
+  &__item-ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 32px
+    height: 32px
+    flex-shrink: 0
+    border-radius: $radius-md
+    background: $primary-50
+    color: $primary
+    font-size: 15px
+
+  &__item-text
+    display: flex
+    flex-direction: column
+    min-width: 0
+    gap: 2px
+
+  &__item-name
+    font-weight: 600
+    color: $text-active
+
+  &__item-meta
+    font-size: 11px
+    color: $text-inactive
+
+  &__list .cfg-hrccnl__add
+    justify-content: center
+
+  // ── Scheda ─────────────────────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    min-width: 0
+    padding: 14px 18px 18px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: $radius-md
+
+  &__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    margin-bottom: 10px
+
+  &__head-text
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__head-name
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 600
+    color: $text-active
+
+  &__head-meta
+    font-size: 12px
+    color: $text-inactive
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px
+
+  &__span2
+    grid-column: span 2
+
+  &__section
+    display: flex
+    flex-direction: column
+    gap: 12px
+    min-width: 0
+
+  &__bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+
+  &__lead, &__note
+    margin: 0
+    font-size: 12.5px
+    color: $text-inactive
+
+  &__note
+    display: flex
+    align-items: center
+    gap: 6px
+
+    i
+      color: $primary
+
+  &__sub
+    margin: 6px 0 0
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__lv
+    font-weight: 700
+    color: $primary
+
+  &__num
+    text-align: right
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  &__ord
+    white-space: nowrap
+
+  &__actions
+    text-align: right
+    white-space: nowrap
+
+  // ── Ferie e permessi: form + anteprima ─────────────────────────────────────
+  &__ferie
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 280px
+    gap: 18px
+    align-items: start
+
+  &__preview
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 12px 14px
+    border: 1px solid $primary-200
+    border-radius: $radius-md
+    background: $primary-50
+
+  &__ptable
+    width: 100%
+    border-collapse: collapse
+    font-size: 12px
+
+    th, td
+      padding: 5px 4px
+      border-bottom: 1px solid $border
+      text-align: right
+      font-variant-numeric: tabular-nums
+
+    thead th
+      font-weight: 600
+      color: $text-inactive
+
+    tbody th
+      text-align: left
+      font-weight: 600
+      color: $text-active
+
+    tr:last-child th, tr:last-child td
+      border-bottom: none
+
+@container (max-width: 900px)
+  .cfg-hrccnl__layout, .cfg-hrccnl__ferie
+    grid-template-columns: 1fr
+
+  .cfg-hrccnl__list
+    flex-direction: row
+    flex-wrap: wrap
+
+    .cfg-hrccnl__item
+      width: auto
+      flex: 1 1 220px
+
+@container (max-width: 560px)
+  .cfg-hrccnl__grid
+    grid-template-columns: 1fr
+
+  .cfg-hrccnl__span2
+    grid-column: auto

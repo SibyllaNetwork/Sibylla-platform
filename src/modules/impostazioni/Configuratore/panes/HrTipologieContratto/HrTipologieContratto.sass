@@ -1,0 +1,60 @@
+// ─── RISORSE UMANE › TIPOLOGIE DI CONTRATTO ───────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.cfg-hrtip
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+
+  &__lead
+    margin: 0
+    font-size: 12.5px
+    color: $text-inactive
+
+  &__name
+    font-weight: 600
+    color: $text-active
+
+  &__code
+    font-size: 11.5px
+    font-weight: 600
+    letter-spacing: .4px
+    color: $text-inactive
+
+  &__center
+    text-align: center
+
+  &__num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__yes
+    font-size: 14px
+    color: $success
+
+  &__no
+    font-size: 12px
+    color: $text-disabled
+
+  &__badge
+    display: inline-flex
+    align-items: center
+    height: 22px
+    padding: 0 9px
+    border-radius: 11px
+    font-size: 11px
+    font-weight: 600
+    white-space: nowrap
+
+    &--on
+      color: $success
+      background: alpha($success, .12)
+
+    &--off
+      color: $text-inactive
+      background: alpha($text-inactive, .1)
+
+  &__actions
+    text-align: right
+    white-space: nowrap

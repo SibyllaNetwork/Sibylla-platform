@@ -244,6 +244,7 @@ const MENU_MAP: Record<string, string> = {
   // HR — Gestione anagrafiche
   'crea-anagrafica':            'fa-user-plus',
   'archivio-personale':         'fa-folder-open',
+  'hr-configurazione':          'fa-sliders',
   'profile-analysis':           'fa-id-card',
 
   // HR — Premio performance

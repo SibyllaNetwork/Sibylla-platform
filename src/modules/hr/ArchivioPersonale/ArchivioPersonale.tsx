@@ -6,6 +6,15 @@ import { apiFetchSibylla } from '../../../services/api'
 import { avatarUrl } from '../../../core/avatar'
 import { setEditingAnagrafica } from '../CreaAnagrafica/_state'
 import { useContrattiPersonaleStore, type ContrattoPersonale } from '../../../store/useContrattiPersonaleStore'
+import './ArchivioPersonale.sass'
+import TruncatedText from '../../../core/components/TruncatedText'
+import { toast } from '../../../core/components/Toast/useToast'
+import { useHrConfigStore, findById, oreSettimanaliOrario } from '../../../store/useHrConfigStore'
+import { useAnagraficaOpStore } from '../../../store/useAnagraficaOpStore'
+import { useModuloAttivo } from '../../../hooks/useModuloAttivo'
+import { invitaDipendenteOp, useStrutturaOp } from '../../appop/invitoAnagrafica'
+import { formatoData, type InvitoOp } from '../../appop/opApi'
+import OpInvitoModal from '../../appop/OpInvitoModal'
 
 // yyyy-mm-dd → dd/mm/yyyy
 const fmtDate = (iso?: string) => {
@@ -108,19 +117,25 @@ const FALLBACK: PersonaleItem[] = [
   { id: 90, matricola: 90, nome: 'Sicilia',   cognome: 'Andrea',   telefono: '+39 331 5566778', nato_il: '01/01/2001', codice_fiscale: 'qwertyuiop',      indirizzo: 'Viale Luca Gaurico, 283', cap: '00143', provincia: 'Roma', nazione: 'ITA' },
 ]
 
-type Col = { key: string; label: string; filter?: boolean }
+// `short` = intestazione abbreviata (tooltip col nome intero), `w` = larghezza in %
+// (riportata in ArchivioPersonale.sass sulle classi `arch-pers__col--<key>`):
+// la tabella è a layout fisso e non scorre mai in orizzontale.
+type Col = { key: string; label: string; short?: string; w: string; filter?: boolean }
 const COLS: Col[] = [
-  { key: 'matricola',     label: 'Matricola N°' },
-  { key: 'nome',          label: 'Nome',           filter: true },
-  { key: 'cognome',       label: 'Cognome',        filter: true },
-  { key: 'telefono',      label: 'Contatto telefonico', filter: true },
-  { key: 'nato_il',       label: 'Nato il' },
-  { key: 'codice_fiscale',label: 'Codice Fiscale', filter: true },
-  { key: 'indirizzo',     label: 'Indirizzo' },
-  { key: 'cap',           label: 'Cap',            filter: true },
-  { key: 'provincia',     label: 'Provincia',      filter: true },
-  { key: 'nazione',       label: 'Nazione',        filter: true },
+  { key: 'matricola',     label: 'Matricola N°',        short: 'Matr.',  w: '7%' },
+  { key: 'nome',          label: 'Nome',                                 w: '9%',  filter: true },
+  { key: 'cognome',       label: 'Cognome',                              w: '8%',  filter: true },
+  { key: 'reparto',       label: 'Reparto',                              w: '10%', filter: true },
+  { key: 'telefono',      label: 'Contatto telefonico', short: 'Tel.',   w: '9%', filter: true },
+  { key: 'nato_il',       label: 'Nato il',                              w: '7%' },
+  { key: 'codice_fiscale',label: 'Codice Fiscale',      short: 'C.F.',   w: '10%', filter: true },
+  { key: 'indirizzo',     label: 'Indirizzo',                            w: '9%' },
+  { key: 'cap',           label: 'Cap',                                  w: '5%',  filter: true },
+  { key: 'provincia',     label: 'Provincia',           short: 'Prov.',  w: '6%',  filter: true },
+  { key: 'nazione',       label: 'Nazione',             short: 'Naz.',   w: '5%',  filter: true },
 ]
+const cella = (v?: string | number | null) =>
+  v != null && String(v) !== '' ? <TruncatedText text={String(v)} /> : <span className="text-text-muted">-</span>
 
 export default function ArchivioPersonale({ navigate }: { navigate: (p: string) => void }) {
   const [items, setItems] = useState<PersonaleItem[]>(FALLBACK)
@@ -129,6 +144,30 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
   const [docPerson, setDocPerson] = useState<PersonaleItem | null>(null)
   const [contrattiPerson, setContrattiPerson] = useState<PersonaleItem | null>(null)
   const contratti = useContrattiPersonaleStore((s) => s.contratti)
+  const abilitazioni = useAnagraficaOpStore((s) => s.abilitazioni)
+  const appOpAttivo = useModuloAttivo('app-op')
+  const strutturaOp = useStrutturaOp()
+  const [invito, setInvito] = useState<{ invito: InvitoOp; nome: string } | null>(null)
+  const [invitando, setInvitando] = useState<number | null>(null)
+
+  // Reparto dal contratto vigente (inquadramento del Configuratore HR)
+  const repartoDi = (p: PersonaleItem) =>
+    [...contratti].filter((c) => c.anagraficaId === String(p.id))
+      .sort((a, b) => (b.decorrenza ?? b.createdAt).localeCompare(a.decorrenza ?? a.createdAt))[0]?.reparto ?? ''
+
+  const invitaOp = async (p: PersonaleItem) => {
+    const abil = abilitazioni[String(p.id)]
+    if (!abil) return
+    setInvitando(p.id ?? null)
+    try {
+      const inv = await invitaDipendenteOp(String(p.id), { nome: p.nome ?? '', cognome: p.cognome ?? '' }, abil, strutturaOp)
+      setInvito({ invito: inv, nome: `${p.nome ?? ''} ${p.cognome ?? ''}`.trim() })
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Invito non inviato.', 'Invita Op!')
+    } finally {
+      setInvitando(null)
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -154,14 +193,15 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
   const filtered = useMemo(() => items.filter((p) => {
     for (const [k, v] of Object.entries(filters)) {
       if (!v) continue
-      const cell = String((p as any)[k] ?? '').toLowerCase()
+      const cell = String(k === 'reparto' ? repartoDi(p) : (p as any)[k] ?? '').toLowerCase()
       if (!cell.includes(v.toLowerCase())) return false
     }
     return true
-  }), [items, filters])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [items, filters, contratti])
 
   return (
-    <div>
+    <div className="arch-pers">
       <PageHead
         title="Archivio del personale"
         subtitle="Gestione dei dati anagrafici e contrattuali di tutto il personale, con accesso rapido agli archivi contrattuali e possibilità di creare nuovi profili"
@@ -174,13 +214,17 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
       </div>
 
       <div className="sib-table-wrap">
-        <table className="sib-table">
+        <table className="sib-table arch-pers__table">
+          <colgroup>
+            {COLS.map((c) => <col key={c.key} className={`arch-pers__col--${c.key}`} />)}
+            <col className="arch-pers__col--azioni" />
+          </colgroup>
           <thead>
             <tr>
               {COLS.map((c) => (
                 <th key={c.key} className="relative">
-                  <span className="inline-flex items-center gap-2">
-                    {c.label}
+                  <span className="arch-pers__th">
+                    <TruncatedText text={c.short ?? c.label} full={c.label} />
                     {c.filter && (
                       <button
                         type="button"
@@ -231,7 +275,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
               return (
               <tr key={p.id}>
                 <td>
-                  <span className="inline-flex items-center gap-2">
+                  <span className="arch-pers__matr">
                     {mancanti.length > 0 && (
                       <Tooltip variant="light" position="right" content={
                         <div className="text-left">
@@ -250,17 +294,18 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
                     {p.matricola}
                   </span>
                 </td>
-                <td>{p.nome}</td>
-                <td>{p.cognome}</td>
-                <td>{p.telefono || <span className="text-text-muted">-</span>}</td>
-                <td>{p.nato_il}</td>
-                <td>{p.codice_fiscale}</td>
-                <td>{p.indirizzo}</td>
-                <td>{p.cap}</td>
-                <td>{p.provincia}</td>
-                <td>{p.nazione}</td>
+                <td>{cella(p.nome)}</td>
+                <td>{cella(p.cognome)}</td>
+                <td>{cella(repartoDi(p))}</td>
+                <td>{cella(p.telefono)}</td>
+                <td>{cella(p.nato_il)}</td>
+                <td>{cella(p.codice_fiscale)}</td>
+                <td>{cella(p.indirizzo)}</td>
+                <td>{cella(p.cap)}</td>
+                <td>{cella(p.provincia)}</td>
+                <td>{cella(p.nazione)}</td>
                 <td>
-                  <div className="flex items-center gap-3">
+                  <div className="arch-pers__acts">
                     <button className="sib-btn sib-btn--icon" title="Dettaglio dipendente" onClick={() => setDocPerson(p)}>
                       <i className="fa-solid fa-eye" />
                     </button>
@@ -273,6 +318,19 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
                         <span className="absolute -top-1 -right-1 min-w-[15px] h-[15px] px-1 rounded-full bg-primary text-white text-[9px] font-bold leading-[15px] text-center">{nCtr}</span>
                       )}
                     </button>
+                    {appOpAttivo && abilitazioni[String(p.id)]?.abilitato && (() => {
+                      const ab = abilitazioni[String(p.id)]
+                      return (
+                        <Tooltip text={ab.ultimoInvito
+                          ? `Invita Op! — ultimo invito a ${ab.ultimoInvito.emailMascherata}, valido fino al ${formatoData(ab.ultimoInvito.scadeIl)}`
+                          : `Invita Op! — invia il token di invito a ${ab.emailAziendale || 'email aziendale mancante'}`}>
+                          <button className="sib-btn sib-btn--icon" aria-label={`Invita ${p.nome} ${p.cognome} all'App Op!`}
+                            disabled={invitando === p.id} onClick={() => invitaOp(p)}>
+                            <i className={`fa-solid ${invitando === p.id ? 'fa-spinner fa-spin' : 'fa-mobile-screen'}`} />
+                          </button>
+                        </Tooltip>
+                      )
+                    })()}
                     <button className="sib-btn sib-btn--icon" title="Elimina">
                       <i className="fa-solid fa-trash-can" />
                     </button>
@@ -290,6 +348,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
 
       <DocIdentitaModal persona={docPerson} onClose={() => setDocPerson(null)} />
       <ContrattiModal persona={contrattiPerson} onClose={() => setContrattiPerson(null)} />
+      <OpInvitoModal invito={invito?.invito ?? null} nome={invito?.nome ?? ''} onClose={() => setInvito(null)} />
     </div>
   )
 }
@@ -315,7 +374,7 @@ function ContrattiModal({ persona, onClose }: { persona: PersonaleItem | null; o
                   {i === 0 && <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success text-white text-[11px] font-bold">Vigente</span>}
                   <span className="font-semibold text-text text-[13px]">{r.tipologia}</span>
                   <span className="text-[12px] text-text-muted">
-                    {r.ruolo || '—'}{r.livello ? ` · ${r.livello}` : ''} · RAL € {r.ral || '—'} · dal {fmtDate(r.decorrenza)}
+                    {r.ruolo || '—'}{r.livello ? ` · ${r.livello} livello` : ''}{r.ccnl ? ` · ${r.ccnl}` : ''}{r.reparto ? ` · ${r.reparto}` : ''} · RAL € {r.ral || '—'} · dal {fmtDate(r.decorrenza)}{r.scadenza ? ` al ${fmtDate(r.scadenza)}` : ''}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-none">
@@ -380,6 +439,8 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
         </div>
       )}
 
+      {persona && <InquadramentoBlock contratto={ultimoContratto} />}
+
       {persona && (() => {
         const mancanti = docMancantiList(persona).length + (ultimoContratto ? 0 : 1)
         const altri = persona.documenti?.altri ?? []
@@ -414,6 +475,41 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
         )
       })()}
     </Modal>
+  )
+}
+
+// ─── Inquadramento del contratto vigente (dati del Configuratore HR) ──────────
+function InquadramentoBlock({ contratto: c }: { contratto?: ContrattoPersonale }) {
+  const { orari, schemi } = useHrConfigStore()
+  if (!c) return null
+  const orario = findById(orari, c.orarioId)
+  const schema = findById(schemi, c.schemaTurniId)
+  const voci: [string, string][] = [
+    ['Reparto', c.reparto || '—'],
+    ['Ruolo', c.ruolo || '—'],
+    ['CCNL', c.ccnl || '—'],
+    ['Livello', c.livello || '—'],
+    ['Tipologia', `${c.tipologia}${c.scadenza ? ` · fino al ${fmtDate(c.scadenza)}` : ''}`],
+    ['Orario', orario ? `${orario.nome} (${oreSettimanaliOrario(orario)} h)` : '—'],
+    ['Turnazione', schema?.nome || '—'],
+    ['Part time', c.partTimePerc != null && c.partTimePerc < 100 ? `${c.partTimePerc}%` : 'Full time'],
+    ['Ferie annue', c.ferieGiorni != null ? `${c.ferieGiorni} giorni` : '—'],
+    ['Permessi annui', c.rolOre != null ? `${c.rolOre} h ROL + ${c.exFestivitaOre ?? 0} h ex fest.` : '—'],
+    ['Periodo di prova', c.provaGiorni ? `${c.provaGiorni} giorni` : '—'],
+    ['RAL', c.ral ? `€ ${c.ral}` : '—'],
+  ]
+  return (
+    <div className="mt-5 pt-4 border-t border-line">
+      <h4 className="text-[13px] font-semibold text-text mb-2">Inquadramento contrattuale</h4>
+      <dl className="grid grid-cols-3 gap-x-5 gap-y-3 text-[13px] m-0">
+        {voci.map(([label, value]) => (
+          <div key={label} className="flex flex-col min-w-0">
+            <dt className="text-text-muted text-[11px]">{label}</dt>
+            <dd className="m-0 font-semibold text-text min-w-0"><TruncatedText text={value} /></dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   )
 }
 

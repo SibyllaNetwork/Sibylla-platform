@@ -1,0 +1,48 @@
+// ─── COLORE reparti/turni ─────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+@mixin hr-col-bg
+  @for $i from 1 through 8
+    &[data-col="#{$i}"]
+      background: var(--chart-#{$i})
+
+.hrcfg-dot
+  display: inline-block
+  flex-shrink: 0
+  width: 10px
+  height: 10px
+  border-radius: 50%
+  @include hr-col-bg
+
+.hrcfg-colors
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+  &__label
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__list
+    display: flex
+    gap: 8px
+    flex-wrap: wrap
+
+  &__swatch
+    width: 24px
+    height: 24px
+    border-radius: 50%
+    border: 2px solid transparent
+    cursor: pointer
+    box-shadow: 0 0 0 1px $border
+    transition: transform $motion-fast $motion-ease
+    @include hr-col-bg
+
+    &:hover
+      transform: scale(1.1)
+
+    &.is-active
+      border-color: var(--color-surface)
+      box-shadow: 0 0 0 2px $primary

@@ -1,0 +1,58 @@
+// ─── ARCHIVIO DEL PERSONALE ───────────────────────────────────────────────────
+// Tabella a layout fisso con colonne in %: nessuno scroll orizzontale a nessuna
+// larghezza; celle su una riga (TruncatedText = ellissi + tooltip). Sotto
+// ~1000px di contenuto si compatta con una container query sul root pagina.
+@use '../../../styles/tokens' as *
+
+$cols: (matricola: 7%, nome: 9%, cognome: 8%, reparto: 10%, telefono: 9%, nato_il: 7%, codice_fiscale: 10%, indirizzo: 9%, cap: 5%, provincia: 6%, nazione: 5%, azioni: 15%)
+
+.arch-pers
+  container-type: inline-size
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    @each $k, $w in $cols
+      .arch-pers__col--#{$k}
+        width: $w
+
+    th, td
+      white-space: nowrap
+      overflow: hidden
+
+  // Intestazione: etichetta (troncabile) + icona filtro
+  &__th
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+    > :first-child
+      min-width: 0
+
+  &__matr
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  &__acts
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 2px
+
+// Container stretto (laptop con sidebar aperta): celle e icone più compatte
+@container (max-width: 1100px)
+  .arch-pers .arch-pers__table th, .arch-pers .arch-pers__table td
+    padding-left: 6px
+    padding-right: 6px
+    font-size: 12px
+
+  .arch-pers .arch-pers__acts .sib-btn--icon
+    width: 22px
+    min-width: 22px
+    padding: 0
+
+    i
+      font-size: 14px

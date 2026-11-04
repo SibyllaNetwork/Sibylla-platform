@@ -88,6 +88,22 @@ export const ACRONIMI: Record<string, AcronimoDef> = {
     esteso: 'Imposta sul Valore Aggiunto',
     spiegazione: 'L’imposta applicata su ogni voce di ricavo, con l’aliquota prevista per la categoria.',
   },
+  'CCNL': {
+    esteso: 'Contratto Collettivo Nazionale di Lavoro',
+    spiegazione: 'Il contratto di settore che fissa livelli, minimi retributivi, orario, ferie e permessi del personale.',
+  },
+  'CNEL': {
+    esteso: 'Consiglio Nazionale dell’Economia e del Lavoro',
+    spiegazione: 'L’archivio nazionale dei contratti collettivi: ogni CCNL ha il suo codice alfanumerico.',
+  },
+  'ROL': {
+    esteso: 'Riduzione Orario di Lavoro',
+    spiegazione: 'Le ore di permesso retribuito che il CCNL riconosce ogni anno oltre alle ferie.',
+  },
+  'RAL': {
+    esteso: 'Retribuzione Annua Lorda',
+    spiegazione: 'Il compenso annuo lordo del dipendente: minimo del livello per le mensilità, più eventuali superminimi.',
+  },
 }
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

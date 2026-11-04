@@ -58,6 +58,12 @@ export type ConfiguratoreId =
   | 'fb-service-monitor'
   // App Op! (modulo dell'app per i dipendenti)
   | 'app-op'
+  // Risorse umane (anche dalla voce «Configurazione» del menu Human Resources)
+  | 'hr-reparti'
+  | 'hr-orari'
+  | 'hr-turnistica'
+  | 'hr-tipologie-contratto'
+  | 'hr-ccnl'
 
 // ─── Gruppi tematici (le 7 corsie) ────────────────────────────────────────────
 
@@ -70,6 +76,7 @@ export type CfgGroupId =
   | 'struttura'
   | 'food-beverage'
   | 'app-op'
+  | 'risorse-umane'
 
 export interface CfgGroup {
   id: CfgGroupId
@@ -87,6 +94,7 @@ export const CFG_GROUPS: CfgGroup[] = [
   { id: 'struttura',               label: 'Struttura',                 icon: 'house' },
   { id: 'food-beverage',           label: 'Food & Beverage',           icon: 'utensils' },
   { id: 'app-op',                  label: 'App Op!',                   icon: 'mobile-screen' },
+  { id: 'risorse-umane',           label: 'Risorse umane',             icon: 'users-gear' },
 ]
 
 // ─── Definizione di una voce ──────────────────────────────────────────────────
@@ -337,6 +345,32 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
     description: 'Utenze dei dipendenti con reparto, grado e codice di invito, e funzioni dell\u2019app per ogni reparto.',
     keywords: ['app op', 'operation', 'dipendenti', 'inviti', 'utenze', 'reparti', 'moduli', 'responsabile', 'walkie talkie', 'flash message'],
   },
+  // ── Risorse umane: i dati con cui si inquadra il dipendente in Crea anagrafica ──
+  {
+    id: 'hr-reparti', label: 'Reparti', icon: 'sitemap', group: 'risorse-umane',
+    description: 'Reparti della struttura con codice, responsabile, centro di costo e reparto App Op! collegato.',
+    keywords: ['reparti', 'organigramma', 'centro di costo', 'responsabile', 'front office', 'housekeeping', 'cucina'],
+  },
+  {
+    id: 'hr-orari', label: 'Orari di lavoro', icon: 'business-time', group: 'risorse-umane',
+    description: 'Orari contrattuali: full time e part time, fasce giornaliere, pause e monte ore settimanale.',
+    keywords: ['orario', 'full time', 'part time', 'orizzontale', 'verticale', 'ore settimanali', 'pausa', 'flessibilità'],
+  },
+  {
+    id: 'hr-turnistica', label: 'Turnistica', icon: 'arrows-rotate', group: 'risorse-umane',
+    description: 'Turni di servizio (mattina, pomeriggio, notte, spezzato) e schemi di rotazione con i riposi.',
+    keywords: ['turni', 'rotazione', 'ciclo continuo', 'notte', 'spezzato', 'riposo', '6+1', '5+2'],
+  },
+  {
+    id: 'hr-tipologie-contratto', label: 'Tipologie di contratto', icon: 'file-signature', group: 'risorse-umane',
+    description: 'Tipi di rapporto di lavoro applicabili: scadenza, durata massima, periodo di prova e codice UniLav.',
+    keywords: ['tempo indeterminato', 'determinato', 'stagionale', 'apprendistato', 'intermittente', 'somministrazione', 'unilav'],
+  },
+  {
+    id: 'hr-ccnl', label: 'Contratti collettivi', icon: 'file-contract', group: 'risorse-umane',
+    description: 'CCNL applicati con livelli e minimi, ferie e permessi annui, maturazione, maggiorazioni, enti e fondi.',
+    keywords: ['ccnl', 'livelli', 'ferie', 'permessi', 'rol', 'ex festività', 'maturazione', 'ratei', 'scatti', 'minimi tabellari', 'mensilità'],
+  },
 ]
 
 // ─── Lookup e derivazioni ─────────────────────────────────────────────────────
@@ -372,7 +406,7 @@ export interface ConfiguratoreItem {
 }
 
 export const MAIN_ITEMS: ConfiguratoreItem[] = CONFIGURATORI
-  .filter(d => d.group !== 'food-beverage' && d.group !== 'app-op')
+  .filter(d => d.group !== 'food-beverage' && d.group !== 'app-op' && d.group !== 'risorse-umane')
   .map(({ id, label, icon }) => ({ id, label, icon }))
 
 export const FNB_ITEMS: ConfiguratoreItem[] = CONFIGURATORI
