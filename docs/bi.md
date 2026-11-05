@@ -149,8 +149,8 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 | Pagina | Stato | Fascia KPI | Card |
 |---|---|---|---|
 | Operation overview | ⏳ | Camere occupate · Arrivi · Partenze · Fuori servizio · Housekeeping da fare | Movimenti del giorno · Stato camere · Carico housekeeping per piano · Segnalazioni aperte |
-| On the book analysis | ⏳ | OTB ricavo · Camere · ADR · Occupazione prevista · Pace vs LY | OTB per data soggiorno vs LY · Per segmento · Per canale · Pickup ultimi 7 gg |
-| Guest & room analysis | ⏳ | Ospiti · ALOS · Ospiti ripetenti · Upsell · Recensioni | Provenienze (top + Altro) · Tipologie più vendute · Composizione dell'ospite · Upgrade e upsell |
+| On the book analysis | ✅ | Ricavo a libro (pace vs LY) · Camere a libro · ADR a libro · Occupazione a libro · Quota garantita | A libro per data di soggiorno, garantito e opzionato, con LY alla stessa distanza e previsto a consuntivo (+ viste Per mese e Dettaglio) · A libro per segmento (con ADR) · Entrato negli ultimi 7 giorni per settimana di soggiorno · A libro per canale (con commissione) |
+| Guest & room analysis | ✅ | Ospiti arrivati · Presenze · Permanenza media · Ospiti ripetenti · Ricavo per ospite (tutti vs LY) | Camere occupate e ospiti in casa (per notte, per settimana oltre i 3 mesi; + Dettaglio) · Provenienze con bandiere tonde (top 7 + Altri paesi, scostamento in punti sull'LY) · Tipologie di camera (occupazione e ADR) · Composizione dei soggiorni (donut) · Upgrade e servizi extra |
 | Maintenance analysis | ✅ | Interventi aperti · Tempo di chiusura · Camere fuori servizio · Costo interventi · Ricavo perso | Segnalati e chiusi per mese con l'arretrato (+ viste Tipologie di costo e Dettaglio interventi) · Rispetto degli SLA per priorità · Camere fuori servizio nel tempo · Impatto sul business (costo + ricavo perso) |
 | Analisi dell'occupazione | ⏳ | variante operativa di Occupancy analysis | idem, in chiave giornaliera e per piano |
 
@@ -200,7 +200,8 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 5. ✅ Maintenance analysis (modello in `operation/_data/maintenanceMock`: interventi
    proporzionali alle camere occupate, arretrato che cresce in alta stagione, camere
    fuori servizio valorizzate all'ADR del mese).
-   Restano le altre overview (Sales, Operation) e On the book analysis.
+   ✅ On the book analysis e Guest & room analysis (05/11/2026, dati in `onTheBook.data.ts` e
+   `guestRoom.data.ts` sopra `revenueMock`). Restano le altre overview (Sales, Operation).
 6. Allineamento delle pagine già ricche (Analisi distribuzione, Comparazione mercato,
    SSPI, Value analysis, Market lens): impianto e palette, contenuto invariato.
 

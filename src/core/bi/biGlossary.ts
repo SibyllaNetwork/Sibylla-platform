@@ -204,6 +204,36 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     description: 'Mean Time To Repair — tempo medio di chiusura di un intervento',
     formula: 'Somma delle ore di lavorazione diviso il numero di interventi chiusi',
   },
+  pace: {
+    term: 'Pace',
+    description: 'Ritmo di riempimento rispetto all\'anno precedente',
+    formula: 'Ricavo (o camere) a libro oggi confrontato con quello a libro l\'anno scorso alla stessa distanza dall\'arrivo',
+  },
+  presenze: {
+    term: 'Presenze',
+    description: 'Notti trascorse dagli ospiti in struttura',
+    formula: 'Somma, giorno per giorno, degli ospiti in casa (un ospite per tre notti = 3 presenze)',
+  },
+  ripetenti: {
+    term: 'Ospiti ripetenti',
+    description: 'Ospiti che erano già stati in struttura',
+    formula: 'Ospiti arrivati con almeno un soggiorno precedente diviso il totale degli ospiti arrivati',
+  },
+  revGuest: {
+    term: 'Ricavo per ospite',
+    description: 'Quanto rende in media ogni ospite arrivato',
+    formula: 'Ricavi camere più servizi extra diviso il numero di ospiti arrivati',
+  },
+  upsell: {
+    term: 'Upsell',
+    description: 'Vendita di servizi in più rispetto alla camera prenotata',
+    formula: 'Ricavo dei servizi extra (upgrade, late check-out, spa, parcheggio, transfer) nel periodo',
+  },
+  upgrade: {
+    term: 'Upgrade',
+    description: 'Passaggio a una tipologia di camera superiore',
+    formula: 'Venduto: pagato dall\'ospite. Concesso: gratuito, per fidelizzazione o per riassetto dell\'inventario',
+  },
   ALOS: {
     term: 'ALOS',
     description: 'Average Length Of Stay — permanenza media',

@@ -1,197 +1,124 @@
-// ─── ON THE BOOK ANALYSIS ─────────────────────────────────────────────────────
+// ─── ON THE BOOK ANALYSIS ───────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + libro per data (2 colonne) e segmenti, poi
+// pickup della settimana e canali. Tracce in minmax(0,…): nessuno scroll, mai.
 @use '../../../styles/tokens' as *
 
-.otb-analysis
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  gap: 16px
-  font-size: 13px
+.otb
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.28fr) minmax(0, 0.95fr)
+    grid-template-areas: 'kpi  kpi  kpi' 'main main seg' 'pk   pk   ch'
 
-  > .sib-btn--back
-    align-self: flex-start
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
 
-  &__filters
-    display: flex
-    align-items: flex-end
-    gap: 12px
+  &__main
+    grid-area: main
 
-    .sib-btn--icon i
-      color: $primary
-      font-size: 16px
+  &__seg
+    grid-area: seg
 
-  &__field
-    display: flex
-    flex-direction: column
-    gap: 6px
+  &__pk
+    grid-area: pk
 
-  &__field-raw
-    display: flex
-    flex-direction: column
-    gap: 6px
+  &__ch
+    grid-area: ch
 
-    label
-      font-family: 'Poppins', sans-serif
-      font-size: 12px
-      color: $primary
-      font-weight: 600
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 168px
 
-  &__select
-    width: 200px
+    &--wide
+      width: 210px
 
-  &__date-range
-    display: flex
+  &__note
+    display: inline-flex
     align-items: center
     gap: 6px
-
-    .sib-input
-      width: 140px
-
-    span
-      color: $text-inactive
-
-  &__visualizza
-    i
-      margin-right: 6px
-
-  &__info
     margin-left: auto
-
-  // ── Stats ───────────────────────────────────────────────────────────────────
-  &__stats
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 16px
-    align-items: center
-
-    @media (max-width: 1100px)
-      grid-template-columns: 1fr
-
-  &__previsione
-    display: flex
-    align-items: center
-    gap: 16px
-
-  &__previsione-tile
-    background: $primary
-    color: white
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 18px
-    padding: 12px 20px
-    border-radius: 6px
-    min-width: 130px
-    text-align: center
-
-  &__previsione-text
-    display: flex
-    flex-direction: column
-    gap: 2px
-
-  &__stat-label
-    font-size: 12px
-    color: $text-inactive
-
-  &__stat-foot
+    padding-bottom: 8px
+    font-family: var(--font-body)
     font-size: 11px
-    color: $text-inactive
+    color: var(--color-text-inactive)
+    white-space: nowrap
 
-  &__stat-value
-    font-family: $font-heading
-    font-weight: 700
-    color: $primary
-    font-size: 16px
+    i
+      color: var(--color-primary)
+      font-size: 12px
 
-  &__small-stats
-    display: grid
-    grid-template-columns: 1fr 1fr 1fr
-    gap: 16px
-    justify-self: end
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart,
+  &__bars
+    flex: 1
+    min-height: 0
+    min-width: 0
 
-    @media (max-width: 800px)
-      grid-template-columns: 1fr
+  &__bar-label
+    fill: var(--chart-ink)
+    font-family: var(--font-body)
+    font-size: 11px
+    font-weight: 600
 
-  &__small-stat
+  // ── Vista dettaglio ──────────────────────────────────────────────────────────
+  &__detail
     display: flex
     flex-direction: column
-    gap: 4px
-    text-align: left
+    flex: 1
+    min-height: 0
 
-  // ── Trend ───────────────────────────────────────────────────────────────────
-  &__trend
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 16px
+  &__detail-table
+    flex: 1
+    min-height: 0
 
-  &__legend
+    .sib-table.sib-table
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 3px
+        padding-bottom: 3px
+
+  &__num
+    text-align: right
+
+  &__tag
+    margin-left: 6px
+    padding: 0 5px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--chart-4) 16%, transparent)
+    color: var(--chart-4)
+    font-size: 10px
+    font-weight: 600
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
     display: flex
     justify-content: center
-    gap: 24px
-    margin-bottom: 8px
-    font-size: 12px
-    color: $text-active
+    flex: none
+    margin-top: 6px
 
-  &__dot
-    width: 10px
-    height: 10px
-    border-radius: 50%
-    display: inline-block
-    margin-right: 6px
-    vertical-align: middle
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .otb
+    &__kpis
+      gap: 8px
 
-    &--produzione
-      background: #A0A4AA
+    &__filter
+      width: 142px
 
-    &--forecast-tot
-      background: #1A1A1A
+      &--wide
+        width: 176px
 
-    &--forecast-gar
-      background: #CFD9E3
+    &__note
+      font-size: 10px
 
-    &--forecast-opz
-      background: #E0E7EE
+    &__detail-table .sib-table
+      font-size: 11px
 
-  &__svg
-    width: 100%
-    height: auto
-
-    &--h360
-      height: 360px
-
-  // ── Bottom cards ────────────────────────────────────────────────────────────
-  &__bottom
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 16px
-
-    @media (max-width: 1100px)
-      grid-template-columns: 1fr
-
-  &__card
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 16px
-    display: flex
-    flex-direction: column
-    gap: 12px
-
-  &__card-title
-    margin: 0
-    font-family: $font-heading
-    font-size: 14px
-    font-weight: 600
-    color: $primary
-    text-align: center
-
-  &__scroll
-    max-height: 280px
-    overflow-y: auto
-
-    &::-webkit-scrollbar
-      width: 6px
-
-    &::-webkit-scrollbar-thumb
-      background: $border
-      border-radius: 3px
+      th,
+      td
+        padding-inline: 6px
