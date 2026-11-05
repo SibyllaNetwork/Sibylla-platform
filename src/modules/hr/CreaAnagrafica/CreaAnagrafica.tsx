@@ -32,7 +32,6 @@ const SESSI = [
 ]
 
 const NAZIONALITA = ['ITALIA', 'FRANCIA', 'GERMANIA', 'SPAGNA', 'REGNO UNITO', 'STATI UNITI', 'ALBANIA', 'ROMANIA', 'MAROCCO', 'CINA']
-const CREDENZIALI = ['Nessuna', 'Operatore base', 'Operatore avanzato', 'Manager']
 // Reparti, orari, turni, tipologie e CCNL arrivano dal Configuratore HR
 // (Human Resources › Configurazione → useHrConfigStore).
 
@@ -429,7 +428,7 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
     nome: '', cognome: '', data_nascita: '', sesso: '',
     codice_fiscale: '', email: '', email_aziendale: abilOp.emailAziendale, telefono: '', contatto_emergenza: '',
     indirizzo: '', indirizzo2: '', cap: '', provincia: '', nazionalita: 'ITALIA',
-    strutture: '', credenziali: '',
+    strutture: '',
     repartoId: vigente?.repartoId ?? '', orarioId: vigente?.orarioId ?? '', schemaTurniId: vigente?.schemaTurniId ?? '',
     ...(initial ? {
       nome: initial.nome ?? '', cognome: initial.cognome ?? '', data_nascita: initial.data_nascita ?? '',
@@ -540,8 +539,6 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
           <div className="crea-anag__grid crea-anag__grid--3">
             <SelectField name="strutture"   label="Strutture abilitate"     value={form.strutture}   onChange={(e) => set('strutture', e.target.value)}
               options={[{ value: '', label: 'Seleziona' }, ...STRUTTURE.map((s) => ({ value: s, label: s }))]} />
-            <SelectField name="credenziali" label="Credenziali da generare" value={form.credenziali} onChange={(e) => set('credenziali', e.target.value)}
-              options={[{ value: '', label: 'Seleziona' }, ...CREDENZIALI.map((c) => ({ value: c, label: c }))]} />
             <SelectField name="reparto"     label="Reparto"                 value={form.repartoId}   onChange={(e) => set('repartoId', e.target.value)}
               hint={findById(repartiHr, form.repartoId)?.responsabile ? `Responsabile: ${findById(repartiHr, form.repartoId)!.responsabile}` : undefined}
               options={[{ value: '', label: 'Seleziona' }, ...repartiHr.filter((r) => r.attivo || r.id === form.repartoId).map((r) => ({ value: r.id, label: r.nome }))]} />
