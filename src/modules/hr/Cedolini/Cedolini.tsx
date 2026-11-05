@@ -187,6 +187,11 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
         onBack={() => navigate('home')}
         actions={
           <div className="ced__head-actions">
+            {bozze.length > 0 && (
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={pubblicaTutti}>
+                <Ico n="send" s={13} c="currentColor" /> Pubblica bozze ({bozze.length})
+              </button>
+            )}
             <button type="button" className="sib-btn sib-btn--primary" onClick={apriUpload}>
               <Ico n="upload" s={14} c="currentColor" /> Carica cedolini
             </button>
@@ -206,19 +211,18 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
             onChange={e => setCerca(e.target.value)} onClear={() => setCerca('')} />
         </div>
         <div className="ced__push">
-          {bozze.length > 0 && (
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={pubblicaTutti}>
-              <Ico n="send" s={13} c="currentColor" /> Pubblica bozze ({bozze.length})
-            </button>
-          )}
           {dettagliata ? (
             <>
-              <button type="button" className="sib-btn sib-btn--secondary ced__exp" onClick={() => esportaRegistroXlsx(opzExport())} disabled={!dipDettaglio.length}>
-                <i className="fa-regular fa-file-xls" aria-hidden="true" />Registro Excel
-              </button>
-              <button type="button" className="sib-btn sib-btn--secondary ced__exp" onClick={scaricaPdf} disabled={!dipDettaglio.length || esportando}>
-                <i className={`fa-regular ${esportando ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`} aria-hidden="true" />PDF presenze
-              </button>
+              <Tooltip text="Registro presenze in Excel">
+                <button type="button" className="ced__icon-btn" onClick={() => esportaRegistroXlsx(opzExport())} disabled={!dipDettaglio.length} aria-label="Registro presenze in Excel">
+                  <Ico n="excel" w="regular" s={16} c="#fff" />
+                </button>
+              </Tooltip>
+              <Tooltip text="PDF delle presenze con lo straordinario approvato">
+                <button type="button" className="ced__icon-btn" onClick={scaricaPdf} disabled={!dipDettaglio.length || esportando} aria-label="PDF delle presenze">
+                  <i className={`fa-regular ${esportando ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`} aria-hidden="true" />
+                </button>
+              </Tooltip>
             </>
           ) : (
             <Tooltip text="Esporta in Excel">
@@ -227,17 +231,16 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
               </button>
             </Tooltip>
           )}
+          {selettoreVista}
         </div>
       </div>
 
       {dettagliata && (
         <RegistroMensile dipendenti={dipDettaglio} anno={annoSel} mese={meseSel - 1} giornata={giornata} repartoIcon={repartoIcon}
-          variante="cedolino" straordinarioApprovato={straordinarioApprovato} onApprovaStraordinario={approva} azioniDipendente={azioniDip}
-          legendaExtra={selettoreVista} />
+          variante="cedolino" straordinarioApprovato={straordinarioApprovato} onApprovaStraordinario={approva} azioniDipendente={azioniDip} />
       )}
 
       {!dettagliata && (<>
-      <div className="ced__vista-row">{selettoreVista}</div>
 
       <div className="sib-table-wrap ced__wrap">
         <table className="sib-table ced__table">

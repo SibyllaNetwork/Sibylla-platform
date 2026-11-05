@@ -364,14 +364,9 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
     keywords: ['turni', 'rotazione', 'ciclo continuo', 'notte', 'spezzato', 'riposo', '6+1', '5+2'],
   },
   {
-    id: 'hr-tipologie-contratto', label: 'Tipologie di contratto', icon: 'file-signature', group: 'risorse-umane',
-    description: 'Tipi di rapporto di lavoro applicabili: scadenza, durata massima, periodo di prova e codice UniLav.',
-    keywords: ['tempo indeterminato', 'determinato', 'stagionale', 'apprendistato', 'intermittente', 'somministrazione', 'unilav'],
-  },
-  {
     id: 'hr-ccnl', label: 'Contratti collettivi', icon: 'file-contract', group: 'risorse-umane',
-    description: 'CCNL applicati con livelli e minimi, ferie e permessi annui, maturazione, maggiorazioni, enti e fondi.',
-    keywords: ['ccnl', 'livelli', 'ferie', 'permessi', 'rol', 'ex festività', 'maturazione', 'ratei', 'scatti', 'minimi tabellari', 'mensilità'],
+    description: 'CCNL applicati con tipologie di contratto, livelli e minimi, ferie e permessi annui, maturazione, maggiorazioni, enti e fondi.',
+    keywords: ['ccnl', 'tipologie di contratto', 'tempo indeterminato', 'determinato', 'stagionale', 'apprendistato', 'intermittente', 'unilav', 'livelli', 'ferie', 'permessi', 'rol', 'ex festività', 'maturazione', 'ratei', 'scatti', 'minimi tabellari', 'mensilità'],
   },
   {
     id: 'hr-aziende-appalto', label: 'Aziende in appalto', icon: 'building-user', group: 'risorse-umane',

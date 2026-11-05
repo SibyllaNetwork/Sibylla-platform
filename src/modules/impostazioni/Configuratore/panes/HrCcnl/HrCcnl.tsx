@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { InputField, SelectField, ToggleSwitch, DatePickerField, RadioGroup } from '../../../../../core/components/form'
 import TruncatedText from '../../../../../core/components/TruncatedText'
 import Tabs from '../../../../../core/components/Tabs'
@@ -6,8 +6,9 @@ import { CfgTable, CfgSaveBar, CfgEmpty } from '../../../../../core/cfg'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import {
   useHrConfigStore, nuovoId, spettanzeAnnue, fmtEuro, CATEGORIE_LIVELLO, MATURAZIONI,
-  type CcnlHr, type LivelloCcnl, type CategoriaLivello, type MaturazioneTipo,
+  type CcnlHr, type LivelloCcnl, type CategoriaLivello, type MaturazioneTipo, type TipologiaContrattoHr,
 } from '../../../../../store/useHrConfigStore'
+import { TipologieContrattoEditor } from '../HrTipologieContratto/HrTipologieContratto'
 import { useHrDraft, diffCount } from '../_hr/useHrDraft'
 import HrFormModal from '../_hr/HrFormModal'
 import HrRowActions from '../_hr/HrRowActions'
@@ -15,12 +16,13 @@ import './HrCcnl.sass'
 
 // ─── RISORSE UMANE › CONTRATTI COLLETTIVI (CCNL) ─────────────────────────────
 //  Master-detail: a sinistra i CCNL applicati, a destra la scheda del contratto
-//  in cinque schede — Generale, Livelli (minimi, scatti, prova, preavviso),
+//  in sei schede — Generale, Tipologie di contratto (comuni a tutti i CCNL,
+//  salvate con la stessa bozza), Livelli (minimi, scatti, prova, preavviso),
 //  Ferie e permessi (spettanze annue e regole di maturazione con l'anteprima
 //  sul part time), Retribuzione (mensilità, scatti, maggiorazioni, comporto) e
 //  Enti e fondi. Crea anagrafica legge da qui livelli e spettanze proposte.
 
-type Scheda = 'generale' | 'livelli' | 'ferie' | 'retribuzione' | 'enti'
+type Scheda = 'generale' | 'tipologie' | 'livelli' | 'ferie' | 'retribuzione' | 'enti'
 
 const nuovoCcnl = (): CcnlHr => ({
   id: nuovoId('ccnl'), nome: 'Nuovo CCNL', codiceCnel: '', settore: '', validoDal: '', validoAl: '',
@@ -33,13 +35,23 @@ const nuovoCcnl = (): CcnlHr => ({
 })
 const livelloVuoto = (): LivelloCcnl => ({ id: '', codice: '', descrizione: '', categoria: 'Impiegato', minimoMensile: 0, scattoImporto: 0, provaGiorni: 60, preavvisoGiorni: 30 })
 const completion = (v: CcnlHr[]) => (v.some(c => c.livelli.length) ? 'configured' as const : v.length ? 'partial' as const : 'empty' as const)
+interface BozzaCcnl { ccnl: CcnlHr[]; tipologie: TipologiaContrattoHr[] }
+const contaBozza = (a: BozzaCcnl, b: BozzaCcnl) => diffCount(a.ccnl, b.ccnl) + diffCount(a.tipologie, b.tipologie)
+const completionBozza = (v: BozzaCcnl) => completion(v.ccnl)
 const n = (v: string) => (v === '' ? 0 : Number(v.replace(',', '.')) || 0)
 
 export default function HrCcnl() {
   const saved = useHrConfigStore(s => s.ccnl)
   const setCcnl = useHrConfigStore(s => s.setCcnl)
   const confirm = useConfirmStore(s => s.confirm)
-  const { draft, setDraft, dirty, save, cancel } = useHrDraft('hr-ccnl', saved, diffCount, setCcnl, completion)
+  const savedTip = useHrConfigStore(s => s.tipologie)
+  const setTipologie = useHrConfigStore(s => s.setTipologie)
+  const savedBozza = useMemo(() => ({ ccnl: saved, tipologie: savedTip }), [saved, savedTip])
+  const commit = (v: BozzaCcnl) => { setCcnl(v.ccnl); setTipologie(v.tipologie) }
+  const { draft: bozza, setDraft: setBozza, dirty, save, cancel } = useHrDraft('hr-ccnl', savedBozza, contaBozza, commit, completionBozza)
+  const draft = bozza.ccnl
+  const setDraft = (f: (d: CcnlHr[]) => CcnlHr[]) => setBozza(b => ({ ...b, ccnl: f(b.ccnl) }))
+  const setTipologieBozza = (f: (d: TipologiaContrattoHr[]) => TipologiaContrattoHr[]) => setBozza(b => ({ ...b, tipologie: f(b.tipologie) }))
 
   const [selId, setSelId] = useState<string | null>(saved[0]?.id ?? null)
   const [scheda, setScheda] = useState<Scheda>('generale')
@@ -121,6 +133,7 @@ export default function HrCcnl() {
                 onChange={(id) => setScheda(id as Scheda)}
                 tabs={[
                   { id: 'generale', label: 'Generale' },
+                  { id: 'tipologie', label: `Tipologie di contratto (${bozza.tipologie.length})` },
                   { id: 'livelli', label: `Livelli (${sel.livelli.length})` },
                   { id: 'ferie', label: 'Ferie e permessi' },
                   { id: 'retribuzione', label: 'Retribuzione' },
@@ -137,6 +150,12 @@ export default function HrCcnl() {
                   <DatePickerField name="cc-al" label="Scadenza" value={sel.validoAl} onChange={(e) => upd({ validoAl: e.target.value })} />
                   <InputField name="cc-ore" label="Orario pieno (ore/settimana)" type="number" min={1} value={sel.oreSettimanaliPieno} onChange={num('oreSettimanaliPieno')}
                     hint="Base per calcolare la percentuale di part time." />
+                </div>
+              )}
+
+              {scheda === 'tipologie' && (
+                <div className="cfg-hrccnl__section">
+                  <TipologieContrattoEditor items={bozza.tipologie} setItems={setTipologieBozza} />
                 </div>
               )}
 

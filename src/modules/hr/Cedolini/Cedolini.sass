@@ -23,6 +23,18 @@
 .ced__icon-btn
   +hr-icon-btn
 
+  &:disabled
+    opacity: .45
+    cursor: not-allowed
+
+// Toolbar su una riga: i controlli a destra stanno sulla linea dei campi
+.ced__toolbar
+  flex-wrap: nowrap
+  margin-bottom: 14px
+
+.ced__push
+  flex: none
+
 .ced__wrap
   +hr-wrap
 
@@ -225,7 +237,7 @@
 .ced__head-actions
   display: flex
   align-items: center
-  gap: 18px
+  gap: 10px
 
 .ced__exp.sib-btn
   i
@@ -249,8 +261,3 @@
 
   &--manca
     color: var(--color-text-inactive)
-
-.ced__vista-row
-  display: flex
-  justify-content: flex-end
-  margin-bottom: 10px

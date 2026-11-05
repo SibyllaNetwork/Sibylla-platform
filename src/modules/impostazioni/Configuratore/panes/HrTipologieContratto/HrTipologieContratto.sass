@@ -40,20 +40,19 @@
   &__badge
     display: inline-flex
     align-items: center
-    height: 22px
-    padding: 0 9px
-    border-radius: 11px
-    font-size: 11px
+    gap: 6px
+    font-size: 12px
     font-weight: 600
     white-space: nowrap
 
+    i
+      font-size: 12px
+
     &--on
       color: $success
-      background: alpha($success, .12)
 
     &--off
       color: $text-inactive
-      background: alpha($text-inactive, .1)
 
   &__actions
     text-align: right

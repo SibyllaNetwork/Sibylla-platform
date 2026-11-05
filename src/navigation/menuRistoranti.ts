@@ -224,7 +224,7 @@ const MENU_RISTORANTI:any[]=[
         {id:"profile-analysis",label:"Profile analysis",page:"profile-analysis"},
       ]},
       {id:"gest-presenze",label:"Gestione delle presenze",children:[
-        {id:"registro-presenze",label:"Registro",page:"registro-presenze"},
+        {id:"registro-presenze",label:"Registro presenze",page:"registro-presenze"},
         {id:"hr-timbrature",label:"Timbrature",page:"hr-timbrature"},
         {id:"turni-personale",label:"Turni del personale",page:"turni-personale"},
         {id:"hr-note-spese",label:"Nota spese",page:"hr-note-spese"},

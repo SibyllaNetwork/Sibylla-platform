@@ -14,6 +14,8 @@ import './HrTipologieContratto.sass'
 //  se prevedono una scadenza Crea anagrafica chiede la data di fine (entro la
 //  durata massima), se prevedono il periodo di prova lo propone dal livello
 //  del CCNL. Il part time NON è una tipologia: deriva dall'orario di lavoro.
+//  L'editor vive nella scheda dei Contratti collettivi (tab «Tipologie di
+//  contratto»): valgono per tutti i CCNL e si salvano con la loro bozza.
 
 const vuoto = (): TipologiaContrattoHr => ({ id: '', nome: '', codice: '', conScadenza: false, periodoProva: true, attiva: true })
 const completion = (v: TipologiaContrattoHr[]) => (v.some(t => t.attiva) ? 'configured' as const : 'empty' as const)
@@ -22,11 +24,14 @@ const Si = ({ on }: { on: boolean }) => (
   <i className={`fa-solid ${on ? 'fa-check cfg-hrtip__yes' : 'fa-minus cfg-hrtip__no'}`} aria-label={on ? 'Sì' : 'No'} />
 )
 
-export default function HrTipologieContratto() {
-  const saved = useHrConfigStore(s => s.tipologie)
-  const setTipologie = useHrConfigStore(s => s.setTipologie)
+interface EditorProps {
+  items: TipologiaContrattoHr[]
+  setItems: (f: (d: TipologiaContrattoHr[]) => TipologiaContrattoHr[]) => void
+}
+
+/** Elenco delle tipologie con creazione, modifica ed eliminazione (sulla bozza del chiamante). */
+export function TipologieContrattoEditor({ items: draft, setItems: setDraft }: EditorProps) {
   const confirm = useConfirmStore(s => s.confirm)
-  const { draft, setDraft, dirty, save, cancel } = useHrDraft('hr-tipologie-contratto', saved, diffCount, setTipologie, completion)
   const [form, setForm] = useState<TipologiaContrattoHr | null>(null)
   const set = <K extends keyof TipologiaContrattoHr>(k: K, v: TipologiaContrattoHr[K]) => setForm(f => (f ? { ...f, [k]: v } : f))
 
@@ -53,13 +58,13 @@ export default function HrTipologieContratto() {
 
       <CfgTable
         columns={[
-          { key: 'nome', label: 'Tipologia', width: '28%' },
+          { key: 'nome', label: 'Tipologia', width: '27%' },
           { key: 'codice', label: 'Codice UniLav', width: '13%' },
           { key: 'scad', label: 'Con scadenza', width: '12%', align: 'center' },
-          { key: 'durata', label: 'Durata max', width: '12%', align: 'right' },
-          { key: 'prova', label: 'Periodo di prova', width: '13%', align: 'center' },
-          { key: 'stato', label: 'Stato', width: '10%' },
-          { key: 'azioni', label: 'Azioni', width: '12%', align: 'right' },
+          { key: 'durata', label: 'Durata max', width: '11%', align: 'right' },
+          { key: 'prova', label: <TruncatedText text="Prova" full="Periodo di prova" />, width: '9%', align: 'center' },
+          { key: 'stato', label: 'Stato', width: '15%' },
+          { key: 'azioni', label: 'Azioni', width: '13%', align: 'right' },
         ]}
       >
         {draft.map(t => (
@@ -69,15 +74,13 @@ export default function HrTipologieContratto() {
             <td className="cfg-hrtip__center"><Si on={t.conScadenza} /></td>
             <td className="cfg-hrtip__num">{t.durataMaxMesi ? `${t.durataMaxMesi} mesi` : '—'}</td>
             <td className="cfg-hrtip__center"><Si on={t.periodoProva} /></td>
-            <td><span className={`cfg-hrtip__badge cfg-hrtip__badge--${t.attiva ? 'on' : 'off'}`}>{t.attiva ? 'Attiva' : 'Non attiva'}</span></td>
+            <td><span className={`cfg-hrtip__badge cfg-hrtip__badge--${t.attiva ? 'on' : 'off'}`}><i className={`fa-solid ${t.attiva ? 'fa-circle-check' : 'fa-circle-minus'}`} aria-hidden="true" />{t.attiva ? 'Attiva' : 'Non attiva'}</span></td>
             <td className="cfg-hrtip__actions">
               <HrRowActions nome={t.nome} onEdit={() => setForm({ ...t })} onDelete={() => elimina(t)} />
             </td>
           </tr>
         ))}
       </CfgTable>
-
-      <CfgSaveBar count={dirty} onSave={save} onCancel={cancel} successMessage="Tipologie di contratto salvate" />
 
       <HrFormModal
         open={form !== null}
@@ -104,5 +107,18 @@ export default function HrTipologieContratto() {
         )}
       </HrFormModal>
     </div>
+  )
+}
+
+/** Pane autonomo (deep link `hr-tipologie-contratto`): stesso editor con la sua bozza. */
+export default function HrTipologieContratto() {
+  const saved = useHrConfigStore(s => s.tipologie)
+  const setTipologie = useHrConfigStore(s => s.setTipologie)
+  const { draft, setDraft, dirty, save, cancel } = useHrDraft('hr-tipologie-contratto', saved, diffCount, setTipologie, completion)
+  return (
+    <>
+      <TipologieContrattoEditor items={draft} setItems={setDraft} />
+      <CfgSaveBar count={dirty} onSave={save} onCancel={cancel} successMessage="Tipologie di contratto salvate" />
+    </>
   )
 }
