@@ -44,6 +44,8 @@ const VISTA_ATTESA = 'attesa'
 const VISTA_TUTTE = 'tutte'
 
 /** Ultima correzione dell'HR, se c'è. */
+/** Richiesta inserita dall'ufficio del personale invece che inviata dall'App Op!. */
+const inseritaDaHr = (r: RichiestaAssenza) => !!r.storico?.[0]?.azione.startsWith('Inserita')
 const ultimaModifica = (r: RichiestaAssenza) => [...(r.storico ?? [])].reverse().find(e => e.azione === 'Modificata')
 
 const statoCls = (s: StatoRichiesta) => (s === 'Al responsabile' ? 'info' : s === 'Da approvare' ? 'attesa' : s === 'Approvata' ? 'ok' : 'ko')
@@ -160,6 +162,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   const sollecitaResp = useHrGestioneStore(s => s.sollecitaResponsabile)
   const modifica = useHrGestioneStore(s => s.modificaRichiesta)
   const elimina = useHrGestioneStore(s => s.eliminaRichiesta)
+  const inserisci = useHrGestioneStore(s => s.inserisciRichiestaHr)
   const confirm = useConfirmStore(s => s.confirm)
   // Saldo annuo per dipendente: ferie in giorni, ROL in ore.
   const [saldo, setSaldo] = useState<'ferie' | 'rol' | null>(null)
@@ -289,6 +292,35 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     })
   }
 
+  /** Nuova richiesta dal calendario (tasto destro su una casella): l'ufficio del personale la inserisce già decisa. */
+  const nuovaRichiesta = (dipendenteId: number, iso: string, tipo: TipoAssenza) => {
+    setErrori({})
+    setBozza({ id: '', dipendenteId: String(dipendenteId), tipo, dal: iso, al: iso, note: '', ore: String(A_ORE.includes(tipo) ? 2 : ORE_GIORNO), stato: 'Approvata', motivo: '', messaggio: '' })
+  }
+
+  /** Richiesta trascinata su altri giorni o su un altro dipendente. */
+  const spostaRichiesta = async (r: RichiestaAssenza, dipendenteId: number, dal: string, al: string) => {
+    const dopo = { dipendenteId, tipo: r.tipo, dal, al, note: r.note, ore: dal === al ? r.ore : undefined, stato: r.stato, motivo: r.motivo }
+    const modifiche = differenze(r, dopo)
+    if (!modifiche.length) return
+    const altro = dipendenteId !== r.dipendenteId
+    const conflitti = sovrapposizioni(richieste, { id: r.id, dipendenteId, dal, al })
+    const ok = await confirm({
+      title: 'Sposta richiesta',
+      message: <>
+        Sposti {r.tipo.toLowerCase()} di <strong>{nomeDipendente(r.dipendenteId)}</strong>
+        {altro && <> a <strong>{nomeDipendente(dipendenteId)}</strong></>} {dal === al ? <>al <strong>{fmtDataHr(dal)}</strong></> : <>dal <strong>{fmtDataHr(dal)}</strong> al <strong>{fmtDataHr(al)}</strong></>}?
+        {r.stato === 'Approvata' && ' Resta approvata e si aggiorna anche nel Piano ferie.'}
+        {conflitti.length > 0 && <> Attenzione: in quei giorni nel reparto sono già assenti {conflitti.map(c => nomeDipendente(c.dipendenteId)).join(', ')}.</>}
+        {' '}Il dipendente riceve la notifica nell'App Op!.
+      </>,
+      confirmLabel: 'Sposta', danger: false,
+    })
+    if (!ok) return
+    modifica(r.id, dopo, [...modifiche, 'Spostata dal calendario'])
+    toast.success(`${r.tipo} di ${nomeDipendente(dipendenteId)} spostata ${dal === al ? `al ${fmtDataHr(dal)}` : `dal ${fmtDataHr(dal)} al ${fmtDataHr(al)}`}.`, 'Richiesta spostata')
+  }
+
   const salvaModifica = async () => {
     if (!bozza) return
     const e: Record<string, string> = {}
@@ -301,6 +333,21 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     if (bozza.stato === 'Rifiutata' && !bozza.motivo.trim()) e.motivo = 'Indica il motivo del rifiuto'
     setErrori(e)
     if (Object.keys(e).length) return
+    if (!bozza.id) {
+      const nuova = {
+        dipendenteId: Number(bozza.dipendenteId), tipo: bozza.tipo, dal: bozza.dal, al: bozza.al,
+        note: bozza.note.trim() || undefined, ore: ore && ore < ORE_GIORNO ? ore : undefined,
+        stato: bozza.stato, motivo: bozza.stato === 'Rifiutata' ? bozza.motivo.trim() : undefined,
+      }
+      if (nuova.stato === 'Approvata') {
+        const neg = await autorizzaNegativo([{ ...nuova, id: 'nuova', createdAt: new Date().toISOString() }])
+        if (!neg) return
+      }
+      inserisci(nuova, bozza.messaggio.trim() || undefined)
+      toast.success(`${nuova.tipo} di ${nomeDipendente(nuova.dipendenteId)} ${nuova.dal === nuova.al ? `del ${fmtDataHr(nuova.dal)}` : `dal ${fmtDataHr(nuova.dal)} al ${fmtDataHr(nuova.al)}`} inserita (${nuova.stato.toLowerCase()}).`, 'Richiesta inserita')
+      setBozza(null)
+      return
+    }
     const prima = richieste.find(x => x.id === bozza.id)
     if (!prima) return
     const dopo = {
@@ -409,7 +456,9 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
         </div>
       </div>
 
-      <RichiesteCalendario richieste={rows} reparto={reparto} onApri={(x) => setDettaglioId(x.id)} />
+      <RichiesteCalendario richieste={rows} reparto={reparto} onApri={(x) => setDettaglioId(x.id)}
+        onNuova={nuovaRichiesta} onSposta={spostaRichiesta}
+        onAzione={(x, a) => { if (a === 'modifica') apriModifica(x); else setDettaglioId(x.id) }} />
 
 
       {/* ── Dettaglio richiesta (dal calendario): tutti i dati e tutte le azioni ── */}
@@ -477,7 +526,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
                 </p>
               )}
 
-              <StoricoHr origine={{ at: r.createdAt, autore: nomeDipendente(r.dipendenteId) }} storico={r.storico} />
+              <StoricoHr origine={inseritaDaHr(r) ? undefined : { at: r.createdAt, autore: nomeDipendente(r.dipendenteId) }} storico={r.storico} />
 
               <div className="rfe-modal__actions rfe-det__actions">
                 <button type="button" className="sib-btn sib-btn--ghost rfe-det__del" onClick={poi(() => eliminaRow(r))}>
@@ -533,7 +582,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
       </Modal>
 
       {/* ── Modifica richiesta: l'HR può correggerne ogni valore ── */}
-      <Modal open={!!bozza} onClose={() => setBozza(null)} title="Modifica richiesta" size="md">
+      <Modal open={!!bozza} onClose={() => setBozza(null)} title={bozza && !bozza.id ? 'Nuova richiesta' : 'Modifica richiesta'} size="md">
         {bozza && (
           <div className="rfe-modal">
             <div className="rfe-modal__grid">
@@ -590,7 +639,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
               onChange={e => setBozza({ ...bozza, messaggio: e.target.value })} />
             {(() => {
               const r = richieste.find(x => x.id === bozza.id)
-              return r ? <StoricoHr origine={{ at: r.createdAt, autore: nomeDipendente(r.dipendenteId) }} storico={r.storico} /> : null
+              return r ? <StoricoHr origine={inseritaDaHr(r) ? undefined : { at: r.createdAt, autore: nomeDipendente(r.dipendenteId) }} storico={r.storico} /> : null
             })()}
             <div className="rfe-modal__actions">
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setBozza(null)}>Annulla</button>

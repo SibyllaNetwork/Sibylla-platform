@@ -375,6 +375,8 @@ interface HrGestioneState {
   eliminaCedolino: (id: string) => void
 
   aggiungiRichiesta: (r: Omit<RichiestaAssenza, 'id' | 'stato' | 'createdAt'>) => void
+  /** Richiesta inserita dall'ufficio del personale (es. dal calendario): stato scelto dall'HR, resta nello storico. */
+  inserisciRichiestaHr: (r: Omit<RichiestaAssenza, 'id' | 'createdAt' | 'storico' | 'responsabile'>, messaggio?: string) => void
   /** `nota` finisce nello storico (es. "Saldo negativo autorizzato: -2 gg"). */
   decidiRichiesta: (id: string, stato: 'Approvata' | 'Rifiutata', motivo?: string, nota?: string) => void
   /** Primo livello (App Op!): il responsabile di reparto approva → passa all'HR; rifiuta → chiusa. */
@@ -426,6 +428,10 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
   eliminaCedolino: (id) => set(st => ({ cedolini: st.cedolini.filter(c => c.id !== id) })),
 
   aggiungiRichiesta: (r) => set(st => ({ richieste: [{ ...r, id: uid('ra'), ...iterIniziale(r.dipendenteId, r.tipo), createdAt: new Date().toISOString() }, ...st.richieste] })),
+  inserisciRichiestaHr: (r, messaggio) => set(st => ({ richieste: [
+    { ...r, id: uid('ra'), createdAt: new Date().toISOString(), storico: [evento('Inserita dall\'ufficio del personale', { modifiche: [`Stato: ${r.stato}`], messaggio })] },
+    ...st.richieste,
+  ] })),
   decidiRichiesta: (id, stato, motivo, nota) => set(st => ({ richieste: st.richieste.map(r => r.id === id
     ? conEvento({ ...r, stato, motivo: stato === 'Rifiutata' ? motivo : undefined }, evento(stato, { messaggio: stato === 'Rifiutata' ? motivo : undefined, modifiche: nota ? [nota] : undefined }))
     : r) })),

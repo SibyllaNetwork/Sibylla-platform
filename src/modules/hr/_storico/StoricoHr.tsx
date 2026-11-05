@@ -20,6 +20,7 @@ const ICO: Record<string, string> = {
   'Approvata dal responsabile': 'fa-user-check',
   'Rifiutata dal responsabile': 'fa-user-xmark',
   'Sollecito al responsabile': 'fa-bell',
+  "Inserita dall'ufficio del personale": 'fa-user-pen',
 }
 
 const tono = (azione: string) => azione.startsWith('Approvata') || azione === 'Rimborsata' ? 'ok' : azione.startsWith('Rifiutata') ? 'ko' : azione === 'Modificata' ? 'mod' : 'base'
