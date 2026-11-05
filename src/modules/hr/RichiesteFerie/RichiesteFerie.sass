@@ -144,9 +144,6 @@
 .rfe-modal
   +hr-modal-body
 
-.rfe-modal__grid
-  +hr-modal-grid
-
 .rfe-modal__actions
   +hr-modal-actions
 
@@ -154,24 +151,6 @@
   margin: 0
   font-size: 13px
   color: $text-active
-
-.rfe-modal__info
-  margin: 0
-  display: flex
-  align-items: center
-  gap: 6px
-  padding: 8px 12px
-  border-radius: $radius-md
-  background: $primary-50
-  font-size: 12px
-  color: $text-active
-
-  &--warn
-    background: $warning-light
-    color: $text-active
-
-    i
-      color: $warning
 
 // ─── Schede vista (Da approvare / Approvate / Rifiutate / Tutte) ─────────────
 .rfe__tabs
@@ -332,9 +311,6 @@ $rfe-rep: (1: var(--chart-1), 2: var(--chart-2), 3: var(--chart-5), 4: var(--cha
   width: 24%
 .rfe__scol-n
   width: 12%
-
-.rfe-modal__ore
-  width: 160px
 
 // ─── Responsività (container query sul root pagina) ───────────────────────────
 @container richiesteferie (max-width: 1360px)

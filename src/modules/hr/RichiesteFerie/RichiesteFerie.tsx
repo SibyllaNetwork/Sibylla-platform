@@ -6,14 +6,14 @@ import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import Pagination from '../../../core/components/Pagination'
 import Ico from '../../../core/icons/Ico'
-import { SelectField, DateRangeField, TextareaField, InputField } from '../../../core/components/form'
+import { SelectField, TextareaField } from '../../../core/components/form'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
 import {
   useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, TIPI_ASSENZA, STATI_RICHIESTA,
   nomeDipendente, repartoDipendente, fmtDataHr, giorniLavorativi, ferieGodute, sovrapposizioni,
-  saldoRol, oreRichiesta, ORE_GIORNO,
+  saldoRol, oreRichiesta,
   type RichiestaAssenza, type TipoAssenza, type StatoRichiesta,
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
@@ -25,7 +25,8 @@ import './RichiesteFerie.sass'
  * Le richieste di ferie, permessi, ROL e malattia del personale: chi le gestisce
  * vede le ferie che resterebbero al dipendente e i colleghi dello stesso reparto
  * già assenti negli stessi giorni, poi approva o rifiuta (con motivo).
- * Le richieste approvate compaiono nel Piano ferie.
+ * Le richieste arrivano dai dipendenti tramite l'App Op!: l'HR non ne crea di
+ * nuove, le gestisce. Le richieste approvate compaiono nel Piano ferie.
  * ROL: si chiedono a ore (o a giornate da 8 h) e scalano dal monte ore annuo
  * maturato secondo il contratto; "Saldo ROL" mostra maturate, godute, in
  * attesa e residue di ogni dipendente.
@@ -37,8 +38,6 @@ const VISTA_TUTTE = 'tutte'
 
 const statoCls = (s: StatoRichiesta) => (s === 'Da approvare' ? 'attesa' : s === 'Approvata' ? 'ok' : 'ko')
 
-/** Tipi che si possono chiedere a ore. */
-const A_ORE: TipoAssenza[] = ['ROL', 'Permesso']
 const fmtOre = (h: number) => `${h.toLocaleString('it-IT', { maximumFractionDigits: 1 })} h`
 
 const durata = (r: Pick<RichiestaAssenza, 'tipo' | 'dal' | 'al' | 'ore'>) => {
@@ -97,12 +96,9 @@ const VISTE = [
   { value: 'tutte', label: 'Tutte' },
 ]
 
-interface Bozza { dipendenteId: string; tipo: TipoAssenza; dal: string; al: string; note: string; ore: string }
-
 export default function RichiesteFerie({ navigate }: { navigate: (p: string) => void }) {
   const richieste = useHrGestioneStore(s => s.richieste)
   const decidi = useHrGestioneStore(s => s.decidiRichiesta)
-  const aggiungi = useHrGestioneStore(s => s.aggiungiRichiesta)
   const cf = useColFilters()
   const confirm = useConfirmStore(s => s.confirm)
   const [saldoOpen, setSaldoOpen] = useState(false)
@@ -111,8 +107,6 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   const [reparto, setReparto] = useState('')
   const [page, setPage] = useState(1)
   const [rifiuto, setRifiuto] = useState<{ row: RichiestaAssenza; motivo: string } | null>(null)
-  const [nuova, setNuova] = useState<Bozza | null>(null)
-  const [errori, setErrori] = useState<Record<string, string>>({})
 
   const rows = useMemo(() => richieste
     .map(r => {
@@ -187,22 +181,6 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     setRifiuto(null)
   }
 
-  const salvaNuova = () => {
-    if (!nuova) return
-    const e: Record<string, string> = {}
-    if (!nuova.dipendenteId) e.dipendenteId = 'Scegli il dipendente'
-    if (!nuova.dal || !nuova.al) e.periodo = 'Indica il periodo'
-    const aOre = A_ORE.includes(nuova.tipo) && nuova.dal && nuova.dal === nuova.al
-    const ore = aOre ? Number(nuova.ore.replace(',', '.')) : undefined
-    if (aOre && (!ore || ore <= 0 || ore > ORE_GIORNO)) e.ore = `Indica le ore (da 0,5 a ${ORE_GIORNO})`
-    setErrori(e)
-    if (Object.keys(e).length) return
-    aggiungi({ dipendenteId: Number(nuova.dipendenteId), tipo: nuova.tipo, dal: nuova.dal, al: nuova.al, note: nuova.note.trim() || undefined, ore: ore && ore < ORE_GIORNO ? ore : undefined })
-    toast.success('Richiesta inserita: è in attesa di approvazione.', 'Richiesta aggiunta')
-    setVista(VISTA_ATTESA)
-    setNuova(null)
-  }
-
   const esporta = () => exportXls('richieste-assenze', ['Richiesta il', 'Dipendente', 'Reparto', 'Tipo', 'Dal', 'Al', 'Durata', 'Residuo', 'Stato', 'Note', 'Motivo rifiuto'],
     sorted.map(r => [fmtDataHr(r.createdAt.slice(0, 10)), r.dipendente, r.reparto, r.tipo, fmtDataHr(r.dal), fmtDataHr(r.al), durata(r),
       r.tipo === 'Ferie' ? `${r.residuo} gg` : r.tipo === 'ROL' ? fmtOre(r.residuo) : '', r.stato, r.note ?? '', r.motivo ?? '']))
@@ -218,29 +196,12 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     </Tooltip>
   )
 
-  // Anteprima della nuova richiesta: giorni e sovrapposizioni mentre la si compila.
-  const nuovaAOre = !!nuova && A_ORE.includes(nuova.tipo) && !!nuova.dal && nuova.dal === nuova.al
-  const nuovaInfo = nuova && nuova.dipendenteId && nuova.dal && nuova.al ? {
-    giorni: giorniLavorativi(nuova.dal, nuova.al),
-    rol: nuova.tipo === 'ROL' ? (() => {
-      const s = saldoRol(richieste, Number(nuova.dipendenteId), Number(nuova.dal.slice(0, 4)))
-      const ore = nuovaAOre ? (Number(nuova.ore.replace(',', '.')) || 0) : giorniLavorativi(nuova.dal, nuova.al) * ORE_GIORNO
-      return { residue: s.residue, ore, dopo: s.residue - ore }
-    })() : null,
-    conflitti: sovrapposizioni(richieste, { id: '', dipendenteId: Number(nuova.dipendenteId), dal: nuova.dal, al: nuova.al }),
-  } : null
-
   return (
     <div className="rfe">
       <PageHead
         title="Richieste"
         subtitle="Approva o rifiuta ferie, permessi e assenze del personale"
         onBack={() => navigate('home')}
-        actions={
-          <button type="button" className="sib-btn sib-btn--primary" onClick={() => { setErrori({}); setNuova({ dipendenteId: '', tipo: 'Ferie', dal: '', al: '', note: '', ore: '8' }) }}>
-            <Ico n="plus" s={14} c="currentColor" /> Nuova richiesta
-          </button>
-        }
       />
 
       <div className="rfe__toolbar">
@@ -395,44 +356,6 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
             <div className="rfe-modal__actions">
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setRifiuto(null)}>Annulla</button>
               <button type="button" className="sib-btn sib-btn--danger" disabled={!rifiuto.motivo.trim()} onClick={confermaRifiuto}>Rifiuta</button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* ── Nuova richiesta (inserita dall'ufficio del personale per conto del dipendente) ── */}
-      <Modal open={!!nuova} onClose={() => setNuova(null)} title="Nuova richiesta" size="md">
-        {nuova && (
-          <div className="rfe-modal">
-            <div className="rfe-modal__grid">
-              <SelectField name="rf-dip" label="Dipendente" required value={nuova.dipendenteId} error={errori.dipendenteId}
-                onChange={e => setNuova({ ...nuova, dipendenteId: e.target.value })}
-                options={[{ value: '', label: 'Seleziona…' }, ...DIPENDENTI_HR.map(d => ({ value: d.id, label: `${d.nome} ${d.cognome}` }))]} />
-              <SelectField name="rf-tipo" label="Tipo" value={nuova.tipo}
-                onChange={e => setNuova({ ...nuova, tipo: e.target.value as TipoAssenza })}
-                options={TIPI_ASSENZA.map(t => ({ value: t, label: t }))} />
-            </div>
-            <DateRangeField label="Periodo" nameFrom="rf-dal" nameTo="rf-al" required error={errori.periodo}
-              valueFrom={nuova.dal} valueTo={nuova.al}
-              onChangeFrom={e => setNuova(n => n && ({ ...n, dal: e.target.value }))}
-              onChangeTo={e => setNuova(n => n && ({ ...n, al: e.target.value }))} />
-            {nuovaAOre && (
-              <InputField name="rf-ore" label="Ore" type="number" required value={nuova.ore} error={errori.ore}
-                hint={`Su una giornata di ${ORE_GIORNO} h: con ${ORE_GIORNO} vale la giornata intera`}
-                onChange={e => setNuova({ ...nuova, ore: e.target.value })} className="rfe-modal__ore" />
-            )}
-            {nuovaInfo && (
-              <p className={`rfe-modal__info ${nuovaInfo.conflitti.length || (nuovaInfo.rol && nuovaInfo.rol.dopo < 0) ? 'rfe-modal__info--warn' : ''}`}>
-                <Ico n={nuovaInfo.conflitti.length || (nuovaInfo.rol && nuovaInfo.rol.dopo < 0) ? 'alert' : 'info'} w="solid" s={13} c="currentColor" />
-                {nuovaAOre ? `${fmtOre(Number(nuova.ore.replace(',', '.')) || 0)} il ${fmtDataHr(nuova.dal)}` : nuovaInfo.giorni === 1 ? '1 giorno lavorativo' : `${nuovaInfo.giorni} giorni lavorativi`}
-                {nuovaInfo.rol && ` · ROL residui ${fmtOre(nuovaInfo.rol.residue)}, dopo la richiesta ${fmtOre(nuovaInfo.rol.dopo)}`}
-                {nuovaInfo.conflitti.length > 0 && ` · già assenti nel reparto: ${nuovaInfo.conflitti.map(c => nomeDipendente(c.dipendenteId)).join(', ')}`}
-              </p>
-            )}
-            <TextareaField name="rf-note" label="Note" rows={2} value={nuova.note} onChange={e => setNuova({ ...nuova, note: e.target.value })} />
-            <div className="rfe-modal__actions">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setNuova(null)}>Annulla</button>
-              <button type="button" className="sib-btn sib-btn--primary" onClick={salvaNuova}>Inserisci richiesta</button>
             </div>
           </div>
         )}
