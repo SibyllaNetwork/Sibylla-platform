@@ -252,3 +252,175 @@ $c-ferie: var(--color-primary)
 
   .pfe__wd
     display: none
+
+// Legenda ed export su una riga propria, allineati a destra sotto i filtri.
+.pfe__legend-row
+  flex: 1 0 100%
+  display: flex
+  align-items: center
+  justify-content: flex-end
+  gap: 14px
+
+// ─── Piano selezionato ────────────────────────────────────────────────────────
+.pfe__field--piano
+  +hr-field(260px)
+
+.pfe__nav-btn:disabled
+  opacity: .4
+  cursor: default
+
+  &:hover
+    background: var(--color-surface)
+
+// Giorni fuori dal periodo del piano: spenti, nessuna ferie registrata.
+.pfe .pfe__fuori
+  background: repeating-linear-gradient(135deg, $bg 0 4px, var(--color-surface) 4px 8px)
+  color: $text-disabled
+
+  .pfe__dn,
+  .pfe__wd
+    color: $text-disabled
+
+.pfe__sw--fuori
+  background: repeating-linear-gradient(135deg, $text-disabled 0 2px, var(--color-surface) 2px 4px)
+  border: 1px solid $border
+
+.pfe-piano
+  display: flex
+  align-items: flex-start
+  gap: 16px
+  padding: 12px 16px
+  border: 1px solid $border
+  border-left: 3px solid var(--color-primary)
+  border-radius: $radius-md
+  background: var(--color-surface)
+
+  &--arch
+    border-left-color: $text-inactive
+    background: $bg
+
+.pfe-piano__info
+  flex: 1 1 auto
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 4px
+  font-size: 12px
+  color: $text-active
+
+.pfe-piano__nome
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+  color: var(--color-primary)
+
+.pfe-piano__badge
+  padding: 2px 8px
+  border-radius: 999px
+  font-size: 11px
+  font-weight: 600
+
+  &--open
+    background: $success-light
+    color: $success
+
+  &--arch
+    background: $primary-50
+    color: $text-inactive
+
+.pfe-piano__meta
+  color: $text-inactive
+
+.pfe-piano__attesa
+  color: $warning
+  font-weight: 600
+
+.pfe-piano__note
+  i
+    margin-right: 4px
+    color: var(--color-primary)
+
+.pfe-piano__acts
+  flex: 0 0 auto
+  display: flex
+  align-items: center
+  gap: 8px
+
+.pfe-piano__del
+  width: 34px
+  height: 34px
+  border: 0
+  background: none
+  color: var(--color-primary)
+  font-size: 16px
+  cursor: pointer
+
+// ─── Storico piani (modale) ──────────────────────────────────────────────────
+.pfe-sto
+  +hr-modal-body
+
+.pfe-sto .pfe-sto__table
+  +table-fit
+
+.pfe-sto__col-nome
+  width: 16%
+.pfe-sto__col-per
+  width: 27%
+.pfe-sto__col-stato
+  width: 12%
+.pfe-sto__col-n
+  width: 11%
+.pfe-sto__col-chiuso
+  width: 13%
+.pfe-sto__col-az
+  width: 10%
+
+.pfe-sto .pfe-sto__r
+  text-align: right
+
+.pfe-sto .pfe-sto__c
+  text-align: center
+
+.pfe-sto__strong
+  font-weight: 600
+  color: $text-active
+
+.pfe-sto__stato
+  font-weight: 600
+
+  &--open
+    color: $success
+
+  &--arch
+    color: $text-inactive
+
+.pfe-sto__dash
+  color: $text-inactive
+
+.pfe-sto__acts
+  display: inline-flex
+  gap: 12px
+
+.pfe-sto__act
+  padding: 0
+  border: 0
+  background: none
+  color: var(--color-primary)
+  font-size: 16px
+  cursor: pointer
+
+.pfe-sto__empty
+  +hr-empty
+
+.pfe-sto__foot
+  +hr-modal-actions
+
+@container pianoferie (max-width: 1360px)
+  .pfe-piano
+    flex-direction: column
+
+  .pfe__field--piano
+    +hr-field(220px)

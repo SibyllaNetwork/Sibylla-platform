@@ -273,6 +273,23 @@ function seedCedolini(): Cedolino[] {
 }
 
 function seedRichieste(): RichiestaAssenza[] {
+  // Anno delle feste: da febbraio in poi quello corrente, a gennaio quello appena passato.
+  const oggi = new Date()
+  const an = oggi.getMonth() >= 1 ? oggi.getFullYear() : oggi.getFullYear() - 1
+  const dic = (g: number) => `${an}-12-${pad(g)}`
+  const gen = (g: number) => `${an + 1}-01-${pad(g)}`
+  const natale = (): Omit<RichiestaAssenza, 'id'>[] => ([
+    [2, dic(22), dic(27), 'Approvata', -6, 'Natale con la famiglia in Puglia'],
+    [6, dic(28), gen(2), 'Da approvare', -3, undefined],
+    [9, dic(24), dic(31), 'Approvata', -9, undefined],
+    [11, dic(20), dic(26), 'Da approvare', -2, 'Pranzo di Natale dai nonni'],
+    [8, dic(29), gen(4), 'Al responsabile', -1, undefined],
+    [3, dic(23), dic(26), 'Da approvare', -2, undefined],
+    [12, gen(2), gen(6), 'Approvata', -8, 'Settimana bianca'],
+    [1, dic(24), dic(26), 'Rifiutata', -4, undefined, 'Front office al completo per il cenone: anticipa al 20-22 dicembre.'],
+    [4, dic(8), dic(10), 'Da approvare', -1, 'Ponte dell\'Immacolata'],
+  ] as [number, string, string, StatoRichiesta, number, string | undefined, string?][]).map(([dipendenteId, dal, al, stato, creata, note, motivo]) =>
+    ({ dipendenteId, tipo: 'Ferie' as const, dal, al, stato, note, motivo, createdAt: `${dayOffset(creata)}T10:${pad((dipendenteId * 11) % 60)}:00` }))
   const r = (dipendenteId: number, tipo: TipoAssenza, dal: number, al: number, stato: StatoRichiesta, creata: number, note?: string, motivo?: string, ore?: number): Omit<RichiestaAssenza, 'id'> =>
     ({ dipendenteId, tipo, dal: dayOffset(dal), al: dayOffset(al), stato, note, motivo, ore, createdAt: `${dayOffset(creata)}T09:${pad((dipendenteId * 7) % 60)}:00` })
   const rows = [
@@ -300,6 +317,8 @@ function seedRichieste(): RichiestaAssenza[] {
     r(5,  'ROL',      -50, -50, 'Rifiutata',  -52, undefined, 'Giornata di picco: il front office resterebbe con una sola persona.', 6),
     // Rifiutata in primo livello dal responsabile di reparto (non arriva all'HR per la decisione).
     r(4,  'Ferie',    30, 34, 'Rifiutata',  -2,  'Weekend lungo', 'Fine mese c\'è il gruppo congressuale: servono tutte le cameriere ai piani.'),
+    // Ferie di Natale (alimentano il piano ferie "Natale"): date dell'anno delle feste in corso.
+    ...natale(),
   ]
   // Iter del responsabile sulle richieste d'esempio: quelle ancora aperte ma "fresche"
   // sono ferme al responsabile, le altre lui le ha già approvate (o, una, rifiutata).
@@ -311,6 +330,7 @@ function seedRichieste(): RichiestaAssenza[] {
     if (!it.responsabile) return { ...x, id }
     const nome = it.responsabile.nome
     const decisa = `${x.createdAt.slice(0, 10)}T17:30:00`
+    if (x.stato === 'Al responsabile') return { ...x, id, responsabile: it.responsabile }
     if (x.stato === 'Da approvare' && alResponsabile.has(i)) return { ...x, id, stato: 'Al responsabile' as const, responsabile: it.responsabile }
     if (i === rifiutataDalResp) {
       return { ...x, id, responsabile: { nome, esito: 'Rifiutata' as const, at: decisa, motivo: x.motivo },
@@ -429,7 +449,7 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
     return conEvento({ ...r, ...patch, motivo: stato === 'Rifiutata' ? (patch.motivo ?? r.motivo) : undefined }, evento('Modificata', { modifiche, messaggio: messaggio || undefined }))
   }) })),
   eliminaRichiesta: (id) => set(st => ({ richieste: st.richieste.filter(r => r.id !== id) })),
-}), { name: 'sibylla.hr-gestione', version: 6, migrate: () => ({ noteSpese: seedNoteSpese(), buoniPasto: seedBuoni(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
+}), { name: 'sibylla.hr-gestione', version: 7, migrate: () => ({ noteSpese: seedNoteSpese(), buoniPasto: seedBuoni(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
 
 /** Ferie godute (approvate) nell'anno solare corrente per dipendente. */
 export function ferieGodute(richieste: RichiestaAssenza[], dipendenteId: number, anno = new Date().getFullYear()) {
