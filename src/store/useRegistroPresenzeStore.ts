@@ -31,6 +31,11 @@ export interface TrasmissioneConsuntivo {
   /** Timbrature anomale presenti al momento dell'invio. */
   anomalie: number
   note?: string
+  /** «simulato» finché il connettore paghe non è attivo sull'ambiente. */
+  esito?: 'inviato' | 'simulato'
+  protocollo?: string
+  /** File consegnato (es. RILPRE) con il numero di record. */
+  file?: { nome: string; record: number }
 }
 
 interface RegistroPresenzeState {

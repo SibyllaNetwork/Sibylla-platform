@@ -3,8 +3,10 @@ import Modal from '../../../core/components/Modal'
 import { TextareaField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import { useRegistroPresenzeStore, type TrasmissioneConsuntivo } from '../../../store/useRegistroPresenzeStore'
-import { integrazioneValida, useHrConfigStore } from '../../../store/useHrConfigStore'
-import { CANALI_PAGHE, nomeSoftwarePaghe } from '../../../store/pagheCatalogo'
+import { codiceDipendentePaghe, integrazioneValida, useHrConfigStore } from '../../../store/useHrConfigStore'
+import { CANALI_PAGHE, FORMATO_RILPRE_RP, nomeSoftwarePaghe } from '../../../store/pagheCatalogo'
+import { generaRilpre, LUNGHEZZA_RECORD, NOME_FILE_RILPRE, rilpreBase64, scaricaRilpre } from '../../hr/_presenze/rilpre'
+import { inviaConsuntivoPaghe, parametriPubblici } from '../../../services/pagheConnettore'
 import { chiaveGiorno, fmtExtra, giorniDelMese, MESI_LUNGHI, oreDecimali, totaliMese, type GiornataRegistro } from '../../hr/_presenze/presenze.model'
 import './TrasmettiConsuntivo.sass'
 
@@ -84,25 +86,58 @@ export default function TrasmettiConsuntivo({ open, onClose, dipendenti, anno, m
     }
   }, [open, dipendenti, anno, mese, giornata, integrazione.soloStraordinarioApprovato, approvato, chiaveMese])
 
-  const bloccato = !!riepilogo && integrazione.bloccaConAnomalie && riepilogo.anomalie > 0
+  // TeamSystem: il consuntivo viaggia nel tracciato RILPRE (record fisso da 1707 caratteri per dipendente).
+  const rilpre = useMemo(() => {
+    if (!open || inUso !== 'teamsystem' || !profilo) return null
+    return generaRilpre({
+      anno, mese, dipendenti, giornata,
+      codiceAzienda: profilo.valori.codiceAzienda ?? '', codiceFiliale: profilo.valori.codiceFiliale ?? '',
+      codiceDipendente: (id) => codiceDipendentePaghe(profilo, id),
+      codici: profilo.voci, variante: profilo.formato === FORMATO_RILPRE_RP ? 'rp' : 'standard', sommaOrdinario: profilo.sommaOrdinario,
+    })
+  }, [open, inUso, profilo, anno, mese, dipendenti, giornata])
+  const nomeFile = `${NOME_FILE_RILPRE}`
+  const bloccato = (!!riepilogo && integrazione.bloccaConAnomalie && riepilogo.anomalie > 0) || !!rilpre?.errori.length
   const meseInCorso = (() => { const o = new Date(); return o.getFullYear() === anno && o.getMonth() === mese })()
 
   async function trasmetti() {
     if (!riepilogo || !inUso || bloccato) return
+    if (!profilo) return
     setInvio(true)
-    // Simula la chiamata al connettore paghe.
-    await new Promise((r) => setTimeout(r, 900))
     const r1 = (n: number) => Math.round(n * 10) / 10
+    let esito
+    try {
+      esito = await inviaConsuntivoPaghe({
+        software: inUso, canale: profilo.canale, mese: chiaveMese, formato: profilo.formato,
+        parametri: parametriPubblici(profilo.valori),
+        file: rilpre ? { nome: nomeFile, base64: rilpreBase64(rilpre.testo), record: rilpre.record, lunghezzaRecord: LUNGHEZZA_RECORD } : undefined,
+        riepilogo: {
+          dipendenti: riepilogo.righe.length, oreOrdinarie: r1(riepilogo.oreOrdinarie), oreStraordinario: r1(riepilogo.oreStraordinario),
+          giorniFerie: riepilogo.giorniFerie, orePermessi: r1(riepilogo.orePermessi), giorniMalattia: riepilogo.giorniMalattia, anomalie: riepilogo.anomalie,
+        },
+        note: note.trim() || undefined,
+      })
+    } catch {
+      setInvio(false)
+      toast.error(`${software} ha rifiutato il consuntivo: controlla il collegamento in Configurazione HR › Integrazione paghe e riprova.`, 'Invio non riuscito')
+      return
+    }
     const voce: Omit<TrasmissioneConsuntivo, 'id' | 'at' | 'autore'> = {
       mese: chiaveMese, software, dipendenti: riepilogo.righe.length,
       oreOrdinarie: r1(riepilogo.oreOrdinarie), oreStraordinario: r1(riepilogo.oreStraordinario),
       giorniFerie: riepilogo.giorniFerie, orePermessi: r1(riepilogo.orePermessi), giorniMalattia: riepilogo.giorniMalattia,
       anomalie: riepilogo.anomalie, note: note.trim() || undefined,
+      esito: esito.esito, protocollo: esito.protocollo,
+      file: rilpre ? { nome: nomeFile, record: rilpre.record } : undefined,
     }
     registra(voce)
     setInvio(false)
     setNote('')
-    toast.success(`Consuntivo di ${nomeMese} di ${voce.dipendenti} dipendenti inviato a ${software}.`, precedenti.length ? 'Consuntivo ritrasmesso' : 'Consuntivo trasmesso')
+    if (esito.esito === 'inviato') {
+      toast.success(`Consuntivo di ${nomeMese} di ${voce.dipendenti} dipendenti inviato a ${software}${esito.protocollo ? ` (protocollo ${esito.protocollo})` : ''}.`, precedenti.length ? 'Consuntivo ritrasmesso' : 'Consuntivo trasmesso')
+    } else {
+      toast.info(`${esito.messaggio}${rilpre ? ' Usa «Scarica RILPRE» per consegnarlo a mano.' : ''}`, 'Invio simulato')
+    }
     onClose()
   }
 
@@ -125,6 +160,22 @@ export default function TrasmettiConsuntivo({ open, onClose, dipendenti, anno, m
             <div className="tcs__warn tcs__warn--ko">
               <i className="fa-solid fa-plug-circle-xmark" aria-hidden="true" />
               <div>Nessun software paghe collegato.<button type="button" className="tcs__link" onClick={() => { onClose(); onConfigura() }}>Configura l'integrazione paghe</button></div>
+            </div>
+          )}
+
+          {rilpre && (
+            <div className={`tcs__file${rilpre.errori.length ? ' tcs__file--ko' : ''}`}>
+              <i className="fa-solid fa-file-code" aria-hidden="true" />
+              <div className="tcs__file-txt">
+                <span>File <b>{nomeFile}</b> · tracciato {profilo?.formato === FORMATO_RILPRE_RP ? 'RP / Teamtime' : 'standard'} · {rilpre.record} record da {LUNGHEZZA_RECORD} caratteri</span>
+                {rilpre.errori.length > 0 && (
+                  <ul className="tcs__file-err">{rilpre.errori.slice(0, 4).map((e) => <li key={e}>{e}</li>)}{rilpre.errori.length > 4 && <li>…e altri {rilpre.errori.length - 4}</li>}</ul>
+                )}
+                {rilpre.avvisi.length > 0 && <span className="tcs__file-avv">{rilpre.avvisi[0]}</span>}
+              </div>
+              <button type="button" className="sib-btn sib-btn--secondary tcs__file-btn" onClick={() => scaricaRilpre(rilpre.testo)} disabled={!!rilpre.errori.length}>
+                <i className="fa-solid fa-download" aria-hidden="true" />Scarica RILPRE
+              </button>
             </div>
           )}
 
@@ -165,8 +216,8 @@ export default function TrasmettiConsuntivo({ open, onClose, dipendenti, anno, m
               <span className="tcs__storico-title">Già trasmesso</span>
               {precedenti.slice(0, 3).map((t) => (
                 <span key={t.id} className="tcs__storico-row">
-                  <i className="fa-solid fa-circle-check" aria-hidden="true" />
-                  {fmtAt(t.at)} a {t.software} da {t.autore} · {t.dipendenti} dipendenti{t.anomalie ? ` · ${t.anomalie} anomalie` : ''}
+                  <i className={`fa-solid ${t.esito === 'simulato' ? 'fa-flask' : 'fa-circle-check'}`} aria-hidden="true" />
+                  {fmtAt(t.at)} a {t.software} da {t.autore} · {t.dipendenti} dipendenti{t.file ? ` · ${t.file.nome} (${t.file.record} record)` : ''}{t.anomalie ? ` · ${t.anomalie} anomalie` : ''}{t.esito === 'simulato' ? ' · simulato' : t.protocollo ? ` · prot. ${t.protocollo}` : ''}
                 </span>
               ))}
             </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import Modal from '../../../core/components/Modal'
+import Tooltip from '../../../core/components/Tooltip'
 import { DatePickerField, DateRangeField, InputField, SelectField } from '../../../core/components/form'
 import VistaSwitch from '../../../core/components/VistaSwitch'
 import { apiFetchSibylla } from '../../../services/api'
@@ -253,39 +254,46 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
       <PageHead
         title="Registro presenze"
         subtitle="Gestione delle presenze del personale in tempo reale. Con tracciamento di ingressi, uscite, assenze, permessi e ferie"
-        actions={
-          <button type="button" className="sib-btn sib-btn--primary reg-presenze__export" onClick={() => setConsuntivo(true)}>
-            <i className="fa-solid fa-paper-plane" aria-hidden="true" />Trasmetti consuntivo
-          </button>
-        }
       />
 
       {saved && <AlertBanner type="success">{saved}</AlertBanner>}
 
-      <div className="flex items-end gap-3 flex-wrap mb-6">
-        {!dettagliata && <DatePickerField name="data" label="Data" value={dataIso} onChange={(e) => e.target.value && setDate(dataDa(e.target.value))} />}
-        <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)}
+      <div className="reg-presenze__toolbar">
+        {!dettagliata && <DatePickerField name="data" label="Data" className="reg-presenze__f-data" value={dataIso} onChange={(e) => e.target.value && setDate(dataDa(e.target.value))} />}
+        <SelectField name="struttura" label="Struttura" className="reg-presenze__f-str" value={struttura} onChange={(e) => setStruttura(e.target.value)}
           options={opzioniStrutture} />
-        <SelectField name="reparto" label="Reparto" value={reparto} onChange={(e) => setReparto(e.target.value)}
+        <SelectField name="reparto" label="Reparto" className="reg-presenze__f-rep" value={reparto} onChange={(e) => setReparto(e.target.value)}
           options={[{ value: 'Tutti i reparti', label: 'Tutti i reparti' }, ...reparti.map((r) => ({ value: r, label: r }))]} />
-        <InputField name="ricerca" label="Cerca" placeholder="Cerca dipendente" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <InputField name="ricerca" label="Cerca" className="reg-presenze__f-cerca" placeholder="Cerca dipendente" value={search} onChange={(e) => setSearch(e.target.value)} />
 
-        <div className="ml-auto flex items-center gap-3">
-          <button className="sib-btn sib-btn--icon" title={dettagliata ? 'Mese precedente' : 'Giorno precedente'} onClick={() => (dettagliata ? nudgeMese(-1) : nudgeDate(-1))}>
-            <i className="fa-duotone fa-angles-left reg-presenze__toolbar-ico" />
-          </button>
-          <button className="sib-btn sib-btn--ghost" onClick={goToday}>Oggi</button>
-          <button className="sib-btn sib-btn--icon" title={dettagliata ? 'Mese successivo' : 'Giorno successivo'} onClick={() => (dettagliata ? nudgeMese(1) : nudgeDate(1))}>
-            <i className="fa-duotone fa-angles-right reg-presenze__toolbar-ico" />
-          </button>
+        <div className="reg-presenze__tools">
+          {/* Periodo: frecce e data in un solo controllo, al posto del titolo centrato */}
+          <div className="reg-presenze__periodo">
+            <Tooltip text={dettagliata ? 'Mese precedente' : 'Giorno precedente'}>
+              <button type="button" className="reg-presenze__per-btn" aria-label={dettagliata ? 'Mese precedente' : 'Giorno precedente'} onClick={() => (dettagliata ? nudgeMese(-1) : nudgeDate(-1))}>
+                <i className="fa-solid fa-chevron-left" />
+              </button>
+            </Tooltip>
+            <span className="reg-presenze__per-label">{dettagliata ? `${MESI_LUNGHI[mese]} ${anno}` : fmtIntestazione(date)}</span>
+            <Tooltip text={dettagliata ? 'Mese successivo' : 'Giorno successivo'}>
+              <button type="button" className="reg-presenze__per-btn" aria-label={dettagliata ? 'Mese successivo' : 'Giorno successivo'} onClick={() => (dettagliata ? nudgeMese(1) : nudgeDate(1))}>
+                <i className="fa-solid fa-chevron-right" />
+              </button>
+            </Tooltip>
+          </div>
+          <button type="button" className="sib-btn sib-btn--ghost reg-presenze__oggi" onClick={goToday}>Oggi</button>
           {dettagliata ? (
             <>
-              <button className="sib-btn sib-btn--secondary reg-presenze__export" onClick={() => esportaRegistroXlsx(opzioniExport())} disabled={!filtered.length}>
-                <i className="fa-regular fa-file-xls" aria-hidden="true" />Registro Excel
-              </button>
-              <button className="sib-btn sib-btn--secondary reg-presenze__export" onClick={scaricaPdf} disabled={!filtered.length || esportando}>
-                <i className={`fa-regular ${esportando ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`} aria-hidden="true" />PDF
-              </button>
+              <Tooltip text="Registro Excel del mese">
+                <button type="button" className="reg-presenze__icon-btn" onClick={() => esportaRegistroXlsx(opzioniExport())} disabled={!filtered.length} aria-label="Registro Excel del mese">
+                  <i className="fa-regular fa-file-xls" />
+                </button>
+              </Tooltip>
+              <Tooltip text="PDF del calendario presenze">
+                <button type="button" className="reg-presenze__icon-btn" onClick={scaricaPdf} disabled={!filtered.length || esportando} aria-label="PDF del calendario presenze">
+                  <i className={`fa-regular ${esportando ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`} />
+                </button>
+              </Tooltip>
             </>
           ) : (
             <div className="reg-presenze__legend-pop-wrap">
@@ -305,11 +313,10 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
               </div>
             </div>
           )}
+          <button type="button" className="sib-btn sib-btn--primary reg-presenze__export" onClick={() => setConsuntivo(true)}>
+            <i className="fa-solid fa-paper-plane" aria-hidden="true" />Trasmetti consuntivo
+          </button>
         </div>
-      </div>
-
-      <div className="text-center text-[15px] font-bold font-poppins text-primary mb-4">
-        {dettagliata ? `${MESI_LUNGHI[mese]} ${anno}` : fmtIntestazione(date)}
       </div>
 
       {dettagliata && (

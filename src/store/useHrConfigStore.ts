@@ -424,7 +424,14 @@ export interface ProfiloPaghe {
   /** Codice voce per ciascuna voce del registro. */
   voci: Record<string, string>
   ultimoTest?: { at: string; ok: boolean; messaggio: string }
+  /** Codice di ciascun dipendente nel software paghe (id anagrafica → codice). */
+  codiciDipendente?: Record<number, string>
+  /** Voci i cui giustificativi si sommano all'ordinario (TeamSystem RP / Teamtime). */
+  sommaOrdinario?: string[]
 }
+
+/** Codice proposto per il dipendente nel software paghe, finché l'HR non lo imposta. */
+export const codiceDipendentePaghe = (p: ProfiloPaghe | undefined, id: number) => p?.codiciDipendente?.[id] ?? String(1000 + id)
 
 export interface IntegrazionePagheHr {
   /** Software usato da Trasmetti consuntivo; null = nessuno collegato. */

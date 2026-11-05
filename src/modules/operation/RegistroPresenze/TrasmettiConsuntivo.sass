@@ -19,6 +19,53 @@
     b
       color: $primary
 
+  // File generato per il software paghe (TeamSystem RILPRE)
+  &__file
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    padding: 10px 12px
+    border: 1px solid $border
+    border-radius: $radius-md
+    font-size: 12.5px
+    color: $text-active
+
+    > i
+      margin-top: 2px
+      color: $primary
+
+    b
+      color: $primary
+
+    &--ko
+      border-color: $error
+
+      > i
+        color: $error
+
+  &__file-txt
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__file-err
+    margin: 0
+    padding-left: 16px
+    color: $error
+    font-size: 12px
+
+  &__file-avv
+    font-size: 12px
+    color: $text-inactive
+
+  &__file-btn.sib-btn
+    flex: none
+
+    i
+      margin-right: 6px
+
   &__lead
     margin: 0
     font-size: 13px

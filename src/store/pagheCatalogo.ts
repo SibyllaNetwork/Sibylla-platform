@@ -36,6 +36,10 @@ export interface SoftwarePaghe {
   chiaveDipendente: string[]
 }
 
+/** Formati del tracciato TeamSystem (docs/integrazione paghe/Tracciato_RILPRE.pdf). */
+export const FORMATO_RILPRE = 'RILPRE – tracciato standard (record fisso 1707)'
+export const FORMATO_RILPRE_RP = 'RILPRE – procedura RP / Teamtime (record fisso 1707)'
+
 export const CANALI_PAGHE: Record<CanalePaghe, { label: string; icon: string; descrizione: string }> = {
   api:   { label: 'Collegamento diretto (API)', icon: 'fa-plug', descrizione: 'Il consuntivo arriva nel software paghe senza passaggi manuali.' },
   sftp:  { label: 'File su SFTP', icon: 'fa-server', descrizione: 'Sibylla deposita il tracciato nella cartella del consulente.' },
@@ -87,18 +91,20 @@ export const SOFTWARE_PAGHE: SoftwarePaghe[] = [
   },
   {
     id: 'teamsystem', nome: 'Paghe / HR Lynfa Studio', produttore: 'TeamSystem', sigla: 'TS',
-    descrizione: 'Import presenze in TeamSystem Paghe e Lynfa Studio, via TeamSystem Digital Hub o file per lo studio.',
+    descrizione: 'Presenze del mese nel tracciato RILPRE (record fisso da 1707 caratteri per dipendente), importato dalla procedura paghe TeamSystem.',
     canali: ['api', 'sftp', 'email'],
-    formati: ['Import presenze TeamSystem (CSV)', 'Tracciato presenze TS (TXT)'],
+    formati: [FORMATO_RILPRE, FORMATO_RILPRE_RP],
     campi: [
-      { key: 'codiceStudio', label: 'Codice studio', placeholder: 'ST0042', obbligatorio: true },
-      { key: 'codiceDitta', label: 'Codice ditta', placeholder: '1234', obbligatorio: true },
+      { key: 'codiceAzienda', label: 'Codice azienda', placeholder: '0042', obbligatorio: true, hint: 'Fino a 4 cifre: posizioni 1–4 del RILPRE.' },
+      { key: 'codiceFiliale', label: 'Codice filiale', placeholder: '01', hint: 'Fino a 3 cifre: con 3 cifre va negli ultimi caratteri del nome (pos. 81).' },
+      { key: 'codiceStudio', label: 'Codice studio', placeholder: 'ST0042', hint: 'Lo studio che elabora le paghe.' },
       { key: 'ambiente', label: 'Ambiente', tipo: 'select', options: ['Produzione', 'Test'], canali: ['api'] },
       { key: 'apiKey', label: 'API key Digital Hub', tipo: 'password', canali: ['api'], obbligatorio: true },
       ...SFTP, ...EMAIL,
     ],
-    voci: { Ordinarie: 'ORD', Straordinario: 'STR', Festive: 'FES', Permessi: 'PER', Ferie: 'FER', Malattia: 'MAL', Infortunio: 'INF', Trasferta: 'TRA', Assenza: 'ASS' },
-    chiaveDipendente: ['Codice dipendente TeamSystem', 'Codice fiscale'],
+    // Codici di 2 caratteri: validi in entrambe le varianti (TB1103). Allineali alla tabella di correlazione dello studio.
+    voci: { Ordinarie: '', Straordinario: 'ST', Festive: 'LF', Permessi: 'PR', Ferie: 'FE', Malattia: 'MA', Infortunio: 'IN', Trasferta: 'TR', Assenza: 'AI' },
+    chiaveDipendente: ['Codice dipendente TeamSystem'],
   },
   {
     id: 'inaz', nome: 'Paghe Inaz / HRM', produttore: 'Inaz', sigla: 'IN',

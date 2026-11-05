@@ -272,3 +272,110 @@
   display: flex
   justify-content: flex-end
   margin-bottom: 10px
+
+// ── Toolbar su una riga: filtri a sinistra, periodo, export e consuntivo a destra ──
+.reg-presenze
+  &__toolbar
+    container: reg-toolbar / inline-size
+    display: flex
+    align-items: flex-end
+    gap: 10px
+    margin-bottom: 14px
+
+    > *
+      min-width: 0
+
+  &__f-data
+    width: 150px
+
+  &__f-str
+    width: 150px
+
+  &__f-rep
+    width: 170px
+
+  &__f-cerca
+    width: 200px
+
+  &__tools
+    flex: none
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-left: auto
+
+  // Controllo del periodo: ‹ Novembre 2026 ›
+  &__periodo
+    display: inline-flex
+    align-items: center
+    height: 34px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+
+  &__per-btn
+    width: 32px
+    height: 32px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: none
+    background: none
+    color: $primary
+    font-size: 12px
+    cursor: pointer
+
+    &:hover
+      background: $primary-50
+
+  &__per-label
+    min-width: 128px
+    padding: 0 6px
+    text-align: center
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+    white-space: nowrap
+
+    &::first-letter
+      text-transform: uppercase
+
+  &__oggi.sib-btn
+    padding-inline: 8px
+
+  // Export a icona, altezza dei campi
+  &__icon-btn
+    width: 34px
+    height: 34px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+    color: $primary
+    font-size: 16px
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      border-color: $primary
+
+    &:disabled
+      opacity: .45
+      cursor: not-allowed
+
+// Laptop con sidebar aperta: campi più stretti, la riga resta una
+@container reg-toolbar (max-width: 1100px)
+  .reg-presenze
+    &__f-str
+      width: 128px
+
+    &__f-rep
+      width: 140px
+
+    &__f-cerca
+      width: 150px
+
+    &__per-label
+      min-width: 110px

@@ -1,14 +1,15 @@
 import React, { useMemo, useState } from 'react'
-import { InputField, SelectField, ToggleSwitch } from '../../../../../core/components/form'
+import { CheckboxField, InputField, SelectField, ToggleSwitch } from '../../../../../core/components/form'
 import Tooltip from '../../../../../core/components/Tooltip'
 import { CfgSaveBar, CfgTable } from '../../../../../core/cfg'
 import { toast } from '../../../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import {
-  integrazioneValida, profiloPagheVuoto, useHrConfigStore, type IntegrazionePagheHr, type ProfiloPaghe,
+  codiceDipendentePaghe, integrazioneValida, profiloPagheVuoto, useHrConfigStore, type IntegrazionePagheHr, type ProfiloPaghe,
 } from '../../../../../store/useHrConfigStore'
+import { DIPENDENTI_HR } from '../../../../../store/useHrGestioneStore'
 import {
-  CANALI_PAGHE, SOFTWARE_PAGHE, VOCI_CONSUNTIVO, softwarePaghe, type CanalePaghe, type CampoPaghe, type SoftwarePagheId,
+  CANALI_PAGHE, FORMATO_RILPRE_RP, SOFTWARE_PAGHE, VOCI_CONSUNTIVO, softwarePaghe, type CanalePaghe, type CampoPaghe, type SoftwarePagheId,
 } from '../../../../../store/pagheCatalogo'
 import { useHrDraft } from '../_hr/useHrDraft'
 import './HrIntegrazionePaghe.sass'
@@ -58,6 +59,7 @@ export default function HrIntegrazionePaghe() {
   const configurato = !!draft.profili[selId]
   const campi = campiDi(sw.campi, profilo.canale)
   const mancanti = campi.filter((c) => c.obbligatorio && !profilo.valori[c.key]?.trim())
+  const rp = selId === 'teamsystem' && profilo.formato === FORMATO_RILPRE_RP
 
   const setProfilo = (p: Partial<ProfiloPaghe>) => setDraft((d) => ({ ...d, profili: { ...d.profili, [selId]: { ...(d.profili[selId] ?? profiloPagheVuoto(selId)), ...p } } }))
   const setValore = (k: string, v: string) => setProfilo({ valori: { ...profilo.valori, [k]: v }, ultimoTest: undefined })
@@ -210,18 +212,58 @@ export default function HrIntegrazionePaghe() {
                 <i className="fa-solid fa-rotate-left" aria-hidden="true" />Ripristina i codici {sw.produttore}
               </button>
             </div>
+            {selId === 'teamsystem' && (
+              <p className="cfg-hrpag__nota">
+                <i className="fa-solid fa-circle-info" aria-hidden="true" />
+                Le ore ordinarie vanno nel campo «Ore ordinario» di ogni giorno; le altre voci diventano giustificativi (fino a 6 al giorno),
+                con codici di {rp ? '2 caratteri (tabella TB1103)' : '4 caratteri al massimo'}.
+              </p>
+            )}
             <CfgTable columns={[
-              { key: 'voce', label: 'Voce del registro', width: '26%' },
-              { key: 'desc', label: 'Descrizione', width: '50%' },
-              { key: 'cod', label: `Codice voce ${sw.produttore}`, width: '24%' },
+              { key: 'voce', label: 'Voce del registro', width: rp ? '22%' : '26%' },
+              { key: 'desc', label: 'Descrizione', width: rp ? '38%' : '50%' },
+              { key: 'cod', label: selId === 'teamsystem' ? 'Codice giustificativo' : `Codice voce ${sw.produttore}`, width: '24%' },
+              ...(rp ? [{ key: 'somma', label: "Somma all'ordinario", width: '16%', align: 'center' as const }] : []),
             ]}>
               {VOCI_CONSUNTIVO.map((v) => (
                 <tr key={v.voce}>
                   <td className="cfg-hrpag__voce">{v.voce}</td>
                   <td className="cfg-hrpag__muted">{v.descrizione}</td>
                   <td>
-                    <InputField name={`voce-${v.voce}`} ariaLabel={`Codice voce ${v.voce}`} dense value={profilo.voci[v.voce] ?? ''}
-                      onChange={(e) => setProfilo({ voci: { ...profilo.voci, [v.voce]: e.target.value.toUpperCase() } })} />
+                    {selId === 'teamsystem' && v.voce === 'Ordinarie'
+                      ? <span className="cfg-hrpag__muted">Ore ordinario (pos. 96)</span>
+                      : <InputField name={`voce-${v.voce}`} ariaLabel={`Codice voce ${v.voce}`} dense value={profilo.voci[v.voce] ?? ''}
+                          onChange={(e) => setProfilo({ voci: { ...profilo.voci, [v.voce]: e.target.value.toUpperCase().slice(0, selId === 'teamsystem' ? (rp ? 2 : 4) : 10) } })} />}
+                  </td>
+                  {rp && (
+                    <td className="cfg-hrpag__center">
+                      {v.voce !== 'Ordinarie' && (
+                        <CheckboxField name={`somma-${v.voce}`} ariaLabel={`Somma ${v.voce} all'ordinario`}
+                          checked={!!profilo.sommaOrdinario?.includes(v.voce)}
+                          onChange={(e) => setProfilo({ sommaOrdinario: e.target.checked ? [...(profilo.sommaOrdinario ?? []), v.voce] : (profilo.sommaOrdinario ?? []).filter((x) => x !== v.voce) })} />
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </CfgTable>
+          </div>
+
+          {/* Codici dei dipendenti nel software paghe */}
+          <div className="cfg-hrpag__block">
+            <h3 className="cfg-hrpag__title">Codici dei dipendenti <span className="cfg-hrpag__title-note">{profilo.chiaveDipendente}{selId === 'teamsystem' ? ` · ${rp ? '6' : '9'} cifre al massimo` : ''}</span></h3>
+            <CfgTable columns={[
+              { key: 'dip', label: 'Dipendente', width: '40%' },
+              { key: 'rep', label: 'Reparto', width: '30%' },
+              { key: 'cod', label: `Codice in ${sw.produttore}`, width: '30%' },
+            ]}>
+              {DIPENDENTI_HR.map((d) => (
+                <tr key={d.id}>
+                  <td className="cfg-hrpag__voce">{d.cognome} {d.nome}</td>
+                  <td className="cfg-hrpag__muted">{d.reparto}</td>
+                  <td>
+                    <InputField name={`dip-${d.id}`} ariaLabel={`Codice di ${d.nome} ${d.cognome}`} dense value={codiceDipendentePaghe(profilo, d.id)}
+                      onChange={(e) => setProfilo({ codiciDipendente: { ...(profilo.codiciDipendente ?? {}), [d.id]: selId === 'teamsystem' ? e.target.value.replace(/\D/g, '').slice(0, rp ? 6 : 9) : e.target.value } })} />
                   </td>
                 </tr>
               ))}
