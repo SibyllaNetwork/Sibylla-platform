@@ -89,10 +89,10 @@ export default function RichiesteCalendario({ richieste, reparto, onApri, azioni
             </span>
           }>
             <button type="button"
-              className={`rfc__bar rfc__bar--${r.tipo.toLowerCase()} rfc__bar--${STATO_CLS(r.stato)}${continuaPrima ? ' rfc__bar--prima' : ''}${continuaDopo ? ' rfc__bar--dopo' : ''}`}
+              className={`rfc__bar rfc__bar--${r.tipo.toLowerCase()}${s.span === 1 ? ' rfc__bar--uno' : ''} rfc__bar--${STATO_CLS(r.stato)}${continuaPrima ? ' rfc__bar--prima' : ''}${continuaDopo ? ' rfc__bar--dopo' : ''}`}
               onClick={() => onApri(r)} aria-label={`${r.tipo} ${STATO_LBL(r.stato)} dal ${fmtDataHr(r.dal)} al ${fmtDataHr(r.al)}`}>
               <i className={`fa-solid ${TIPO_ICO[r.tipo]}`} aria-hidden="true" />
-              <span className="rfc__bar-txt">{s.span >= 3 ? r.tipo : SIGLA[r.tipo]}</span>
+              {s.span > 1 && <span className="rfc__bar-txt">{s.span >= 3 ? r.tipo : SIGLA[r.tipo]}</span>}
               {s.span >= 4 && r.stato !== 'Approvata' && <span className="rfc__bar-stato">{r.stato === 'Al responsabile' ? 'al resp.' : r.stato === 'Da approvare' ? 'da approvare' : 'rifiutata'}</span>}
             </button>
           </Tooltip>
