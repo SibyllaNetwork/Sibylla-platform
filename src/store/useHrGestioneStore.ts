@@ -273,6 +273,9 @@ interface HrGestioneState {
 
   aggiungiRichiesta: (r: Omit<RichiestaAssenza, 'id' | 'stato' | 'createdAt'>) => void
   decidiRichiesta: (id: string, stato: 'Approvata' | 'Rifiutata', motivo?: string) => void
+  /** L'HR corregge una richiesta arrivata dall'App Op! (tutti i campi tranne id e data di richiesta). */
+  modificaRichiesta: (id: string, patch: Partial<Omit<RichiestaAssenza, 'id' | 'createdAt'>>) => void
+  eliminaRichiesta: (id: string) => void
 }
 
 const uid = (p: string) => `${p}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
@@ -309,6 +312,8 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
 
   aggiungiRichiesta: (r) => set(st => ({ richieste: [{ ...r, id: uid('ra'), stato: 'Da approvare', createdAt: new Date().toISOString() }, ...st.richieste] })),
   decidiRichiesta: (id, stato, motivo) => set(st => ({ richieste: st.richieste.map(r => r.id === id ? { ...r, stato, motivo: stato === 'Rifiutata' ? motivo : undefined } : r) })),
+  modificaRichiesta: (id, patch) => set(st => ({ richieste: st.richieste.map(r => r.id === id ? { ...r, ...patch, motivo: (patch.stato ?? r.stato) === 'Rifiutata' ? (patch.motivo ?? r.motivo) : undefined } : r) })),
+  eliminaRichiesta: (id) => set(st => ({ richieste: st.richieste.filter(r => r.id !== id) })),
 }), { name: 'sibylla.hr-gestione', version: 5, migrate: () => ({ noteSpese: seedNoteSpese(), buoniPasto: seedBuoni(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
 
 /** Ferie godute (approvate) nell'anno solare corrente per dipendente. */

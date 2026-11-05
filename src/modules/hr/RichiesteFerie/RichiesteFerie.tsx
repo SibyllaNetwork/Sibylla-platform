@@ -6,14 +6,14 @@ import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import Pagination from '../../../core/components/Pagination'
 import Ico from '../../../core/icons/Ico'
-import { SelectField, TextareaField } from '../../../core/components/form'
+import { SelectField, DateRangeField, TextareaField, InputField } from '../../../core/components/form'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
 import {
   useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, TIPI_ASSENZA, STATI_RICHIESTA,
   nomeDipendente, repartoDipendente, fmtDataHr, giorniLavorativi, ferieGodute, sovrapposizioni,
-  saldoRol, oreRichiesta,
+  saldoRol, oreRichiesta, ORE_GIORNO,
   type RichiestaAssenza, type TipoAssenza, type StatoRichiesta,
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
@@ -26,7 +26,9 @@ import './RichiesteFerie.sass'
  * vede le ferie che resterebbero al dipendente e i colleghi dello stesso reparto
  * già assenti negli stessi giorni, poi approva o rifiuta (con motivo).
  * Le richieste arrivano dai dipendenti tramite l'App Op!: l'HR non ne crea di
- * nuove, le gestisce. Le richieste approvate compaiono nel Piano ferie.
+ * nuove, le gestisce. Su ogni richiesta può modificarne tutti i valori
+ * (dipendente, tipo, periodo, ore, note, stato), approvarla, rifiutarla o
+ * eliminarla. Le richieste approvate compaiono nel Piano ferie.
  * ROL: si chiedono a ore (o a giornate da 8 h) e scalano dal monte ore annuo
  * maturato secondo il contratto; "Saldo ROL" mostra maturate, godute, in
  * attesa e residue di ogni dipendente.
@@ -38,6 +40,8 @@ const VISTA_TUTTE = 'tutte'
 
 const statoCls = (s: StatoRichiesta) => (s === 'Da approvare' ? 'attesa' : s === 'Approvata' ? 'ok' : 'ko')
 
+/** Tipi che si possono chiedere a ore. */
+const A_ORE: TipoAssenza[] = ['ROL', 'Permesso']
 const fmtOre = (h: number) => `${h.toLocaleString('it-IT', { maximumFractionDigits: 1 })} h`
 
 const durata = (r: Pick<RichiestaAssenza, 'tipo' | 'dal' | 'al' | 'ore'>) => {
@@ -96,9 +100,13 @@ const VISTE = [
   { value: 'tutte', label: 'Tutte' },
 ]
 
+interface Bozza { id: string; dipendenteId: string; tipo: TipoAssenza; dal: string; al: string; note: string; ore: string; stato: StatoRichiesta; motivo: string }
+
 export default function RichiesteFerie({ navigate }: { navigate: (p: string) => void }) {
   const richieste = useHrGestioneStore(s => s.richieste)
   const decidi = useHrGestioneStore(s => s.decidiRichiesta)
+  const modifica = useHrGestioneStore(s => s.modificaRichiesta)
+  const elimina = useHrGestioneStore(s => s.eliminaRichiesta)
   const cf = useColFilters()
   const confirm = useConfirmStore(s => s.confirm)
   const [saldoOpen, setSaldoOpen] = useState(false)
@@ -107,6 +115,8 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   const [reparto, setReparto] = useState('')
   const [page, setPage] = useState(1)
   const [rifiuto, setRifiuto] = useState<{ row: RichiestaAssenza; motivo: string } | null>(null)
+  const [bozza, setBozza] = useState<Bozza | null>(null)
+  const [errori, setErrori] = useState<Record<string, string>>({})
 
   const rows = useMemo(() => richieste
     .map(r => {
@@ -180,6 +190,59 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     toast.info(`Richiesta di ${nomeDipendente(rifiuto.row.dipendenteId)} rifiutata.`, 'Richiesta rifiutata')
     setRifiuto(null)
   }
+
+  const apriModifica = (r: RichiestaAssenza) => {
+    setErrori({})
+    setBozza({
+      id: r.id, dipendenteId: String(r.dipendenteId), tipo: r.tipo, dal: r.dal, al: r.al, note: r.note ?? '',
+      ore: String(r.ore ?? ORE_GIORNO).replace('.', ','), stato: r.stato, motivo: r.motivo ?? '',
+    })
+  }
+
+  const salvaModifica = () => {
+    if (!bozza) return
+    const e: Record<string, string> = {}
+    if (!bozza.dipendenteId) e.dipendenteId = 'Scegli il dipendente'
+    if (!bozza.dal || !bozza.al) e.periodo = 'Indica il periodo'
+    else if (bozza.al < bozza.dal) e.periodo = 'La data di fine precede quella di inizio'
+    const aOre = A_ORE.includes(bozza.tipo) && !!bozza.dal && bozza.dal === bozza.al
+    const ore = aOre ? Number(bozza.ore.replace(',', '.')) : undefined
+    if (aOre && (!ore || ore <= 0 || ore > ORE_GIORNO)) e.ore = `Indica le ore (da 0,5 a ${ORE_GIORNO})`
+    if (bozza.stato === 'Rifiutata' && !bozza.motivo.trim()) e.motivo = 'Indica il motivo del rifiuto'
+    setErrori(e)
+    if (Object.keys(e).length) return
+    modifica(bozza.id, {
+      dipendenteId: Number(bozza.dipendenteId), tipo: bozza.tipo, dal: bozza.dal, al: bozza.al,
+      note: bozza.note.trim() || undefined, ore: ore && ore < ORE_GIORNO ? ore : undefined,
+      stato: bozza.stato, motivo: bozza.stato === 'Rifiutata' ? bozza.motivo.trim() : undefined,
+    })
+    toast.success(`Richiesta di ${nomeDipendente(Number(bozza.dipendenteId))} aggiornata.`, 'Richiesta modificata')
+    setBozza(null)
+  }
+
+  const eliminaRow = async (r: RichiestaAssenza) => {
+    const ok = await confirm({
+      title: 'Elimina richiesta',
+      message: <>Elimini la richiesta di <strong>{r.tipo.toLowerCase()}</strong> di <strong>{nomeDipendente(r.dipendenteId)}</strong> {r.dal === r.al ? `del ${fmtDataHr(r.dal)}` : `dal ${fmtDataHr(r.dal)} al ${fmtDataHr(r.al)}`}?{r.stato === 'Approvata' ? ' È già approvata: sparirà anche dal Piano ferie.' : ''} L'operazione non si può annullare.</>,
+      confirmLabel: 'Elimina', danger: true,
+    })
+    if (!ok) return
+    elimina(r.id)
+    toast.info(`Richiesta di ${nomeDipendente(r.dipendenteId)} eliminata.`, 'Richiesta eliminata')
+  }
+
+  // Anteprima mentre si modifica: giorni, saldo ROL e sovrapposizioni nel reparto.
+  const bozzaAOre = !!bozza && A_ORE.includes(bozza.tipo) && !!bozza.dal && bozza.dal === bozza.al
+  const bozzaInfo = bozza && bozza.dipendenteId && bozza.dal && bozza.al && bozza.al >= bozza.dal ? {
+    giorni: giorniLavorativi(bozza.dal, bozza.al),
+    rol: bozza.tipo === 'ROL' ? (() => {
+      const altre = richieste.filter(x => x.id !== bozza.id)
+      const s = saldoRol(altre, Number(bozza.dipendenteId), Number(bozza.dal.slice(0, 4)))
+      const ore = bozzaAOre ? (Number(bozza.ore.replace(',', '.')) || 0) : giorniLavorativi(bozza.dal, bozza.al) * ORE_GIORNO
+      return { residue: s.residue, ore, dopo: s.residue - ore }
+    })() : null,
+    conflitti: sovrapposizioni(richieste, { id: bozza.id, dipendenteId: Number(bozza.dipendenteId), dal: bozza.dal, al: bozza.al }),
+  } : null
 
   const esporta = () => exportXls('richieste-assenze', ['Richiesta il', 'Dipendente', 'Reparto', 'Tipo', 'Dal', 'Al', 'Durata', 'Residuo', 'Stato', 'Note', 'Motivo rifiuto'],
     sorted.map(r => [fmtDataHr(r.createdAt.slice(0, 10)), r.dipendente, r.reparto, r.tipo, fmtDataHr(r.dal), fmtDataHr(r.al), durata(r),
@@ -323,12 +386,12 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
                   </span>
                 </td>
                 <td className="rfe__c">
-                  {r.stato === 'Da approvare'
-                    ? <span className="rfe__acts">
-                        {act('Approva', 'circle-check', () => approva(r))}
-                        {act('Rifiuta', 'circle-xmark', () => setRifiuto({ row: r, motivo: '' }))}
-                      </span>
-                    : <span className="rfe__dash">-</span>}
+                  <span className="rfe__acts">
+                    {act('Modifica', 'edit', () => apriModifica(r))}
+                    {r.stato !== 'Approvata' && act('Approva', 'circle-check', () => approva(r))}
+                    {r.stato !== 'Rifiutata' && act('Rifiuta', 'circle-xmark', () => setRifiuto({ row: r, motivo: '' }))}
+                    {act('Elimina', 'trash', () => eliminaRow(r))}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -356,6 +419,52 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
             <div className="rfe-modal__actions">
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setRifiuto(null)}>Annulla</button>
               <button type="button" className="sib-btn sib-btn--danger" disabled={!rifiuto.motivo.trim()} onClick={confermaRifiuto}>Rifiuta</button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ── Modifica richiesta: l'HR può correggerne ogni valore ── */}
+      <Modal open={!!bozza} onClose={() => setBozza(null)} title="Modifica richiesta" size="md">
+        {bozza && (
+          <div className="rfe-modal">
+            <div className="rfe-modal__grid">
+              <SelectField name="rf-dip" label="Dipendente" required value={bozza.dipendenteId} error={errori.dipendenteId}
+                onChange={e => setBozza({ ...bozza, dipendenteId: e.target.value })}
+                options={[{ value: '', label: 'Seleziona…' }, ...DIPENDENTI_HR.map(d => ({ value: String(d.id), label: `${d.nome} ${d.cognome}` }))]} />
+              <SelectField name="rf-tipo" label="Tipo" value={bozza.tipo}
+                onChange={e => setBozza({ ...bozza, tipo: e.target.value as TipoAssenza })}
+                options={TIPI_ASSENZA.map(t => ({ value: t, label: t }))} />
+            </div>
+            <DateRangeField label="Periodo" nameFrom="rf-dal" nameTo="rf-al" required error={errori.periodo}
+              valueFrom={bozza.dal} valueTo={bozza.al}
+              onChangeFrom={e => setBozza(b => b && ({ ...b, dal: e.target.value }))}
+              onChangeTo={e => setBozza(b => b && ({ ...b, al: e.target.value }))} />
+            {bozzaAOre && (
+              <InputField name="rf-ore" label="Ore" type="number" required value={bozza.ore} error={errori.ore}
+                hint={`Su una giornata di ${ORE_GIORNO} h: con ${ORE_GIORNO} vale la giornata intera`}
+                onChange={e => setBozza({ ...bozza, ore: e.target.value })} className="rfe-modal__ore" />
+            )}
+            {bozzaInfo && (
+              <p className={`rfe-modal__info ${bozzaInfo.conflitti.length || (bozzaInfo.rol && bozzaInfo.rol.dopo < 0) ? 'rfe-modal__info--warn' : ''}`}>
+                <Ico n={bozzaInfo.conflitti.length || (bozzaInfo.rol && bozzaInfo.rol.dopo < 0) ? 'alert' : 'info'} w="solid" s={13} c="currentColor" />
+                {bozzaAOre ? `${fmtOre(Number(bozza.ore.replace(',', '.')) || 0)} il ${fmtDataHr(bozza.dal)}` : bozzaInfo.giorni === 1 ? '1 giorno lavorativo' : `${bozzaInfo.giorni} giorni lavorativi`}
+                {bozzaInfo.rol && ` · ROL residui ${fmtOre(bozzaInfo.rol.residue)}, dopo la richiesta ${fmtOre(bozzaInfo.rol.dopo)}`}
+                {bozzaInfo.conflitti.length > 0 && ` · già assenti nel reparto: ${bozzaInfo.conflitti.map(c => nomeDipendente(c.dipendenteId)).join(', ')}`}
+              </p>
+            )}
+            <TextareaField name="rf-note" label="Note" rows={2} value={bozza.note} onChange={e => setBozza({ ...bozza, note: e.target.value })} />
+            <SelectField name="rf-stato" label="Stato" value={bozza.stato}
+              onChange={e => setBozza({ ...bozza, stato: e.target.value as StatoRichiesta })}
+              options={STATI_RICHIESTA.map(t => ({ value: t, label: t }))} />
+            {bozza.stato === 'Rifiutata' && (
+              <TextareaField name="rf-motivo-mod" label="Motivo del rifiuto" required rows={2} value={bozza.motivo} error={errori.motivo}
+                hint="Il dipendente lo vedrà nella sua richiesta"
+                onChange={e => setBozza({ ...bozza, motivo: e.target.value })} />
+            )}
+            <div className="rfe-modal__actions">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setBozza(null)}>Annulla</button>
+              <button type="button" className="sib-btn sib-btn--primary" onClick={salvaModifica}>Salva modifiche</button>
             </div>
           </div>
         )}
