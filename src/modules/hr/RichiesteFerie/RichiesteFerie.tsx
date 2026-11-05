@@ -23,6 +23,8 @@ import { pianoDi, saldoDopo, verificaRegole } from '../PianoFerie/regolePiano'
 import BarraSelezione from '../_selezione/BarraSelezione'
 import { useSelezione } from '../_selezione/useSelezione'
 import { occupazione, addGiorni } from '../../../store/useTurniPersonaleStore'
+import VistaSwitch from '../../../core/components/VistaSwitch'
+import RichiesteCalendario from './RichiesteCalendario'
 import './RichiesteFerie.sass'
 
 /**
@@ -37,7 +39,14 @@ import './RichiesteFerie.sass'
  * ROL: si chiedono a ore (o a giornate da 8 h) e scalano dal monte ore annuo
  * maturato secondo il contratto; "Saldo ROL" mostra maturate, godute, in
  * attesa e residue di ogni dipendente; "Saldo ferie" lo stesso in giorni lavorativi.
+ * Due viste: Elenco (tabella con selezione multipla) e Calendario (una riga per
+ * dipendente, ogni richiesta sui suoi giorni): il clic su una richiesta apre il
+ * dettaglio con tutte le azioni.
  */
+
+type VistaPagina = 'elenco' | 'calendario'
+const VISTA_PAGINA_KEY = 'sibylla.hr-richieste.vista'
+const leggiVistaPagina = (): VistaPagina => { try { return localStorage.getItem(VISTA_PAGINA_KEY) === 'calendario' ? 'calendario' : 'elenco' } catch { return 'elenco' } }
 
 const PAGE_SIZE = 10
 const VISTA_ATTESA = 'attesa'
@@ -165,7 +174,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   // Saldo annuo per dipendente: ferie in giorni, ROL in ore.
   const [saldo, setSaldo] = useState<'ferie' | 'rol' | null>(null)
 
-  const [vista, setVista] = useState(VISTA_ATTESA)
+  const [vista, setVista] = useState(() => (leggiVistaPagina() === 'calendario' ? VISTA_TUTTE : VISTA_ATTESA))
   const [reparto, setReparto] = useState('')
   const [page, setPage] = useState(1)
   // Rifiuto di una o più richieste (selezione multipla): un solo motivo per tutte.
@@ -173,8 +182,17 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   const [bozza, setBozza] = useState<Bozza | null>(null)
   const [errori, setErrori] = useState<Record<string, string>>({})
 
-  const rows = useMemo(() => richieste
-    .map(r => {
+  const [vistaPagina, setVistaPaginaState] = useState<VistaPagina>(leggiVistaPagina)
+  const setVistaPagina = (v: VistaPagina) => {
+    setVistaPaginaState(v)
+    try { localStorage.setItem(VISTA_PAGINA_KEY, v) } catch { /* preferenza non salvata */ }
+    // Sul calendario servono tutte le richieste del mese: si parte da «Tutte».
+    if (v === 'calendario') setVista(VISTA_TUTTE)
+  }
+  const [dettaglioId, setDettaglioId] = useState<string | null>(null)
+
+  // Richiesta con i dati che servono a elenco, calendario e dettaglio: residuo, sovrapposizioni, valutazione.
+  const arricchisci = (r: RichiestaAssenza) => {
       const d = DIPENDENTI_HR.find(x => x.id === r.dipendenteId)
       const giorni = giorniLavorativi(r.dal, r.al)
       const godute = ferieGodute(richieste, r.dipendenteId)
@@ -184,7 +202,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
       const residuo = rol
         ? rol.residue - (inAttesaRichiesta(r.stato) ? oreRichiesta(r) : 0)
         : (d?.ferieAnnue ?? 0) - godute - (r.tipo === 'Ferie' && inAttesaRichiesta(r.stato) ? giorni : 0)
-      return {
+      const base = {
         ...r,
         dipendente: nomeDipendente(r.dipendenteId),
         reparto: repartoDipendente(r.dipendenteId),
@@ -192,8 +210,11 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
         residuo,
         conflitti: r.stato === 'Rifiutata' ? [] : sovrapposizioni(richieste, r),
       }
-    })
-    .map(r => ({ ...r, valutazione: r.stato === 'Da approvare' ? valuta(r, richieste, piani) : null, urgente: r.stato === 'Da approvare' && giorniA(r.dal) <= 3 }))
+    return { ...base, valutazione: r.stato === 'Da approvare' ? valuta(base, richieste, piani) : null, urgente: r.stato === 'Da approvare' && giorniA(r.dal) <= 3 }
+  }
+
+  const rows = useMemo(() => richieste
+    .map(arricchisci)
     .filter(r => vista === VISTA_TUTTE || (vista === VISTA_ATTESA ? r.stato === 'Da approvare' : r.stato === vista))
     .filter(r => !reparto || r.reparto === reparto)
     .filter(r => cf.matchText(r.dipendente, 'dipendente') && cf.matchMulti(r.tipo, 'tipo') && cf.matchMulti(r.stato, 'stato')),
@@ -461,8 +482,18 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
               <Ico n="excel" w="regular" s={16} c="#fff" />
             </button>
           </Tooltip>
+          <VistaSwitch ariaLabel="Vista delle richieste" value={vistaPagina} onChange={setVistaPagina} options={[
+            { value: 'elenco', label: 'Elenco', icon: 'fa-table-list' },
+            { value: 'calendario', label: 'Calendario', icon: 'fa-calendar-days' },
+          ]} />
         </div>
       </div>
+
+      {vistaPagina === 'calendario' && (
+        <RichiesteCalendario richieste={rows} reparto={reparto} onApri={(x) => setDettaglioId(x.id)} />
+      )}
+
+      {vistaPagina === 'elenco' && (<>
 
       <BarraSelezione n={sel.n} nome={['richiesta', 'richieste']} onSvuota={sel.svuota} azioni={[
         { label: 'Approva', icona: 'fa-circle-check', quante: selDaApprovare.length, onClick: approvaSelezionate },
@@ -597,6 +628,105 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
       </div>
 
       <div className="rfe__pag"><Pagination page={page} totalPages={totalPages} onPageChange={setPage} /></div>
+      </>)}
+
+      {/* ── Dettaglio richiesta (dal calendario): tutti i dati e tutte le azioni ── */}
+      {(() => {
+        const base = dettaglioId ? richieste.find(x => x.id === dettaglioId) : undefined
+        if (!base) return null
+        const r = arricchisci(base)
+        const chiudi = () => setDettaglioId(null)
+        const poi = (f: () => void) => () => { chiudi(); f() }
+        const ultima = ultimaModifica(r)
+        return (
+          <Modal open onClose={chiudi} title="Dettaglio richiesta" size="md">
+            <div className="rfe-modal rfe-det">
+              <div className="rfe-det__head">
+                <span className="rfe__avatar" data-rep={REP_IDX(r.reparto)} aria-hidden="true">{iniziali(r.dipendente)}</span>
+                <span className="rfe-det__who">
+                  <span className="rfe-det__nome">{r.dipendente}</span>
+                  <span className="rfe-det__rep">{r.reparto}</span>
+                </span>
+                <span className={`rfe__tipo rfe__tipo--${r.tipo.toLowerCase()} rfe-det__tipo`}>
+                  <i className={`fa-solid ${TIPO_ICO[r.tipo]}`} aria-hidden="true" />{r.tipo}
+                </span>
+              </div>
+
+              <dl className="rfe-det__facts">
+                <div><dt>Periodo</dt><dd>{r.dal === r.al ? fmtDataHr(r.dal) : `dal ${fmtDataHr(r.dal)} al ${fmtDataHr(r.al)}`}</dd></div>
+                <div><dt>Durata</dt><dd>{durata(r)}</dd></div>
+                <div><dt>{inAttesaRichiesta(r.stato) ? 'Residuo se approvata' : 'Residuo'}</dt>
+                  <dd className={r.residuo < 0 ? 'rfe__neg' : undefined}>{r.tipo === 'Ferie' ? `${r.residuo} gg` : r.tipo === 'ROL' ? fmtOre(r.residuo) : '-'}</dd></div>
+                <div><dt>Richiesta il</dt><dd>{fmtDataHr(r.createdAt.slice(0, 10))}</dd></div>
+                <div><dt>Stato</dt><dd>
+                  <span className="rfe__stato-cell">
+                    <span className={`rfe__stato rfe__stato--${statoCls(r.stato)}`}>{r.stato}</span>
+                    <IterResponsabile r={r} />
+                    {ultima && <Tooltip text={`Modificata da ${ultima.autore}`}><span className="rfe__mod" aria-label="Modificata dall'HR"><i className="fa-solid fa-pen" aria-hidden="true" /></span></Tooltip>}
+                  </span>
+                </dd></div>
+                <div><dt>Note del dipendente</dt><dd>{r.note || '—'}</dd></div>
+              </dl>
+
+              {r.responsabile && (
+                <p className={`rfe-modal__iter rfe-modal__iter--${r.responsabile.esito === 'Approvata' ? 'ok' : r.responsabile.esito === 'Rifiutata' ? 'ko' : 'attesa'}`}>
+                  <i className={`fa-solid ${r.responsabile.esito === 'Approvata' ? 'fa-user-check' : r.responsabile.esito === 'Rifiutata' ? 'fa-user-xmark' : 'fa-user-clock'}`} aria-hidden="true" />
+                  {testoIter(r)}
+                </p>
+              )}
+              {r.stato === 'Rifiutata' && r.motivo && (
+                <p className="rfe-det__motivo"><i className="fa-solid fa-circle-xmark" aria-hidden="true" />Motivo del rifiuto: {r.motivo}</p>
+              )}
+              {r.valutazione && (
+                <div className="rfe-det__val">
+                  <span className={`rfe__val rfe__val--${r.valutazione.livello}`}>
+                    <i className={`fa-solid ${r.valutazione.livello === 'ok' ? 'fa-circle-check' : r.valutazione.livello === 'warn' ? 'fa-triangle-exclamation' : 'fa-circle-xmark'}`} aria-hidden="true" />
+                    Valutazione di Sibylla: {LIVELLO_LBL[r.valutazione.livello]}
+                  </span>
+                  <ul className="rfe-det__motivi">
+                    {r.valutazione.motivi.map((m, i) => <li key={i} className={`rfe-tip__row rfe-tip__row--${m.livello}`}>{m.testo}</li>)}
+                  </ul>
+                </div>
+              )}
+              {!r.valutazione && r.conflitti.length > 0 && (
+                <p className="rfe-det__motivo rfe-det__motivo--warn">
+                  <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                  Assenti nello stesso reparto: {r.conflitti.map(c => `${nomeDipendente(c.dipendenteId)} (${fmtDataHr(c.dal)} → ${fmtDataHr(c.al)})`).join(', ')}
+                </p>
+              )}
+
+              <StoricoHr origine={{ at: r.createdAt, autore: nomeDipendente(r.dipendenteId) }} storico={r.storico} />
+
+              <div className="rfe-modal__actions rfe-det__actions">
+                <button type="button" className="sib-btn sib-btn--ghost rfe-det__del" onClick={poi(() => eliminaRow(r))}>
+                  <i className="fa-solid fa-trash" aria-hidden="true" />Elimina
+                </button>
+                <button type="button" className="sib-btn sib-btn--secondary" onClick={poi(() => apriModifica(r))}>
+                  <i className="fa-solid fa-pen" aria-hidden="true" />Modifica
+                </button>
+                {r.stato === 'Al responsabile' ? (
+                  <button type="button" className="sib-btn sib-btn--primary" onClick={poi(() => sollecita([r]))}>
+                    <i className="fa-solid fa-bell" aria-hidden="true" />Sollecita {r.responsabile?.nome ?? 'il responsabile'}
+                  </button>
+                ) : (
+                  <>
+                    {r.stato !== 'Rifiutata' && (
+                      <button type="button" className="sib-btn sib-btn--secondary" onClick={poi(() => setRifiuto({ rows: [r], motivo: '' }))}>
+                        <i className="fa-solid fa-circle-xmark" aria-hidden="true" />Rifiuta
+                      </button>
+                    )}
+                    {r.stato !== 'Approvata' && (
+                      <button type="button" className="sib-btn sib-btn--primary" onClick={poi(() => approva(r))}>
+                        <i className="fa-solid fa-circle-check" aria-hidden="true" />Approva
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </Modal>
+        )
+      })()}
 
       {/* ── Rifiuto ── */}
       <Modal open={!!rifiuto} onClose={() => setRifiuto(null)} title={rifiuto && rifiuto.rows.length > 1 ? `Rifiuta ${rifiuto.rows.length} richieste` : 'Rifiuta richiesta'} size="sm">

@@ -1,0 +1,311 @@
+// ─── RICHIESTE — VISTA CALENDARIO ─────────────────────────────────────────────
+// Matrice dipendenti × giorni (deroga consapevole allo standard tabella: è un
+// calendario). table-layout fixed, nessuno scroll orizzontale.
+@use '../../../styles/tokens' as *
+
+.rfc
+  container: rfc / inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+  // ── Barra del mese ─────────────────────────────────────────────────────────
+  &__bar-top
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__nav
+    display: flex
+    align-items: center
+    gap: 6px
+
+  &__nav-btn.sib-btn--icon i
+    color: $primary
+    font-size: 13px
+
+  &__mese
+    min-width: 150px
+    text-align: center
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 700
+    color: $primary
+
+  &__count
+    margin-left: 10px
+    font-size: 12px
+    color: $text-inactive
+
+  &__legend
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 6px 16px
+
+  &__leg
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 12px
+    color: $text-inactive
+    white-space: nowrap
+
+  &__leg-dot
+    --c: var(--chart-1)
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: var(--c)
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 16%, transparent)
+
+    &--ferie
+      --c: var(--chart-1)
+
+    &--rol
+      --c: var(--chart-5)
+
+    &--permesso
+      --c: var(--chart-4)
+
+    &--malattia
+      --c: var(--chart-3)
+
+  &__leg-sep
+    width: 1px
+    height: 14px
+    background: $border
+
+  // Campioni di stato: stessa resa delle barre, in piccolo
+  &__sw
+    width: 18px
+    height: 10px
+    border-radius: 3px
+
+    &--ok
+      background: color-mix(in srgb, var(--color-text-inactive) 22%, transparent)
+      box-shadow: inset 3px 0 0 var(--color-text-inactive)
+
+    &--attesa
+      border: 1.5px dashed var(--color-text-inactive)
+
+    &--ko
+      background: color-mix(in srgb, var(--color-text-inactive) 10%, transparent)
+      background-image: linear-gradient(to bottom, transparent 45%, var(--color-text-inactive) 45%, var(--color-text-inactive) 58%, transparent 58%)
+
+  &__azioni
+    margin-left: auto
+
+  // ── Matrice ────────────────────────────────────────────────────────────────
+  &__wrap
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $white
+    overflow: hidden
+
+  &__grid
+    width: 100%
+    table-layout: fixed
+    border-collapse: collapse
+    font-size: 11px
+
+    th,
+    td
+      height: 30px
+      padding: 0
+      border-left: 1px solid $border
+      text-align: center
+      white-space: nowrap
+      overflow: hidden
+
+    thead th
+      height: 24px
+      background: $bg
+      font-weight: 700
+      color: $text-active
+
+    thead tr:first-child th
+      border-left-color: $border
+
+  &__c-dip
+    width: 168px
+
+  &__dip-h.rfc__dip-h
+    padding: 0 12px
+    border-left: none
+    text-align: left
+    color: $text-inactive
+
+  &__r-gsett th
+    height: 20px
+    border-bottom: 1px solid $border
+    font-size: 10px
+    font-weight: 600
+    color: $text-inactive
+
+  &__row-end td,
+  &__row-end th
+    border-bottom: 1px solid $border
+
+  tbody tr:last-child td,
+  tbody tr:last-child th
+    border-bottom: none
+
+  &__dip.rfc__dip
+    padding: 4px 12px
+    border-left: none
+    border-bottom: 1px solid $border
+    text-align: left
+    vertical-align: middle
+
+  &__dip-nome
+    display: block
+    overflow: hidden
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-active
+    text-overflow: ellipsis
+
+  &__dip-rep
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 10.5px
+    color: $text-inactive
+
+    i
+      font-size: 9px
+      color: $primary
+
+  &__we.rfc__we
+    background: color-mix(in srgb, var(--color-bg) 75%, transparent)
+
+  thead &__we.rfc__we
+    color: $text-inactive
+
+  &__oggi-col.rfc__oggi-col
+    box-shadow: inset 1px 0 0 $primary, inset -1px 0 0 $primary
+
+  thead &__oggi-col.rfc__oggi-col
+    background: $primary
+    color: var(--color-surface)
+
+  &__fest
+    color: $error
+
+  // ── Barre delle richieste ──────────────────────────────────────────────────
+  &__bar-cell.rfc__bar-cell
+    padding: 3px 2px
+
+    // Il Tooltip avvolge la barra in uno span inline: deve occupare tutti i giorni
+    > span
+      display: block
+      width: 100%
+
+  &__bar
+    --c: var(--chart-1)
+    display: flex
+    align-items: center
+    gap: 5px
+    width: 100%
+    height: 22px
+    padding: 0 6px
+    overflow: hidden
+    border: none
+    border-radius: 5px
+    color: var(--c)
+    font-size: 11px
+    font-weight: 700
+    text-align: left
+    cursor: pointer
+    transition: transform .15s, box-shadow .15s
+
+    &:hover
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--c) 30%, transparent)
+      transform: translateY(-1px)
+
+    &:focus-visible
+      outline: 2px solid $primary
+      outline-offset: 1px
+
+    i
+      flex: none
+      font-size: 10px
+
+    &--ferie
+      --c: var(--chart-1)
+
+    &--rol
+      --c: var(--chart-5)
+
+    &--permesso
+      --c: var(--chart-4)
+
+    &--malattia
+      --c: var(--chart-3)
+
+    // Approvata: piena con filetto a sinistra
+    &--ok
+      background: color-mix(in srgb, var(--c) 18%, transparent)
+      box-shadow: inset 3px 0 0 var(--c)
+
+    // In attesa (HR o responsabile): tratteggiata
+    &--attesa
+      background: color-mix(in srgb, var(--c) 6%, transparent)
+      border: 1.5px dashed var(--c)
+
+    // Rifiutata: spenta e barrata
+    &--ko
+      background: color-mix(in srgb, var(--color-text-inactive) 10%, transparent)
+      color: $text-inactive
+
+      .rfc__bar-txt
+        text-decoration: line-through
+
+    // La richiesta continua nel mese prima o dopo
+    &--prima
+      border-top-left-radius: 0
+      border-bottom-left-radius: 0
+
+    &--dopo
+      border-top-right-radius: 0
+      border-bottom-right-radius: 0
+
+  &__bar-txt
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__bar-stato
+    margin-left: auto
+    font-size: 10px
+    font-weight: 600
+    opacity: .8
+
+  &__tip
+    display: flex
+    flex-direction: column
+    gap: 2px
+    font-size: 11px
+
+  &__tip-t
+    font-weight: 700
+
+  &__tip-hint
+    opacity: .7
+
+// ── Laptop con sidebar aperta ─────────────────────────────────────────────────
+@container rfc (max-width: 1180px)
+  .rfc
+    &__c-dip
+      width: 136px
+
+    &__grid
+      font-size: 10px
+
+    &__bar
+      gap: 3px
+      padding: 0 4px
+      font-size: 10px
+
+    &__bar-stato
+      display: none
