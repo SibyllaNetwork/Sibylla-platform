@@ -380,6 +380,17 @@ export function saldoRol(richieste: RichiestaAssenza[], dipendenteId: number, an
   return { maturate, godute, inAttesa, residue: maturate - godute }
 }
 
+/** Saldo ferie dell'anno in giorni lavorativi: maturate (da contratto), godute (approvate), in attesa e residue. */
+export function saldoFerie(richieste: RichiestaAssenza[], dipendenteId: number, anno = new Date().getFullYear()) {
+  const d = DIPENDENTI_HR.find(x => x.id === dipendenteId)
+  const ferie = richieste.filter(r => r.dipendenteId === dipendenteId && r.tipo === 'Ferie' && r.dal.startsWith(String(anno)))
+  const giorni = (r: RichiestaAssenza) => giorniLavorativi(r.dal, r.al)
+  const godute = ferie.filter(r => r.stato === 'Approvata').reduce((s, r) => s + giorni(r), 0)
+  const inAttesa = ferie.filter(r => r.stato === 'Da approvare').reduce((s, r) => s + giorni(r), 0)
+  const maturate = d?.ferieAnnue ?? 0
+  return { maturate, godute, inAttesa, residue: maturate - godute }
+}
+
 /** Assenze già approvate dello stesso reparto che si sovrappongono all'intervallo (escluso il dipendente). */
 export function sovrapposizioni(richieste: RichiestaAssenza[], r: Pick<RichiestaAssenza, 'id' | 'dipendenteId' | 'dal' | 'al'>) {
   const rep = repartoDipendente(r.dipendenteId)

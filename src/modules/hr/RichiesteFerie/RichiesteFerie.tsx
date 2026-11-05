@@ -13,7 +13,7 @@ import { toast } from '../../../core/components/Toast/useToast'
 import {
   useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, TIPI_ASSENZA, STATI_RICHIESTA,
   nomeDipendente, repartoDipendente, fmtDataHr, giorniLavorativi, ferieGodute, sovrapposizioni,
-  saldoRol, oreRichiesta, ORE_GIORNO,
+  saldoRol, saldoFerie, oreRichiesta, ORE_GIORNO,
   type RichiestaAssenza, type TipoAssenza, type StatoRichiesta,
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
@@ -34,7 +34,7 @@ import './RichiesteFerie.sass'
  * eliminarla. Le richieste approvate compaiono nel Piano ferie.
  * ROL: si chiedono a ore (o a giornate da 8 h) e scalano dal monte ore annuo
  * maturato secondo il contratto; "Saldo ROL" mostra maturate, godute, in
- * attesa e residue di ogni dipendente.
+ * attesa e residue di ogni dipendente; "Saldo ferie" lo stesso in giorni lavorativi.
  */
 
 const PAGE_SIZE = 10
@@ -128,7 +128,8 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   const elimina = useHrGestioneStore(s => s.eliminaRichiesta)
   const cf = useColFilters()
   const confirm = useConfirmStore(s => s.confirm)
-  const [saldoOpen, setSaldoOpen] = useState(false)
+  // Saldo annuo per dipendente: ferie in giorni, ROL in ore.
+  const [saldo, setSaldo] = useState<'ferie' | 'rol' | null>(null)
 
   const [vista, setVista] = useState(VISTA_ATTESA)
   const [reparto, setReparto] = useState('')
@@ -316,8 +317,12 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     sorted.map(r => [fmtDataHr(r.createdAt.slice(0, 10)), r.dipendente, r.reparto, r.tipo, fmtDataHr(r.dal), fmtDataHr(r.al), durata(r),
       r.tipo === 'Ferie' ? `${r.residuo} gg` : r.tipo === 'ROL' ? fmtOre(r.residuo) : '', r.stato, r.note ?? '', r.motivo ?? '']))
 
-  const esportaSaldo = () => exportXls('saldo-rol', ['Dipendente', 'Reparto', 'Maturate', 'Godute', 'In attesa', 'Residue'],
-    DIPENDENTI_HR.map(d => { const s = saldoRol(richieste, d.id); return [`${d.nome} ${d.cognome}`, d.reparto, s.maturate, s.godute, s.inAttesa, s.residue] }))
+  const fmtGg = (g: number) => g === 1 ? '1 g' : `${g} gg`
+  const righeSaldo = (k: 'ferie' | 'rol') => DIPENDENTI_HR.map(d => ({ d, s: k === 'rol' ? saldoRol(richieste, d.id) : saldoFerie(richieste, d.id) }))
+  const fmtSaldo = (k: 'ferie' | 'rol', n: number) => k === 'rol' ? fmtOre(n) : fmtGg(n)
+  const esportaSaldo = (k: 'ferie' | 'rol') => exportXls(k === 'rol' ? 'saldo-rol' : 'saldo-ferie',
+    ['Dipendente', 'Reparto', k === 'rol' ? 'Maturate (h)' : 'Maturate (gg)', 'Godute', 'In attesa', 'Residue'],
+    righeSaldo(k).map(({ d, s: x }) => [`${d.nome} ${d.cognome}`, d.reparto, x.maturate, x.godute, x.inAttesa, x.residue]))
 
   const act = (tip: string, ico: string, onClick: () => void) => (
     <Tooltip text={tip}>
@@ -354,7 +359,10 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
               </button>
             </Tooltip>
           )}
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setSaldoOpen(true)}>
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setSaldo('ferie')}>
+            <i className="fa-solid fa-umbrella-beach" aria-hidden="true" /> Saldo ferie
+          </button>
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setSaldo('rol')}>
             <i className="fa-solid fa-hourglass-half" aria-hidden="true" /> Saldo ROL
           </button>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('hr-piano-ferie')}>
@@ -571,50 +579,57 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
         )}
       </Modal>
 
-      {/* ── Saldo ROL: monte ore annuo per dipendente ── */}
-      <Modal open={saldoOpen} onClose={() => setSaldoOpen(false)} title={`Saldo ROL ${new Date().getFullYear()}`} size="lg">
-        <div className="rfe-modal">
-          <p className="rfe-modal__text">Ore di riduzione orario maturate nell'anno secondo il contratto, godute con le richieste approvate e ancora da approvare.</p>
-          <div className="sib-table-wrap rfe__wrap">
-            <table className="sib-table rfe__table rfe__saldo">
-              <colgroup>
-                <col className="rfe__scol-dip" /><col className="rfe__scol-rep" />
-                <col className="rfe__scol-n" /><col className="rfe__scol-n" /><col className="rfe__scol-n" /><col className="rfe__scol-n" />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th><ThLabel full="Dipendente" /></th>
-                  <th><ThLabel full="Reparto" /></th>
-                  <th className="rfe__r"><ThLabel full="Maturate" /></th>
-                  <th className="rfe__r"><ThLabel full="Godute" /></th>
-                  <th className="rfe__r"><ThLabel full="In attesa" /></th>
-                  <th className="rfe__r"><ThLabel full="Residue" /></th>
-                </tr>
-              </thead>
-              <tbody>
-                {DIPENDENTI_HR.map(d => {
-                  const s = saldoRol(richieste, d.id)
-                  return (
+      {/* ── Saldo annuo per dipendente: ferie (giorni) o ROL (ore) ── */}
+      <Modal open={!!saldo} onClose={() => setSaldo(null)} title={`${saldo === 'rol' ? 'Saldo ROL' : 'Saldo ferie'} ${new Date().getFullYear()}`} size="lg">
+        {saldo && (
+          <div className="rfe-modal">
+            <p className="rfe-modal__text">
+              {saldo === 'rol'
+                ? 'Ore di riduzione orario maturate nell\'anno secondo il contratto, godute con le richieste approvate e ancora da approvare.'
+                : 'Giorni lavorativi di ferie maturati nell\'anno secondo il contratto, goduti con le richieste approvate e ancora da approvare.'}
+            </p>
+            <div className="sib-table-wrap rfe__wrap">
+              <table className="sib-table rfe__table rfe__saldo">
+                <colgroup>
+                  <col className="rfe__scol-dip" /><col className="rfe__scol-rep" />
+                  <col className="rfe__scol-n" /><col className="rfe__scol-n" /><col className="rfe__scol-n" /><col className="rfe__scol-n" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th><ThLabel full="Dipendente" /></th>
+                    <th><ThLabel full="Reparto" /></th>
+                    <th className="rfe__r"><ThLabel full="Maturate" /></th>
+                    <th className="rfe__r"><ThLabel full="Godute" /></th>
+                    <th className="rfe__r"><ThLabel full="In attesa" /></th>
+                    <th className="rfe__r"><ThLabel full="Residue" /></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {righeSaldo(saldo).map(({ d, s: x }) => (
                     <tr key={d.id}>
                       <td className="rfe__strong"><TruncatedText text={`${d.nome} ${d.cognome}`} /></td>
                       <td><TruncatedText text={d.reparto} /></td>
-                      <td className="rfe__r">{fmtOre(s.maturate)}</td>
-                      <td className="rfe__r">{fmtOre(s.godute)}</td>
-                      <td className="rfe__r">{s.inAttesa ? fmtOre(s.inAttesa) : <span className="rfe__dash">-</span>}</td>
-                      <td className={`rfe__r rfe__strong ${s.residue < 0 ? 'rfe__neg' : ''}`}>{fmtOre(s.residue)}</td>
+                      <td className="rfe__r">{fmtSaldo(saldo, x.maturate)}</td>
+                      <td className="rfe__r">{fmtSaldo(saldo, x.godute)}</td>
+                      <td className="rfe__r">{x.inAttesa ? fmtSaldo(saldo, x.inAttesa) : <span className="rfe__dash">-</span>}</td>
+                      <td className={`rfe__r rfe__strong ${x.residue < 0 ? 'rfe__neg' : ''}`}>
+                        {x.inAttesa && x.residue - x.inAttesa < 0
+                          ? <Tooltip text={`Se approvi quelle in attesa restano ${fmtSaldo(saldo, x.residue - x.inAttesa)}`}><span className="rfe__saldo-warn">{fmtSaldo(saldo, x.residue)} <Ico n="alert" w="solid" s={12} c="currentColor" /></span></Tooltip>
+                          : fmtSaldo(saldo, x.residue)}
+                      </td>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="rfe-modal__actions">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => esportaSaldo(saldo)}>
+                <i className="fa-regular fa-file-xls" aria-hidden="true" /> Esporta in Excel
+              </button>
+              <button type="button" className="sib-btn sib-btn--primary" onClick={() => setSaldo(null)}>Chiudi</button>
+            </div>
           </div>
-          <div className="rfe-modal__actions">
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={esportaSaldo}>
-              <i className="fa-regular fa-file-xls" aria-hidden="true" /> Esporta in Excel
-            </button>
-            <button type="button" className="sib-btn sib-btn--primary" onClick={() => setSaldoOpen(false)}>Chiudi</button>
-          </div>
-        </div>
+        )}
       </Modal>
     </div>
   )
