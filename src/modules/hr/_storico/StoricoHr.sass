@@ -1,0 +1,101 @@
+// ─── STORICO INTERVENTI HR ────────────────────────────────────────────────────
+// Timeline verticale (richieste e note spese): invio dall'App Op! + decisioni e correzioni.
+@use '../../../styles/tokens' as *
+
+.hrsto
+  display: flex
+  flex-direction: column
+  gap: 8px
+  padding-top: 12px
+  border-top: 1px solid $border
+
+.hrsto__title
+  margin: 0
+  font-size: 12px
+  font-weight: 600
+  color: var(--color-primary)
+
+.hrsto__list
+  margin: 0
+  padding: 0
+  list-style: none
+  display: flex
+  flex-direction: column
+  gap: 10px
+  max-height: 220px
+  overflow-y: auto
+
+.hrsto__item
+  position: relative
+  display: flex
+  gap: 10px
+
+  &:not(:last-child)::after
+    content: ''
+    position: absolute
+    left: 11px
+    top: 24px
+    bottom: -10px
+    width: 1px
+    background: $border
+
+.hrsto__ico
+  flex: 0 0 auto
+  width: 22px
+  height: 22px
+  border-radius: 50%
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  font-size: 10px
+  background: $primary-50
+  color: var(--color-primary)
+
+.hrsto__item--ok .hrsto__ico
+  background: $success-light
+  color: $success
+
+.hrsto__item--ko .hrsto__ico
+  background: $error-light
+  color: $error
+
+.hrsto__item--mod .hrsto__ico
+  background: $warning-light
+  color: $warning
+
+.hrsto__body
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 3px
+  font-size: 12px
+  color: $text-active
+
+.hrsto__head
+  display: flex
+  flex-wrap: wrap
+  align-items: baseline
+  gap: 2px 8px
+
+.hrsto__meta
+  color: $text-inactive
+  font-size: 11px
+
+.hrsto__mods
+  margin: 0
+  padding-left: 14px
+
+.hrsto__msg
+  margin: 0
+  padding: 6px 8px
+  border-radius: $radius-md
+  background: $primary-50
+
+  i
+    color: var(--color-primary)
+    margin-right: 4px
+
+.hrsto__empty
+  margin: 0
+  font-size: 12px
+  color: $text-inactive

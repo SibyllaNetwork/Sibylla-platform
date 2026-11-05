@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useAccessStore } from './useAccessStore'
 
 // ─── HUMAN RESOURCES › GESTIONE DELLE PRESENZE ───────────────────────────────
 // Dati condivisi delle pagine Nota spese, Cedolini, Richieste e Piano ferie.
@@ -20,6 +21,30 @@ export interface DipendenteHr {
   /** Ore di ROL (riduzione orario di lavoro) maturate nell'anno, in proporzione al contratto. */
   rolAnnui: number
 }
+
+// ── Storico degli interventi dell'ufficio del personale ──
+// Le richieste e le spese nascono dal dipendente nell'App Op!: ogni volta che l'HR
+// le decide o le corregge resta traccia di chi, quando e che cosa (anche il
+// messaggio al dipendente), a tutela di entrambi.
+export interface EventoHr {
+  /** ISO datetime. */
+  at: string
+  autore: string
+  azione: string
+  /** Campi cambiati, es. "Periodo: 09/11 → 15/11/2026 diventa 10/11 → 14/11/2026". */
+  modifiche?: string[]
+  /** Messaggio al dipendente (motivo del rifiuto o della modifica). */
+  messaggio?: string
+}
+
+/** Chi sta operando: l'utenza collegata, altrimenti l'ufficio del personale. */
+export function autoreHr(): string {
+  const a = useAccessStore.getState()
+  const p = a.currentProfileId ? a.profiles.find(x => x.id === a.currentProfileId) : undefined
+  return p?.nome ?? 'Ufficio del personale'
+}
+const evento = (azione: string, extra: Partial<EventoHr> = {}): EventoHr => ({ at: new Date().toISOString(), autore: autoreHr(), azione, ...extra })
+const conEvento = <T extends { storico?: EventoHr[] }>(x: T, e: EventoHr): T => ({ ...x, storico: [...(x.storico ?? []), e] })
 
 // ── Nota spese ──
 // Voci del foglio "Nota spese mensile": trasporti, vitto e altro (i buoni pasto sono a parte).
@@ -44,6 +69,7 @@ export interface NotaSpesa {
   giustificativo?: string
   stato: StatoSpesa
   motivo?: string
+  storico?: EventoHr[]
 }
 
 // ── Cedolini ──
@@ -82,6 +108,7 @@ export interface RichiestaAssenza {
   ore?: number
   /** ISO datetime della richiesta. */
   createdAt: string
+  storico?: EventoHr[]
 }
 
 // ─── Date ─────────────────────────────────────────────────────────────────────
@@ -264,6 +291,8 @@ interface HrGestioneState {
 
   aggiungiSpesa: (s: Omit<NotaSpesa, 'id' | 'stato'>) => void
   setStatoSpesa: (id: string, stato: StatoSpesa, motivo?: string) => void
+  /** L'HR corregge una spesa: `modifiche` descrive i campi cambiati, `messaggio` va al dipendente. */
+  modificaSpesa: (id: string, patch: Partial<Omit<NotaSpesa, 'id' | 'storico'>>, modifiche: string[], messaggio?: string) => void
   eliminaSpesa: (id: string) => void
   toggleBuono: (dipendenteId: number, iso: string) => void
 
@@ -274,7 +303,7 @@ interface HrGestioneState {
   aggiungiRichiesta: (r: Omit<RichiestaAssenza, 'id' | 'stato' | 'createdAt'>) => void
   decidiRichiesta: (id: string, stato: 'Approvata' | 'Rifiutata', motivo?: string) => void
   /** L'HR corregge una richiesta arrivata dall'App Op! (tutti i campi tranne id e data di richiesta). */
-  modificaRichiesta: (id: string, patch: Partial<Omit<RichiestaAssenza, 'id' | 'createdAt'>>) => void
+  modificaRichiesta: (id: string, patch: Partial<Omit<RichiestaAssenza, 'id' | 'createdAt' | 'storico'>>, modifiche: string[], messaggio?: string) => void
   eliminaRichiesta: (id: string) => void
 }
 
@@ -287,7 +316,14 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
   richieste: seedRichieste(),
 
   aggiungiSpesa: (s) => set(st => ({ noteSpese: [{ ...s, id: uid('ns'), stato: 'Da approvare' }, ...st.noteSpese] })),
-  setStatoSpesa: (id, stato, motivo) => set(st => ({ noteSpese: st.noteSpese.map(n => n.id === id ? { ...n, stato, motivo: stato === 'Rifiutata' ? motivo : undefined } : n) })),
+  setStatoSpesa: (id, stato, motivo) => set(st => ({ noteSpese: st.noteSpese.map(n => n.id === id
+    ? conEvento({ ...n, stato, motivo: stato === 'Rifiutata' ? motivo : undefined }, evento(({ Approvata: 'Approvata', Rifiutata: 'Rifiutata', Rimborsata: 'Rimborsata', 'Da approvare': 'Rimessa in attesa' } as Record<StatoSpesa, string>)[stato], { messaggio: stato === 'Rifiutata' ? motivo : undefined }))
+    : n) })),
+  modificaSpesa: (id, patch, modifiche, messaggio) => set(st => ({ noteSpese: st.noteSpese.map(n => {
+    if (n.id !== id) return n
+    const stato = patch.stato ?? n.stato
+    return conEvento({ ...n, ...patch, motivo: stato === 'Rifiutata' ? (patch.motivo ?? n.motivo) : undefined }, evento('Modificata', { modifiche, messaggio: messaggio || undefined }))
+  }) })),
   eliminaSpesa: (id) => set(st => ({ noteSpese: st.noteSpese.filter(n => n.id !== id) })),
   toggleBuono: (dipendenteId, iso) => set(st => {
     const k = chiaveBuono(dipendenteId, iso)
@@ -311,8 +347,14 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
   eliminaCedolino: (id) => set(st => ({ cedolini: st.cedolini.filter(c => c.id !== id) })),
 
   aggiungiRichiesta: (r) => set(st => ({ richieste: [{ ...r, id: uid('ra'), stato: 'Da approvare', createdAt: new Date().toISOString() }, ...st.richieste] })),
-  decidiRichiesta: (id, stato, motivo) => set(st => ({ richieste: st.richieste.map(r => r.id === id ? { ...r, stato, motivo: stato === 'Rifiutata' ? motivo : undefined } : r) })),
-  modificaRichiesta: (id, patch) => set(st => ({ richieste: st.richieste.map(r => r.id === id ? { ...r, ...patch, motivo: (patch.stato ?? r.stato) === 'Rifiutata' ? (patch.motivo ?? r.motivo) : undefined } : r) })),
+  decidiRichiesta: (id, stato, motivo) => set(st => ({ richieste: st.richieste.map(r => r.id === id
+    ? conEvento({ ...r, stato, motivo: stato === 'Rifiutata' ? motivo : undefined }, evento(stato, { messaggio: stato === 'Rifiutata' ? motivo : undefined }))
+    : r) })),
+  modificaRichiesta: (id, patch, modifiche, messaggio) => set(st => ({ richieste: st.richieste.map(r => {
+    if (r.id !== id) return r
+    const stato = patch.stato ?? r.stato
+    return conEvento({ ...r, ...patch, motivo: stato === 'Rifiutata' ? (patch.motivo ?? r.motivo) : undefined }, evento('Modificata', { modifiche, messaggio: messaggio || undefined }))
+  }) })),
   eliminaRichiesta: (id) => set(st => ({ richieste: st.richieste.filter(r => r.id !== id) })),
 }), { name: 'sibylla.hr-gestione', version: 5, migrate: () => ({ noteSpese: seedNoteSpese(), buoniPasto: seedBuoni(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
 

@@ -17,6 +17,7 @@ import {
   type RichiestaAssenza, type TipoAssenza, type StatoRichiesta,
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
+import StoricoHr from '../_storico/StoricoHr'
 import { occupazione, addGiorni } from '../../../store/useTurniPersonaleStore'
 import './RichiesteFerie.sass'
 
@@ -37,6 +38,9 @@ import './RichiesteFerie.sass'
 const PAGE_SIZE = 10
 const VISTA_ATTESA = 'attesa'
 const VISTA_TUTTE = 'tutte'
+
+/** Ultima correzione dell'HR, se c'è. */
+const ultimaModifica = (r: RichiestaAssenza) => [...(r.storico ?? [])].reverse().find(e => e.azione === 'Modificata')
 
 const statoCls = (s: StatoRichiesta) => (s === 'Da approvare' ? 'attesa' : s === 'Approvata' ? 'ok' : 'ko')
 
@@ -93,6 +97,19 @@ function valuta(r: RichiestaAssenza & { residuo: number; conflitti: RichiestaAss
   return { livello, motivi }
 }
 
+/** Campi cambiati dall'HR, in parole: finiscono nello storico e nella notifica al dipendente. */
+function differenze(a: RichiestaAssenza, b: Pick<RichiestaAssenza, 'dipendenteId' | 'tipo' | 'dal' | 'al' | 'note' | 'ore' | 'stato' | 'motivo'>) {
+  const out: string[] = []
+  if (a.dipendenteId !== b.dipendenteId) out.push(`Dipendente: ${nomeDipendente(a.dipendenteId)} → ${nomeDipendente(b.dipendenteId)}`)
+  if (a.tipo !== b.tipo) out.push(`Tipo: ${a.tipo} → ${b.tipo}`)
+  if (a.dal !== b.dal || a.al !== b.al) out.push(`Periodo: ${periodo(a.dal, a.al)} → ${periodo(b.dal, b.al)}`)
+  if ((a.ore ?? null) !== (b.ore ?? null)) out.push(`Durata: ${durata(a)} → ${durata(b)}`)
+  if ((a.note ?? '') !== (b.note ?? '')) out.push(b.note ? `Note: «${b.note}»` : 'Note rimosse')
+  if (a.stato !== b.stato) out.push(`Stato: ${a.stato} → ${b.stato}`)
+  else if (b.stato === 'Rifiutata' && (a.motivo ?? '') !== (b.motivo ?? '')) out.push('Motivo del rifiuto aggiornato')
+  return out
+}
+
 const VISTE = [
   { value: 'attesa', label: 'Da approvare' },
   { value: 'Approvata', label: 'Approvate' },
@@ -100,7 +117,7 @@ const VISTE = [
   { value: 'tutte', label: 'Tutte' },
 ]
 
-interface Bozza { id: string; dipendenteId: string; tipo: TipoAssenza; dal: string; al: string; note: string; ore: string; stato: StatoRichiesta; motivo: string }
+interface Bozza { id: string; dipendenteId: string; tipo: TipoAssenza; dal: string; al: string; note: string; ore: string; stato: StatoRichiesta; motivo: string; messaggio: string }
 
 export default function RichiesteFerie({ navigate }: { navigate: (p: string) => void }) {
   const richieste = useHrGestioneStore(s => s.richieste)
@@ -195,7 +212,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     setErrori({})
     setBozza({
       id: r.id, dipendenteId: String(r.dipendenteId), tipo: r.tipo, dal: r.dal, al: r.al, note: r.note ?? '',
-      ore: String(r.ore ?? ORE_GIORNO).replace('.', ','), stato: r.stato, motivo: r.motivo ?? '',
+      ore: String(r.ore ?? ORE_GIORNO).replace('.', ','), stato: r.stato, motivo: r.motivo ?? '', messaggio: '',
     })
   }
 
@@ -211,11 +228,16 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     if (bozza.stato === 'Rifiutata' && !bozza.motivo.trim()) e.motivo = 'Indica il motivo del rifiuto'
     setErrori(e)
     if (Object.keys(e).length) return
-    modifica(bozza.id, {
+    const prima = richieste.find(x => x.id === bozza.id)
+    if (!prima) return
+    const dopo = {
       dipendenteId: Number(bozza.dipendenteId), tipo: bozza.tipo, dal: bozza.dal, al: bozza.al,
       note: bozza.note.trim() || undefined, ore: ore && ore < ORE_GIORNO ? ore : undefined,
       stato: bozza.stato, motivo: bozza.stato === 'Rifiutata' ? bozza.motivo.trim() : undefined,
-    })
+    }
+    const modifiche = differenze(prima, dopo)
+    if (!modifiche.length) { toast.info('Non hai cambiato nessun valore.', 'Nessuna modifica'); return }
+    modifica(bozza.id, dopo, modifiche, bozza.messaggio.trim() || dopo.motivo)
     toast.success(`Richiesta di ${nomeDipendente(Number(bozza.dipendenteId))} aggiornata.`, 'Richiesta modificata')
     setBozza(null)
   }
@@ -379,10 +401,17 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
                       : <span className="rfe__dash">-</span>}
                 </td>
                 <td>
+                  <span className="rfe__stato-cell">
                   <span className={`rfe__stato rfe__stato--${statoCls(r.stato)}`}>
                     {r.stato === 'Rifiutata' && r.motivo
                       ? <Tooltip text={r.motivo}><span className="rfe__stato-txt">{r.stato} <Ico n="info" w="solid" s={12} c="currentColor" /></span></Tooltip>
                       : <TruncatedText text={r.stato} />}
+                  </span>
+                  {ultimaModifica(r) && (
+                    <Tooltip text={`Modificata da ${ultimaModifica(r)!.autore} il ${new Date(ultimaModifica(r)!.at).toLocaleDateString('it-IT')}: ${ultimaModifica(r)!.modifiche?.join('; ') ?? ''}`}>
+                      <span className="rfe__mod" aria-label="Modificata dall'HR"><i className="fa-solid fa-pen" aria-hidden="true" /></span>
+                    </Tooltip>
+                  )}
                   </span>
                 </td>
                 <td className="rfe__c">
@@ -462,6 +491,13 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
                 hint="Il dipendente lo vedrà nella sua richiesta"
                 onChange={e => setBozza({ ...bozza, motivo: e.target.value })} />
             )}
+            <TextareaField name="rf-messaggio" label="Messaggio al dipendente" rows={2} value={bozza.messaggio}
+              hint="Facoltativo: spiega la correzione. Il dipendente riceve la notifica nell'App Op! con le modifiche"
+              onChange={e => setBozza({ ...bozza, messaggio: e.target.value })} />
+            {(() => {
+              const r = richieste.find(x => x.id === bozza.id)
+              return r ? <StoricoHr origine={{ at: r.createdAt, autore: nomeDipendente(r.dipendenteId) }} storico={r.storico} /> : null
+            })()}
             <div className="rfe-modal__actions">
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setBozza(null)}>Annulla</button>
               <button type="button" className="sib-btn sib-btn--primary" onClick={salvaModifica}>Salva modifiche</button>

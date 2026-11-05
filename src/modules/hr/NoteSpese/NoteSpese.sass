@@ -44,7 +44,7 @@
 .nsp__col-cat
   width: 9%
 .nsp__col-desc
-  width: 19%
+  width: 17%
 .nsp__col-giust
   width: 8%
 .nsp__col-imp
@@ -52,7 +52,7 @@
 .nsp__col-stato
   width: 12%
 .nsp__col-azioni
-  width: 9%
+  width: 11%
 
 // Due classi: a pari specificità vincerebbe l'allineamento di .sib-table th/td.
 .nsp .nsp__c
@@ -79,6 +79,18 @@
 
 .nsp__dash
   color: $text-inactive
+
+.nsp__stato-cell
+  display: flex
+  align-items: center
+  gap: 6px
+  min-width: 0
+
+.nsp__mod
+  flex: 0 0 auto
+  font-size: 11px
+  color: $warning
+  cursor: help
 
 .nsp .nsp__stato
   +hr-stato

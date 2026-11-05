@@ -21,11 +21,16 @@ import './NoteSpese.sass'
 
 /**
  * Nota spese — HR › Gestione delle presenze.
- * L'ufficio del personale riceve le spese anticipate dai dipendenti, le approva o
- * le rifiuta (con motivo) e segna il rimborso quando passa in busta paga.
+ * L'ufficio del personale riceve le spese anticipate dai dipendenti (inserite
+ * dall'App Op! con la ricevuta): le corregge in ogni valore, le approva o le
+ * rifiuta (con motivo), segna il rimborso quando passa in busta paga, le elimina.
+ * Ogni intervento resta nello storico della nota.
  */
 
 const PAGE_SIZE = 10
+
+/** Ultima correzione dell'HR, se c'è. */
+const ultimaModifica = (n: NotaSpesa) => [...(n.storico ?? [])].reverse().find(e => e.azione === 'Modificata')
 
 const statoCls = (s: StatoSpesa) =>
   s === 'Da approvare' ? 'attesa' : s === 'Approvata' ? 'info' : s === 'Rimborsata' ? 'ok' : 'ko'
@@ -42,7 +47,7 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
   const [dal, setDal] = useState('')
   const [al, setAl] = useState('')
   const [page, setPage] = useState(1)
-  const [nuova, setNuova] = useState(false)
+  const [inModifica, setInModifica] = useState<NotaSpesa | null>(null)
   const [rifiuto, setRifiuto] = useState<{ row: NotaSpesa; motivo: string } | null>(null)
   const [dettaglio, setDettaglio] = useState<NotaSpesa | null>(null)
 
@@ -93,7 +98,11 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
     setRifiuto(null)
   }
   const cancella = async (n: NotaSpesa) => {
-    const ok = await confirm({ title: 'Elimina spesa', message: `Eliminare la spesa "${n.descrizione}" di ${nomeDipendente(n.dipendenteId)}?`, confirmLabel: 'Elimina' })
+    const ok = await confirm({
+      title: 'Elimina spesa',
+      message: `Eliminare la spesa "${n.descrizione}" di ${nomeDipendente(n.dipendenteId)} (${eurHr(n.importo)})?${n.stato === 'Rimborsata' ? ' È già stata rimborsata: il rimborso resta in busta paga, ma la spesa sparirà dalla nota.' : ''} L'operazione non si può annullare.`,
+      confirmLabel: 'Elimina',
+    })
     if (!ok) return
     elimina(n.id)
     toast.success('Spesa eliminata.', 'Eliminata')
@@ -119,14 +128,9 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
         subtitle="Approva, rifiuta e rimborsa le spese anticipate dal personale"
         onBack={() => navigate('home')}
         actions={
-          <>
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('hr-note-spese-mese')}>
-              <i className="fa-solid fa-table-list" aria-hidden="true" /> Nota spese mensile
-            </button>
-            <button type="button" className="sib-btn sib-btn--primary" onClick={() => setNuova(true)}>
-              <Ico n="plus" s={14} c="currentColor" /> Aggiungi nota
-            </button>
-          </>
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('hr-note-spese-mese')}>
+            <i className="fa-solid fa-table-list" aria-hidden="true" /> Nota spese mensile
+          </button>
         }
       />
 
@@ -191,25 +195,26 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
                 </td>
                 <td className="nsp__r nsp__strong"><TruncatedText text={eurHr(n.importo)} /></td>
                 <td>
+                  <span className="nsp__stato-cell">
                   <span className={`nsp__stato nsp__stato--${statoCls(n.stato)}`}>
                     {n.stato === 'Rifiutata' && n.motivo
                       ? <Tooltip text={n.motivo}><span className="nsp__stato-txt">{n.stato} <Ico n="info" w="solid" s={12} c="currentColor" /></span></Tooltip>
                       : <TruncatedText text={n.stato} />}
                   </span>
+                  {ultimaModifica(n) && (
+                    <Tooltip text={`Modificata da ${ultimaModifica(n)!.autore} il ${new Date(ultimaModifica(n)!.at).toLocaleDateString('it-IT')}: ${ultimaModifica(n)!.modifiche?.join('; ') ?? ''}`}>
+                      <span className="nsp__mod" aria-label="Modificata dall'HR"><i className="fa-solid fa-pen" aria-hidden="true" /></span>
+                    </Tooltip>
+                  )}
+                  </span>
                 </td>
                 <td className="nsp__c">
                   <span className="nsp__acts">
-                    {n.stato === 'Da approvare' && <>
-                      {act('Approva', 'circle-check', () => approva(n))}
-                      {act('Rifiuta', 'circle-xmark', () => setRifiuto({ row: n, motivo: '' }))}
-                    </>}
+                    {act('Modifica', 'edit', () => setInModifica(n))}
+                    {(n.stato === 'Da approvare' || n.stato === 'Rifiutata') && act('Approva', 'circle-check', () => approva(n))}
+                    {(n.stato === 'Da approvare' || n.stato === 'Approvata') && act('Rifiuta', 'circle-xmark', () => setRifiuto({ row: n, motivo: '' }))}
                     {n.stato === 'Approvata' && act('Segna come rimborsata', 'money-bill', () => rimborsa(n))}
-                    {(n.stato === 'Da approvare' || n.stato === 'Rifiutata') && act('Elimina', 'trash', () => cancella(n))}
-                    <Tooltip text="Apri la nota spese mensile">
-                      <button type="button" className="nsp__act" onClick={() => apriFoglio(n)} aria-label="Apri la nota spese mensile">
-                        <i className="fa-solid fa-table-list" aria-hidden="true" />
-                      </button>
-                    </Tooltip>
+                    {act('Elimina', 'trash', () => cancella(n))}
                   </span>
                 </td>
               </tr>
@@ -228,7 +233,7 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
 
       <div className="nsp__pag"><Pagination page={page} totalPages={totalPages} onPageChange={setPage} /></div>
 
-      <ModaleNota open={nuova} onClose={() => setNuova(false)} />
+      <ModaleNota nota={inModifica} onClose={() => setInModifica(null)} />
 
       {/* ── Rifiuto ── */}
       <Modal open={!!rifiuto} onClose={() => setRifiuto(null)} title="Rifiuta spesa" size="sm">

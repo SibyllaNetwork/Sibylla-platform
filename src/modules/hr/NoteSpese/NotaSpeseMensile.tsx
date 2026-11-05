@@ -4,7 +4,6 @@ import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
-import Ico from '../../../core/icons/Ico'
 import ThLabel from '../../../core/components/ThLabel'
 import { SelectField, TextareaField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
@@ -24,8 +23,9 @@ import './NotaSpeseMensile.sass'
 /**
  * Nota spese mensile — il dettaglio di un dipendente: un foglio per mese con una
  * riga per giorno e una colonna per voce, come il modulo cartaceo del rimborso.
- * Da qui l'ufficio del personale approva, rifiuta e rimborsa, e a fine mese tira
- * fuori il report per la busta paga (PDF, ricevute, Excel, vista di tutti).
+ * Le note le inserisce il dipendente dall'App Op!; da qui l'ufficio del personale
+ * le corregge, approva, rifiuta, rimborsa o elimina, e a fine mese tira fuori il
+ * report per la busta paga (PDF, ricevute, Excel, vista di tutti).
  */
 
 const statoCls = (s: string | null) =>
@@ -44,7 +44,7 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
   const [dip, setDip] = useState(dipendenteId && DIPENDENTI_HR.some(d => d.id === dipendenteId) ? dipendenteId : DIPENDENTI_HR[0].id)
   const [ym, setYm] = useState(mese && /^\d{4}-\d{2}$/.test(mese) ? mese : meseCorrente())
   const [report, setReport] = useState('con-note')
-  const [nuova, setNuova] = useState<{ data?: string; voce?: CategoriaSpesa } | null>(null)
+  const [inModifica, setInModifica] = useState<NotaSpesa | null>(null)
   const [giorno, setGiorno] = useState<{ iso: string; voce?: CategoriaSpesa } | null>(null)
   const [rifiuto, setRifiuto] = useState<{ n: NotaSpesa; motivo: string } | null>(null)
   const [totale, setTotale] = useState(false)
@@ -53,7 +53,6 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
   const riep = useMemo(() => riepilogoMese(ym, noteSpese, buoni), [ym, noteSpese, buoni])
   const conNote = riep.filter(r => r.f.note.length || r.f.nBuoni)
   const selezione = report === 'con-note' ? conNote.map(r => r.dip.id) : [Number(report)]
-  const futuro = ym > meseCorrente()
 
   const noteGiorno = giorno ? f.note.filter(n => n.data === giorno.iso && (!giorno.voce || n.categoria === giorno.voce)) : []
 
@@ -65,7 +64,11 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
     setStato(n.id, 'Rimborsata'); toast.success(`Rimborso di ${eurHr(n.importo)} registrato.`, 'Spesa rimborsata')
   }
   const cancella = async (n: NotaSpesa) => {
-    const ok = await confirm({ title: 'Elimina nota', message: `Eliminare la nota "${n.descrizione}" del ${fmtDataHr(n.data)} (${eurHr(n.importo)})?`, confirmLabel: 'Elimina' })
+    const ok = await confirm({
+      title: 'Elimina nota',
+      message: `Eliminare la nota "${n.descrizione}" del ${fmtDataHr(n.data)} (${eurHr(n.importo)})?${n.stato === 'Rimborsata' ? ' È già stata rimborsata: il rimborso resta in busta paga, ma la spesa sparirà dalla nota.' : ''} L'operazione non si può annullare.`,
+      confirmLabel: 'Elimina',
+    })
     if (!ok) return
     elimina(n.id); toast.success('Nota eliminata.', 'Eliminata')
   }
@@ -105,17 +108,11 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
       x.nBuoni, cifra(x.buoniEur), cifra(x.spese), cifra(x.eurDaApprovare), cifra(x.eurApprovate), cifra(x.eurRimborsate), statoMese(x).label,
     ]))
 
-  const cella = (iso: string, futura: boolean, voce: CategoriaSpesa, sep: boolean) => {
+  const cella = (iso: string, voce: CategoriaSpesa, sep: boolean) => {
     const r = f.righe.find(x => x.iso === iso)!
     const c = r.celle[voce]
     if (!c.note.length) {
-      return futura ? <td key={voce} className={clsx('nsm__num', sep && 'nsm__sep')} /> : (
-        <td key={voce} className={clsx('nsm__num nsm__cell nsm__cell--vuota', sep && 'nsm__sep')}>
-          <button type="button" className="nsm__add" aria-label={`Aggiungi ${voce} del ${fmtDataHr(iso)}`} onClick={() => setNuova({ data: iso, voce })}>
-            <i className="fa-solid fa-plus" aria-hidden="true" />
-          </button>
-        </td>
-      )
+      return <td key={voce} className={clsx('nsm__num', sep && 'nsm__sep')} />
     }
     const tip = c.note.map(n => `${n.descrizione} · ${eurHr(n.importo)} · ${n.stato}`).join('\n')
     return (
@@ -139,11 +136,6 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
         title="Nota spese mensile"
         subtitle={`Il foglio rimborsi di ${nomeDipendente(dip)} · ${repartoDipendente(dip)}`}
         onBack={() => navigate('hr-note-spese')}
-        actions={
-          <button type="button" className="sib-btn sib-btn--primary" disabled={futuro} onClick={() => setNuova({})}>
-            <Ico n="plus" s={14} c="currentColor" /> Aggiungi nota
-          </button>
-        }
       />
 
       {/* ── Mese ── */}
@@ -259,8 +251,8 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
                     </button>
                   </td>
                   <td className="nsm__num">{r.trasferte || ''}</td>
-                  {TRASPORTI.map((v, i) => cella(r.iso, r.futuro, v, i === 0))}
-                  {VITTO_ALTRO.map((v, i) => cella(r.iso, r.futuro, v, i === 0))}
+                  {TRASPORTI.map((v, i) => cella(r.iso, v, i === 0))}
+                  {VITTO_ALTRO.map((v, i) => cella(r.iso, v, i === 0))}
                   <td className="nsm__c nsm__sep">
                     <input
                       type="checkbox" className="nsm__check" checked={r.buono} disabled={r.futuro}
@@ -298,7 +290,7 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
         </div>
       </section>
 
-      <ModaleNota open={!!nuova} onClose={() => setNuova(null)} dipendenteId={dip} data={nuova?.data} voce={nuova?.voce} />
+      <ModaleNota nota={inModifica} onClose={() => setInModifica(null)} />
 
       {/* ── Note del giorno ── */}
       <Modal open={!!giorno} onClose={() => setGiorno(null)} title={giorno ? `${fmtDataHr(giorno.iso)}${giorno.voce ? ` · ${giorno.voce}` : ''}` : ''} size="md">
@@ -320,22 +312,16 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
                   <span className="nsm-day__imp">{eurHr(n.importo)}</span>
                   <span className={`nsm-day__stato nsm-day__stato--${statoCls(n.stato)}`}>{n.stato}</span>
                   <span className="nsm-day__acts">
-                    {n.stato === 'Da approvare' && <>
-                      <Tooltip text="Approva"><button type="button" className="nsm-day__act" aria-label="Approva" onClick={() => approva(n)}><i className="fa-solid fa-circle-check" aria-hidden="true" /></button></Tooltip>
-                      <Tooltip text="Rifiuta"><button type="button" className="nsm-day__act" aria-label="Rifiuta" onClick={() => setRifiuto({ n, motivo: '' })}><i className="fa-solid fa-circle-xmark" aria-hidden="true" /></button></Tooltip>
-                    </>}
+                    <Tooltip text="Modifica"><button type="button" className="nsm-day__act" aria-label="Modifica" onClick={() => { setGiorno(null); setInModifica(n) }}><i className="fa-solid fa-pen" aria-hidden="true" /></button></Tooltip>
+                    {(n.stato === 'Da approvare' || n.stato === 'Rifiutata') && <Tooltip text="Approva"><button type="button" className="nsm-day__act" aria-label="Approva" onClick={() => approva(n)}><i className="fa-solid fa-circle-check" aria-hidden="true" /></button></Tooltip>}
+                    {(n.stato === 'Da approvare' || n.stato === 'Approvata') && <Tooltip text="Rifiuta"><button type="button" className="nsm-day__act" aria-label="Rifiuta" onClick={() => setRifiuto({ n, motivo: '' })}><i className="fa-solid fa-circle-xmark" aria-hidden="true" /></button></Tooltip>}
                     {n.stato === 'Approvata' && <Tooltip text="Segna come rimborsata"><button type="button" className="nsm-day__act" aria-label="Segna come rimborsata" onClick={() => rimborsa(n)}><i className="fa-solid fa-money-bill" aria-hidden="true" /></button></Tooltip>}
-                    {n.stato !== 'Rimborsata' && <Tooltip text="Elimina"><button type="button" className="nsm-day__act" aria-label="Elimina" onClick={() => cancella(n)}><i className="fa-solid fa-trash-can" aria-hidden="true" /></button></Tooltip>}
+                    <Tooltip text="Elimina"><button type="button" className="nsm-day__act" aria-label="Elimina" onClick={() => cancella(n)}><i className="fa-solid fa-trash-can" aria-hidden="true" /></button></Tooltip>
                   </span>
                 </li>
               ))}
               {!noteGiorno.length && <li className="nsm-day__empty">Nessuna nota in questo giorno.</li>}
             </ul>
-            <div className="nsm-day__foot">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => { const g = giorno; setGiorno(null); setNuova({ data: g.iso, voce: g.voce }) }}>
-                <Ico n="plus" s={13} c="currentColor" /> Aggiungi nota per questo giorno
-              </button>
-            </div>
           </div>
         )}
       </Modal>
