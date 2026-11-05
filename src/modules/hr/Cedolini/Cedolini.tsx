@@ -148,10 +148,13 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
   const approva = (dipId: number, iso: string, minuti: number | null) => approvaStraordinario(chiaveGiorno(dipId, iso), minuti)
   const azioniDip = (d: DipendenteMese) => {
     const c = statoCed(d.id)
-    if (!c) return <span className="ced__det-stato ced__det-stato--manca">Cedolino non caricato</span>
+    if (!c) return <span className="ced__det-stato ced__det-stato--manca"><i className="fa-regular fa-file-circle-xmark" aria-hidden="true" />Cedolino non caricato</span>
     return (
       <>
-        <span className={`ced__det-stato ced__det-stato--${c.stato === 'Bozza' ? 'bozza' : 'pub'}`}>{c.stato === 'Bozza' ? 'Cedolino in bozza' : 'Cedolino pubblicato'}</span>
+        <span className={`ced__det-stato ced__det-stato--${c.stato === 'Bozza' ? 'bozza' : 'pub'}`}>
+          <i className={`fa-solid ${c.stato === 'Bozza' ? 'fa-file-pen' : 'fa-circle-check'}`} aria-hidden="true" />
+          {c.stato === 'Bozza' ? 'Cedolino in bozza' : 'Cedolino pubblicato'}
+        </span>
         <Tooltip text="Anteprima del cedolino">
           <button type="button" className="ced__act" onClick={() => setAnteprima(c)} aria-label="Anteprima del cedolino">
             <Ico n="eye" w="solid" s={16} c="currentColor" />

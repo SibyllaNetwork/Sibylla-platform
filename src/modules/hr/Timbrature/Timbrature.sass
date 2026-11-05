@@ -161,12 +161,14 @@
     color: $text-inactive
 
   &__pill
-    padding: 2px 9px
-    border-radius: $radius-full
-    background: $warning-light
     color: $text-active
-    font-size: 11px
+    font-size: 12px
     font-weight: 600
+
+    & + &::before
+      content: '·'
+      margin-right: 6px
+      color: $text-inactive
 
   &__invita.sib-btn
     i
@@ -282,18 +284,14 @@
   &__verso
     display: inline-flex
     align-items: center
-    gap: 6px
-    padding: 2px 9px
-    border-radius: $radius-full
-    font-size: 11px
+    gap: 7px
+    font-size: 12px
     font-weight: 600
 
     &--entrata
-      background: $success-light
       color: $success
 
     &--uscita
-      background: $primary-50
       color: $primary
 
   &__empty.tmb__empty,

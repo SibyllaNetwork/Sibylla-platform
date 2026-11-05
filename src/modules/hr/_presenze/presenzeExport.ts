@@ -358,10 +358,8 @@ export async function esportaPresenzePdf(o: OpzioniExport) {
     const nome = `${m.dip.nome} ${m.dip.cognome}`
     doc.text(nome, M, y0 + 3.5)
     const xR = M + doc.getTextWidth(nome) + 3
-    font(6.5, 'bold')
-    const wR = doc.getTextWidth(m.dip.reparto) + 4
-    fill(HEAD); doc.roundedRect(xR, y0 + 0.6, wR, 3.8, 1.9, 1.9, 'F')
-    ink(NAVY); doc.text(m.dip.reparto, xR + 2, y0 + 3.3)
+    font(7.5); ink(MUTED)
+    doc.text(m.dip.reparto, xR, y0 + 3.5)
 
     const righe: { label: string; h: number; tipo: 'giorno' | 'gsett' | 'tipo' | 'in' | 'out' | 'extra' | 'appr' }[] = [
       { label: 'Giorno', h: 4.4, tipo: 'giorno' },
