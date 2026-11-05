@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { softwarePaghe, type CanalePaghe, type SoftwarePagheId } from './pagheCatalogo'
 import { persist } from 'zustand/middleware'
 import type { RepartoOp } from '../modules/appop/opCatalogo'
 
@@ -408,6 +409,56 @@ export const fmtEuro = (n: number) => n.toLocaleString('it-IT', { maximumFractio
 
 export const nuovoId = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e4)}`
 
+// ─── Integrazione paghe ──────────────────────────────────────────────────────
+//  Un profilo di collegamento per ciascun software paghe del catalogo
+//  (pagheCatalogo): canale, campi, formato del tracciato, chiave del
+//  dipendente e codici voce. Uno solo è «in uso» per Trasmetti consuntivo;
+//  le regole d'invio valgono per tutti.
+
+export interface ProfiloPaghe {
+  canale: CanalePaghe
+  /** Valori dei campi del collegamento (chiave del catalogo → valore). */
+  valori: Record<string, string>
+  formato: string
+  chiaveDipendente: string
+  /** Codice voce per ciascuna voce del registro. */
+  voci: Record<string, string>
+  ultimoTest?: { at: string; ok: boolean; messaggio: string }
+}
+
+export interface IntegrazionePagheHr {
+  /** Software usato da Trasmetti consuntivo; null = nessuno collegato. */
+  inUso: SoftwarePagheId | null
+  profili: Partial<Record<SoftwarePagheId, ProfiloPaghe>>
+  invioAutomatico: boolean
+  /** Giorno del mese successivo in cui parte l'invio automatico. */
+  giornoInvio: number
+  oraInvio: string
+  soloStraordinarioApprovato: boolean
+  bloccaConAnomalie: boolean
+  /** Avviso all'ufficio del personale a invio riuscito o fallito. */
+  notificaEsito: boolean
+}
+
+/** Profilo vuoto di un software, con i default del catalogo. */
+export function profiloPagheVuoto(id: SoftwarePagheId): ProfiloPaghe {
+  const sw = softwarePaghe(id)
+  return { canale: sw.canali[0], valori: {}, formato: sw.formati[0], chiaveDipendente: sw.chiaveDipendente[0], voci: { ...sw.voci } }
+}
+
+export const INTEGRAZIONE_PAGHE_DEFAULT: IntegrazionePagheHr = {
+  inUso: 'zucchetti',
+  profili: {
+    zucchetti: {
+      ...profiloPagheVuoto('zucchetti'),
+      valori: { codiceDitta: '000123', codiceAzienda: '0001', tenant: 'https://hotelnoto.infinity.zucchetti.it', clientId: 'sibylla-presenze', clientSecret: '••••••••' },
+      ultimoTest: { at: '2026-11-02T09:00:00.000Z', ok: true, messaggio: 'Collegamento riuscito, ditta 000123 trovata.' },
+    },
+  },
+  invioAutomatico: true, giornoInvio: 2, oraInvio: '09:00',
+  soloStraordinarioApprovato: true, bloccaConAnomalie: false, notificaEsito: true,
+}
+
 // ─── Store ───────────────────────────────────────────────────────────────────
 
 export interface HrConfigData {
@@ -419,6 +470,7 @@ export interface HrConfigData {
   ccnl: CcnlHr[]
   categorieEsterni: CategoriaEsterniHr[]
   badge: BadgeConfigHr
+  integrazionePaghe: IntegrazionePagheHr
 }
 
 interface HrConfigState extends HrConfigData {
@@ -429,11 +481,13 @@ interface HrConfigState extends HrConfigData {
   setCcnl: (v: CcnlHr[]) => void
   setCategorieEsterni: (v: CategoriaEsterniHr[]) => void
   setBadge: (v: BadgeConfigHr) => void
+  setIntegrazionePaghe: (v: IntegrazionePagheHr) => void
 }
 
 export const HR_CONFIG_SEED: HrConfigData = {
   reparti: SEED_REPARTI, orari: SEED_ORARI, turni: SEED_TURNI, schemi: SEED_SCHEMI,
   tipologie: SEED_TIPOLOGIE, ccnl: SEED_CCNL, categorieEsterni: SEED_CATEGORIE_ESTERNI, badge: BADGE_DEFAULT,
+  integrazionePaghe: INTEGRAZIONE_PAGHE_DEFAULT,
 }
 
 export const useHrConfigStore = create<HrConfigState>()(
@@ -447,18 +501,20 @@ export const useHrConfigStore = create<HrConfigState>()(
       setCcnl: (ccnl) => set({ ccnl }),
       setCategorieEsterni: (categorieEsterni) => set({ categorieEsterni }),
       setBadge: (badge) => set({ badge }),
+      setIntegrazionePaghe: (integrazionePaghe) => set({ integrazionePaghe }),
     }),
     {
       name: 'sibylla.hr-config',
-      version: 5,
+      version: 6,
       // v2: categorie dei collaboratori esterni; v3: badge; v4: orari con più fasce al giorno;
-      // v5: il DUVRI esce dai documenti dei singoli addetti (è dell'appalto)
+      // v5: il DUVRI esce dai documenti dei singoli addetti (è dell'appalto); v6: integrazione paghe
       migrate: (persisted: any) => ({
         ...HR_CONFIG_SEED, ...(persisted ?? {}),
         orari: ((persisted?.orari ?? HR_CONFIG_SEED.orari) as any[]).map(o => ({ ...o, giorni: (o.giorni ?? []).map(normalizzaGiorno) })),
         categorieEsterni: ((persisted?.categorieEsterni ?? SEED_CATEGORIE_ESTERNI) as CategoriaEsterniHr[])
           .map(c => ({ ...c, documenti: c.documenti.filter(d => d !== 'DUVRI') })),
         badge: { ...BADGE_DEFAULT, ...(persisted?.badge ?? {}) },
+        integrazionePaghe: persisted?.integrazionePaghe?.profili ? persisted.integrazionePaghe : INTEGRAZIONE_PAGHE_DEFAULT,
       }) as any,
     },
   ),

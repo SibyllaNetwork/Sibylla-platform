@@ -66,6 +66,7 @@ export type ConfiguratoreId =
   | 'hr-ccnl'
   | 'hr-aziende-appalto'
   | 'hr-collaboratori-esterni'
+  | 'hr-integrazione-paghe'
 
 // ─── Gruppi tematici (le 7 corsie) ────────────────────────────────────────────
 
@@ -377,6 +378,11 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
     id: 'hr-collaboratori-esterni', label: 'Collaboratori esterni', icon: 'user-helmet-safety', group: 'risorse-umane',
     description: 'Categorie degli addetti di ditte in appalto (reparti App Op!, documenti, durata dell’autorizzazione) e badge di riconoscimento.',
     keywords: ['esterni', 'appalto', 'fornitori', 'pulizie', 'manutentori', 'facchini', 'durc', 'duvri', 'app op', 'autorizzazione'],
+  },
+  {
+    id: 'hr-integrazione-paghe', label: 'Integrazione paghe', icon: 'money-check-dollar', group: 'risorse-umane',
+    description: 'Collegamento con il software paghe (Zucchetti, TeamSystem, Inaz, Sistemi, Ranocchi, ADP): canale, credenziali, tracciato, codici voce e invio del consuntivo.',
+    keywords: ['paghe', 'cedolini', 'consuntivo', 'zucchetti', 'teamsystem', 'inaz', 'job', 'sistemi', 'ranocchi', 'adp', 'consulente del lavoro', 'tracciato', 'sftp', 'api'],
   },
 ]
 

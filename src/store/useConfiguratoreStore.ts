@@ -63,6 +63,7 @@ const SEED_COMPLETION: Partial<Record<ConfiguratoreId, CfgCompletion>> = {
   'hr-turnistica':            'configured',
   'hr-tipologie-contratto':   'configured',
   'hr-ccnl':                  'configured',
+  'hr-integrazione-paghe':    'configured',
   'hr-collaboratori-esterni': 'configured',
   'hr-aziende-appalto':       'configured',
 }

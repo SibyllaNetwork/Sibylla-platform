@@ -8,12 +8,30 @@
 import { useCallback } from 'react'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { DIPENDENTI_HR, useHrGestioneStore, type RichiestaAssenza } from './useHrGestioneStore'
+import { autoreHr, DIPENDENTI_HR, useHrGestioneStore, type RichiestaAssenza } from './useHrGestioneStore'
 import {
   chiaveGiorno, dataDa, GIORNO_MIN, inserisciPermesso, isoDi, segmentiDaTimbrature, segmentiGiorno,
   timbratureDaSegmenti, turnoPrevisto, uscitaDimenticata, ORE_ORDINARIE,
   type GiornataRegistro, type SegmentoPresenza, type Timbratura,
 } from '../modules/hr/_presenze/presenze.model'
+
+export interface TrasmissioneConsuntivo {
+  id: string
+  /** Mese di competenza (aaaa-mm). */
+  mese: string
+  software: string
+  at: string
+  autore: string
+  dipendenti: number
+  oreOrdinarie: number
+  oreStraordinario: number
+  giorniFerie: number
+  orePermessi: number
+  giorniMalattia: number
+  /** Timbrature anomale presenti al momento dell'invio. */
+  anomalie: number
+  note?: string
+}
 
 interface RegistroPresenzeState {
   /** Giornate corrette a mano (tipo di giornata o orario). */
@@ -30,11 +48,19 @@ interface RegistroPresenzeState {
   eliminaGiornata: (chiave: string) => void
   approvaStraordinario: (chiave: string, minuti: number | null) => void
   setTimbraturaConNomeFino: (iso: string) => void
+  trasmissioni: TrasmissioneConsuntivo[]
+  registraTrasmissione: (t: Omit<TrasmissioneConsuntivo, 'id' | 'at' | 'autore'>) => TrasmissioneConsuntivo
 }
 
 const fra = (giorni: number) => { const d = new Date(); d.setDate(d.getDate() + giorni); return isoDi(d) }
 
 export const useRegistroPresenzeStore = create<RegistroPresenzeState>()(persist((set) => ({
+  trasmissioni: [],
+  registraTrasmissione: (t) => {
+    const voce: TrasmissioneConsuntivo = { ...t, id: `tc${Date.now()}`, at: new Date().toISOString(), autore: autoreHr() }
+    set((st) => ({ trasmissioni: [voce, ...st.trasmissioni] }))
+    return voce
+  },
   segmenti: {},
   timbrature: {},
   straordinarioApprovato: {},

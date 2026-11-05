@@ -58,6 +58,7 @@ import HrTipologieContratto  from './panes/HrTipologieContratto/HrTipologieContr
 import HrCcnl                from './panes/HrCcnl/HrCcnl'
 import HrCollaboratoriEsterni from './panes/HrCollaboratoriEsterni/HrCollaboratoriEsterni'
 import HrAziendeAppalto      from './panes/HrAziendeAppalto/HrAziendeAppalto'
+import HrIntegrazionePaghe from './panes/HrIntegrazionePaghe/HrIntegrazionePaghe'
 // Le voci F&B «Crea outlet» e «Sale e tavoli» sono LE STESSE pagine di
 // Impostazioni → Il mio business: si montano qui in modalità embedded (senza il
 // loro PageHead, che nel pane lo dà CfgPane), non si duplicano.
@@ -136,6 +137,7 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   'hr-ccnl':                  HrCcnl,
   'hr-collaboratori-esterni': HrCollaboratoriEsterni,
   'hr-aziende-appalto':       HrAziendeAppalto,
+  'hr-integrazione-paghe':    HrIntegrazionePaghe,
 }
 
 export interface ConfiguratoreProps {

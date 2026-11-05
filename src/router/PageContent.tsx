@@ -542,7 +542,7 @@ export default function PageContent({ page, navigate }: Props) {
     return <Configuratore navigate={navigate} group="risorse-umane" key={page}
       initialPane={page.includes(':') ? page.slice('hr-configurazione:'.length) : undefined}
       title="Configurazione HR"
-      subtitle="Reparti, orari, turnistica, contratti e collaboratori esterni con cui inquadrare il personale"/>;
+      subtitle="Reparti, orari, turnistica, contratti, collaboratori esterni e integrazione con il software paghe"/>;
   }
   if (page === 'crea-struttura')        return <CreaStruttura navigate={navigate}/>;
   if (page === 'crea-outlet')           return <CreaStruttura navigate={navigate} autoOpenType="outlet"/>;

@@ -1,0 +1,109 @@
+// ─── TRASMETTI CONSUNTIVO (Registro presenze) ──────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.tcs
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  &__dest
+    display: flex
+    align-items: center
+    gap: 9px
+    font-size: 13px
+    color: $text-active
+
+    i
+      color: $primary
+
+    b
+      color: $primary
+
+  &__lead
+    margin: 0
+    font-size: 13px
+    color: $text-inactive
+
+  // Riepilogo su due righe da tre: le righe di 1px tra le celle sono il gap sul fondo bordo
+  &__sum
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 1px
+    margin: 0
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $border
+    overflow: hidden
+
+    > div
+      padding: 10px 14px
+      background: var(--color-surface)
+
+    dt
+      font-size: 11px
+      color: $text-inactive
+
+    dd
+      margin: 2px 0 0
+      font-family: $font-heading
+      font-size: 16px
+      font-weight: 700
+      color: $primary
+      font-variant-numeric: tabular-nums
+
+  &__note,
+  &__warn
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+
+  &__warn
+    color: $text-active
+
+    i
+      color: $warning
+
+    &--ko i
+      color: $error
+
+  &__link
+    margin-left: 6px
+    padding: 0
+    border: none
+    background: none
+    color: $primary
+    font-weight: 600
+    text-decoration: underline
+    cursor: pointer
+
+  &__storico
+    display: flex
+    flex-direction: column
+    gap: 4px
+    font-size: 12px
+    color: $text-inactive
+
+  &__storico-title
+    font-weight: 700
+    color: $text-active
+
+  &__storico-row i
+    margin-right: 6px
+    color: $success
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    padding-top: 14px
+    border-top: 1px solid $border
+
+    .sib-btn i
+      margin-right: 7px

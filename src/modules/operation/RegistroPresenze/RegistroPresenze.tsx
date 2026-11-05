@@ -13,6 +13,7 @@ import { exportXls as esportaXls } from '../../hr/hrExport'
 import RegistroMensile, { type AzioneGiorno, type DipendenteMese } from '../../hr/_presenze/RegistroMensile'
 import ModaleTimbrature from '../../hr/_presenze/ModaleTimbrature'
 import { esportaPresenzePdf, esportaRegistroXlsx } from '../../hr/_presenze/presenzeExport'
+import TrasmettiConsuntivo from './TrasmettiConsuntivo'
 import {
   chiaveGiorno, dataDa, GIORNO_MIN, giornataStandard, hhmmToMin, inserisciPermesso, isoDi, MESI_LUNGHI, minToHHMM, repartoIcon,
   segmentiGiorno, type SegmentoPresenza, type SegmentoTipo,
@@ -108,6 +109,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
   // Modale timbrature del giorno
   const [timbr, setTimbr] = useState<{ dip: DipendenteRow; iso: string } | null>(null)
   const [esportando, setEsportando] = useState(false)
+  const [consuntivo, setConsuntivo] = useState(false)
 
   const dettagliata = vista === 'dettagliata'
   const dataIso = isoDi(date)
@@ -251,6 +253,11 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
       <PageHead
         title="Registro presenze"
         subtitle="Gestione delle presenze del personale in tempo reale. Con tracciamento di ingressi, uscite, assenze, permessi e ferie"
+        actions={
+          <button type="button" className="sib-btn sib-btn--primary reg-presenze__export" onClick={() => setConsuntivo(true)}>
+            <i className="fa-solid fa-paper-plane" aria-hidden="true" />Trasmetti consuntivo
+          </button>
+        }
       />
 
       {saved && <AlertBanner type="success">{saved}</AlertBanner>}
@@ -478,6 +485,9 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
           onClose={() => setTimbr(null)}
         />
       )}
+
+      <TrasmettiConsuntivo open={consuntivo} onClose={() => setConsuntivo(false)} dipendenti={items} anno={anno} mese={mese}
+        giornata={giornata} onCorreggi={() => setVista('dettagliata')} onConfigura={() => navigate('hr-configurazione:hr-integrazione-paghe')} />
 
       {contact && (
         <div className="reg-presenze__contact"
