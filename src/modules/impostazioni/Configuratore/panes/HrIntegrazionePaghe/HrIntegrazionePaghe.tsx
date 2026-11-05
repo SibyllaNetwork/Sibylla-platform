@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { InputField, SelectField, ToggleSwitch } from '../../../../../core/components/form'
 import Tooltip from '../../../../../core/components/Tooltip'
 import { CfgSaveBar, CfgTable } from '../../../../../core/cfg'
 import { toast } from '../../../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import {
-  profiloPagheVuoto, useHrConfigStore, type IntegrazionePagheHr, type ProfiloPaghe,
+  integrazioneValida, profiloPagheVuoto, useHrConfigStore, type IntegrazionePagheHr, type ProfiloPaghe,
 } from '../../../../../store/useHrConfigStore'
 import {
   CANALI_PAGHE, SOFTWARE_PAGHE, VOCI_CONSUNTIVO, softwarePaghe, type CanalePaghe, type CampoPaghe, type SoftwarePagheId,
@@ -45,7 +45,8 @@ const fmtAt = (iso: string) => {
 const campiDi = (campi: CampoPaghe[], canale: CanalePaghe) => campi.filter((c) => !c.canali || c.canali.includes(canale))
 
 export default function HrIntegrazionePaghe() {
-  const saved = useHrConfigStore((s) => s.integrazionePaghe)
+  const salvata = useHrConfigStore((s) => s.integrazionePaghe)
+  const saved = useMemo(() => integrazioneValida(salvata), [salvata])
   const setIntegrazione = useHrConfigStore((s) => s.setIntegrazionePaghe)
   const confirm = useConfirmStore((s) => s.confirm)
   const { draft, setDraft, dirty, save, cancel } = useHrDraft('hr-integrazione-paghe', saved, conta, setIntegrazione, completion)

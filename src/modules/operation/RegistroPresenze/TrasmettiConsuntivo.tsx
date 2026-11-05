@@ -3,7 +3,7 @@ import Modal from '../../../core/components/Modal'
 import { TextareaField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import { useRegistroPresenzeStore, type TrasmissioneConsuntivo } from '../../../store/useRegistroPresenzeStore'
-import { useHrConfigStore } from '../../../store/useHrConfigStore'
+import { integrazioneValida, useHrConfigStore } from '../../../store/useHrConfigStore'
 import { CANALI_PAGHE, nomeSoftwarePaghe } from '../../../store/pagheCatalogo'
 import { chiaveGiorno, fmtExtra, giorniDelMese, MESI_LUNGHI, oreDecimali, totaliMese, type GiornataRegistro } from '../../hr/_presenze/presenze.model'
 import './TrasmettiConsuntivo.sass'
@@ -40,7 +40,8 @@ const fmtAt = (iso: string) => {
 }
 
 export default function TrasmettiConsuntivo({ open, onClose, dipendenti, anno, mese, giornata, onCorreggi, onConfigura }: Props) {
-  const integrazione = useHrConfigStore((s) => s.integrazionePaghe)
+  const salvata = useHrConfigStore((s) => s.integrazionePaghe)
+  const integrazione = useMemo(() => integrazioneValida(salvata), [salvata])
   const approvato = useRegistroPresenzeStore((s) => s.straordinarioApprovato)
   const trasmissioni = useRegistroPresenzeStore((s) => s.trasmissioni)
   const registra = useRegistroPresenzeStore((s) => s.registraTrasmissione)

@@ -459,6 +459,12 @@ export const INTEGRAZIONE_PAGHE_DEFAULT: IntegrazionePagheHr = {
   soloStraordinarioApprovato: true, bloccaConAnomalie: false, notificaEsito: true,
 }
 
+/** Integrazione salvata solo se ha la forma attuale (profili per software), altrimenti il default. */
+export const integrazioneValida = (v: unknown): IntegrazionePagheHr =>
+  v && typeof v === 'object' && (v as IntegrazionePagheHr).profili && typeof (v as IntegrazionePagheHr).profili === 'object'
+    ? { ...INTEGRAZIONE_PAGHE_DEFAULT, ...(v as IntegrazionePagheHr) }
+    : INTEGRAZIONE_PAGHE_DEFAULT
+
 // ─── Store ───────────────────────────────────────────────────────────────────
 
 export interface HrConfigData {
@@ -505,16 +511,16 @@ export const useHrConfigStore = create<HrConfigState>()(
     }),
     {
       name: 'sibylla.hr-config',
-      version: 6,
+      version: 7,
       // v2: categorie dei collaboratori esterni; v3: badge; v4: orari con più fasce al giorno;
-      // v5: il DUVRI esce dai documenti dei singoli addetti (è dell'appalto); v6: integrazione paghe
+      // v5: il DUVRI esce dai documenti dei singoli addetti (è dell'appalto); v6–7: integrazione paghe (profili per software)
       migrate: (persisted: any) => ({
         ...HR_CONFIG_SEED, ...(persisted ?? {}),
         orari: ((persisted?.orari ?? HR_CONFIG_SEED.orari) as any[]).map(o => ({ ...o, giorni: (o.giorni ?? []).map(normalizzaGiorno) })),
         categorieEsterni: ((persisted?.categorieEsterni ?? SEED_CATEGORIE_ESTERNI) as CategoriaEsterniHr[])
           .map(c => ({ ...c, documenti: c.documenti.filter(d => d !== 'DUVRI') })),
         badge: { ...BADGE_DEFAULT, ...(persisted?.badge ?? {}) },
-        integrazionePaghe: persisted?.integrazionePaghe?.profili ? persisted.integrazionePaghe : INTEGRAZIONE_PAGHE_DEFAULT,
+        integrazionePaghe: integrazioneValida(persisted?.integrazionePaghe),
       }) as any,
     },
   ),
