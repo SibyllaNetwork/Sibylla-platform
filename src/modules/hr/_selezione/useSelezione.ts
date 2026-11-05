@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 /**
  * Selezione multipla delle righe di una tabella HR (richieste, note spese).
@@ -30,8 +30,8 @@ export function useSelezione(visibili: string[], reset: unknown[]) {
     return n.size === s.size ? s : n
   }), [])
 
-  return useMemo(() => ({
+  return {
     sel, n: sel.size, has: (id: string) => sel.has(id), toggle, svuota, tieni,
     tutteVisibili, parziale: qualcheVisibile && !tutteVisibili, toggleVisibili,
-  }), [sel, toggle, svuota, tieni, tutteVisibili, qualcheVisibile, toggleVisibili])
+  }
 }
