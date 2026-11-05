@@ -287,9 +287,9 @@ $c-ferie: var(--color-primary)
 
 .pfe-piano
   display: flex
-  align-items: flex-start
+  align-items: center
   gap: 16px
-  padding: 12px 16px
+  padding: 8px 14px
   border: 1px solid $border
   border-left: 3px solid var(--color-primary)
   border-radius: $radius-md
@@ -304,7 +304,7 @@ $c-ferie: var(--color-primary)
   min-width: 0
   display: flex
   flex-direction: column
-  gap: 4px
+  gap: 3px
   font-size: 12px
   color: $text-active
 
@@ -313,22 +313,33 @@ $c-ferie: var(--color-primary)
   align-items: center
   gap: 8px
   font-family: $font-heading
-  font-size: 15px
+  font-size: 14px
   font-weight: 700
   color: var(--color-primary)
 
-.pfe-piano__badge
-  padding: 2px 8px
-  border-radius: 999px
-  font-size: 11px
+// Righe della striscia del piano: tutto in linea, si va a capo solo se serve
+.pfe-piano__riga
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: 4px 14px
+  min-width: 0
+
+  &--sub
+    font-size: 12px
+
+// Stato del piano: icona e testo, niente pillola
+.pfe-piano__stato
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 12px
   font-weight: 600
 
   &--open
-    background: $success-light
     color: $success
 
   &--arch
-    background: $primary-50
     color: $text-inactive
 
 .pfe-piano__meta
@@ -339,8 +350,11 @@ $c-ferie: var(--color-primary)
   font-weight: 600
 
 .pfe-piano__regole
+  color: $text-inactive
+  cursor: help
+
   i
-    margin-right: 4px
+    margin-right: 5px
     color: var(--color-primary)
 
 .pfe__nome-in
@@ -370,6 +384,22 @@ $c-ferie: var(--color-primary)
   display: flex
   align-items: center
   gap: 8px
+
+.pfe-piano__ico
+  width: 30px
+  height: 30px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 0
+  border-radius: 6px
+  background: none
+  color: var(--color-primary)
+  font-size: 15px
+  cursor: pointer
+
+  &:hover
+    background: $primary-50
 
 .pfe-piano__del
   width: 34px
@@ -441,8 +471,6 @@ $c-ferie: var(--color-primary)
   +hr-modal-actions
 
 @container pianoferie (max-width: 1360px)
-  .pfe-piano
-    flex-direction: column
 
   .pfe__field--piano
     +hr-field(220px)

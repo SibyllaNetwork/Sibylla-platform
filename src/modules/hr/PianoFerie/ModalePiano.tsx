@@ -133,8 +133,8 @@ export default function ModalePiano({ open, piano, altriAperti, onClose, onSalva
             <InputField name="pf-consec" label="Giorni consecutivi massimi" type="number" min={1} step={1} value={consec} error={errori.consec}
               placeholder="Nessun limite" hint="Giorni di calendario di fila per persona, richieste attaccate comprese"
               onChange={e => setConsec(e.target.value)} />
-            <InputField name="pf-presenza" label="Presenza minima per reparto (%)" type="number" min={0} max={100} step={5} value={presenza} error={errori.presenza}
-              placeholder="Nessun limite" hint="Quota del reparto che deve restare in servizio ogni giorno"
+            <InputField name="pf-presenza" label="Presenza minima (%)" type="number" min={0} max={100} step={5} value={presenza} error={errori.presenza}
+              placeholder="Nessun limite" hint="Quota di ogni reparto che deve restare in servizio ogni giorno"
               onChange={e => setPresenza(e.target.value)} />
           </div>
           <CheckboxField name="pf-residui" label="Le ferie restano entro i giorni residui della persona" checked={entroResidui}

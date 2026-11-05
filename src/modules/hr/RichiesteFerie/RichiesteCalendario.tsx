@@ -19,7 +19,19 @@ import './RichiesteCalendario.sass'
 
 export type AzioneRichiesta = 'dettaglio' | 'modifica' | 'approva' | 'rifiuta' | 'sollecita' | 'elimina'
 
-interface Props {
+/** Opzioni per usare il calendario dentro un piano ferie. */
+export interface CalendarioOpzioni {
+  /** Periodo navigabile (es. un piano ferie): solo i suoi mesi, i giorni fuori sono velati. */
+  limiti?: { dal: string; al: string }
+  /** Avviso accanto al nome del dipendente (es. regole del piano non rispettate). */
+  segnalaDipendente?: (dipId: number) => { testo: string; livello: 'warn' | 'ko' } | null
+  /** Avviso sul giorno (es. reparti sotto la presenza minima). */
+  allertaGiorno?: (iso: string) => string | null
+  /** Colonna finale per dipendente (es. ferie residue). */
+  colonnaFinale?: { titolo: string; tooltip?: string; valore: (dipId: number, anno: number) => React.ReactNode }
+}
+
+interface Props extends CalendarioOpzioni {
   /** Richieste già filtrate dalla pagina (stato, reparto, filtri di colonna). */
   richieste: RichiestaAssenza[]
   reparto: string
@@ -48,7 +60,11 @@ interface Drag { r: RichiestaAssenza; offset: number; x0: number; y0: number; mo
 const addG = (iso: string, n: number) => { const d = dataDa(iso); d.setDate(d.getDate() + n); return isoDi(d) }
 const diffG = (a: string, b: string) => Math.round((dataDa(b).getTime() - dataDa(a).getTime()) / 86_400_000)
 
-export default function RichiesteCalendario({ richieste, reparto, onApri, onNuova, onAzione, onSposta, azioni }: Props) {
+const meseDi = (iso: string) => ({ anno: Number(iso.slice(0, 4)), mese: Number(iso.slice(5, 7)) - 1 })
+
+export default function RichiesteCalendario({
+  richieste, reparto, onApri, onNuova, onAzione, onSposta, azioni, limiti, segnalaDipendente, allertaGiorno, colonnaFinale,
+}: Props) {
   const [menu, setMenu] = useState<Menu | null>(null)
   const gridRef = useRef<HTMLTableElement>(null)
   const dragRef = useRef<Drag | null>(null)
@@ -108,18 +124,33 @@ export default function RichiesteCalendario({ richieste, reparto, onApri, onNuov
   }, [menu])
 
   const oggi = new Date()
-  const [rif, setRif] = useState(() => ({ anno: oggi.getFullYear(), mese: oggi.getMonth() }))
+  /** Mese iniziale: quello di oggi, oppure il primo del periodo se oggi ne è fuori. */
+  const meseIniziale = () => {
+    const ora = { anno: oggi.getFullYear(), mese: oggi.getMonth() }
+    if (!limiti) return ora
+    const k = (x: { anno: number; mese: number }) => x.anno * 12 + x.mese
+    const a = meseDi(limiti.dal), b = meseDi(limiti.al)
+    return k(ora) >= k(a) && k(ora) <= k(b) ? ora : a
+  }
+  const [rif, setRif] = useState(meseIniziale)
+  // Cambiando periodo (altro piano) si riparte dal suo mese.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setRif(meseIniziale()) }, [limiti?.dal, limiti?.al])
   const { anno, mese } = rif
   const n = new Date(anno, mese + 1, 0).getDate()
   const oggiIso = isoDi(oggi)
   const giorni = Array.from({ length: n }, (_, i) => {
     const d = new Date(anno, mese, i + 1)
     const fest = festivitaNazionale(d)
-    return { iso: isoDi(d), n: i + 1, dow: d.getDay(), fest, we: d.getDay() === 0 || d.getDay() === 6 || !!fest }
+    const iso = isoDi(d)
+    return { iso, n: i + 1, dow: d.getDay(), fest, we: d.getDay() === 0 || d.getDay() === 6 || !!fest, fuori: !!limiti && (iso < limiti.dal || iso > limiti.al) }
   })
   const primo = giorni[0].iso
   const ultimo = giorni[n - 1].iso
 
+  const kMese = anno * 12 + mese
+  const puoPrima = !limiti || kMese > meseDi(limiti.dal).anno * 12 + meseDi(limiti.dal).mese
+  const puoDopo = !limiti || kMese < meseDi(limiti.al).anno * 12 + meseDi(limiti.al).mese
   const sposta = (delta: number) => setRif(({ anno: a, mese: m }) => { const d = new Date(a, m + delta, 1); return { anno: d.getFullYear(), mese: d.getMonth() } })
 
   // Per dipendente, le richieste del mese in corsie che non si sovrappongono.
@@ -221,13 +252,13 @@ export default function RichiesteCalendario({ richieste, reparto, onApri, onNuov
       <div className="rfc__bar-top">
         <div className="rfc__nav">
           <Tooltip text="Mese precedente">
-            <button type="button" className="sib-btn sib-btn--icon rfc__nav-btn" onClick={() => sposta(-1)} aria-label="Mese precedente"><i className="fa-solid fa-chevron-left" /></button>
+            <button type="button" className="sib-btn sib-btn--icon rfc__nav-btn" onClick={() => sposta(-1)} disabled={!puoPrima} aria-label="Mese precedente"><i className="fa-solid fa-chevron-left" /></button>
           </Tooltip>
           <span className="rfc__mese">{MESI_LUNGHI[mese]} {anno}</span>
           <Tooltip text="Mese successivo">
-            <button type="button" className="sib-btn sib-btn--icon rfc__nav-btn" onClick={() => sposta(1)} aria-label="Mese successivo"><i className="fa-solid fa-chevron-right" /></button>
+            <button type="button" className="sib-btn sib-btn--icon rfc__nav-btn" onClick={() => sposta(1)} disabled={!puoDopo} aria-label="Mese successivo"><i className="fa-solid fa-chevron-right" /></button>
           </Tooltip>
-          <button type="button" className="sib-btn sib-btn--ghost rfc__oggi" onClick={() => setRif({ anno: oggi.getFullYear(), mese: oggi.getMonth() })}>Oggi</button>
+          {!limiti && <button type="button" className="sib-btn sib-btn--ghost rfc__oggi" onClick={() => setRif({ anno: oggi.getFullYear(), mese: oggi.getMonth() })}>Oggi</button>}
           {drop ? (
             <span className="rfc__count rfc__count--drop">
               <i className="fa-solid fa-arrows-up-down-left-right" aria-hidden="true" />
@@ -246,6 +277,7 @@ export default function RichiesteCalendario({ richieste, reparto, onApri, onNuov
           <span className="rfc__leg"><span className="rfc__sw rfc__sw--ok" aria-hidden="true" />Approvata</span>
           <span className="rfc__leg"><span className="rfc__sw rfc__sw--attesa" aria-hidden="true" />In attesa</span>
           <span className="rfc__leg"><span className="rfc__sw rfc__sw--ko" aria-hidden="true" />Rifiutata</span>
+          {limiti && <span className="rfc__leg"><span className="rfc__sw rfc__sw--fuori" aria-hidden="true" />Fuori dal periodo</span>}
           {azioni && <span className="rfc__azioni">{azioni}</span>}
         </div>
       </div>
@@ -255,19 +287,25 @@ export default function RichiesteCalendario({ richieste, reparto, onApri, onNuov
           <colgroup>
             <col className="rfc__c-dip" />
             {giorni.map((g) => <col key={g.iso} />)}
+            {colonnaFinale && <col className="rfc__c-fin" />}
           </colgroup>
           <thead>
             <tr>
               <th scope="col" className="rfc__dip-h">Dipendente</th>
               {giorni.map((g) => (
-                <th key={g.iso} scope="col" data-iso={g.iso} className={cls(g, oggiIso)}>
-                  {g.fest ? <Tooltip text={g.fest}><span className="rfc__fest">{g.n}</span></Tooltip> : g.n}
+                <th key={g.iso} scope="col" data-iso={g.iso} className={[cls(g, oggiIso), allertaGiorno?.(g.iso) ? 'rfc__allerta' : ''].filter(Boolean).join(' ') || undefined}>
+                  {(() => {
+                    const testo = [g.fest, allertaGiorno?.(g.iso)].filter(Boolean).join(' · ')
+                    return testo ? <Tooltip text={testo}><span className={g.fest ? 'rfc__fest' : undefined}>{g.n}</span></Tooltip> : g.n
+                  })()}
                 </th>
               ))}
+              {colonnaFinale && <th scope="col" className="rfc__fin">{colonnaFinale.tooltip ? <Tooltip text={colonnaFinale.tooltip}><span>{colonnaFinale.titolo}</span></Tooltip> : colonnaFinale.titolo}</th>}
             </tr>
             <tr className="rfc__r-gsett">
               <th scope="col" />
               {giorni.map((g) => <th key={g.iso} className={cls(g, oggiIso)}>{GSETT[g.dow]}</th>)}
+              {colonnaFinale && <th />}
             </tr>
           </thead>
           <tbody>
@@ -275,11 +313,22 @@ export default function RichiesteCalendario({ richieste, reparto, onApri, onNuov
               <tr key={`${d.id}-${i}`} data-dip={d.id} className={[i === corsie.length - 1 ? 'rfc__row-end' : '', drop?.dipId === d.id ? 'rfc__row--drop' : ''].filter(Boolean).join(' ') || undefined}>
                 {i === 0 && (
                   <th scope="row" rowSpan={corsie.length} className="rfc__dip">
-                    <span className="rfc__dip-nome">{d.nome} {d.cognome}</span>
+                    <span className="rfc__dip-nome">
+                      <span className="rfc__dip-txt">{d.nome} {d.cognome}</span>
+                      {(() => {
+                        const sg = segnalaDipendente?.(d.id)
+                        return sg ? (
+                          <Tooltip text={sg.testo}>
+                            <i className={`fa-solid fa-triangle-exclamation rfc__segnala rfc__segnala--${sg.livello}`} aria-label="Regole del piano non rispettate" />
+                          </Tooltip>
+                        ) : null
+                      })()}
+                    </span>
                     <span className="rfc__dip-rep"><i className={`fa-solid ${repartoIcon(d.reparto)}`} aria-hidden="true" />{d.reparto}</span>
                   </th>
                 )}
                 {celle(corsia, d.id)}
+                {colonnaFinale && i === 0 && <td rowSpan={corsie.length} className="rfc__fin">{colonnaFinale.valore(d.id, anno)}</td>}
               </tr>
             )))}
           </tbody>
@@ -311,6 +360,6 @@ export default function RichiesteCalendario({ richieste, reparto, onApri, onNuov
   )
 }
 
-function cls(g: { we: boolean; iso: string }, oggiIso: string) {
-  return [g.we ? 'rfc__we' : '', g.iso === oggiIso ? 'rfc__oggi-col' : ''].filter(Boolean).join(' ') || undefined
+function cls(g: { we: boolean; iso: string; fuori?: boolean }, oggiIso: string) {
+  return [g.we ? 'rfc__we' : '', g.iso === oggiIso ? 'rfc__oggi-col' : '', g.fuori ? 'rfc__fuori' : ''].filter(Boolean).join(' ') || undefined
 }

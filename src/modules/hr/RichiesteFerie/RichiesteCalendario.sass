@@ -89,6 +89,10 @@
     &--attesa
       border: 1.5px dashed var(--color-text-inactive)
 
+    &--fuori
+      border: 1px solid $border
+      background: repeating-linear-gradient(-45deg, transparent 0 3px, color-mix(in srgb, var(--color-text-inactive) 25%, transparent) 3px 4px)
+
     &--ko
       background: color-mix(in srgb, var(--color-text-inactive) 10%, transparent)
       background-image: linear-gradient(to bottom, transparent 45%, var(--color-text-inactive) 45%, var(--color-text-inactive) 58%, transparent 58%)
@@ -159,12 +163,21 @@
     vertical-align: middle
 
   &__dip-nome
-    display: block
-    overflow: hidden
+    display: flex
+    align-items: center
+    min-width: 0
     font-size: 12.5px
     font-weight: 600
     color: $text-active
+
+  // Il nome si tronca, l'avviso delle regole resta sempre visibile
+  &__dip-txt
+    min-width: 0
+    overflow: hidden
     text-overflow: ellipsis
+
+  &__segnala
+    flex: none
 
   &__dip-rep
     display: inline-flex
@@ -192,6 +205,35 @@
 
   &__fest
     color: $error
+
+  // Giorni fuori dal periodo (piano ferie): velati a righe
+  &__fuori.rfc__fuori
+    background: repeating-linear-gradient(-45deg, transparent 0 4px, color-mix(in srgb, var(--color-text-inactive) 12%, transparent) 4px 5px)
+    color: $text-disabled
+
+  // Giorno con un reparto sotto la presenza minima del piano
+  thead &__allerta.rfc__allerta
+    background: color-mix(in srgb, var(--color-error) 16%, transparent)
+    color: $error
+
+  &__segnala
+    margin-left: 6px
+    font-size: 11px
+
+    &--warn
+      color: $warning
+
+    &--ko
+      color: $error
+
+  &__c-fin
+    width: 64px
+
+  &__fin.rfc__fin
+    padding: 0 8px
+    border-left: 2px solid $border
+    font-weight: 600
+    color: $text-active
 
   // ── Barre delle richieste ──────────────────────────────────────────────────
   &__bar-cell.rfc__bar-cell

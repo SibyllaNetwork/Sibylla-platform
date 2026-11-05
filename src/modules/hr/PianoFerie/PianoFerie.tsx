@@ -9,13 +9,14 @@ import { SelectField, CheckboxField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import {
-  useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, TIPI_ASSENZA, isoOf, todayIsoHr, fmtDataHr,
-  ferieGodute, inAttesaRichiesta, type TipoAssenza, type StatoRichiesta,
+  useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, todayIsoHr, fmtDataHr,
+  ferieGodute, inAttesaRichiesta, type StatoRichiesta, type RichiestaAssenza,
 } from '../../../store/useHrGestioneStore'
 import { usePianiFerieStore, feriePianoCorrenti, type PianoFerie as Piano, type DatiPiano } from '../../../store/usePianiFerieStore'
 import { exportXls } from '../hrExport'
 import ModalePiano from './ModalePiano'
 import { assentiConsentiti, descriviRegole, verificaRegole, type EsitoRegola } from './regolePiano'
+import GestioneRichieste from '../RichiesteFerie/GestioneRichieste'
 import './PianoFerie.sass'
 
 /**
@@ -29,27 +30,11 @@ import './PianoFerie.sass'
  * invece tutte le assenze del mese, senza piano.
  */
 
-const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
-const GG = ['D', 'L', 'M', 'M', 'G', 'V', 'S']
 /** Calendario generale: assenti nello stesso giorno oltre i quali il giorno si segnala come scoperto. */
 const SOGLIA_ASSENTI = 3
 const GENERALE = 'generale'
 
-const tipoCls = (t: TipoAssenza) => t.toLowerCase()
-const ym = (iso: string) => ({ y: Number(iso.slice(0, 4)), m: Number(iso.slice(5, 7)) - 1 })
 const giorniTra = (a: string, b: string) => Math.round((new Date(`${b}T12:00:00`).getTime() - new Date(`${a}T12:00:00`).getTime()) / 86400000)
-
-/** Assenza da disegnare: le richieste dal vivo o la fotografia di un piano archiviato. */
-interface Assenza { id: string; dipendenteId: number; tipo: TipoAssenza; dal: string; al: string; stato: StatoRichiesta; note?: string }
-
-/** Mesi (anno, mese) che il periodo tocca. */
-function mesiDel(dal: string, al: string) {
-  const out: { y: number; m: number }[] = []
-  let { y, m } = ym(dal)
-  const fine = ym(al)
-  while (y < fine.y || (y === fine.y && m <= fine.m)) { out.push({ y, m }); m++; if (m > 11) { m = 0; y++ } }
-  return out
-}
 
 export default function PianoFerie({ navigate }: { navigate: (p: string) => void }) {
   const richieste = useHrGestioneStore(s => s.richieste)
@@ -68,48 +53,25 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
   const piano = piani.find(p => p.id === pianoId)
   useEffect(() => { if (pianoId !== GENERALE && !piano) setPianoId(GENERALE) }, [pianoId, piano])
 
-  const [mese, setMese] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() } })
   const [reparto, setReparto] = useState('')
   const [conAttesa, setConAttesa] = useState(true)
   const [modale, setModale] = useState<{ piano?: Piano } | null>(null)
   const [storicoOpen, setStoricoOpen] = useState(false)
 
-  // Mesi navigabili: quelli del piano; scegliendo un piano si parte dal mese di oggi se ci cade, altrimenti dal primo.
-  const mesiPiano = useMemo(() => piano ? mesiDel(piano.dal, piano.al) : null, [piano])
-  useEffect(() => {
-    if (!piano) return
-    const ms = mesiDel(piano.dal, piano.al)
-    const ora = ym(oggi)
-    setMese(ms.find(x => x.y === ora.y && x.m === ora.m) ?? ms[0])
+  // Richieste da disegnare: le ferie del piano (dal vivo, o la fotografia se archiviato)
+  // oppure tutte le assenze per il calendario generale. Approvate e, a scelta, in attesa; le rifiutate mai.
+  const visibileStato = (st: StatoRichiesta) => st === 'Approvata' || (conAttesa && inAttesaRichiesta(st))
+  const sulCalendario: RichiestaAssenza[] = useMemo(() => {
+    if (!piano) return richieste.filter(r => visibileStato(r.stato))
+    if (piano.stato === 'Archiviato') {
+      return feriePianoCorrenti(richieste, piano).filter(f => visibileStato(f.stato)).map(f => ({
+        id: f.richiestaId, dipendenteId: f.dipendenteId, tipo: 'Ferie' as const, dal: f.dal, al: f.al, stato: f.stato,
+        createdAt: piano.archiviatoAt ?? piano.createdAt, note: richieste.find(r => r.id === f.richiestaId)?.note,
+      }))
+    }
+    return richieste.filter(r => r.tipo === 'Ferie' && r.dal <= piano.al && r.al >= piano.dal && visibileStato(r.stato))
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pianoId])
-  const idxMese = mesiPiano ? mesiPiano.findIndex(x => x.y === mese.y && x.m === mese.m) : -1
-
-  const giorni = useMemo(() => {
-    const n = new Date(mese.y, mese.m + 1, 0).getDate()
-    return Array.from({ length: n }, (_, i) => {
-      const d = new Date(mese.y, mese.m, i + 1, 12)
-      const iso = isoOf(d)
-      return { iso, n: i + 1, wd: d.getDay(), fuori: !!piano && (iso < piano.dal || iso > piano.al) }
-    })
-  }, [mese, piano])
-  const primo = giorni[0].iso
-  const ultimo = giorni[giorni.length - 1].iso
-
-  // Le ferie del piano (dal vivo o archiviate) oppure tutte le assenze per il calendario generale.
-  const fonte: Assenza[] = useMemo(() => {
-    if (!piano) return richieste.map(r => ({ id: r.id, dipendenteId: r.dipendenteId, tipo: r.tipo, dal: r.dal, al: r.al, stato: r.stato, note: r.note }))
-    return feriePianoCorrenti(richieste, piano).map(f => ({
-      id: f.richiestaId, dipendenteId: f.dipendenteId, tipo: 'Ferie' as const, dal: f.dal, al: f.al, stato: f.stato,
-      note: richieste.find(r => r.id === f.richiestaId)?.note,
-    }))
-  }, [richieste, piano])
-
-  // Visibili nel mese: approvate + (a scelta) in attesa; le rifiutate mai.
-  const assenze = useMemo(() => fonte.filter(r =>
-    (r.stato === 'Approvata' || (conAttesa && inAttesaRichiesta(r.stato))) && r.dal <= ultimo && r.al >= primo),
-  [fonte, conAttesa, primo, ultimo])
-  const assenzaDi = (dipendenteId: number, iso: string) => assenze.find(r => r.dipendenteId === dipendenteId && r.dal <= iso && r.al >= iso)
+  }, [richieste, piano, conAttesa])
 
   const gruppi = useMemo(() => REPARTI_HR
     .filter(r => !reparto || r === reparto)
@@ -118,26 +80,28 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
   const visibili = gruppi.flatMap(g => g.dipendenti)
 
   // Assenti per giorno (solo approvate: le richieste in attesa non scoprono ancora il turno).
-  const assentiDel = (iso: string, ids = visibili.map(d => d.id)) => ids.filter(id => assenzaDi(id, iso)?.stato === 'Approvata').length
-  /** Reparti sotto la presenza minima del piano in quel giorno. */
-  const scopertiDel = (iso: string) => piano && piano.regole.presenzaMinimaReparto != null
-    ? gruppi.filter(g => assentiDel(iso, g.dipendenti.map(d => d.id)) > assentiConsentiti(g.dipendenti.length, piano.regole.presenzaMinimaReparto)).map(g => g.reparto)
-    : []
-  /** Regole personali violate nel piano aperto (giorni consecutivi, residui): la presenza del reparto sta nei totali. */
+  const assentiDel = (iso: string, ids: number[]) => ids.filter(id => sulCalendario.some(r => r.dipendenteId === id && r.stato === 'Approvata' && r.dal <= iso && r.al >= iso)).length
+  /** Avviso sul giorno: reparti sotto la presenza minima del piano, o troppi assenti nel calendario generale. */
+  const allertaGiorno = (iso: string): string | null => {
+    if (piano) {
+      if (iso < piano.dal || iso > piano.al || piano.regole.presenzaMinimaReparto == null) return null
+      const sotto = gruppi.filter(g => assentiDel(iso, g.dipendenti.map(d => d.id)) > assentiConsentiti(g.dipendenti.length, piano.regole.presenzaMinimaReparto!)).map(g => g.reparto)
+      return sotto.length ? `${sotto.join(', ')} sotto il ${piano.regole.presenzaMinimaReparto}% di presenza` : null
+    }
+    const n = assentiDel(iso, visibili.map(d => d.id))
+    return n >= SOGLIA_ASSENTI ? `${n} assenti: controlla la copertura dei turni` : null
+  }
+  /** Regole personali violate nel piano aperto (giorni consecutivi, residui): la presenza del reparto sta sui giorni. */
   const violazioniDi = (dipendenteId: number): EsitoRegola[] => {
     if (!piano || piano.stato !== 'Aperto') return []
     const sue = richieste.filter(r => r.dipendenteId === dipendenteId && r.tipo === 'Ferie' && r.stato !== 'Rifiutata' && r.dal <= piano.al && r.al >= piano.dal)
     const out = sue.flatMap(r => verificaRegole(r, richieste, { ...piano, regole: { ...piano.regole, presenzaMinimaReparto: undefined } }))
     return out.filter((e, i) => out.findIndex(x => x.testo === e.testo) === i)
   }
-
-  const cambiaMese = (delta: number) => {
-    if (mesiPiano) { const t = mesiPiano[idxMese + delta]; if (t) setMese(t); return }
-    setMese(({ y, m }) => { const d = new Date(y, m + delta, 1); return { y: d.getFullYear(), m: d.getMonth() } })
+  const segnalaDipendente = (id: number) => {
+    const v = violazioniDi(id)
+    return v.length ? { testo: v.map(x => x.testo).join(' '), livello: v.some(x => x.livello === 'ko') ? 'ko' as const : 'warn' as const } : null
   }
-  const puoPrima = mesiPiano ? idxMese > 0 : true
-  const puoDopo = mesiPiano ? idxMese < mesiPiano.length - 1 : true
-  const isMeseCorrente = mese.y === new Date().getFullYear() && mese.m === new Date().getMonth()
 
   // ── Riepilogo del piano ──
   const riepilogo = (p: Piano) => {
@@ -209,9 +173,9 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
     }))
   const esporta = () => {
     if (piano) { esportaPiano(piano); return }
-    exportXls(`piano-ferie-${mese.y}-${String(mese.m + 1).padStart(2, '0')}`,
+    exportXls('calendario-assenze',
       ['Dipendente', 'Reparto', 'Tipo', 'Dal', 'Al', 'Stato'],
-      assenze
+      sulCalendario
         .filter(r => visibili.some(d => d.id === r.dipendenteId))
         .sort((a, b) => a.dal.localeCompare(b.dal))
         .map(r => {
@@ -245,27 +209,9 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
             ...archiviati.map(p => ({ value: p.id, label: `${p.nome} · archiviato` })),
             { value: GENERALE, label: 'Calendario generale (tutte le assenze)' },
           ]} />
-        <div className="pfe__nav">
-          <Tooltip text="Mese precedente">
-            <button type="button" className="pfe__nav-btn" disabled={!puoPrima} onClick={() => cambiaMese(-1)} aria-label="Mese precedente">
-              <Ico n="back" w="solid" s={13} c="currentColor" />
-            </button>
-          </Tooltip>
-          <span className="pfe__mese">{MESI[mese.m]} {mese.y}</span>
-          <Tooltip text="Mese successivo">
-            <button type="button" className="pfe__nav-btn" disabled={!puoDopo} onClick={() => cambiaMese(1)} aria-label="Mese successivo">
-              <Ico n="chevr" w="solid" s={13} c="currentColor" />
-            </button>
-          </Tooltip>
-          {!piano && !isMeseCorrente && (
-            <button type="button" className="sib-btn sib-btn--ghost pfe__oggi" onClick={() => { const d = new Date(); setMese({ y: d.getFullYear(), m: d.getMonth() }) }}>
-              Mese corrente
-            </button>
-          )}
-        </div>
         <SelectField name="reparto" label="Reparto" className="pfe__field" value={reparto} onChange={e => setReparto(e.target.value)}
           options={[{ value: '', label: 'Tutti i reparti' }, ...REPARTI_HR.map(r => ({ value: r, label: r }))]} />
-        <CheckboxField name="con-attesa" label="Mostra le richieste da approvare" checked={conAttesa} onChange={e => setConAttesa(e.target.checked)} className="pfe__check" />
+        <CheckboxField name="con-attesa" label="Anche da approvare" checked={conAttesa} onChange={e => setConAttesa(e.target.checked)} className="pfe__check" />
         <div className="pfe__push">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setStoricoOpen(true)}>
             <i className="fa-solid fa-clock-rotate-left" aria-hidden="true" /> Storico piani
@@ -275,13 +221,6 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
               <Ico n="list-check" s={13} c="currentColor" /> Richieste{inAttesa > 0 ? ` (${inAttesa})` : ''}
             </button>
           </Tooltip>
-        </div>
-        <div className="pfe__legend-row">
-          <ul className="pfe__legend">
-            {(piano ? ['Ferie' as TipoAssenza] : TIPI_ASSENZA).map(t => <li key={t}><span className={`pfe__sw pfe__sw--${tipoCls(t)}`} />{t}</li>)}
-            {conAttesa && <li><span className="pfe__sw pfe__sw--attesa" />Da approvare</li>}
-            {piano && <li><span className="pfe__sw pfe__sw--fuori" />Fuori dal piano</li>}
-          </ul>
           <Tooltip text="Esporta in Excel">
             <button type="button" className="pfe__icon-btn" onClick={esporta} aria-label="Esporta in Excel">
               <Ico n="excel" w="regular" s={16} c="#fff" />
@@ -290,145 +229,78 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
         </div>
       </div>
 
-      {/* ── Il piano selezionato: periodo, termine, riepilogo e azioni ── */}
+      {/* ── Il piano selezionato, in una striscia: periodo e termine, conteggi, regole e azioni ── */}
       {piano && rp && (
         <div className={`pfe-piano ${piano.stato === 'Archiviato' ? 'pfe-piano--arch' : ''}`}>
           <div className="pfe-piano__info">
-            <span className="pfe-piano__nome">
-              <i className={`fa-solid ${piano.stato === 'Archiviato' ? 'fa-box-archive' : 'fa-umbrella-beach'}`} aria-hidden="true" />
-              {piano.nome}
-              <span className={`pfe-piano__badge pfe-piano__badge--${piano.stato === 'Archiviato' ? 'arch' : 'open'}`}>{piano.stato === 'Archiviato' ? 'Archiviato' : 'Aperto'}</span>
+            <span className="pfe-piano__riga">
+              <span className="pfe-piano__nome">
+                <i className={`fa-solid ${piano.stato === 'Archiviato' ? 'fa-box-archive' : 'fa-umbrella-beach'}`} aria-hidden="true" />{piano.nome}
+              </span>
+              <span className={`pfe-piano__stato pfe-piano__stato--${piano.stato === 'Archiviato' ? 'arch' : 'open'}`}>
+                <i className={`fa-solid ${piano.stato === 'Archiviato' ? 'fa-lock' : 'fa-circle-check'}`} aria-hidden="true" />{piano.stato}
+              </span>
+              <span className="pfe-piano__meta">
+                {fmtDataHr(piano.dal)} → {fmtDataHr(piano.al)}
+                {scadenza && (piano.stato === 'Archiviato'
+                  ? ` · richieste entro il ${fmtDataHr(scadenza)}`
+                  : traGiorni! >= 0
+                    ? ` · richieste entro il ${fmtDataHr(scadenza)} (${traGiorni === 0 ? 'oggi' : traGiorni === 1 ? 'domani' : `tra ${traGiorni} giorni`})`
+                    : ` · termine scaduto il ${fmtDataHr(scadenza)}`)}
+                {piano.stato === 'Archiviato' && piano.archiviatoAt && ` · archiviato il ${new Date(piano.archiviatoAt).toLocaleDateString('it-IT')} da ${piano.archiviatoDa}`}
+              </span>
             </span>
-            <span className="pfe-piano__meta">
-              Dal {fmtDataHr(piano.dal)} al {fmtDataHr(piano.al)}
-              {scadenza && (piano.stato === 'Archiviato'
-                ? ` · richieste entro il ${fmtDataHr(scadenza)}`
-                : traGiorni! >= 0
-                  ? ` · richieste entro il ${fmtDataHr(scadenza)} (${traGiorni === 0 ? 'oggi' : traGiorni === 1 ? 'domani' : `tra ${traGiorni} giorni`})`
-                  : ` · termine per le richieste scaduto il ${fmtDataHr(scadenza)}`)}
-
-              {piano.stato === 'Archiviato' && piano.archiviatoAt && ` · archiviato il ${new Date(piano.archiviatoAt).toLocaleDateString('it-IT')} da ${piano.archiviatoDa}`}
+            <span className="pfe-piano__riga pfe-piano__riga--sub">
+              <span className="pfe-piano__conta">
+                <strong>{rp.tot}</strong> {rp.tot === 1 ? 'richiesta' : 'richieste'}: <strong>{rp.approvate}</strong> approvate ({rp.giorniOk} gg, {rp.dipendenti} {rp.dipendenti === 1 ? 'dipendente' : 'dipendenti'})
+                {rp.daApprovare > 0 && <> · <span className="pfe-piano__attesa">{rp.daApprovare} da approvare</span></>}
+                {rp.alResp > 0 && <> · {rp.alResp} al responsabile</>}
+                {rp.rifiutate > 0 && <> · {rp.rifiutate} rifiutate</>}
+              </span>
+              <Tooltip text={descriviRegole(piano.regole).join(' · ')}>
+                <span className="pfe-piano__regole"><i className="fa-solid fa-scale-balanced" aria-hidden="true" />Regole del piano</span>
+              </Tooltip>
+              {piano.note && (
+                <Tooltip text={piano.note}>
+                  <span className="pfe-piano__regole"><i className="fa-solid fa-comment" aria-hidden="true" />Avviso ai dipendenti</span>
+                </Tooltip>
+              )}
             </span>
-            <span className="pfe-piano__conta">
-              <strong>{rp.tot}</strong> {rp.tot === 1 ? 'richiesta' : 'richieste'}: <strong>{rp.approvate}</strong> approvate ({rp.giorniOk} gg, {rp.dipendenti} {rp.dipendenti === 1 ? 'dipendente' : 'dipendenti'})
-              {rp.daApprovare > 0 && <> · <span className="pfe-piano__attesa">{rp.daApprovare} da approvare</span></>}
-              {rp.alResp > 0 && <> · {rp.alResp} al responsabile</>}
-              {rp.rifiutate > 0 && <> · {rp.rifiutate} rifiutate</>}
-            </span>
-            <span className="pfe-piano__regole">
-              <i className="fa-solid fa-scale-balanced" aria-hidden="true" /> Regole: {descriviRegole(piano.regole).join(' · ')}
-            </span>
-            {piano.note && <span className="pfe-piano__note"><i className="fa-solid fa-comment" aria-hidden="true" /> {piano.note}</span>}
           </div>
           <div className="pfe-piano__acts">
             {piano.stato === 'Aperto'
               ? <>
-                  <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModale({ piano })}>
-                    <i className="fa-solid fa-pen" aria-hidden="true" /> Modifica
-                  </button>
-                  <button type="button" className="sib-btn sib-btn--secondary" onClick={() => archiviaPiano(piano)}>
-                    <i className="fa-solid fa-box-archive" aria-hidden="true" /> Chiudi e archivia
-                  </button>
+                  <Tooltip text="Modifica il piano">
+                    <button type="button" className="pfe-piano__ico" onClick={() => setModale({ piano })} aria-label="Modifica il piano"><i className="fa-solid fa-pen" /></button>
+                  </Tooltip>
+                  <Tooltip text="Chiudi e archivia">
+                    <button type="button" className="pfe-piano__ico" onClick={() => archiviaPiano(piano)} aria-label="Chiudi e archivia"><i className="fa-solid fa-box-archive" /></button>
+                  </Tooltip>
                 </>
-              : <button type="button" className="sib-btn sib-btn--secondary" onClick={() => riapriPiano(piano)}>
-                  <i className="fa-solid fa-box-open" aria-hidden="true" /> Riapri
-                </button>}
+              : <Tooltip text="Riapri il piano">
+                  <button type="button" className="pfe-piano__ico" onClick={() => riapriPiano(piano)} aria-label="Riapri il piano"><i className="fa-solid fa-box-open" /></button>
+                </Tooltip>}
             <Tooltip text="Elimina piano">
-              <button type="button" className="pfe-piano__del" onClick={() => eliminaPiano(piano)} aria-label="Elimina piano">
-                <i className="fa-solid fa-trash" aria-hidden="true" />
-              </button>
+              <button type="button" className="pfe-piano__ico" onClick={() => eliminaPiano(piano)} aria-label="Elimina piano"><i className="fa-solid fa-trash" /></button>
             </Tooltip>
           </div>
         </div>
       )}
 
-      <div className="sib-table-wrap pfe__wrap">
-        <table className={`sib-table pfe__table pfe__table--d${giorni.length}`}>
-          <colgroup>
-            <col className="pfe__col-nome" />
-            {giorni.map(g => <col key={g.iso} className="pfe__col-day" />)}
-            <col className="pfe__col-res" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th className="pfe__th-nome">Dipendente</th>
-              {giorni.map(g => (
-                <th key={g.iso} className={`pfe__th-day ${g.wd === 0 ? 'pfe__dom' : ''} ${g.iso === oggi ? 'pfe__today' : ''} ${g.fuori ? 'pfe__fuori' : ''}`}>
-                  <span className="pfe__wd">{GG[g.wd]}</span>
-                  <span className="pfe__dn">{g.n}</span>
-                </th>
-              ))}
-              <th className="pfe__r"><Tooltip text="Giorni di ferie ancora disponibili nell'anno"><span>Residue</span></Tooltip></th>
-            </tr>
-          </thead>
-          <tbody>
-            {gruppi.map(g => (
-              <React.Fragment key={g.reparto}>
-                <tr className="pfe__group"><td colSpan={giorni.length + 2}>{g.reparto}</td></tr>
-                {g.dipendenti.map(d => {
-                  const residuo = d.ferieAnnue - ferieGodute(richieste, d.id, mese.y)
-                  return (
-                    <tr key={d.id}>
-                      <td className="pfe__nome">
-                        {(() => {
-                          const v = violazioniDi(d.id)
-                          return (
-                            <span className="pfe__nome-in">
-                              <TruncatedText text={`${d.nome} ${d.cognome}`} />
-                              {v.length > 0 && (
-                                <Tooltip text={v.map(x => x.testo).join(' ')}>
-                                  <span className={`pfe__regola pfe__regola--${v.some(x => x.livello === 'ko') ? 'ko' : 'warn'}`} aria-label="Regole del piano non rispettate">
-                                    <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
-                                  </span>
-                                </Tooltip>
-                              )}
-                            </span>
-                          )
-                        })()}
-                      </td>
-                      {giorni.map(gg => {
-                        const cls = `pfe__day ${gg.wd === 0 ? 'pfe__dom' : ''} ${gg.iso === oggi ? 'pfe__today' : ''} ${gg.fuori ? 'pfe__fuori' : ''}`
-                        const a = gg.fuori ? undefined : assenzaDi(d.id, gg.iso)
-                        if (!a) return <td key={gg.iso} className={cls} />
-                        const tip = `${d.nome} ${d.cognome} · ${a.tipo} ${a.dal === a.al ? `il ${fmtDataHr(a.dal)}` : `dal ${fmtDataHr(a.dal)} al ${fmtDataHr(a.al)}`}${a.stato === 'Al responsabile' ? ' · dal responsabile di reparto' : a.stato === 'Da approvare' ? ' · da approvare' : ''}${a.note ? ` · ${a.note}` : ''}`
-                        return (
-                          <td key={gg.iso} className={cls}>
-                            <Tooltip text={tip}>
-                              <span className={`pfe__bar pfe__bar--${tipoCls(a.tipo)} ${inAttesaRichiesta(a.stato) ? 'pfe__bar--attesa' : ''} ${a.dal === gg.iso ? 'pfe__bar--start' : ''} ${a.al === gg.iso ? 'pfe__bar--end' : ''}`} />
-                            </Tooltip>
-                          </td>
-                        )
-                      })}
-                      <td className={`pfe__r pfe__res ${residuo <= 3 ? 'pfe__res--low' : ''}`}>{residuo} gg</td>
-                    </tr>
-                  )
-                })}
-              </React.Fragment>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="pfe__tot">
-              <td className="pfe__nome">Assenti</td>
-              {giorni.map(g => {
-                const n = assentiDel(g.iso)
-                const scoperti = scopertiDel(g.iso)
-                const warn = piano ? scoperti.length > 0 : n >= SOGLIA_ASSENTI
-                const cls = `pfe__day ${g.wd === 0 ? 'pfe__dom' : ''} ${g.fuori ? 'pfe__fuori' : ''} ${warn ? 'pfe__tot--warn' : ''}`
-                return (
-                  <td key={g.iso} className={cls}>
-                    {n > 0 && (warn
-                      ? <Tooltip text={piano
-                          ? `${fmtDataHr(g.iso)}: ${scoperti.join(', ')} sotto il ${piano.regole.presenzaMinimaReparto}% di presenza`
-                          : `${n} assenti il ${fmtDataHr(g.iso)}: controlla la copertura dei turni`}><span>{n}</span></Tooltip>
-                      : n)}
-                  </td>
-                )
-              })}
-              <td />
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+      <GestioneRichieste
+        richieste={sulCalendario}
+        reparto={reparto}
+        solaLettura={piano?.stato === 'Archiviato'}
+        limiti={piano ? { dal: piano.dal, al: piano.al } : undefined}
+        allertaGiorno={allertaGiorno}
+        segnalaDipendente={segnalaDipendente}
+        colonnaFinale={{ titolo: 'Residue', tooltip: "Giorni di ferie ancora disponibili nell'anno", valore: (id, anno) => {
+          const d = DIPENDENTI_HR.find(x => x.id === id)
+          if (!d) return null
+          const res = d.ferieAnnue - ferieGodute(richieste, id, anno)
+          return <span className={res <= 3 ? 'pfe__res--low' : undefined}>{res} gg</span>
+        } }}
+      />
 
       <ModalePiano open={!!modale} piano={modale?.piano} onClose={() => setModale(null)} onSalva={salvaPiano}
         altriAperti={aperti.filter(p => p.id !== modale?.piano?.id)} />
