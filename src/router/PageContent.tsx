@@ -189,6 +189,7 @@ import NotaSpeseMensile            from '../modules/hr/NoteSpese/NotaSpeseMensil
 import Cedolini                    from '../modules/hr/Cedolini/Cedolini';
 import RichiesteFerie              from '../modules/hr/RichiesteFerie/RichiesteFerie';
 import PianoFerie                  from '../modules/hr/PianoFerie/PianoFerie';
+import Timbrature                  from '../modules/hr/Timbrature/Timbrature';
 import SibyllaHr                   from '../modules/hr/SibyllaHr/SibyllaHr';
 import type { SibyllaHrView }      from '../modules/hr/SibyllaHr/SibyllaHr';
 import CabinaControllo             from '../modules/finance/CabinaControllo/CabinaControllo';
@@ -514,6 +515,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'hr-cedolini')           return <Cedolini navigate={navigate}/>;
   if (page === 'hr-richieste-ferie')    return <RichiesteFerie navigate={navigate}/>;
   if (page === 'hr-piano-ferie')        return <PianoFerie navigate={navigate}/>;
+  if (page === 'hr-timbrature')         return <Timbrature navigate={navigate}/>;
   // Sibylla HR: una vista del modulo per pagina (la key azzera lo stato passando da una all'altra)
   if (SIBYLLA_HR_PAGES[page])           return <SibyllaHr view={SIBYLLA_HR_PAGES[page]} navigate={navigate} key={page}/>;
   if (page === 'budget-costi')          return <BudgetCosti navigate={navigate}/>;

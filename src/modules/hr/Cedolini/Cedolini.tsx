@@ -8,6 +8,7 @@ import Pagination from '../../../core/components/Pagination'
 import { useColFilters } from '../../../core/components/ColFilters'
 import Ico from '../../../core/icons/Ico'
 import { SelectField, SearchField, CheckboxField } from '../../../core/components/form'
+import VistaSwitch from '../../../core/components/VistaSwitch'
 import { toast } from '../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import {
@@ -15,6 +16,10 @@ import {
   fmtDataHr, fmtMeseHr, eurHr, type Cedolino,
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
+import { useGiornataPresenze, useRegistroPresenzeStore } from '../../../store/useRegistroPresenzeStore'
+import RegistroMensile, { type DipendenteMese } from '../_presenze/RegistroMensile'
+import { esportaPresenzePdf, esportaRegistroXlsx } from '../_presenze/presenzeExport'
+import { chiaveGiorno, repartoIcon } from '../_presenze/presenze.model'
 import './Cedolini.sass'
 
 /**
@@ -22,7 +27,14 @@ import './Cedolini.sass'
  * L'ufficio del personale carica i cedolini del mese (in bozza), li controlla e li
  * pubblica: da quel momento il dipendente li trova nella sua area e la colonna
  * "Visto" indica se li ha aperti.
+ * Vista dettagliata: le presenze del mese di ogni dipendente (dal Registro
+ * presenze) per controllare la busta paga e approvare lo straordinario giorno
+ * per giorno; da qui anche il PDF del calendario presenze con lo straordinario
+ * approvato, da firmare, e il registro Excel per il consulente del lavoro.
  */
+
+const VISTA_KEY = 'sibylla.cedolini.vista'
+const leggiDettagliata = () => { try { return localStorage.getItem(VISTA_KEY) === 'dettagliata' } catch { return false } }
 
 const PAGE_SIZE = 12
 /** Valori del filtro di colonna "Visto" (le bozze non sono ancora visibili al dipendente). */
@@ -38,6 +50,12 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
   const elimina = useHrGestioneStore(s => s.eliminaCedolino)
   const confirm = useConfirmStore(s => s.confirm)
   const cf = useColFilters()
+  const giornata = useGiornataPresenze()
+  const straordinarioApprovato = useRegistroPresenzeStore(s => s.straordinarioApprovato)
+  const approvaStraordinario = useRegistroPresenzeStore(s => s.approvaStraordinario)
+  const [dettagliata, setDettagliataState] = useState(leggiDettagliata)
+  const [esportando, setEsportando] = useState(false)
+  const setDettagliata = (v: boolean) => { setDettagliataState(v); try { localStorage.setItem(VISTA_KEY, v ? 'dettagliata' : 'tabella') } catch { /* preferenza non salvata */ } }
 
   const mesi = useMemo(() => Array.from(new Set([meseCorrente(), ...cedolini.map(c => c.mese)])).sort().reverse(), [cedolini])
   const [mese, setMese] = useState(() => (cedolini.some(c => c.mese === mesePrecedente()) ? mesePrecedente() : mesi[0]))
@@ -116,6 +134,40 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
   const esporta = () => exportXls(`cedolini-${mese}`, ['Dipendente', 'Reparto', 'Mese', 'Lordo', 'Netto', 'Stato', 'Pubblicato il', 'Visto dal dipendente'],
     rows.map(c => [c.dipendente, c.reparto, fmtMeseHr(c.mese), eurHr(c.lordo), eurHr(c.netto), c.stato, c.pubblicatoAt ? fmtDataHr(c.pubblicatoAt) : '', c.stato === 'Pubblicato' ? (c.visto ? 'Sì' : 'No') : '']))
 
+  // ── Vista dettagliata: presenze del mese per dipendente ──
+  const [annoSel, meseSel] = mese.split('-').map(Number)
+  const statoCed = (id: number) => delMese.find(c => c.dipendenteId === id)
+  const dipDettaglio: DipendenteMese[] = DIPENDENTI_HR
+    .filter(d => !reparto || d.reparto === reparto)
+    .filter(d => !stato || statoCed(d.id)?.stato === stato)
+    .filter(d => !cerca.trim() || `${d.nome} ${d.cognome}`.toLowerCase().includes(cerca.trim().toLowerCase()))
+    .map(d => ({ id: d.id, nome: d.nome, cognome: d.cognome, reparto: d.reparto }))
+    .sort((a, b) => `${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`))
+  const opzExport = () => ({ dipendenti: dipDettaglio, anno: annoSel, mese: meseSel - 1, giornata, straordinarioApprovato, titolo: 'Calendario presenze' })
+  const scaricaPdf = async () => { setEsportando(true); try { await esportaPresenzePdf(opzExport()) } finally { setEsportando(false) } }
+  const approva = (dipId: number, iso: string, minuti: number | null) => approvaStraordinario(chiaveGiorno(dipId, iso), minuti)
+  const azioniDip = (d: DipendenteMese) => {
+    const c = statoCed(d.id)
+    if (!c) return <span className="ced__det-stato ced__det-stato--manca">Cedolino non caricato</span>
+    return (
+      <>
+        <span className={`ced__det-stato ced__det-stato--${c.stato === 'Bozza' ? 'bozza' : 'pub'}`}>{c.stato === 'Bozza' ? 'Cedolino in bozza' : 'Cedolino pubblicato'}</span>
+        <Tooltip text="Anteprima del cedolino">
+          <button type="button" className="ced__act" onClick={() => setAnteprima(c)} aria-label="Anteprima del cedolino">
+            <Ico n="eye" w="solid" s={16} c="currentColor" />
+          </button>
+        </Tooltip>
+      </>
+    )
+  }
+
+  const selettoreVista = (
+    <VistaSwitch ariaLabel="Vista dei cedolini" value={dettagliata ? 'dettagliata' : 'tabella'} onChange={(v) => setDettagliata(v === 'dettagliata')} options={[
+      { value: 'tabella', label: 'Tabella', icon: 'fa-table-list' },
+      { value: 'dettagliata', label: 'Dettagliata', icon: 'fa-calendar-days' },
+    ]} />
+  )
+
   const act = (tip: string, ico: string, onClick: () => void) => (
     <Tooltip text={tip}>
       <button type="button" className="ced__act" onClick={onClick} aria-label={tip}>
@@ -131,9 +183,11 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
         subtitle="Carica, controlla e pubblica le buste paga del personale"
         onBack={() => navigate('home')}
         actions={
-          <button type="button" className="sib-btn sib-btn--primary" onClick={apriUpload}>
-            <Ico n="upload" s={14} c="currentColor" /> Carica cedolini
-          </button>
+          <div className="ced__head-actions">
+            <button type="button" className="sib-btn sib-btn--primary" onClick={apriUpload}>
+              <Ico n="upload" s={14} c="currentColor" /> Carica cedolini
+            </button>
+          </div>
         }
       />
 
@@ -154,13 +208,33 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
               <Ico n="send" s={13} c="currentColor" /> Pubblica bozze ({bozze.length})
             </button>
           )}
-          <Tooltip text="Esporta in Excel">
-            <button type="button" className="ced__icon-btn" onClick={esporta} aria-label="Esporta in Excel">
-              <Ico n="excel" w="regular" s={16} c="#fff" />
-            </button>
-          </Tooltip>
+          {dettagliata ? (
+            <>
+              <button type="button" className="sib-btn sib-btn--secondary ced__exp" onClick={() => esportaRegistroXlsx(opzExport())} disabled={!dipDettaglio.length}>
+                <i className="fa-regular fa-file-xls" aria-hidden="true" />Registro Excel
+              </button>
+              <button type="button" className="sib-btn sib-btn--secondary ced__exp" onClick={scaricaPdf} disabled={!dipDettaglio.length || esportando}>
+                <i className={`fa-regular ${esportando ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`} aria-hidden="true" />PDF presenze
+              </button>
+            </>
+          ) : (
+            <Tooltip text="Esporta in Excel">
+              <button type="button" className="ced__icon-btn" onClick={esporta} aria-label="Esporta in Excel">
+                <Ico n="excel" w="regular" s={16} c="#fff" />
+              </button>
+            </Tooltip>
+          )}
         </div>
       </div>
+
+      {dettagliata && (
+        <RegistroMensile dipendenti={dipDettaglio} anno={annoSel} mese={meseSel - 1} giornata={giornata} repartoIcon={repartoIcon}
+          variante="cedolino" straordinarioApprovato={straordinarioApprovato} onApprovaStraordinario={approva} azioniDipendente={azioniDip}
+          legendaExtra={selettoreVista} />
+      )}
+
+      {!dettagliata && (<>
+      <div className="ced__vista-row">{selettoreVista}</div>
 
       <div className="sib-table-wrap ced__wrap">
         <table className="sib-table ced__table">
@@ -231,6 +305,7 @@ export default function Cedolini({ navigate }: { navigate: (p: string) => void }
       </div>
 
       <div className="ced__pag"><Pagination page={page} totalPages={totalPages} onPageChange={setPage} /></div>
+      </>)}
 
       {/* ── Carica cedolini ── */}
       <Modal open={!!upload} onClose={() => setUpload(null)} title="Carica cedolini" size="md">

@@ -220,3 +220,36 @@
 
   .ced__search
     width: 170px
+
+// ── Vista dettagliata ──────────────────────────────────────────────────────────
+.ced__head-actions
+  display: flex
+  align-items: center
+  gap: 18px
+
+.ced__exp.sib-btn
+  i
+    margin-right: 6px
+
+.ced__det-stato
+  padding: 2px 9px
+  border-radius: 999px
+  font-size: 11px
+  font-weight: 600
+
+  &--pub
+    background: var(--color-success-light)
+    color: var(--color-success)
+
+  &--bozza
+    background: var(--color-warning-light)
+    color: var(--color-text-active)
+
+  &--manca
+    background: var(--color-bg)
+    color: var(--color-text-inactive)
+
+.ced__vista-row
+  display: flex
+  justify-content: flex-end
+  margin-bottom: 10px

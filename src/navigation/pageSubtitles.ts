@@ -126,6 +126,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "profit-trend": "Analizza trend di profitti e marginalità aziendale",
   "registro-chiusure": "Storico delle chiusure di magazzino con rimanenze, consumi e differenze inventariali a costo medio",
   "registro-presenze": "Gestione delle presenze del personale in tempo reale. Con tracciamento di ingressi, uscite, assenze, permessi e ferie",
+  "hr-timbrature": "Entrate e uscite del personale: QR di timbratura, avvisi di ritardo, app dipendenti e storico",
   "reset-profili": "Configura e gestisci i profili in modo centralizzato",
   "richieste-operative": "Invia, aggiorna e controlla le richieste operative verso la struttura in modo semplice ed efficace",
   "rilevamento-presenze": "Report dei dati aggregati per nazionalità e delle presenze registrate",

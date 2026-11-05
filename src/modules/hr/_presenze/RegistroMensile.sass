@@ -1,0 +1,519 @@
+// ─── REGISTRO PRESENZE — VISTA DETTAGLIATA (mese per dipendente) ───────────────
+// Matrice giorni × righe (deroga consapevole allo standard tabella: è un
+// calendario). 31 colonne in table-layout fixed: nessuno scroll orizzontale,
+// a laptop si compattano font e spaziature con una container query.
+@use '../../../styles/tokens' as *
+
+.rpm
+  container: rpm / inline-size
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  // ── Legenda: punto colorato + nome, nient'altro ───────────────────────────
+  &__legend
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 6px 16px
+    padding: 2px 2px 0
+
+  &__leg
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 12px
+    color: $text-inactive
+    white-space: nowrap
+
+    i
+      font-size: 10px
+      color: $primary
+
+  &__legend-end
+    display: inline-flex
+    align-items: center
+    gap: 16px
+    margin-left: auto
+
+  &__leg-dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: var(--chip)
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip) 16%, transparent)
+
+  // ── Chip tipo giornata (colori semantici dalla palette chart) ────────────────
+  &__chip
+    --chip: var(--color-text-inactive)
+    position: relative
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    padding: 2px 10px
+    border-radius: $radius-full
+    background: color-mix(in srgb, var(--chip) 14%, transparent)
+    color: var(--chip)
+    font-size: 11px
+    font-weight: 600
+    white-space: nowrap
+
+    &--sm
+      min-width: 0
+      max-width: 100%
+      padding: 1px 3px
+      border-radius: 4px
+      font-size: 9px
+      font-weight: 700
+      letter-spacing: .02em
+
+    &--ord
+      --chip: var(--chart-1)
+
+    &--str
+      --chip: var(--chart-7)
+
+    &--op
+      --chip: var(--chart-4)
+
+    &--rip
+      --chip: var(--color-text-inactive)
+
+    &--fer
+      --chip: var(--chart-8)
+
+    &--rol
+      --chip: var(--chart-5)
+
+    &--per
+      --chip: var(--chart-4)
+
+    &--mal
+      --chip: var(--chart-3)
+
+    &--ass
+      --chip: var(--chart-6)
+
+    &--ano
+      --chip: var(--chart-2)
+
+  // Segno "modificato dall'HR" nell'angolo del chip
+  &__mod
+    position: absolute
+    top: -5px
+    right: -5px
+    width: 11px
+    height: 11px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    background: $primary
+    color: var(--color-surface)
+    font-size: 6px
+
+  // ── Riquadro dipendente ──────────────────────────────────────────────────────
+  &__card
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $white
+    overflow: hidden
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 10px 14px
+
+  &__avatar
+    flex: none
+    width: 30px
+    height: 30px
+    border-radius: 50%
+    object-fit: cover
+
+    &--ini
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      background: $primary-100
+      color: $primary
+      font-size: 11px
+      font-weight: 700
+
+  &__nome
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $text-active
+
+  &__reparto
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 2px 9px
+    border-radius: $radius-full
+    background: $primary-50
+    color: $primary
+    font-size: 11px
+    font-weight: 600
+
+  &__head-actions
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    margin-left: auto
+
+    .sib-btn--icon i
+      color: $primary
+      font-size: 16px
+
+  &__approva.sib-btn
+    i
+      margin-right: 6px
+
+  // ── Matrice ──────────────────────────────────────────────────────────────────
+  &__grid
+    width: 100%
+    table-layout: fixed
+    border-collapse: collapse
+    font-size: 11px
+
+    th,
+    td
+      height: 22px
+      padding: 0 1px
+      border-top: 1px solid $border
+      border-left: 1px solid $border
+      text-align: center
+      overflow: hidden
+      white-space: nowrap
+
+    th[scope=row]
+      padding: 0 10px
+      border-left: none
+      text-align: left
+      font-size: 11px
+      font-weight: 600
+      color: $text-inactive
+
+    thead th
+      background: $bg
+      font-weight: 700
+      color: $text-active
+
+    td
+      cursor: context-menu
+
+  &__c-label
+    width: 92px
+
+  &__c-tot
+    width: 48px
+
+  &__tot-col.rpm__tot-col
+    border-left: 2px solid $border
+    font-weight: 700
+
+  &__fest
+    color: $error
+
+  &__lbl-extra.rpm__lbl-extra
+    color: var(--chart-7)
+
+  &__cell--ro.rpm__cell--ro
+    cursor: default
+
+  &__r-appr td
+    height: 26px
+    cursor: default
+
+  &__cell--appr.rpm__cell--appr
+    cursor: pointer
+
+    &:hover
+      background: $primary-50
+
+  &__appr
+    color: var(--chart-7)
+    font-weight: 700
+
+  // Pallino "da approvare" nelle giornate con ore extra
+  &__appr-da
+    display: inline-block
+    width: 7px
+    height: 7px
+    border: 1.5px solid var(--chart-7)
+    border-radius: 50%
+
+  &__r-gsett th
+    font-size: 10px
+    font-weight: 600
+    color: $text-inactive
+
+  &__r-tipo td
+    height: 26px
+
+  // Weekend velati, oggi evidenziato
+  &__we.rpm__we
+    background: color-mix(in srgb, var(--color-bg) 70%, transparent)
+
+  thead &__we.rpm__we
+    color: $text-inactive
+
+  &__oggi.rpm__oggi
+    box-shadow: inset 0 0 0 1px $primary
+
+  thead &__oggi.rpm__oggi
+    background: $primary
+    color: var(--color-surface)
+
+  &__cell--on.rpm__cell--on
+    background: $primary-50
+
+  &__in
+    color: $success
+    font-variant-numeric: tabular-nums
+
+  &__out
+    color: $error
+    font-variant-numeric: tabular-nums
+
+  &__extra
+    color: var(--chart-7)
+    font-weight: 700
+
+  // ── Totali del mese ──────────────────────────────────────────────────────────
+  &__foot
+    display: flex
+    align-items: center
+    gap: 14px
+    padding: 8px 14px
+    border-top: 1px solid $border
+    background: $bg
+
+  &__tot
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 4px 16px
+    font-size: 12px
+    color: $text-inactive
+
+    b
+      margin-right: 3px
+      font-weight: 700
+
+  &__tot-ord
+    color: var(--chart-1)
+
+  &__tot-str
+    color: var(--chart-7)
+
+  &__tot-fer
+    color: var(--chart-8)
+
+  &__tot-rol
+    color: var(--chart-5)
+
+  &__tot-per
+    color: var(--chart-4)
+
+  &__tot-mal
+    color: var(--chart-3)
+
+  &__tot-ass
+    color: var(--chart-6)
+
+  &__tot-ano
+    color: var(--chart-2)
+
+  &__tot-mod
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    color: $primary
+
+    i
+      font-size: 10px
+
+  &__hint
+    margin-left: auto
+    font-size: 11px
+    color: $text-inactive
+    white-space: nowrap
+
+  &__empty
+    padding: 40px 16px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $white
+    text-align: center
+    font-size: 13px
+    color: $text-inactive
+
+  // ── Tooltip cella ────────────────────────────────────────────────────────────
+  &__tip
+    display: flex
+    flex-direction: column
+    gap: 2px
+    font-size: 11px
+
+  &__tip-t
+    font-weight: 700
+
+  &__tip-mod
+    opacity: .8
+
+  // ── Menu contestuale (tasto destro) ──────────────────────────────────────────
+  &__menu
+    position: fixed
+    left: var(--mx)
+    top: var(--my)
+    z-index: 300
+    width: 290px
+    padding: 4px 0
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $white
+    box-shadow: $shadow-lg
+    visibility: hidden
+
+    &--ready
+      visibility: visible
+
+  &__menu-title
+    padding: 9px 14px 8px
+    font-family: $font-heading
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: .03em
+    color: $text-inactive
+    text-transform: uppercase
+
+  &__menu-group
+    padding: 3px 0
+    border-top: 1px solid $border
+
+  &__menu-item
+    display: flex
+    align-items: center
+    gap: 9px
+    width: 100%
+    padding: 7px 14px
+    border: none
+    background: none
+    color: $text-active
+    font-size: 13px
+    text-align: left
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      background: $primary-50
+
+    &:disabled
+      opacity: .45
+      cursor: not-allowed
+
+    i
+      width: 14px
+      text-align: center
+
+    &--on .rpm__menu-label
+      font-weight: 700
+
+    &--act
+      color: $primary
+
+    &--danger
+      color: $error
+
+  &__menu--str
+    width: 260px
+
+  &__str
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 10px 14px 12px
+    border-top: 1px solid $border
+
+  &__str-info
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+    b
+      color: var(--chart-7)
+
+  &__str-actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+
+  &__menu-note
+    font-size: 11px
+    color: $text-inactive
+
+  &__menu-check
+    margin-left: auto
+    color: $primary
+
+  &__dot
+    --chip: var(--color-text-inactive)
+    flex: none
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    background: var(--chip)
+
+    &--ord
+      --chip: var(--chart-1)
+
+    &--fer
+      --chip: var(--chart-8)
+
+    &--rol
+      --chip: var(--chart-5)
+
+    &--per
+      --chip: var(--chart-4)
+
+    &--mal
+      --chip: var(--chart-3)
+
+    &--ass
+      --chip: var(--chart-6)
+
+// ── Laptop con sidebar aperta: si compatta la matrice ─────────────────────────
+@container rpm (max-width: 1180px)
+  .rpm
+    &__legend
+      column-gap: 11px
+
+    &__leg
+      gap: 6px
+      font-size: 11.5px
+
+    &__legend-end
+      gap: 12px
+
+    &__c-label
+      width: 76px
+
+    &__c-tot
+      width: 40px
+
+    &__grid
+      font-size: 10px
+
+      th[scope=row]
+        padding: 0 6px
+        font-size: 10px
+
+    &__chip--sm
+      font-size: 8px
+      padding: 1px 2px
+
+    &__hint
+      display: none

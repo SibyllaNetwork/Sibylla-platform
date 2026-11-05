@@ -100,6 +100,7 @@ const MENU_MAP: Record<string, string> = {
 
   // ══ HR (depth 3) ══════════════════════════════════════════════════════════
   'registro-presenze':      'fa-clock',
+  'hr-timbrature':          'fa-fingerprint',
   'turni-personale':        'fa-calendar-clock',
   'gest-anagrafiche':       'fa-address-book',
   'gest-presenze':          'fa-user-clock',
