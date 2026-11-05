@@ -280,7 +280,8 @@ function seedRichieste(): RichiestaAssenza[] {
   const gen = (g: number) => `${an + 1}-01-${pad(g)}`
   const natale = (): Omit<RichiestaAssenza, 'id'>[] => ([
     [2, dic(22), dic(27), 'Approvata', -6, 'Natale con la famiglia in Puglia'],
-    [6, dic(28), gen(2), 'Da approvare', -3, undefined],
+    [6, dic(26), gen(4), 'Da approvare', -3, 'Vorrei unire Natale e Capodanno'],
+    [7, dic(23), dic(28), 'Da approvare', -2, undefined],
     [9, dic(24), dic(31), 'Approvata', -9, undefined],
     [11, dic(20), dic(26), 'Da approvare', -2, 'Pranzo di Natale dai nonni'],
     [8, dic(29), gen(4), 'Al responsabile', -1, undefined],
@@ -317,13 +318,14 @@ function seedRichieste(): RichiestaAssenza[] {
     r(5,  'ROL',      -50, -50, 'Rifiutata',  -52, undefined, 'Giornata di picco: il front office resterebbe con una sola persona.', 6),
     // Rifiutata in primo livello dal responsabile di reparto (non arriva all'HR per la decisione).
     r(4,  'Ferie',    30, 34, 'Rifiutata',  -2,  'Weekend lungo', 'Fine mese c\'è il gruppo congressuale: servono tutte le cameriere ai piani.'),
+    // Ferie estive già godute in un'unica soluzione (porta il saldo di Manuel vicino allo zero).
+    r(7,  'Ferie',    -120, -100, 'Approvata', -130, 'Ferie estive in un\'unica soluzione'),
     // Ferie di Natale (alimentano il piano ferie "Natale"): date dell'anno delle feste in corso.
     ...natale(),
   ]
   // Iter del responsabile sulle richieste d'esempio: quelle ancora aperte ma "fresche"
   // sono ferme al responsabile, le altre lui le ha già approvate (o, una, rifiutata).
   const alResponsabile = new Set([1, 4, 16])
-  const rifiutataDalResp = 21
   return rows.map((x, i) => {
     const id = `ra-${i + 1}`
     const it = iterIniziale(x.dipendenteId, x.tipo)
@@ -332,7 +334,7 @@ function seedRichieste(): RichiestaAssenza[] {
     const decisa = `${x.createdAt.slice(0, 10)}T17:30:00`
     if (x.stato === 'Al responsabile') return { ...x, id, responsabile: it.responsabile }
     if (x.stato === 'Da approvare' && alResponsabile.has(i)) return { ...x, id, stato: 'Al responsabile' as const, responsabile: it.responsabile }
-    if (i === rifiutataDalResp) {
+    if (x.stato === 'Rifiutata' && x.note === 'Weekend lungo') {
       return { ...x, id, responsabile: { nome, esito: 'Rifiutata' as const, at: decisa, motivo: x.motivo },
         storico: [{ at: decisa, autore: nome, azione: 'Rifiutata dal responsabile', messaggio: x.motivo }] }
     }
@@ -373,7 +375,8 @@ interface HrGestioneState {
   eliminaCedolino: (id: string) => void
 
   aggiungiRichiesta: (r: Omit<RichiestaAssenza, 'id' | 'stato' | 'createdAt'>) => void
-  decidiRichiesta: (id: string, stato: 'Approvata' | 'Rifiutata', motivo?: string) => void
+  /** `nota` finisce nello storico (es. "Saldo negativo autorizzato: -2 gg"). */
+  decidiRichiesta: (id: string, stato: 'Approvata' | 'Rifiutata', motivo?: string, nota?: string) => void
   /** Primo livello (App Op!): il responsabile di reparto approva → passa all'HR; rifiuta → chiusa. */
   decidiResponsabile: (id: string, esito: 'Approvata' | 'Rifiutata', motivo?: string) => void
   /** L'HR sollecita il responsabile che non ha ancora deciso (notifica nell'App Op!). */
@@ -423,8 +426,8 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
   eliminaCedolino: (id) => set(st => ({ cedolini: st.cedolini.filter(c => c.id !== id) })),
 
   aggiungiRichiesta: (r) => set(st => ({ richieste: [{ ...r, id: uid('ra'), ...iterIniziale(r.dipendenteId, r.tipo), createdAt: new Date().toISOString() }, ...st.richieste] })),
-  decidiRichiesta: (id, stato, motivo) => set(st => ({ richieste: st.richieste.map(r => r.id === id
-    ? conEvento({ ...r, stato, motivo: stato === 'Rifiutata' ? motivo : undefined }, evento(stato, { messaggio: stato === 'Rifiutata' ? motivo : undefined }))
+  decidiRichiesta: (id, stato, motivo, nota) => set(st => ({ richieste: st.richieste.map(r => r.id === id
+    ? conEvento({ ...r, stato, motivo: stato === 'Rifiutata' ? motivo : undefined }, evento(stato, { messaggio: stato === 'Rifiutata' ? motivo : undefined, modifiche: nota ? [nota] : undefined }))
     : r) })),
   decidiResponsabile: (id, esito, motivo) => set(st => ({ richieste: st.richieste.map(r => {
     if (r.id !== id || r.stato !== 'Al responsabile' || !r.responsabile) return r
@@ -449,7 +452,7 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
     return conEvento({ ...r, ...patch, motivo: stato === 'Rifiutata' ? (patch.motivo ?? r.motivo) : undefined }, evento('Modificata', { modifiche, messaggio: messaggio || undefined }))
   }) })),
   eliminaRichiesta: (id) => set(st => ({ richieste: st.richieste.filter(r => r.id !== id) })),
-}), { name: 'sibylla.hr-gestione', version: 7, migrate: () => ({ noteSpese: seedNoteSpese(), buoniPasto: seedBuoni(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
+}), { name: 'sibylla.hr-gestione', version: 8, migrate: () => ({ noteSpese: seedNoteSpese(), buoniPasto: seedBuoni(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
 
 /** Ferie godute (approvate) nell'anno solare corrente per dipendente. */
 export function ferieGodute(richieste: RichiestaAssenza[], dipendenteId: number, anno = new Date().getFullYear()) {

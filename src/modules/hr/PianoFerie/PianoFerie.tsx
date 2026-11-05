@@ -15,6 +15,7 @@ import {
 import { usePianiFerieStore, feriePianoCorrenti, type PianoFerie as Piano, type DatiPiano } from '../../../store/usePianiFerieStore'
 import { exportXls } from '../hrExport'
 import ModalePiano from './ModalePiano'
+import { assentiConsentiti, descriviRegole, verificaRegole, type EsitoRegola } from './regolePiano'
 import './PianoFerie.sass'
 
 /**
@@ -118,10 +119,17 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
 
   // Assenti per giorno (solo approvate: le richieste in attesa non scoprono ancora il turno).
   const assentiDel = (iso: string, ids = visibili.map(d => d.id)) => ids.filter(id => assenzaDi(id, iso)?.stato === 'Approvata').length
-  /** Reparti oltre gli assenti massimi del piano in quel giorno. */
-  const scopertiDel = (iso: string) => piano
-    ? gruppi.filter(g => assentiDel(iso, g.dipendenti.map(d => d.id)) > piano.maxAssentiReparto).map(g => g.reparto)
+  /** Reparti sotto la presenza minima del piano in quel giorno. */
+  const scopertiDel = (iso: string) => piano && piano.regole.presenzaMinimaReparto != null
+    ? gruppi.filter(g => assentiDel(iso, g.dipendenti.map(d => d.id)) > assentiConsentiti(g.dipendenti.length, piano.regole.presenzaMinimaReparto)).map(g => g.reparto)
     : []
+  /** Regole personali violate nel piano aperto (giorni consecutivi, residui): la presenza del reparto sta nei totali. */
+  const violazioniDi = (dipendenteId: number): EsitoRegola[] => {
+    if (!piano || piano.stato !== 'Aperto') return []
+    const sue = richieste.filter(r => r.dipendenteId === dipendenteId && r.tipo === 'Ferie' && r.stato !== 'Rifiutata' && r.dal <= piano.al && r.al >= piano.dal)
+    const out = sue.flatMap(r => verificaRegole(r, richieste, { ...piano, regole: { ...piano.regole, presenzaMinimaReparto: undefined } }))
+    return out.filter((e, i) => out.findIndex(x => x.testo === e.testo) === i)
+  }
 
   const cambiaMese = (delta: number) => {
     if (mesiPiano) { const t = mesiPiano[idxMese + delta]; if (t) setMese(t); return }
@@ -298,7 +306,7 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
                 : traGiorni! >= 0
                   ? ` · richieste entro il ${fmtDataHr(scadenza)} (${traGiorni === 0 ? 'oggi' : traGiorni === 1 ? 'domani' : `tra ${traGiorni} giorni`})`
                   : ` · termine per le richieste scaduto il ${fmtDataHr(scadenza)}`)}
-              {` · max ${piano.maxAssentiReparto} ${piano.maxAssentiReparto === 1 ? 'assente' : 'assenti'} per reparto`}
+
               {piano.stato === 'Archiviato' && piano.archiviatoAt && ` · archiviato il ${new Date(piano.archiviatoAt).toLocaleDateString('it-IT')} da ${piano.archiviatoDa}`}
             </span>
             <span className="pfe-piano__conta">
@@ -306,6 +314,9 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
               {rp.daApprovare > 0 && <> · <span className="pfe-piano__attesa">{rp.daApprovare} da approvare</span></>}
               {rp.alResp > 0 && <> · {rp.alResp} al responsabile</>}
               {rp.rifiutate > 0 && <> · {rp.rifiutate} rifiutate</>}
+            </span>
+            <span className="pfe-piano__regole">
+              <i className="fa-solid fa-scale-balanced" aria-hidden="true" /> Regole: {descriviRegole(piano.regole).join(' · ')}
             </span>
             {piano.note && <span className="pfe-piano__note"><i className="fa-solid fa-comment" aria-hidden="true" /> {piano.note}</span>}
           </div>
@@ -358,7 +369,23 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
                   const residuo = d.ferieAnnue - ferieGodute(richieste, d.id, mese.y)
                   return (
                     <tr key={d.id}>
-                      <td className="pfe__nome"><TruncatedText text={`${d.nome} ${d.cognome}`} /></td>
+                      <td className="pfe__nome">
+                        {(() => {
+                          const v = violazioniDi(d.id)
+                          return (
+                            <span className="pfe__nome-in">
+                              <TruncatedText text={`${d.nome} ${d.cognome}`} />
+                              {v.length > 0 && (
+                                <Tooltip text={v.map(x => x.testo).join(' ')}>
+                                  <span className={`pfe__regola pfe__regola--${v.some(x => x.livello === 'ko') ? 'ko' : 'warn'}`} aria-label="Regole del piano non rispettate">
+                                    <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                                  </span>
+                                </Tooltip>
+                              )}
+                            </span>
+                          )
+                        })()}
+                      </td>
                       {giorni.map(gg => {
                         const cls = `pfe__day ${gg.wd === 0 ? 'pfe__dom' : ''} ${gg.iso === oggi ? 'pfe__today' : ''} ${gg.fuori ? 'pfe__fuori' : ''}`
                         const a = gg.fuori ? undefined : assenzaDi(d.id, gg.iso)
@@ -391,7 +418,7 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
                   <td key={g.iso} className={cls}>
                     {n > 0 && (warn
                       ? <Tooltip text={piano
-                          ? `${fmtDataHr(g.iso)}: ${scoperti.join(', ')} oltre ${piano.maxAssentiReparto} ${piano.maxAssentiReparto === 1 ? 'assente' : 'assenti'}`
+                          ? `${fmtDataHr(g.iso)}: ${scoperti.join(', ')} sotto il ${piano.regole.presenzaMinimaReparto}% di presenza`
                           : `${n} assenti il ${fmtDataHr(g.iso)}: controlla la copertura dei turni`}><span>{n}</span></Tooltip>
                       : n)}
                   </td>

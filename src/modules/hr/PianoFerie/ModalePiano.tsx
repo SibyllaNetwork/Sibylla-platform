@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import Modal from '../../../core/components/Modal'
-import { InputField, DateRangeField, DatePickerField, TextareaField } from '../../../core/components/form'
+import { InputField, DateRangeField, DatePickerField, TextareaField, CheckboxField } from '../../../core/components/form'
 import { fmtDataHr, isoOf } from '../../../store/useHrGestioneStore'
-import type { DatiPiano, PianoFerie } from '../../../store/usePianiFerieStore'
+import { REGOLE_DEFAULT, type DatiPiano, type PianoFerie } from '../../../store/usePianiFerieStore'
 import './ModalePiano.sass'
 
 /**
  * Nuovo / Modifica piano ferie: nome, periodo, termine per le richieste dall'App Op!,
- * assenti massimi per reparto e avviso ai dipendenti. Modelli rapidi per le feste
+ * regole (giorni consecutivi, presenza minima per reparto, giorni residui e saldo
+ * negativo concedibile solo dall'HR) e avviso ai dipendenti. Modelli rapidi per le feste
  * ricorrenti (il prossimo Natale, Pasqua, estate, Ferragosto).
  */
 
@@ -50,7 +51,10 @@ export default function ModalePiano({ open, piano, altriAperti, onClose, onSalva
   const [dal, setDal] = useState('')
   const [al, setAl] = useState('')
   const [scad, setScad] = useState('')
-  const [max, setMax] = useState('1')
+  const [consec, setConsec] = useState('')
+  const [presenza, setPresenza] = useState('')
+  const [entroResidui, setEntroResidui] = useState(true)
+  const [negativo, setNegativo] = useState('0')
   const [note, setNote] = useState('')
   const [errori, setErrori] = useState<Record<string, string>>({})
 
@@ -60,7 +64,11 @@ export default function ModalePiano({ open, piano, altriAperti, onClose, onSalva
     setDal(piano?.dal ?? '')
     setAl(piano?.al ?? '')
     setScad(piano?.scadenzaRichieste ?? '')
-    setMax(String(piano?.maxAssentiReparto ?? 1))
+    const g = piano?.regole ?? REGOLE_DEFAULT
+    setConsec(g.maxGiorniConsecutivi != null ? String(g.maxGiorniConsecutivi) : '')
+    setPresenza(g.presenzaMinimaReparto != null ? String(g.presenzaMinimaReparto) : '')
+    setEntroResidui(g.entroResidui)
+    setNegativo(String(g.negativoMax))
     setNote(piano?.note ?? '')
     setErrori({})
   }, [open, piano])
@@ -73,15 +81,18 @@ export default function ModalePiano({ open, piano, altriAperti, onClose, onSalva
 
   const salva = () => {
     const e: Record<string, string> = {}
-    const n = Number(max)
+    const intero = (v: string) => v.trim() === '' ? undefined : Number(v)
+    const nConsec = intero(consec), nPres = intero(presenza), nNeg = intero(negativo) ?? 0
     if (!nome.trim()) e.nome = 'Dai un nome al piano, ad esempio "Natale 2026"'
     if (!dal || !al) e.periodo = 'Indica il periodo del piano'
     else if (al < dal) e.periodo = 'La data di fine precede quella di inizio'
     if (scad && dal && scad > dal) e.scad = 'Il termine per le richieste deve cadere prima dell\'inizio del piano'
-    if (!Number.isInteger(n) || n < 1) e.max = 'Almeno 1'
+    if (nConsec != null && (!Number.isInteger(nConsec) || nConsec < 1)) e.consec = 'Un numero intero di giorni, almeno 1'
+    if (nPres != null && (!Number.isInteger(nPres) || nPres < 0 || nPres > 100)) e.presenza = 'Una percentuale da 0 a 100'
+    if (entroResidui && (!Number.isInteger(nNeg) || nNeg < 0)) e.negativo = 'Un numero intero di giorni, 0 se mai'
     setErrori(e)
     if (Object.keys(e).length) return
-    onSalva({ nome: nome.trim(), dal, al, scadenzaRichieste: scad || undefined, maxAssentiReparto: n, note: note.trim() || undefined })
+    onSalva({ nome: nome.trim(), dal, al, scadenzaRichieste: scad || undefined, regole: { maxGiorniConsecutivi: nConsec, presenzaMinimaReparto: nPres, entroResidui, negativoMax: entroResidui ? nNeg : 0 }, note: note.trim() || undefined })
   }
 
   return (
@@ -112,12 +123,28 @@ export default function ModalePiano({ open, piano, altriAperti, onClose, onSalva
             <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /> Si sovrappone a {sovrapposti.map(p => `«${p.nome}» (${fmtDataHr(p.dal)} → ${fmtDataHr(p.al)})`).join(', ')}: le stesse ferie compariranno in entrambi.
           </p>
         )}
-        <div className="pfm__grid">
-          <DatePickerField name="pf-scad" label="Richieste entro il" value={scad} max={dal || undefined} error={errori.scad}
-            hint="Facoltativo: termine mostrato ai dipendenti nell'App Op!" onChange={e => setScad(e.target.value)} />
-          <InputField name="pf-max" label="Assenti massimi per reparto" type="number" min={1} step={1} required value={max} error={errori.max}
-            hint="Oltre, il giorno si segnala come scoperto" onChange={e => setMax(e.target.value)} />
-        </div>
+        <DatePickerField name="pf-scad" label="Richieste entro il" value={scad} max={dal || undefined} error={errori.scad}
+          hint="Facoltativo: termine mostrato ai dipendenti nell'App Op!" onChange={e => setScad(e.target.value)} className="pfm__scad" />
+
+        {/* ── Regole del piano ── */}
+        <fieldset className="pfm__regole">
+          <legend className="pfm__label">Regole del piano</legend>
+          <div className="pfm__grid">
+            <InputField name="pf-consec" label="Giorni consecutivi massimi" type="number" min={1} step={1} value={consec} error={errori.consec}
+              placeholder="Nessun limite" hint="Giorni di calendario di fila per persona, richieste attaccate comprese"
+              onChange={e => setConsec(e.target.value)} />
+            <InputField name="pf-presenza" label="Presenza minima per reparto (%)" type="number" min={0} max={100} step={5} value={presenza} error={errori.presenza}
+              placeholder="Nessun limite" hint="Quota del reparto che deve restare in servizio ogni giorno"
+              onChange={e => setPresenza(e.target.value)} />
+          </div>
+          <CheckboxField name="pf-residui" label="Le ferie restano entro i giorni residui della persona" checked={entroResidui}
+            onChange={e => setEntroResidui(e.target.checked)} />
+          {entroResidui && (
+            <InputField name="pf-negativo" label="Saldo negativo concedibile (giorni)" type="number" min={0} step={1} value={negativo} error={errori.negativo}
+              hint="Oltre i residui si va in negativo solo con l'approvazione dell'ufficio del personale; 0 = mai"
+              onChange={e => setNegativo(e.target.value)} className="pfm__neg" />
+          )}
+        </fieldset>
         <TextareaField name="pf-note" label="Avviso ai dipendenti" rows={2} value={note}
           hint="Lo vedono nell'App Op! quando chiedono le ferie del periodo" onChange={e => setNote(e.target.value)} />
         <div className="pfm__actions">

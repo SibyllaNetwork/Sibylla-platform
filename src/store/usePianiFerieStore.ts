@@ -14,6 +14,25 @@ import {
 
 export type StatoPiano = 'Aperto' | 'Archiviato'
 
+/**
+ * Regole del piano, controllate su ogni richiesta di ferie del periodo (valutazione
+ * di Sibylla in Richieste e calendario del piano).
+ */
+export interface RegolePiano {
+  /** Massimo di giorni di calendario consecutivi di ferie per persona (richieste attaccate comprese). */
+  maxGiorniConsecutivi?: number
+  /** Percentuale minima del reparto che deve restare in servizio ogni giorno. */
+  presenzaMinimaReparto?: number
+  /** Le ferie non possono superare i giorni residui della persona. */
+  entroResidui: boolean
+  /**
+   * Giorni oltre il residuo concedibili (saldo in negativo): solo con l'autorizzazione
+   * esplicita dell'ufficio del personale. 0 = mai.
+   */
+  negativoMax: number
+}
+export const REGOLE_DEFAULT: RegolePiano = { maxGiorniConsecutivi: 10, presenzaMinimaReparto: 50, entroResidui: true, negativoMax: 2 }
+
 /** Riga della fotografia del piano alla chiusura. */
 export interface FerieArchiviate {
   richiestaId: string
@@ -33,8 +52,7 @@ export interface PianoFerie {
   al: string
   /** Termine per chiedere le ferie del piano dall'App Op! (aaaa-mm-gg), facoltativo. */
   scadenzaRichieste?: string
-  /** Assenti contemporanei per reparto oltre cui il giorno si segnala come scoperto. */
-  maxAssentiReparto: number
+  regole: RegolePiano
   /** Avviso ai dipendenti mostrato nell'App Op!. */
   note?: string
   stato: StatoPiano
@@ -46,7 +64,7 @@ export interface PianoFerie {
   archivio?: FerieArchiviate[]
 }
 
-export type DatiPiano = Pick<PianoFerie, 'nome' | 'dal' | 'al' | 'scadenzaRichieste' | 'maxAssentiReparto' | 'note'>
+export type DatiPiano = Pick<PianoFerie, 'nome' | 'dal' | 'al' | 'scadenzaRichieste' | 'regole' | 'note'>
 
 /** Ferie che rientrano nel piano: tipo Ferie, periodo che si sovrappone, tagliate ai confini. */
 export function feriePiano(richieste: RichiestaAssenza[], p: Pick<PianoFerie, 'dal' | 'al'>): FerieArchiviate[] {
@@ -82,13 +100,13 @@ function seed(): PianoFerie[] {
   return [
     {
       id: 'pf-natale', nome: `Natale ${an}`, dal: `${an}-12-01`, al: `${an + 1}-01-07`,
-      scadenzaRichieste: `${an}-11-20`, maxAssentiReparto: 1,
+      scadenzaRichieste: `${an}-11-20`, regole: { maxGiorniConsecutivi: 7, presenzaMinimaReparto: 50, entroResidui: true, negativoMax: 2 },
       note: 'Chiedete le ferie di Natale e Capodanno entro il 20 novembre: oltre quella data valutiamo solo i casi urgenti.',
       stato: 'Aperto', createdAt: `${an}-10-15T09:00:00`, creatoDa: 'Ufficio del personale',
     },
     {
       id: 'pf-estate', nome: `Estate ${an}`, dal: `${an}-06-01`, al: `${an}-09-30`,
-      scadenzaRichieste: `${an}-04-30`, maxAssentiReparto: 1,
+      scadenzaRichieste: `${an}-04-30`, regole: { maxGiorniConsecutivi: 15, presenzaMinimaReparto: 50, entroResidui: true, negativoMax: 0 },
       note: 'Due settimane a testa a rotazione, una in luglio o agosto e una a scelta.',
       stato: 'Archiviato', createdAt: `${an}-03-02T09:00:00`, creatoDa: 'Ufficio del personale',
       archiviatoAt: `${an}-10-01T10:00:00`, archiviatoDa: 'Ufficio del personale', archivio: estate,
@@ -121,4 +139,4 @@ export const usePianiFerieStore = create<PianiFerieState>()(persist((set) => ({
     ? { ...p, stato: 'Aperto', archiviatoAt: undefined, archiviatoDa: undefined, archivio: undefined }
     : p) })),
   elimina: (id) => set(st => ({ piani: st.piani.filter(p => p.id !== id) })),
-}), { name: 'sibylla.hr-piani-ferie', version: 1 }))
+}), { name: 'sibylla.hr-piani-ferie', version: 3, migrate: () => ({ piani: seed() }) as unknown as PianiFerieState }))

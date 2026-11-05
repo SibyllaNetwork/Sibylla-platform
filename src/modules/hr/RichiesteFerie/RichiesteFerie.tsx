@@ -18,6 +18,8 @@ import {
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
 import StoricoHr from '../_storico/StoricoHr'
+import { usePianiFerieStore, type PianoFerie } from '../../../store/usePianiFerieStore'
+import { pianoDi, saldoDopo, verificaRegole } from '../PianoFerie/regolePiano'
 import BarraSelezione from '../_selezione/BarraSelezione'
 import { useSelezione } from '../_selezione/useSelezione'
 import { occupazione, addGiorni } from '../../../store/useTurniPersonaleStore'
@@ -81,14 +83,17 @@ function occupazioneMedia(dal: string, al: string) {
   return out.length ? Math.round(out.reduce((a, b) => a + b, 0) / out.length) : 0
 }
 
-function valuta(r: RichiestaAssenza & { residuo: number; conflitti: RichiestaAssenza[]; reparto: string }): Valutazione {
+function valuta(r: RichiestaAssenza & { residuo: number; conflitti: RichiestaAssenza[]; reparto: string }, richieste: RichiestaAssenza[], piani: PianoFerie[]): Valutazione {
   const motivi: Valutazione['motivi'] = []
   if (r.tipo === 'Malattia') return { livello: 'ok', motivi: [{ livello: 'ok', testo: 'Malattia: va registrata con il certificato.' }] }
   const colleghi = DIPENDENTI_HR.filter(d => d.reparto === r.reparto && d.id !== r.dipendenteId).length
   const assenti = new Set(r.conflitti.map(c => c.dipendenteId)).size
   if (assenti > 0 && assenti >= colleghi) motivi.push({ livello: 'ko', testo: `${r.reparto} resterebbe scoperto: tutti i colleghi sono già assenti.` })
   else if (assenti > 0) motivi.push({ livello: 'warn', testo: `Nel reparto è già assente ${r.conflitti.map(c => nomeDipendente(c.dipendenteId)).join(', ')}.` })
-  if (r.tipo === 'Ferie' && r.residuo < 0) motivi.push({ livello: 'ko', testo: `Ferie insufficienti: mancano ${-r.residuo} gg.` })
+  // Ferie in un piano aperto: valgono le sue regole (giorni consecutivi, presenza del reparto, residui e negativo).
+  const piano = pianoDi(r, piani)
+  if (piano) motivi.push(...verificaRegole(r, richieste, piano))
+  else if (r.tipo === 'Ferie' && r.residuo < 0) motivi.push({ livello: 'warn', testo: `Saldo a ${r.residuo} gg: il negativo è consentito solo con l'autorizzazione dell'ufficio del personale.` })
   if (r.tipo === 'ROL' && r.residuo < 0) motivi.push({ livello: 'ko', testo: `ROL insufficienti: mancano ${fmtOre(-r.residuo)}.` })
   const occ = occupazioneMedia(r.dal, r.al)
   if (occ >= 85) motivi.push({ livello: 'warn', testo: `Periodo di alta occupazione (${occ}% in media).` })
@@ -150,6 +155,7 @@ interface Bozza { id: string; dipendenteId: string; tipo: TipoAssenza; dal: stri
 
 export default function RichiesteFerie({ navigate }: { navigate: (p: string) => void }) {
   const richieste = useHrGestioneStore(s => s.richieste)
+  const piani = usePianiFerieStore(s => s.piani)
   const decidi = useHrGestioneStore(s => s.decidiRichiesta)
   const sollecitaResp = useHrGestioneStore(s => s.sollecitaResponsabile)
   const modifica = useHrGestioneStore(s => s.modificaRichiesta)
@@ -187,12 +193,12 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
         conflitti: r.stato === 'Rifiutata' ? [] : sovrapposizioni(richieste, r),
       }
     })
-    .map(r => ({ ...r, valutazione: r.stato === 'Da approvare' ? valuta(r) : null, urgente: r.stato === 'Da approvare' && giorniA(r.dal) <= 3 }))
+    .map(r => ({ ...r, valutazione: r.stato === 'Da approvare' ? valuta(r, richieste, piani) : null, urgente: r.stato === 'Da approvare' && giorniA(r.dal) <= 3 }))
     .filter(r => vista === VISTA_TUTTE || (vista === VISTA_ATTESA ? r.stato === 'Da approvare' : r.stato === vista))
     .filter(r => !reparto || r.reparto === reparto)
     .filter(r => cf.matchText(r.dipendente, 'dipendente') && cf.matchMulti(r.tipo, 'tipo') && cf.matchMulti(r.stato, 'stato')),
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  [richieste, vista, reparto, cf.text, cf.multi])
+  [richieste, piani, vista, reparto, cf.text, cf.multi])
 
   const sorted = useMemo(() => cf.sort ? cf.sortRows(rows) : [...rows].sort((a, b) => a.dal.localeCompare(b.dal)),
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -226,7 +232,43 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     toast.success(`${consigliate.length === 1 ? '1 richiesta approvata' : `${consigliate.length} richieste approvate`}: sono nel Piano ferie.`, 'Richieste approvate')
   }
 
+  /**
+   * Ferie oltre i giorni residui: il saldo va in negativo solo se l'HR lo autorizza
+   * esplicitamente. Ritorna la nota per lo storico, null se l'HR non autorizza,
+   * '' se il saldo resta positivo.
+   */
+  const autorizzaNegativo = async (xs: RichiestaAssenza[]): Promise<Map<string, string> | null> => {
+    const neg = xs.filter(r => r.tipo === 'Ferie' && saldoDopo(r, richieste) < 0)
+    const note = new Map<string, string>()
+    if (!neg.length) return note
+    const righe = neg.map(r => {
+      const dopo = saldoDopo(r, richieste)
+      const piano = pianoDi(r, piani)
+      const oltre = piano && (!piano.regole.entroResidui ? false : -dopo > piano.regole.negativoMax)
+      note.set(r.id, `Saldo negativo autorizzato: ${dopo} gg`)
+      return { r, dopo, piano, oltre }
+    })
+    const ok = await confirm({
+      title: neg.length === 1 ? 'Autorizza il saldo negativo' : `Autorizza ${neg.length} saldi negativi`,
+      message: <>
+        {righe.map(({ r, dopo, piano, oltre }) => (
+          <span key={r.id} className="rfe-neg__riga">
+            <strong>{nomeDipendente(r.dipendenteId)}</strong>: con queste ferie il saldo va a <strong>{dopo} gg</strong>
+            {piano && (oltre
+              ? <> · oltre il negativo consentito da «{piano.nome}» ({piano.regole.negativoMax} gg)</>
+              : <> · entro il limite di «{piano.nome}»</>)}.
+          </span>
+        ))}
+        <span className="rfe-neg__riga">Il negativo richiede la tua autorizzazione: verrà recuperato con le ferie che maturano e resta nello storico della richiesta.</span>
+      </>,
+      confirmLabel: 'Autorizza e approva', danger: righe.some(x => x.oltre),
+    })
+    return ok ? note : null
+  }
+
   const approva = async (r: RichiestaAssenza) => {
+    const neg = await autorizzaNegativo([r])
+    if (!neg) return
     if (r.tipo === 'ROL') {
       const saldo = saldoRol(richieste, r.dipendenteId, Number(r.dal.slice(0, 4)))
       const ore = oreRichiesta(r)
@@ -239,7 +281,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
         if (!ok) return
       }
     }
-    decidi(r.id, 'Approvata')
+    decidi(r.id, 'Approvata', undefined, neg.get(r.id))
     toast.success(`${r.tipo} di ${nomeDipendente(r.dipendenteId)} dal ${fmtDataHr(r.dal)} al ${fmtDataHr(r.al)} approvata: è nel Piano ferie.`, 'Richiesta approvata')
   }
   const confermaRifiuto = () => {
@@ -260,7 +302,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     })
   }
 
-  const salvaModifica = () => {
+  const salvaModifica = async () => {
     if (!bozza) return
     const e: Record<string, string> = {}
     if (!bozza.dipendenteId) e.dipendenteId = 'Scegli il dipendente'
@@ -281,6 +323,13 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     }
     const modifiche = differenze(prima, dopo)
     if (!modifiche.length) { toast.info('Non hai cambiato nessun valore.', 'Nessuna modifica'); return }
+    // Approvata dalla modale con ferie oltre i residui: serve la stessa autorizzazione esplicita.
+    if (dopo.stato === 'Approvata' && prima.stato !== 'Approvata') {
+      const neg = await autorizzaNegativo([{ ...prima, ...dopo, stato: prima.stato }])
+      if (!neg) return
+      const n = neg.get(prima.id)
+      if (n) modifiche.push(n)
+    }
     modifica(bozza.id, dopo, modifiche, bozza.messaggio.trim() || dopo.motivo)
     toast.success(`Richiesta di ${nomeDipendente(Number(bozza.dipendenteId))} aggiornata.`, 'Richiesta modificata')
     setBozza(null)
@@ -326,7 +375,9 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
       confirmLabel: avvisi.length ? 'Approva comunque' : 'Approva', danger: false,
     })
     if (!ok) return
-    xs.forEach(r => decidi(r.id, 'Approvata'))
+    const neg = await autorizzaNegativo(xs)
+    if (!neg) return
+    xs.forEach(r => decidi(r.id, 'Approvata', undefined, neg.get(r.id)))
     toast.success(xs.length === 1 ? '1 richiesta approvata: è nel Piano ferie.' : `${xs.length} richieste approvate: sono nel Piano ferie.`, 'Richieste approvate')
     sel.svuota()
   }
