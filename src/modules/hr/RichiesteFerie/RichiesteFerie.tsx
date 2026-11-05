@@ -13,7 +13,7 @@ import { toast } from '../../../core/components/Toast/useToast'
 import {
   useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, TIPI_ASSENZA, STATI_RICHIESTA,
   nomeDipendente, repartoDipendente, fmtDataHr, giorniLavorativi, ferieGodute, sovrapposizioni,
-  saldoRol, saldoFerie, oreRichiesta, ORE_GIORNO,
+  saldoRol, saldoFerie, oreRichiesta, ORE_GIORNO, inAttesaRichiesta,
   type RichiestaAssenza, type TipoAssenza, type StatoRichiesta,
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
@@ -44,7 +44,8 @@ const VISTA_TUTTE = 'tutte'
 /** Ultima correzione dell'HR, se c'è. */
 const ultimaModifica = (r: RichiestaAssenza) => [...(r.storico ?? [])].reverse().find(e => e.azione === 'Modificata')
 
-const statoCls = (s: StatoRichiesta) => (s === 'Da approvare' ? 'attesa' : s === 'Approvata' ? 'ok' : 'ko')
+const statoCls = (s: StatoRichiesta) => (s === 'Al responsabile' ? 'info' : s === 'Da approvare' ? 'attesa' : s === 'Approvata' ? 'ok' : 'ko')
+const VISTA_RESP = 'Al responsabile'
 
 /** Tipi che si possono chiedere a ore. */
 const A_ORE: TipoAssenza[] = ['ROL', 'Permesso']
@@ -112,8 +113,34 @@ function differenze(a: RichiestaAssenza, b: Pick<RichiestaAssenza, 'dipendenteId
   return out
 }
 
+const fmtGiorno = (iso?: string) => iso ? new Date(iso).toLocaleDateString('it-IT') : ''
+
+/** Primo livello dell'iter in parole, per tooltip e modale. */
+function testoIter(r: RichiestaAssenza) {
+  const x = r.responsabile
+  if (!x) return 'Nessun responsabile di reparto: la richiesta è arrivata direttamente all\'ufficio del personale.'
+  if (x.esito === 'In attesa') return `In attesa di ${x.nome}, responsabile ${repartoDipendente(r.dipendenteId)}, nell'App Op!${x.sollecitatoAt ? ` · sollecitato il ${fmtGiorno(x.sollecitatoAt)}` : ''}`
+  return `${x.esito === 'Approvata' ? 'Approvata' : 'Rifiutata'} da ${x.nome}, responsabile ${repartoDipendente(r.dipendenteId)}, il ${fmtGiorno(x.at)}${x.motivo ? `: ${x.motivo}` : ''}`
+}
+
+/** Icona dell'esito del responsabile di reparto accanto allo stato (solo ferie/ROL con responsabile). */
+function IterResponsabile({ r }: { r: RichiestaAssenza }) {
+  const x = r.responsabile
+  if (!x) return null
+  const k = x.esito === 'Approvata' ? 'ok' : x.esito === 'Rifiutata' ? 'ko' : 'attesa'
+  const ico = k === 'ok' ? 'fa-user-check' : k === 'ko' ? 'fa-user-xmark' : 'fa-user-clock'
+  return (
+    <Tooltip text={testoIter(r)}>
+      <span className={`rfe__iter rfe__iter--${k}`} aria-label={testoIter(r)}><i className={`fa-solid ${ico}`} aria-hidden="true" /></span>
+    </Tooltip>
+  )
+}
+
+// L'HR decide sulle "Da approvare" (già passate dal responsabile); "Al responsabile"
+// sono le ferie e i ROL ancora fermi al primo livello dell'iter, nell'App Op!.
 const VISTE = [
   { value: 'attesa', label: 'Da approvare' },
+  { value: VISTA_RESP, label: 'Al responsabile' },
   { value: 'Approvata', label: 'Approvate' },
   { value: 'Rifiutata', label: 'Rifiutate' },
   { value: 'tutte', label: 'Tutte' },
@@ -124,6 +151,7 @@ interface Bozza { id: string; dipendenteId: string; tipo: TipoAssenza; dal: stri
 export default function RichiesteFerie({ navigate }: { navigate: (p: string) => void }) {
   const richieste = useHrGestioneStore(s => s.richieste)
   const decidi = useHrGestioneStore(s => s.decidiRichiesta)
+  const sollecitaResp = useHrGestioneStore(s => s.sollecitaResponsabile)
   const modifica = useHrGestioneStore(s => s.modificaRichiesta)
   const elimina = useHrGestioneStore(s => s.eliminaRichiesta)
   const cf = useColFilters()
@@ -148,8 +176,8 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
       // Per i ROL il residuo è in ore: sul monte ore annuo, togliendo anche questa richiesta se in attesa.
       const rol = r.tipo === 'ROL' ? saldoRol(richieste, r.dipendenteId, Number(r.dal.slice(0, 4))) : null
       const residuo = rol
-        ? rol.residue - (r.stato === 'Da approvare' ? oreRichiesta(r) : 0)
-        : (d?.ferieAnnue ?? 0) - godute - (r.tipo === 'Ferie' && r.stato === 'Da approvare' ? giorni : 0)
+        ? rol.residue - (inAttesaRichiesta(r.stato) ? oreRichiesta(r) : 0)
+        : (d?.ferieAnnue ?? 0) - godute - (r.tipo === 'Ferie' && inAttesaRichiesta(r.stato) ? giorni : 0)
       return {
         ...r,
         dipendente: nomeDipendente(r.dipendenteId),
@@ -177,9 +205,12 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   const { tieni } = sel
   useEffect(() => { tieni(richieste.map(r => r.id)) }, [richieste, tieni])
   const selezionate = richieste.filter(r => sel.has(r.id))
-  const selDaApprovare = selezionate.filter(r => r.stato !== 'Approvata')
-  const selDaRifiutare = selezionate.filter(r => r.stato !== 'Rifiutata')
+  // Finché il responsabile non decide, l'HR non approva né rifiuta: può solo sollecitarlo.
+  const selDaApprovare = selezionate.filter(r => r.stato !== 'Approvata' && r.stato !== 'Al responsabile')
+  const selDaRifiutare = selezionate.filter(r => r.stato !== 'Rifiutata' && r.stato !== 'Al responsabile')
+  const selDaSollecitare = selezionate.filter(r => r.stato === 'Al responsabile')
   const inAttesa = richieste.filter(r => r.stato === 'Da approvare').length
+  const alResponsabile = richieste.filter(r => r.stato === 'Al responsabile').length
   const contaVista = (v: string) => v === VISTA_TUTTE ? richieste.length : v === VISTA_ATTESA ? inAttesa : richieste.filter(r => r.stato === v).length
   // Richieste da approvare che Sibylla valuta senza problemi (sul filtro reparto attivo).
   const consigliate = rows.filter(r => r.valutazione?.livello === 'ok')
@@ -313,6 +344,13 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     sel.svuota()
   }
 
+  const sollecita = (xs: RichiestaAssenza[]) => {
+    sollecitaResp(xs.map(r => r.id))
+    const nomi = Array.from(new Set(xs.map(r => r.responsabile?.nome).filter(Boolean)))
+    toast.success(`Promemoria inviato nell'App Op! a ${nomi.join(', ')}.`, xs.length === 1 ? 'Responsabile sollecitato' : 'Responsabili sollecitati')
+    if (xs.length > 1) sel.svuota()
+  }
+
   const esporta = () => exportXls('richieste-assenze', ['Richiesta il', 'Dipendente', 'Reparto', 'Tipo', 'Dal', 'Al', 'Durata', 'Residuo', 'Stato', 'Note', 'Motivo rifiuto'],
     sorted.map(r => [fmtDataHr(r.createdAt.slice(0, 10)), r.dipendente, r.reparto, r.tipo, fmtDataHr(r.dal), fmtDataHr(r.al), durata(r),
       r.tipo === 'Ferie' ? `${r.residuo} gg` : r.tipo === 'ROL' ? fmtOre(r.residuo) : '', r.stato, r.note ?? '', r.motivo ?? '']))
@@ -336,7 +374,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     <div className="rfe">
       <PageHead
         title="Richieste"
-        subtitle="Approva o rifiuta ferie, permessi e assenze del personale"
+        subtitle="Ferie e ROL arrivano qui dopo l'approvazione del responsabile di reparto: l'ufficio del personale dà quella definitiva"
         onBack={() => navigate('home')}
       />
 
@@ -379,6 +417,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
       <BarraSelezione n={sel.n} nome={['richiesta', 'richieste']} onSvuota={sel.svuota} azioni={[
         { label: 'Approva', icona: 'fa-circle-check', quante: selDaApprovare.length, onClick: approvaSelezionate },
         { label: 'Rifiuta', icona: 'fa-circle-xmark', quante: selDaRifiutare.length, onClick: () => setRifiuto({ rows: selDaRifiutare, motivo: '' }) },
+        { label: 'Sollecita responsabili', icona: 'fa-bell', quante: selDaSollecitare.length, onClick: () => sollecita(selDaSollecitare) },
         { label: 'Elimina', icona: 'fa-trash', quante: sel.n, onClick: eliminaSelezionate, pericolo: true },
       ]} />
 
@@ -440,9 +479,9 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
                 <td className="rfe__r"><TruncatedText text={durata(r)} /></td>
                 <td className={`rfe__r ${r.residuo < 0 ? 'rfe__neg' : ''}`}>
                   {r.tipo === 'Ferie'
-                    ? <Tooltip text={r.stato === 'Da approvare' ? 'Giorni di ferie che restano se la richiesta viene approvata' : 'Giorni di ferie ancora disponibili nell\'anno'}><span>{r.residuo} gg</span></Tooltip>
+                    ? <Tooltip text={inAttesaRichiesta(r.stato) ? 'Giorni di ferie che restano se la richiesta viene approvata' : 'Giorni di ferie ancora disponibili nell\'anno'}><span>{r.residuo} gg</span></Tooltip>
                     : r.tipo === 'ROL'
-                      ? <Tooltip text={r.stato === 'Da approvare' ? 'Ore di ROL che restano se la richiesta viene approvata' : 'Ore di ROL ancora disponibili nell\'anno'}><span>{fmtOre(r.residuo)}</span></Tooltip>
+                      ? <Tooltip text={inAttesaRichiesta(r.stato) ? 'Ore di ROL che restano se la richiesta viene approvata' : 'Ore di ROL ancora disponibili nell\'anno'}><span>{fmtOre(r.residuo)}</span></Tooltip>
                       : <span className="rfe__dash">-</span>}
                 </td>
                 <td>
@@ -476,6 +515,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
                       ? <Tooltip text={r.motivo}><span className="rfe__stato-txt">{r.stato} <Ico n="info" w="solid" s={12} c="currentColor" /></span></Tooltip>
                       : <TruncatedText text={r.stato} />}
                   </span>
+                  <IterResponsabile r={r} />
                   {ultimaModifica(r) && (
                     <Tooltip text={`Modificata da ${ultimaModifica(r)!.autore} il ${new Date(ultimaModifica(r)!.at).toLocaleDateString('it-IT')}: ${ultimaModifica(r)!.modifiche?.join('; ') ?? ''}`}>
                       <span className="rfe__mod" aria-label="Modificata dall'HR"><i className="fa-solid fa-pen" aria-hidden="true" /></span>
@@ -486,8 +526,12 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
                 <td className="rfe__c">
                   <span className="rfe__acts">
                     {act('Modifica', 'edit', () => apriModifica(r))}
-                    {r.stato !== 'Approvata' && act('Approva', 'circle-check', () => approva(r))}
-                    {r.stato !== 'Rifiutata' && act('Rifiuta', 'circle-xmark', () => setRifiuto({ rows: [r], motivo: '' }))}
+                    {r.stato === 'Al responsabile'
+                      ? act(`Sollecita ${r.responsabile?.nome ?? 'il responsabile'}: decide prima lui dall'App Op!`, 'bell', () => sollecita([r]))
+                      : <>
+                          {r.stato !== 'Approvata' && act('Approva', 'circle-check', () => approva(r))}
+                          {r.stato !== 'Rifiutata' && act('Rifiuta', 'circle-xmark', () => setRifiuto({ rows: [r], motivo: '' }))}
+                        </>}
                     {act('Elimina', 'trash', () => eliminaRow(r))}
                   </span>
                 </td>
@@ -495,7 +539,7 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
             ))}
             {pageRows.length === 0 && (
               <tr><td colSpan={11} className="rfe__empty">
-                {vista === VISTA_ATTESA ? 'Nessuna richiesta da approvare.' : 'Nessuna richiesta corrisponde ai filtri impostati.'}
+                {vista === VISTA_ATTESA ? 'Nessuna richiesta da approvare.' : vista === VISTA_RESP ? 'Nessuna richiesta in attesa dei responsabili di reparto.' : 'Nessuna richiesta corrisponde ai filtri impostati.'}
               </td></tr>
             )}
           </tbody>
@@ -556,9 +600,24 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
               </p>
             )}
             <TextareaField name="rf-note" label="Note" rows={2} value={bozza.note} onChange={e => setBozza({ ...bozza, note: e.target.value })} />
-            <SelectField name="rf-stato" label="Stato" value={bozza.stato}
-              onChange={e => setBozza({ ...bozza, stato: e.target.value as StatoRichiesta })}
-              options={STATI_RICHIESTA.map(t => ({ value: t, label: t }))} />
+            {(() => {
+              const r = richieste.find(x => x.id === bozza.id)
+              const fermaAlResp = r?.stato === 'Al responsabile'
+              return (
+                <>
+                  {r?.responsabile && (
+                    <p className={`rfe-modal__iter rfe-modal__iter--${r.responsabile.esito === 'Approvata' ? 'ok' : r.responsabile.esito === 'Rifiutata' ? 'ko' : 'attesa'}`}>
+                      <i className={`fa-solid ${r.responsabile.esito === 'Approvata' ? 'fa-user-check' : r.responsabile.esito === 'Rifiutata' ? 'fa-user-xmark' : 'fa-user-clock'}`} aria-hidden="true" />
+                      {testoIter(r)}
+                    </p>
+                  )}
+                  <SelectField name="rf-stato" label="Stato" value={bozza.stato} disabled={fermaAlResp}
+                    hint={fermaAlResp ? `Decide prima ${r?.responsabile?.nome} dall'App Op!: poi la richiesta passa a te` : undefined}
+                    onChange={e => setBozza({ ...bozza, stato: e.target.value as StatoRichiesta })}
+                    options={(fermaAlResp ? STATI_RICHIESTA : STATI_RICHIESTA.filter(t => t !== 'Al responsabile')).map(t => ({ value: t, label: t }))} />
+                </>
+              )
+            })()}
             {bozza.stato === 'Rifiutata' && (
               <TextareaField name="rf-motivo-mod" label="Motivo del rifiuto" required rows={2} value={bozza.motivo} error={errori.motivo}
                 hint="Il dipendente lo vedrà nella sua richiesta"

@@ -49,9 +49,9 @@
 .rfe__col-residuo
   width: 8%
 .rfe__col-conf
-  width: 11%
+  width: 8%
 .rfe__col-stato
-  width: 10%
+  width: 13%
 .rfe__col-azioni
   width: 11%
 
@@ -195,6 +195,43 @@
   gap: 4px
   color: $warning
   cursor: help
+
+.rfe__iter
+  flex: 0 0 auto
+  font-size: 12px
+  cursor: help
+
+  &--ok
+    color: $success
+
+  &--ko
+    color: $error
+
+  &--attesa
+    color: $link
+
+.rfe-modal__iter
+  margin: 0
+  display: flex
+  align-items: flex-start
+  gap: 8px
+  padding: 8px 12px
+  border-radius: $radius-md
+  background: $primary-50
+  font-size: 12px
+  color: $text-active
+
+  i
+    margin-top: 2px
+
+  &--ok i
+    color: $success
+
+  &--ko i
+    color: $error
+
+  &--attesa i
+    color: $link
 
 .rfe__stato-cell
   display: flex

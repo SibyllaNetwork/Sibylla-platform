@@ -7,6 +7,7 @@ import { SelectField, CheckboxField } from '../../../core/components/form'
 import {
   useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, TIPI_ASSENZA, isoOf, todayIsoHr, fmtDataHr,
   ferieGodute, type RichiestaAssenza, type TipoAssenza,
+  inAttesaRichiesta,
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
 import './PianoFerie.sass'
@@ -45,7 +46,7 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
 
   // Assenze del mese visibili: approvate + (a scelta) da approvare; le rifiutate mai.
   const assenze = useMemo(() => richieste.filter(r =>
-    (r.stato === 'Approvata' || (conAttesa && r.stato === 'Da approvare')) && r.dal <= ultimo && r.al >= primo),
+    (r.stato === 'Approvata' || (conAttesa && inAttesaRichiesta(r.stato))) && r.dal <= ultimo && r.al >= primo),
   [richieste, conAttesa, primo, ultimo])
 
   const assenzaDi = (dipendenteId: number, iso: string): RichiestaAssenza | undefined =>
@@ -79,7 +80,7 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
         return [`${d.nome} ${d.cognome}`, d.reparto, r.tipo, fmtDataHr(r.dal), fmtDataHr(r.al), r.stato]
       }))
 
-  const inAttesa = richieste.filter(r => r.stato === 'Da approvare').length
+  const inAttesa = richieste.filter(r => inAttesaRichiesta(r.stato)).length
 
   return (
     <div className="pfe">
@@ -161,11 +162,11 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
                         const a = assenzaDi(d.id, gg.iso)
                         const cls = `pfe__day ${gg.wd === 0 ? 'pfe__dom' : ''} ${gg.iso === oggi ? 'pfe__today' : ''}`
                         if (!a) return <td key={gg.iso} className={cls} />
-                        const tip = `${d.nome} ${d.cognome} · ${a.tipo} ${a.dal === a.al ? `il ${fmtDataHr(a.dal)}` : `dal ${fmtDataHr(a.dal)} al ${fmtDataHr(a.al)}`}${a.stato === 'Da approvare' ? ' · da approvare' : ''}${a.note ? ` · ${a.note}` : ''}`
+                        const tip = `${d.nome} ${d.cognome} · ${a.tipo} ${a.dal === a.al ? `il ${fmtDataHr(a.dal)}` : `dal ${fmtDataHr(a.dal)} al ${fmtDataHr(a.al)}`}${a.stato === 'Al responsabile' ? ' · dal responsabile di reparto' : a.stato === 'Da approvare' ? ' · da approvare' : ''}${a.note ? ` · ${a.note}` : ''}`
                         return (
                           <td key={gg.iso} className={cls}>
                             <Tooltip text={tip}>
-                              <span className={`pfe__bar pfe__bar--${tipoCls(a.tipo)} ${a.stato === 'Da approvare' ? 'pfe__bar--attesa' : ''} ${a.dal === gg.iso ? 'pfe__bar--start' : ''} ${a.al === gg.iso ? 'pfe__bar--end' : ''}`} />
+                              <span className={`pfe__bar pfe__bar--${tipoCls(a.tipo)} ${inAttesaRichiesta(a.stato) ? 'pfe__bar--attesa' : ''} ${a.dal === gg.iso ? 'pfe__bar--start' : ''} ${a.al === gg.iso ? 'pfe__bar--end' : ''}`} />
                             </Tooltip>
                           </td>
                         )

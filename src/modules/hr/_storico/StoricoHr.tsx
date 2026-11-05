@@ -17,9 +17,12 @@ const ICO: Record<string, string> = {
   Rimborsata: 'fa-money-bill',
   Modificata: 'fa-pen',
   'Rimessa in attesa': 'fa-rotate-left',
+  'Approvata dal responsabile': 'fa-user-check',
+  'Rifiutata dal responsabile': 'fa-user-xmark',
+  'Sollecito al responsabile': 'fa-bell',
 }
 
-const tono = (azione: string) => azione === 'Approvata' || azione === 'Rimborsata' ? 'ok' : azione === 'Rifiutata' ? 'ko' : azione === 'Modificata' ? 'mod' : 'base'
+const tono = (azione: string) => azione.startsWith('Approvata') || azione === 'Rimborsata' ? 'ok' : azione.startsWith('Rifiutata') ? 'ko' : azione === 'Modificata' ? 'mod' : 'base'
 
 export default function StoricoHr({ origine, storico, titolo = 'Storico' }: {
   /** Invio dall'App Op!: data (ISO) e da chi. Facoltativo se la data non è nota. */
