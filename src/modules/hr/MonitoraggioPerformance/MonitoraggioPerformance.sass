@@ -2,6 +2,7 @@
 @use '../../../styles/tokens' as *
 
 .mon-perf
+  container: mon-perf / inline-size
   display: flex
   flex-direction: column
   align-items: stretch
@@ -51,15 +52,17 @@
     border-radius: 12px
     background: var(--color-surface)
     padding: 8px 18px 18px
-    overflow-x: auto
 
+  // Nessuno scorrimento orizzontale: le colonne si stringono (minmax(0, …)) e
+  // sotto le soglie delle container query in fondo al file la riga si ricompone.
   &__board-scroll
-    min-width: 760px
+    min-width: 0
 
   // riga = grid: obiettivo | reparto | pista | premio maturato
   &__row
     display: grid
-    grid-template-columns: minmax(190px, 1.3fr) 64px minmax(260px, 2fr) 170px
+    grid-template-columns: minmax(0, 1.3fr) 64px minmax(0, 2fr) 170px
+    grid-template-areas: "name rep track maturato"
     align-items: center
     gap: 12px
 
@@ -73,10 +76,10 @@
     color: $text-inactive
     font-size: 12px
     font-weight: 700
-    letter-spacing: .03em
     padding: 7px 14px
-    border-radius: 999px
+    border-radius: $radius-md
     cursor: pointer
+    white-space: nowrap
 
     &.is-live
       border-color: $success
@@ -92,14 +95,21 @@
     background: $success
     animation: mon-perf-pulse 1.4s ease-in-out infinite
 
+  // intestazione in case normale (standard tabella), una riga con ellipsis
   &__row--head
     padding: 8px 0 6px
     border-bottom: 1px solid $border
-    font-size: 11px
-    font-weight: 700
-    text-transform: uppercase
-    letter-spacing: .04em
+    font-size: 12px
+    font-weight: 600
     color: $text-inactive
+
+    > div
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    .mon-perf__c-maturato
+      display: block
 
   &__row--emp
     width: 100%
@@ -119,6 +129,7 @@
       background: $primary-50
 
   &__c-name
+    grid-area: name
     display: inline-flex
     align-items: center
     gap: 10px
@@ -158,6 +169,11 @@
     flex-direction: column
     min-width: 0
 
+    // il wrapper del Tooltip (inline-flex) non deve allargare la colonna
+    > *
+      min-width: 0
+      max-width: 100%
+
   &__user-name
     font-weight: 600
     color: $text-active
@@ -173,6 +189,7 @@
     white-space: nowrap
 
   &__c-rep
+    grid-area: rep
     text-align: center
 
   &__rep-ico
@@ -181,7 +198,9 @@
 
   // intestazione pista (titolo + premi)
   &__c-track
+    grid-area: track
     position: relative
+    min-width: 0
 
   &__track-title
     font-size: 11px
@@ -205,16 +224,10 @@
     font-size: 11px
     font-weight: 700
     color: $text-inactive
-    background: $bg
-    border: 1px solid $border
-    border-radius: 999px
-    padding: 1px 7px
     white-space: nowrap
 
     &.is-on
       color: #8a6d0f
-      background: rgba(201, 162, 39, .16)
-      border-color: #C9A227
 
   &__trofei
     display: inline-flex
@@ -276,6 +289,14 @@
       color: #fff
       box-shadow: 0 0 0 3px rgba(201, 162, 39, .18)
 
+  // area di hover del traguardo (Tooltip con sottoperiodo e premio)
+  &__node-hit
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 18px
+    height: 18px
+
   &__runner
     position: absolute
     left: calc(var(--pos, 0) * 1%)
@@ -301,6 +322,10 @@
 
   // ── Stato (dettaglio) ────────────────────────────────────────────────────────
   &__stato
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 12px
     font-weight: 600
     white-space: nowrap
 
@@ -394,6 +419,7 @@
     li.is-ok
       color: $text-active
 
+  // pallino del traguardo: grigio in attesa, oro come la pista quando raggiunto
   &__tr-node
     flex: none
     width: 22px
@@ -407,42 +433,31 @@
     background: $border
     color: #fff
 
+  &__tr-full li.is-ok &__tr-node
+    background: #C9A227
+    box-shadow: 0 0 0 3px rgba(201, 162, 39, .18)
+
   &__tr-premio
     flex: 1
 
   &__tr-badge
-    font-size: 11px
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 12px
     font-weight: 600
     color: $success
-    background: $success-light
-    border-radius: 999px
-    padding: 2px 8px
+    white-space: nowrap
 
   // ── Colonna KPI (premio maturato) ────────────────────────────────────────────
-  &__c-kpi
+  &__c-maturato
+    grid-area: maturato
+    min-width: 0
     display: flex
     flex-direction: column
     align-items: flex-end
     gap: 3px
     text-align: right
-
-  &__stato-badge
-    font-size: 10px
-    font-weight: 800
-    text-transform: uppercase
-    letter-spacing: .04em
-    padding: 2px 8px
-    border-radius: 999px
-
-    &--raggiunto
-      color: $success
-      background: $success-light
-    &--in-linea
-      color: $link
-      background: $link-light
-    &--a-rischio
-      color: $warning
-      background: $warning-light
 
   &__kpi-prize
     font-family: $font-heading
@@ -459,6 +474,7 @@
   &__kpi-sub
     font-size: 11px
     color: $text-inactive
+    white-space: nowrap
 
   // ── Dettaglio: barra grande + gruppi periodo ─────────────────────────────────
   &__bar-lg
@@ -503,6 +519,65 @@
     color: $primary
     white-space: nowrap
 
+
+// ─── COMPATTAZIONE (container query sulla larghezza utile della pagina) ──────
+// Laptop con sidebar aperta: colonne più strette, niente colonna Reparto
+// (il reparto resta nel sottotitolo della riga e nel tooltip).
+@container mon-perf (max-width: 900px)
+  .mon-perf
+    &__board
+      padding: 6px 14px 14px
+
+    &__row
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) 136px
+      grid-template-areas: "name track maturato"
+      gap: 10px
+
+    &__c-rep
+      display: none
+
+    &__kpi-prize
+      font-size: 14px
+
+// Tablet / finestra stretta: la pista va a tutta larghezza sotto nome e premio;
+// le etichette dei premi lasciano il posto al tooltip sui traguardi.
+@container mon-perf (max-width: 640px)
+  .mon-perf
+    &__row
+      grid-template-columns: minmax(0, 1fr) auto
+      grid-template-areas: "name maturato" "track track"
+      row-gap: 4px
+
+    &__row--head .mon-perf__c-track
+      display: none
+
+    &__premi
+      display: none
+
+    &__track
+      margin-top: 18px
+
+    &__detail-head
+      flex-wrap: wrap
+
+    &__tr-full li
+      flex-wrap: wrap
+
+    &__search
+      width: 100%
+
+// Telefono: i filtri vanno uno per riga
+@container mon-perf (max-width: 420px)
+  .mon-perf
+    &__bar
+      flex-direction: column
+      align-items: stretch
+
+    &__select, &__search
+      width: 100%
+
+    &__kpi-prize
+      font-size: 13px
 
 // ─── ANIMAZIONI ─────────────────────────────────────────────────────────────
 @keyframes mon-perf-pulse

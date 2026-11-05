@@ -388,11 +388,12 @@ export default function HrAziendeAppalto({ navigate }: CfgPaneComponentProps) {
                   <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" disabled={autorizzati.length === 0} onClick={() => stampa(autorizzati)}>
                     <i className="fa-light fa-print" aria-hidden="true" /> Stampa badge degli autorizzati ({autorizzati.length})
                   </button>
-                  <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" disabled={!saved.some(f => f.id === sel.id)}
-                    title={saved.some(f => f.id === sel.id) ? undefined : 'Salva prima la nuova azienda'}
-                    onClick={() => navigate?.(`nuovo-collaboratore-esterno:${sel.id}`)}>
-                    <i className="fa-light fa-user-plus" aria-hidden="true" /> Nuovo collaboratore
-                  </button>
+                  <Tooltip text={saved.some(f => f.id === sel.id) ? undefined : 'Salva prima la nuova azienda'}>
+                    <button type="button" className="sib-btn sib-btn--primary sib-btn--sm cfg-hrapp__coll-new" disabled={!saved.some(f => f.id === sel.id)}
+                      onClick={() => navigate?.(`nuovo-collaboratore-esterno:${sel.id}`)}>
+                      <i className="fa-light fa-user-plus" aria-hidden="true" /> Nuovo collaboratore
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
               <CfgTable
@@ -463,6 +464,7 @@ function AllegatoField({ label, value, onChange, data, onData, labelData }: {
   onData?: (v: string) => void
   labelData?: string
 }) {
+  const confirm = useConfirmStore(s => s.confirm)
   const ref = useRef<HTMLInputElement>(null)
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
@@ -472,6 +474,17 @@ function AllegatoField({ label, value, onChange, data, onData, labelData }: {
     const r = new FileReader()
     r.onload = () => onChange({ nome: f.name, dataUrl: r.result as string })
     r.readAsDataURL(f)
+  }
+  // Ogni eliminazione si conferma: il file esce dalla bozza, sparisce davvero con «Salva»
+  const rimuovi = async () => {
+    if (!value) return
+    const ok = await confirm({
+      title: 'Rimuovi allegato',
+      message: `Rimuovere «${value.nome}» da «${label}»? Il file si toglie dalla bozza e la rimozione diventa definitiva con «Salva».`,
+      confirmLabel: 'Rimuovi',
+      danger: true,
+    })
+    if (ok) onChange(undefined)
   }
   return (
     <div className="cfg-hrapp__doc">
@@ -493,7 +506,7 @@ function AllegatoField({ label, value, onChange, data, onData, labelData }: {
               </Tooltip>
             )}
             <Tooltip text="Rimuovi">
-              <button type="button" className="sib-btn sib-btn--icon" aria-label={`Rimuovi ${label}`} onClick={() => onChange(undefined)}>
+              <button type="button" className="sib-btn sib-btn--icon" aria-label={`Rimuovi ${label}`} onClick={rimuovi}>
                 <i className="fa-solid fa-trash-can" aria-hidden="true" />
               </button>
             </Tooltip>
@@ -512,6 +525,7 @@ function AllegatoField({ label, value, onChange, data, onData, labelData }: {
 // ─── F24 delle ritenute nella riga del pagamento ──────────────────────────────
 function F24Cell({ value, richiesto, onChange }: { value?: AllegatoAppalto; richiesto: boolean; onChange: (a: AllegatoAppalto | undefined) => void }) {
   const ref = useRef<HTMLInputElement>(null)
+  const confirm = useConfirmStore(s => s.confirm)
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     e.target.value = ''
@@ -521,13 +535,23 @@ function F24Cell({ value, richiesto, onChange }: { value?: AllegatoAppalto; rich
     r.onload = () => onChange({ nome: f.name, dataUrl: r.result as string })
     r.readAsDataURL(f)
   }
+  const rimuovi = async () => {
+    if (!value) return
+    const ok = await confirm({
+      title: 'Rimuovi F24',
+      message: `Rimuovere l’F24 «${value.nome}» da questo pagamento? Il file si toglie dalla bozza e la rimozione diventa definitiva con «Salva».`,
+      confirmLabel: 'Rimuovi',
+      danger: true,
+    })
+    if (ok) onChange(undefined)
+  }
   return (
     <span className="cfg-hrapp__f24">
       {value ? (
         <>
           <TruncatedText text={value.nome} />
           <Tooltip text="Rimuovi F24">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Rimuovi F24" onClick={() => onChange(undefined)}>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Rimuovi F24" onClick={rimuovi}>
               <i className="fa-solid fa-xmark" aria-hidden="true" />
             </button>
           </Tooltip>

@@ -247,6 +247,11 @@
     gap: 8px
     flex-wrap: wrap
 
+  // Disabilitato (azienda non ancora salvata): il motivo è nel Tooltip, che
+  // riceve l'hover solo se il pulsante non intercetta il puntatore
+  &__coll-new:disabled
+    pointer-events: none
+
   &__nome
     display: flex
     align-items: center

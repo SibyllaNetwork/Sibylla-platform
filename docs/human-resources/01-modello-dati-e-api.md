@@ -757,7 +757,7 @@ Le ferie non contano la domenica. Un'assenza di sola domenica vale comunque 1 gi
 
 `inAttesaRichiesta(s) = s === 'Al responsabile' || s === 'Da approvare'`.
 
-**Saldo ferie** (giorni lavorativi) per dipendente e anno (default anno corrente):
+**Saldo ferie** (giorni lavorativi) per dipendente e anno (default anno corrente, usato solo dal riepilogo «Saldo ferie {anno}»; ogni calcolo legato a una richiesta passa l'anno della richiesta):
 ```
 ferie     = richieste del dipendente con tipo 'Ferie' e dal che inizia con "<anno>"
 maturate  = DipendenteHr.ferieAnnue
@@ -773,22 +773,24 @@ godute    = Σ oreRichiesta delle approvate
 inAttesa  = Σ oreRichiesta di quelle in attesa
 residue   = maturate − godute
 ```
-Le richieste che attraversano l'anno sono attribuite all'anno di `dal` per intero. `ferieGodute(richieste, id, anno = anno corrente)` = `godute` del saldo ferie.
+**Regola unica dell'anno**: `annoRichiesta(r) = anno di r.dal`. Le richieste che attraversano l'anno sono attribuite all'anno di `dal` per intero, e residuo del dettaglio, `saldoDopo`, valutazione di Sibylla, saldo ROL e colonna «Residue» del Piano ferie leggono tutti il residuo **dell'anno in cui cadono le ferie**. `ferieGodute(richieste, id, anno)` (anno obbligatorio) = `saldoFerie(richieste, id, anno).godute`.
 
 **Residuo mostrato su una richiesta** (`arricchisciRichiesta`):
 ```
 se tipo === 'ROL':
     residuo = saldoRol(anno di r.dal).residue − (inAttesa(r.stato) ? oreRichiesta(r) : 0)      (ore)
 altrimenti:
-    residuo = ferieAnnue − ferieGodute(anno CORRENTE) − (tipo === 'Ferie' && inAttesa(r.stato) ? giorniLavorativi(r) : 0)   (giorni)
+    residuo = saldoFerie(anno di r.dal).residue − (tipo === 'Ferie' && inAttesa(r.stato) ? giorniLavorativi(r) : 0)   (giorni)
 ```
+Per una Ferie in attesa `residuo = saldoDopo(r)`; per una Ferie approvata `residuo` = «Residue» del Piano ferie nei mesi di quell'anno = `residue` di «Saldo ferie {anno}».
 Etichetta: «Residuo se approvata» se la richiesta è in attesa, altrimenti «Residuo»; valore «<n> gg» per Ferie, `fmtOre` per ROL, «-» per gli altri tipi; negativo evidenziato.
 
 **Saldo dopo l'approvazione** (`saldoDopo`, usato da regole del piano e autorizzazione del negativo):
 ```
-saldoDopo(r) = saldoFerie(anno di r.dal).residue − (r.stato === 'Approvata' ? 0 : giorniLavorativi(r.dal, r.al))
+giàGoduta    = r.stato === 'Approvata' ∧ ∃ x ∈ richieste: x.id === r.id ∧ x.stato === 'Approvata'
+saldoDopo(r) = saldoFerie(anno di r.dal).residue − (giàGoduta ? 0 : giorniLavorativi(r.dal, r.al))
 ```
-(le altre richieste in attesa non contano).
+(le altre richieste in attesa non contano). Una richiesta nuova, non ancora salvata, inserita dall'HR già «Approvata» non è fra le godute: sottrae i propri giorni come una in attesa, quindi l'autorizzazione del negativo scatta appena queste ferie portano il saldo sotto zero. Il server applica la stessa regola alla create (`autorizzaNegativo`).
 
 ### 3.6 Sovrapposizioni nel reparto
 
@@ -1253,7 +1255,7 @@ I valori economici sono indicativi e vanno allineati alle tabelle in vigore.
 
 Formule delle date: `+n` = oggi + n giorni (ore 12); `createdAt` = `<oggi + creata>T09:<(id*7) % 60 a 2 cifre>:00` (righe normali) oppure `T10:<(id*11) % 60>:00` (righe di Natale). Le righe di Natale usano l'**anno delle feste** `an` = anno corrente da febbraio in poi, anno precedente a gennaio; `dic(g) = an-12-g`, `gen(g) = (an+1)-01-g`.
 
-Dopo la generazione si applica l'iter del responsabile (con i reparti del seed): per ferie/ROL di un reparto con responsabile, se lo stato è `Al responsabile` si salva `responsabile { nome, esito: 'In attesa' }`; se l'indice (0-based) è 1 o 4 e lo stato è `Da approvare`, la richiesta diventa **`Al responsabile`** (ferma al responsabile, «fresca»); la riga con note «Weekend lungo» (rifiutata) è **rifiutata dal responsabile** (`responsabile.esito 'Rifiutata'`, `at`, `motivo`, storico «Rifiutata dal responsabile» con messaggio); tutte le altre ferie/ROL con responsabile risultano **approvate dal responsabile** (`esito 'Approvata'`, `at = <data di createdAt>T17:30:00`, storico `[{ at, autore: <responsabile>, azione: 'Approvata dal responsabile' }]`). L'indice 16 è nel set ma è un ROL di Manutenzione (nessun responsabile) già approvato: nessun effetto.
+Dopo la generazione si applica l'iter del responsabile (con i reparti del seed): per ferie/ROL di un reparto con responsabile, se lo stato è `Al responsabile` si salva `responsabile { nome, esito: 'In attesa' }`; se l'indice (0-based) è 1 o 4 e lo stato è `Da approvare`, la richiesta diventa **`Al responsabile`** (ferma al responsabile, «fresca»); la riga con note «Weekend lungo» (rifiutata) è **rifiutata dal responsabile** (`responsabile.esito 'Rifiutata'`, `at`, `motivo`, storico «Rifiutata dal responsabile» con messaggio); tutte le altre ferie/ROL con responsabile risultano **approvate dal responsabile** (`esito 'Approvata'`, `at = <data di createdAt>T17:30:00`, storico `[{ at, autore: <responsabile>, azione: 'Approvata dal responsabile' }]`). Se lo stato finale è `Rifiutata` (rifiuto dell'HR dopo l'ok del responsabile: ra-21, ra-32) lo storico ha in coda l'evento del rifiuto `{ at: <data di createdAt + 1 giorno>T10:00:00, autore: 'Ufficio del personale', azione: 'Rifiutata', messaggio: <motivo> }`, identico a quello che scrive `decidiRichiesta`. L'indice 16 è nel set ma è un ROL di Manutenzione (nessun responsabile) già approvato: nessun effetto.
 
 | id | Dip. | Tipo | Dal | Al | Stato finale | Creata | Note / motivo / ore | Responsabile |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1277,7 +1279,7 @@ Dopo la generazione si applica l'iter del responsabile (con i reparti del seed):
 | ra-18 | 1 Grimaudo | ROL | −12 | −12 | Approvata | −15 | **4 h** | Aragona: approvata |
 | ra-19 | 12 Greco | ROL | −30 | −30 | Approvata | −33 | | — |
 | ra-20 | 7 Fantoni | ROL | −20 | −19 | Approvata | −24 | | — |
-| ra-21 | 5 Marini | ROL | −50 | −50 | Rifiutata (HR) | −52 | motivo «Giornata di picco: il front office resterebbe con una sola persona.», **6 h** | Aragona: approvata |
+| ra-21 | 5 Marini | ROL | −50 | −50 | Rifiutata (HR) | −52 | motivo «Giornata di picco: il front office resterebbe con una sola persona.», **6 h** | Aragona: approvata; HR: rifiutata a −51 |
 | ra-22 | 4 Romano | Ferie | +30 | +34 | Rifiutata **dal responsabile** | −2 | note «Weekend lungo», motivo «Fine mese c'è il gruppo congressuale: servono tutte le cameriere ai piani.» | Campo: rifiutata |
 | ra-23 | 7 Fantoni | Ferie | −120 | −100 | Approvata | −130 | «Ferie estive in un'unica soluzione» (porta il saldo di Manuel vicino allo zero) | — |
 | ra-24 | 2 Conti | Ferie | dic 22 | dic 27 | Approvata | −6 | «Natale con la famiglia in Puglia» | Aragona: approvata |
@@ -1288,10 +1290,10 @@ Dopo la generazione si applica l'iter del responsabile (con i reparti del seed):
 | ra-29 | 8 Pettinari | Ferie | dic 29 | gen 4 | Al responsabile | −1 | | Campo: in attesa |
 | ra-30 | 3 Esposito | Ferie | dic 23 | dic 26 | Da approvare | −2 | | — |
 | ra-31 | 12 Greco | Ferie | gen 2 | gen 6 | Approvata | −8 | «Settimana bianca» | — |
-| ra-32 | 1 Grimaudo | Ferie | dic 24 | dic 26 | Rifiutata (HR) | −4 | motivo «Front office al completo per il cenone: anticipa al 20-22 dicembre.» | Aragona: approvata |
+| ra-32 | 1 Grimaudo | Ferie | dic 24 | dic 26 | Rifiutata (HR) | −4 | motivo «Front office al completo per il cenone: anticipa al 20-22 dicembre.» | Aragona: approvata; HR: rifiutata a −3 |
 | ra-33 | 4 Romano | Ferie | dic 8 | dic 10 | Da approvare | −1 | «Ponte dell'Immacolata» | Campo: approvata |
 
-Totali per stato: **Al responsabile 3** (ra-2, ra-5, ra-29), **Da approvare 10**, **Approvata 16**, **Rifiutata 4** (di cui 1 dal responsabile). Casi particolari da preservare: ROL a ore (ra-15 3 h, ra-16 4 h, ra-18 4 h, ra-21 6 h); rifiuto in primo livello (ra-22); rifiuti dell'HR con richiesta già approvata dal responsabile (ra-21, ra-32: lo storico contiene solo «Approvata dal responsabile», non c'è l'evento del rifiuto HR); malattia con certificato (ra-7); saldo vicino a zero di Manuel Fantoni (ra-23: 22 maturate); ferie a cavallo dell'anno (ra-25, ra-29, ra-31) attribuite all'anno di `dal`; richieste in Natale che alimentano il piano «Natale».
+Totali per stato: **Al responsabile 3** (ra-2, ra-5, ra-29), **Da approvare 10**, **Approvata 16**, **Rifiutata 4** (di cui 1 dal responsabile). Casi particolari da preservare: ROL a ore (ra-15 3 h, ra-16 4 h, ra-18 4 h, ra-21 6 h); rifiuto in primo livello (ra-22); rifiuti dell'HR con richiesta già approvata dal responsabile (ra-21, ra-32: storico «Approvata dal responsabile» → «Rifiutata» dell'Ufficio del personale col motivo); malattia con certificato (ra-7); saldo vicino a zero di Manuel Fantoni (ra-23: 22 maturate); ferie a cavallo dell'anno (ra-25, ra-29, ra-31) attribuite all'anno di `dal`; richieste in Natale che alimentano il piano «Natale».
 
 ### 4.4 Piani ferie (2)
 
@@ -1599,7 +1601,7 @@ Oggi **nessuna** di queste notifiche è inviata davvero: le notifiche dei turni 
 
 | Chiave | Store | Versione | Migrazione | Cosa contiene |
 | --- | --- | --- | --- | --- |
-| `sibylla.hr-gestione` | `useHrGestioneStore` | 8 | Qualsiasi versione precedente → **rigenera tutto il seed** (note spese, buoni, cedolini, richieste). | `noteSpese`, `buoniPasto`, `cedolini`, `richieste`. |
+| `sibylla.hr-gestione` | `useHrGestioneStore` | 9 | Qualsiasi versione precedente → **rigenera tutto il seed** (note spese, buoni, cedolini, richieste). La v9 aggiunge l'evento di rifiuto HR a ra-21 e ra-32. | `noteSpese`, `buoniPasto`, `cedolini`, `richieste`. |
 | `sibylla.hr-config` | `useHrConfigStore` | 7 | Unisce seed e salvato; normalizza gli orari al formato a fasce (v4); toglie `DUVRI` dai documenti delle categorie (v5); `badge` = default + salvato (v3); `integrazionePaghe` valida solo se ha `profili`, altrimenti default (v6–7). v2: categorie esterni. | `reparti`, `orari`, `turni`, `schemi`, `tipologie`, `ccnl`, `categorieEsterni`, `badge`, `integrazionePaghe`. |
 | `sibylla.registro-presenze` | `useRegistroPresenzeStore` | 1 | nessuna funzione migrate | `segmenti`, `timbrature`, `straordinarioApprovato`, `timbraturaConNomeFino`, `trasmissioni`. |
 | `sibylla.hr-piani-ferie` | `usePianiFerieStore` | 3 | Rigenera il seed. | `piani`. |
@@ -1658,12 +1660,10 @@ Livelli App Op! (`LivelloOp`): `amministratore`, `responsabile`, `impiegato`.
 1. **Due insiemi di identità.** I 12 dipendenti HR hanno id 1..12 (`DIPENDENTI_HR`), mentre anagrafica, contratti e abilitazioni App Op! usano gli id dell'anagrafica (66, 67, 69, 88, 89…). Esempio: «Andrea Grimaudo» è il dipendente 1 in Front office ma l'anagrafica 69 con contratto in F&B (ed è responsabile di F&B). Nel backend `DipendenteHr` deve coincidere con l'anagrafica del personale, con reparto e spettanze presi dal **contratto vigente** (`ferieGiorni`, `rolOre`).
 2. **Responsabile per nome.** `RepartoHr.responsabile` e `ApprovazioneResponsabile.nome` sono stringhe; il confronto «il richiedente è il responsabile» è sul nome completo. Proposto: `responsabileId` (FK anagrafica) mantenendo `nome` per la visualizzazione e per lo storico.
 3. **Reparto per nome.** `DipendenteHr.reparto` è un nome (enum fisso di 6 valori), mentre la configurazione ha 8 reparti con id. Proposto: `repartoId`.
-4. **Anno del residuo ferie.** In `arricchisciRichiesta` le ferie godute si contano sull'anno **corrente**, in `saldoDopo` sull'anno di `dal`. Per richieste dell'anno successivo (es. ferie di gennaio) i due valori possono divergere: va scelta una regola unica (consigliato: anno di `dal`, come `saldoDopo` e `saldoRol`).
-5. **Rifiuti HR nel seed senza evento.** ra-21 e ra-32 sono `Rifiutata` con motivo ma lo storico contiene solo «Approvata dal responsabile».
-6. **Decisione HR senza guardia di stato** nello store (`decidiRichiesta`): l'interfaccia la impedisce sulle richieste `Al responsabile`, il backend deve impedirla (409).
-7. **Sabato nel foglio spese.** Nella nota spese mensile `festivo` vale per sabato **e** domenica; nel registro presenze solo domenica e festività nazionali.
-8. **Notifiche non implementate** (vedi §5.12) e **azioni App Op! non richiamate** dalla piattaforma (`aggiungiRichiesta`, `decidiResponsabile`, `aggiungiSpesa`): vanno esposte dal backend all'App Op!.
-9. **Generazione deterministica** di turni previsti, timbrature, ritardi, uscite dimenticate, occupazione: è solo per la demo; in produzione vengono dalle timbrature reali, dalla turnistica (`OrarioHr`, `SchemaTurniHr`) e dall'occupazione prevista della struttura. `ORE_ORDINARIE = 8` è fisso: in produzione va derivato dall'orario del contratto.
+4. **Decisione HR senza guardia di stato** nello store (`decidiRichiesta`): l'interfaccia la impedisce sulle richieste `Al responsabile`, il backend deve impedirla (409).
+5. **Sabato nel foglio spese.** Nella nota spese mensile `festivo` vale per sabato **e** domenica; nel registro presenze solo domenica e festività nazionali.
+6. **Notifiche non implementate** (vedi §5.12) e **azioni App Op! non richiamate** dalla piattaforma (`aggiungiRichiesta`, `decidiResponsabile`, `aggiungiSpesa`): vanno esposte dal backend all'App Op!.
+7. **Generazione deterministica** di turni previsti, timbrature, ritardi, uscite dimenticate, occupazione: è solo per la demo; in produzione vengono dalle timbrature reali, dalla turnistica (`OrarioHr`, `SchemaTurniHr`) e dall'occupazione prevista della struttura. `ORE_ORDINARIE = 8` è fisso: in produzione va derivato dall'orario del contratto.
 
 ---
 

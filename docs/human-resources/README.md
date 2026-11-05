@@ -4,7 +4,7 @@ Documentazione per riprodurre **identica**, frontend e backend, la sezione **Hum
 
 Identica vuol dire con gli stessi testi, la stessa disposizione, le stesse misure e gli stessi colori, gli stessi stati e regole, gli stessi effetti e la stessa resa a ogni larghezza.
 
-Riferimento: repository `sibylla-platform`, ramo `main`, commit `5e895d1` (5 novembre 2026). La demo è pubblicata su https://sibylla-platform.vercel.app (Human Resources nella sidenav).
+Riferimento: repository `sibylla-platform`, ramo `main`, versione del 5 novembre 2026 con le correzioni dei difetti (vedi «Punti aperti per il backend»). La demo è pubblicata su https://sibylla-platform.vercel.app (Human Resources nella sidenav).
 
 ## Come usarla (per l'agente AI che implementa)
 
@@ -62,6 +62,7 @@ Ad esempio Registro presenze, Timbrature e Cedolini leggono le stesse giornate. 
 Documenti collegati:
 - `../integrazione paghe/README.md` e `../integrazione paghe/Tracciato_RILPRE.pdf`: tracciato presenze TeamSystem e contratto d'invio al connettore paghe.
 - `../bi.md`: kit delle pagine BI, usato da Profile analysis.
+- Pagina pubblica del kiosk: `/kiosk?p=<postazione>` (scheda 07), servita a tutto schermo senza sidenav.
 
 ## Sidenav della sezione
 
@@ -111,31 +112,40 @@ La specifica del backend da realizzare (entità, endpoint, effetti, notifiche) �
 - **Design system:** per i valori di componenti condivisi (Tabs, `sib-btn`, campi) vale `00-fondamenta.md`.
 - **«⚠ Nota di fedeltà»:** dove una scheda la riporta, il codice di riferimento si discosta da una regola generale. Va riprodotto il **comportamento del codice**, salvo diversa indicazione della lista seguente.
 
-## Comportamenti attuali da conoscere
+## Punti aperti per il backend
 
-La scrittura delle schede ha fatto emergere alcuni comportamenti che si discostano dalle regole generali o sembrano difetti. Le schede li descrivono come sono oggi nella demo.
+I difetti emersi durante la scrittura delle schede sono stati **corretti nella codebase di riferimento** il 5 novembre 2026, e le schede descrivono il comportamento corretto:
+- approvazione senza ricevuta;
+- saldo negativo delle nuove richieste;
+- colori del dettaglio in Piano ferie;
+- anno del residuo ferie;
+- contratti e foto in Crea anagrafica;
+- Elimina nell'Archivio;
+- filtro di colonna tagliato;
+- Orari;
+- uscita dalla Configurazione con modifiche non salvate;
+- link diretto alle Tipologie;
+- conferme di rimozione;
+- pagina kiosk;
+- scroll orizzontale in Monitoraggio performance;
+- assegnatari reali;
+- HR Overview collegata agli obiettivi;
+- tooltip scuro del testo troncato;
+- stati senza pillola.
 
-Prima di riprodurli, chiedi a Sibylla se vanno replicati così o corretti in entrambe le codebase.
+Restano questi punti, che dipendono dal backend o da una scelta di prodotto:
 
-| Area | Comportamento attuale | Scheda |
+| Area | Punto aperto | Scheda |
 | --- | --- | --- |
-| Identità del personale | I 12 dipendenti HR (id 1–12) e le anagrafiche/contratti (id 66, 67, 69, 88, 89…) usano due insiemi di identificativi. Il backend deve avere un'unica persona | 01 |
-| Reparti | Responsabile e reparto si collegano per **nome**: si propongono `responsabileId` e `repartoId` | 01 |
+| Identità del personale | Nella demo i 12 dipendenti HR (id 1–12) e le anagrafiche/contratti (id 66, 67, 69, 88, 89…) usano due insiemi di identificativi: il backend deve avere **un'unica persona** | 01 |
+| Reparti | Responsabile e reparto si collegano per **nome**: usare `responsabileId` e `repartoId` | 01 |
 | App Op! | Decisione del responsabile, nuova richiesta e nuova spesa del dipendente esistono come azioni ma nessuna pagina HR le usa: le espone il backend all'App Op! | 01 |
-| Notifiche e permessi | Nessuna notifica parte davvero (salvo quelle dei turni) e i permessi per ruolo non sono applicati nel frontend | 01 |
-| Saldo ferie | I due calcoli del saldo contano le ferie godute in anni diversi (anno corrente / anno d'inizio della richiesta) | 01, 09 |
-| Richieste | Una richiesta inserita dall'HR già approvata chiede l'autorizzazione al negativo solo se il saldo era già negativo (non sottrae i giorni della richiesta stessa) | 09 |
-| Piano ferie | Nel dettaglio di una richiesta, tipo e stato appaiono senza colore | 10 |
-| Nota spese | L'approvazione singola non verifica lo scontrino; l'approvazione in blocco sì | 12 |
-| Crea anagrafica | La foto è solo anteprima locale; foto e documenti non vanno al backend; i contratti creati con l'anagrafica restano sull'id provvisorio `nuovo-<ms>`; gli errori di salvataggio sono ignorati | 03 |
-| Archivio del personale | «Elimina» sui dipendenti non fa nulla; il popover del filtro di colonna può essere tagliato; il verde di «Vigente» è `#00CF86` qui e `#007035` nella scheda anagrafica | 05, 03 |
-| Configurazione › Orari | Dopo «Salva» la barra può ricomparire con «1 modifica non salvata» (la bozza non si riallinea agli orari normalizzati) | 02 |
-| Configurazione | Uscendo dalla pagina (sidenav o Indietro) le modifiche non salvate si perdono senza conferma: la conferma c'è solo al cambio di scheda. Il deep link `hr-configurazione:hr-tipologie-contratto` apre Reparti | 02 |
-| Aziende in appalto | «Rimuovi» allegato agisce senza conferma; le aziende non si possono eliminare | 02 |
-| Timbrature | L'indirizzo del kiosk `/kiosk?p=principale` non corrisponde a una pagina: oggi il kiosk è solo la schermata a tutto schermo. Va realizzato come pagina pubblica | 07 |
-| Monitoraggio performance | Sotto circa 796 px utili il tabellone scorre in orizzontale e l'intestazione è in maiuscolo; nella modale il traguardo raggiunto resta grigio | 14 |
-| Assegna obiettivo | I periodi si rimuovono senza conferma; l'elenco degli assegnatari è fisso nel codice. La vista in tempo reale non è più qui ma in Monitoraggio performance | 15 |
-| HR Overview | È tutta dimostrativa: la select dell'anno cambia solo i testi e la card Obiettivi non legge gli obiettivi reali | 16 |
+| Notifiche e permessi | Nessuna notifica parte davvero (salvo quelle dei turni) e i permessi per ruolo non sono applicati nel frontend: li deve imporre il backend (§ 7 di 01) | 01 |
+| Configurazione | Chiudendo o ricaricando il browser con modifiche non salvate non c'è conferma (c'è uscendo dalla pagina e cambiando scheda) | 02 |
+| Aziende in appalto | Le aziende non si possono eliminare dalla Configurazione | 02 |
+| Archivio del personale | Senza backend l'eliminazione resta nel browser; l'endpoint `POST anagrafica-personale/Delete` è da realizzare | 05 |
+| Paghe | L'invio reale del consuntivo richiede il connettore `POST /Sibylla/hr/paghe/trasmetti`; senza, l'invio è registrato come simulato | 06, `../integrazione paghe/README.md` |
+| HR Overview | I numeri sono dimostrativi (deterministici per struttura e anno): vanno calcolati dal backend | 16 |
 
 ## Contenuto della cartella
 

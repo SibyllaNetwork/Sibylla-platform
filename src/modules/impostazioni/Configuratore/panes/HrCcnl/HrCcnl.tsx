@@ -9,6 +9,7 @@ import {
   type CcnlHr, type LivelloCcnl, type CategoriaLivello, type MaturazioneTipo, type TipologiaContrattoHr,
 } from '../../../../../store/useHrConfigStore'
 import { TipologieContrattoEditor } from '../HrTipologieContratto/HrTipologieContratto'
+import type { CfgPaneComponentProps } from '../../Configuratore'
 import { useHrDraft, diffCount } from '../_hr/useHrDraft'
 import HrFormModal from '../_hr/HrFormModal'
 import HrRowActions from '../_hr/HrRowActions'
@@ -38,9 +39,15 @@ const completion = (v: CcnlHr[]) => (v.some(c => c.livelli.length) ? 'configured
 interface BozzaCcnl { ccnl: CcnlHr[]; tipologie: TipologiaContrattoHr[] }
 const contaBozza = (a: BozzaCcnl, b: BozzaCcnl) => diffCount(a.ccnl, b.ccnl) + diffCount(a.tipologie, b.tipologie)
 const completionBozza = (v: BozzaCcnl) => completion(v.ccnl)
+/** Numeri dell'anteprima in formato italiano (virgola decimale, fino a 2 decimali). */
+const fmtNum = (v: number) => v.toLocaleString('it-IT', { maximumFractionDigits: 2 })
 const n = (v: string) => (v === '' ? 0 : Number(v.replace(',', '.')) || 0)
 
-export default function HrCcnl() {
+const SCHEDE: Scheda[] = ['generale', 'tipologie', 'livelli', 'ferie', 'retribuzione', 'enti']
+const isScheda = (v?: string): v is Scheda => !!v && (SCHEDE as string[]).includes(v)
+
+/** `initialTab`: scheda aperta dal deep link (es. `hr-ccnl:tipologie`, o il vecchio `hr-tipologie-contratto`). */
+export default function HrCcnl({ initialTab }: CfgPaneComponentProps) {
   const saved = useHrConfigStore(s => s.ccnl)
   const setCcnl = useHrConfigStore(s => s.setCcnl)
   const confirm = useConfirmStore(s => s.confirm)
@@ -54,7 +61,7 @@ export default function HrCcnl() {
   const setTipologieBozza = (f: (d: TipologiaContrattoHr[]) => TipologiaContrattoHr[]) => setBozza(b => ({ ...b, tipologie: f(b.tipologie) }))
 
   const [selId, setSelId] = useState<string | null>(saved[0]?.id ?? null)
-  const [scheda, setScheda] = useState<Scheda>('generale')
+  const [scheda, setScheda] = useState<Scheda>(isScheda(initialTab) ? initialTab : 'generale')
   const [livello, setLivello] = useState<LivelloCcnl | null>(null)
   const [previewPerc, setPreviewPerc] = useState(75)
 
@@ -244,11 +251,11 @@ export default function HrCcnl() {
                       <table className="cfg-hrccnl__ptable">
                         <thead><tr><th /><th>Full time</th><th>Part time {previewPerc}%</th></tr></thead>
                         <tbody>
-                          <tr><th>Ferie / anno</th><td>{full.ferieGiorni} gg</td><td>{pt.ferieGiorni} gg</td></tr>
-                          <tr><th>Ferie / mese</th><td>{full.ferieMese} gg</td><td>{pt.ferieMese} gg</td></tr>
-                          <tr><th>ROL / anno</th><td>{full.rolOre} h</td><td>{pt.rolOre} h</td></tr>
-                          <tr><th>Ex festività</th><td>{full.exFestivitaOre} h</td><td>{pt.exFestivitaOre} h</td></tr>
-                          <tr><th>Permessi / mese</th><td>{full.permessiMeseOre} h</td><td>{pt.permessiMeseOre} h</td></tr>
+                          <tr><th>Ferie / anno</th><td>{fmtNum(full.ferieGiorni)} gg</td><td>{fmtNum(pt.ferieGiorni)} gg</td></tr>
+                          <tr><th>Ferie / mese</th><td>{fmtNum(full.ferieMese)} gg</td><td>{fmtNum(pt.ferieMese)} gg</td></tr>
+                          <tr><th>ROL / anno</th><td>{fmtNum(full.rolOre)} h</td><td>{fmtNum(pt.rolOre)} h</td></tr>
+                          <tr><th>Ex festività</th><td>{fmtNum(full.exFestivitaOre)} h</td><td>{fmtNum(pt.exFestivitaOre)} h</td></tr>
+                          <tr><th>Permessi / mese</th><td>{fmtNum(full.permessiMeseOre)} h</td><td>{fmtNum(pt.permessiMeseOre)} h</td></tr>
                         </tbody>
                       </table>
                       <InputField name="cc-prev" label="Percentuale di prova" type="number" min={10} max={100} step={5} value={previewPerc}

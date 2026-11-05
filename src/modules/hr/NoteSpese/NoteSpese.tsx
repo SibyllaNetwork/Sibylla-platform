@@ -17,6 +17,7 @@ import {
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
 import ModaleNota from './ModaleNota'
+import { approvabile, SENZA_RICEVUTA_APPROVA } from './notaSpeseModel'
 import BarraSelezione from '../_selezione/BarraSelezione'
 import { useSelezione } from '../_selezione/useSelezione'
 import './NoteSpese.sass'
@@ -80,7 +81,7 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
   const selezionate = noteSpese.filter(n => sel.has(n.id))
   const selDaApprovare = selezionate.filter(n => n.stato === 'Da approvare' || n.stato === 'Rifiutata')
   // Senza ricevuta una spesa non si approva in blocco: va controllata una per una.
-  const selApprovabili = selDaApprovare.filter(n => n.giustificativo)
+  const selApprovabili = selDaApprovare.filter(approvabile)
   const selDaRifiutare = selezionate.filter(n => n.stato === 'Da approvare' || n.stato === 'Approvata')
   const selDaRimborsare = selezionate.filter(n => n.stato === 'Approvata')
 
@@ -89,6 +90,7 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
   const somma = (xs: NotaSpesa[]) => xs.reduce((s, n) => s + n.importo, 0)
 
   const approva = (n: NotaSpesa) => {
+    if (!approvabile(n)) { toast.error(SENZA_RICEVUTA_APPROVA + '.', 'Spesa non approvata'); return }
     setStato(n.id, 'Approvata')
     toast.success(`Spesa di ${nomeDipendente(n.dipendenteId)} approvata: ${eurHr(n.importo)} da rimborsare.`, 'Spesa approvata')
   }
@@ -168,9 +170,9 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
   const esporta = () => exportXls('nota-spese', ['Data', 'Dipendente', 'Reparto', 'Categoria', 'Descrizione', 'Giustificativo', 'Importo', 'Stato', 'Motivo rifiuto'],
     sorted.map(n => [fmtDataHr(n.data), n.dipendente, n.reparto, n.categoria, n.descrizione, n.giustificativo ?? '', eurHr(n.importo), n.stato, n.motivo ?? '']))
 
-  const act = (tip: string, ico: string, onClick: () => void) => (
+  const act = (tip: string, ico: string, onClick: () => void, disabled = false) => (
     <Tooltip text={tip}>
-      <button type="button" className="nsp__act" onClick={onClick} aria-label={tip}>
+      <button type="button" className="nsp__act" onClick={onClick} aria-label={tip} disabled={disabled}>
         <Ico n={ico} w="solid" s={16} c="currentColor" />
       </button>
     </Tooltip>
@@ -282,7 +284,9 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
                 <td className="nsp__c">
                   <span className="nsp__acts">
                     {act('Modifica', 'edit', () => setInModifica(n))}
-                    {(n.stato === 'Da approvare' || n.stato === 'Rifiutata') && act('Approva', 'circle-check', () => approva(n))}
+                    {(n.stato === 'Da approvare' || n.stato === 'Rifiutata') && (approvabile(n)
+                      ? act('Approva', 'circle-check', () => approva(n))
+                      : act(SENZA_RICEVUTA_APPROVA, 'circle-check', () => approva(n), true))}
                     {(n.stato === 'Da approvare' || n.stato === 'Approvata') && act('Rifiuta', 'circle-xmark', () => setRifiuto({ rows: [n], motivo: '' }))}
                     {n.stato === 'Approvata' && act('Segna come rimborsata', 'money-bill', () => rimborsa(n))}
                     {act('Elimina', 'trash', () => cancella(n))}

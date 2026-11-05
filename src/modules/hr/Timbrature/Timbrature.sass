@@ -127,24 +127,32 @@
 
   &__url
     display: flex
+    flex-wrap: wrap
     align-items: center
-    gap: 8px
+    gap: 6px 8px
 
   &__qr-body > &__how > &__url:last-child
     margin-top: auto
 
+  // copia + apri in una nuova scheda: vanno a capo insieme
+  &__url-tools
+    display: inline-flex
+    gap: 4px
+
   &__url-lbl
     font-size: 11px
     color: $text-inactive
+    white-space: nowrap
 
   &__code
+    white-space: nowrap
     padding: 2px 8px
     border-radius: 4px
     background: $bg
     font-size: 11.5px
     color: $text-active
 
-  &__app-stat
+  &__app-info
     margin: 0
     font-size: 13px
     color: $text-active
@@ -356,83 +364,6 @@
     gap: 10px
     padding-top: 14px
     border-top: 1px solid $border
-
-// ── Kiosk a schermo intero ────────────────────────────────────────────────────
-.tmb-kiosk
-  position: fixed
-  inset: 0
-  z-index: 1000
-  display: flex
-  flex-direction: column
-  align-items: center
-  justify-content: center
-  gap: 14px
-  background: #204769
-  color: #FFFFFF
-
-  &__close
-    position: absolute
-    top: 20px
-    right: 24px
-    width: 42px
-    height: 42px
-    border: 1px solid rgba(255, 255, 255, .35)
-    border-radius: 50%
-    background: transparent
-    color: #FFFFFF
-    font-size: 18px
-    cursor: pointer
-
-    &:hover
-      background: rgba(255, 255, 255, .12)
-
-  &__clock
-    font-family: $font-heading
-    font-size: 64px
-    font-weight: 700
-    line-height: 1
-    font-variant-numeric: tabular-nums
-
-  &__date
-    font-size: 18px
-    opacity: .8
-
-    &::first-letter
-      text-transform: uppercase
-
-  &__qr
-    margin-top: 12px
-    padding: 18px
-    border-radius: 18px
-    background: #FFFFFF
-
-    img
-      display: block
-      width: min(46vh, 420px)
-      height: min(46vh, 420px)
-
-  &__msg
-    margin: 6px 0 0
-    font-size: 20px
-
-  &__bar
-    width: min(46vh, 420px)
-    height: 6px
-    border-radius: 3px
-    background: rgba(255, 255, 255, .2)
-    overflow: hidden
-
-  &__bar-fill
-    display: block
-    width: var(--p)
-    height: 100%
-    background: #A2864C
-    transition: width 1s linear
-
-  &__scade
-    margin: 0
-    font-size: 13px
-    opacity: .7
 
 // ── Laptop con sidebar aperta ─────────────────────────────────────────────────
 @container tmb (max-width: 1080px)

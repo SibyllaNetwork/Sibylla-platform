@@ -15,7 +15,7 @@ import {
 import { exportXls } from '../hrExport'
 import ModaleNota from './ModaleNota'
 import {
-  cifra, etichettaMese, foglio, meseCorrente, riepilogoMese, spostaMese, statoMese,
+  approvabile, cifra, etichettaMese, SENZA_RICEVUTA_APPROVA, foglio, meseCorrente, riepilogoMese, spostaMese, statoMese,
 } from './notaSpeseModel'
 import { scaricaDistintaRicevute, scaricaNotaSpesePdf } from './notaSpesePdf'
 import './NotaSpeseMensile.sass'
@@ -57,7 +57,10 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
   const noteGiorno = giorno ? f.note.filter(n => n.data === giorno.iso && (!giorno.voce || n.categoria === giorno.voce)) : []
 
   // ── Azioni ──
-  const approva = (n: NotaSpesa) => { setStato(n.id, 'Approvata'); toast.success(`${n.categoria} di ${eurHr(n.importo)} approvata.`, 'Spesa approvata') }
+  const approva = (n: NotaSpesa) => {
+    if (!approvabile(n)) { toast.error(SENZA_RICEVUTA_APPROVA + '.', 'Spesa non approvata'); return }
+    setStato(n.id, 'Approvata'); toast.success(`${n.categoria} di ${eurHr(n.importo)} approvata.`, 'Spesa approvata')
+  }
   const rimborsa = async (n: NotaSpesa) => {
     const ok = await confirm({ title: 'Segna come rimborsata', message: `Confermi il rimborso di ${eurHr(n.importo)} a ${nomeDipendente(n.dipendenteId)}?`, confirmLabel: 'Conferma rimborso', danger: false })
     if (!ok) return
@@ -81,7 +84,7 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
   const approvaMese = async () => {
     const ok = await confirm({ title: 'Approva il mese', message: `Approvare le ${f.daApprovare.length} note in attesa di ${nomeDipendente(dip)} (${eurHr(f.eurDaApprovare)})? Quelle senza ricevuta restano da controllare.`, confirmLabel: 'Approva', danger: false })
     if (!ok) return
-    const conRicevuta = f.daApprovare.filter(n => n.giustificativo)
+    const conRicevuta = f.daApprovare.filter(approvabile)
     conRicevuta.forEach(n => setStato(n.id, 'Approvata'))
     toast.success(`${conRicevuta.length} note approvate${conRicevuta.length < f.daApprovare.length ? `, ${f.daApprovare.length - conRicevuta.length} senza ricevuta da controllare` : ''}.`, 'Mese approvato')
   }
@@ -313,7 +316,7 @@ export default function NotaSpeseMensile({ navigate, dipendenteId, mese }: { nav
                   <span className={`nsm-day__stato nsm-day__stato--${statoCls(n.stato)}`}>{n.stato}</span>
                   <span className="nsm-day__acts">
                     <Tooltip text="Modifica"><button type="button" className="nsm-day__act" aria-label="Modifica" onClick={() => { setGiorno(null); setInModifica(n) }}><i className="fa-solid fa-pen" aria-hidden="true" /></button></Tooltip>
-                    {(n.stato === 'Da approvare' || n.stato === 'Rifiutata') && <Tooltip text="Approva"><button type="button" className="nsm-day__act" aria-label="Approva" onClick={() => approva(n)}><i className="fa-solid fa-circle-check" aria-hidden="true" /></button></Tooltip>}
+                    {(n.stato === 'Da approvare' || n.stato === 'Rifiutata') && <Tooltip text={approvabile(n) ? 'Approva' : SENZA_RICEVUTA_APPROVA}><button type="button" className="nsm-day__act" aria-label={approvabile(n) ? 'Approva' : SENZA_RICEVUTA_APPROVA} disabled={!approvabile(n)} onClick={() => approva(n)}><i className="fa-solid fa-circle-check" aria-hidden="true" /></button></Tooltip>}
                     {(n.stato === 'Da approvare' || n.stato === 'Approvata') && <Tooltip text="Rifiuta"><button type="button" className="nsm-day__act" aria-label="Rifiuta" onClick={() => setRifiuto({ n, motivo: '' })}><i className="fa-solid fa-circle-xmark" aria-hidden="true" /></button></Tooltip>}
                     {n.stato === 'Approvata' && <Tooltip text="Segna come rimborsata"><button type="button" className="nsm-day__act" aria-label="Segna come rimborsata" onClick={() => rimborsa(n)}><i className="fa-solid fa-money-bill" aria-hidden="true" /></button></Tooltip>}
                     <Tooltip text="Elimina"><button type="button" className="nsm-day__act" aria-label="Elimina" onClick={() => cancella(n)}><i className="fa-solid fa-trash-can" aria-hidden="true" /></button></Tooltip>

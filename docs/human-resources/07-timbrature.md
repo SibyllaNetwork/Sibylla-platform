@@ -9,7 +9,7 @@
 Pagina dell'**ufficio del personale** per gestire come entra ed esce il personale:
 
 - **QR code di timbratura** del kiosk all'ingresso: si rinnova ogni minuto; il dipendente lo inquadra con l'App Op! e Sibylla capisce se è un'entrata o un'uscita;
-- **kiosk a schermo intero** da aprire su un tablet o monitor all'ingresso;
+- **kiosk a schermo intero**: anteprima in overlay dalla pagina e **pagina autonoma** `/kiosk?p=<postazione>` da lasciare aperta su un tablet o monitor all'ingresso;
 - **App dipendenti**: QR e link di installazione dell'App Op!, quanti l'hanno attivata, chi manca (con invito), finestra in cui è consentita la timbratura con nome e cognome;
 - **avvisi di ritardo** di oggi arrivati dall'App Op!;
 - **storico** di tutte le timbrature con filtri, export, nuova / modifica / elimina.
@@ -22,8 +22,9 @@ Ogni modifica ricalcola la presenza della giornata nel Registro presenze (06) e 
 - **Sidenav**: «Human Resources» › «Gestione delle presenze» › «Timbrature» (seconda voce, dopo «Registro presenze»). Icona menu: `fa-fingerprint`. Presente anche nei menu Tour Operator e Ristoranti.
 - **Breadcrumb**: Human Resources › Gestione delle presenze › Timbrature.
 - **Indietro**: PageHead con `onBack={() => navigate('home')}` → Home.
-- **Indirizzo kiosk** copiabile: `{origin}/kiosk?p=principale`. Nota: in questo repository **non esiste** una route `/kiosk` autonoma; il kiosk è oggi l'overlay a schermo intero della pagina (§5.3). Chi riproduce deve prevedere la pagina kiosk pubblica (vedi §7).
-- Nessun deep link in ingresso; nessuna navigazione verso altre pagine.
+- **Indirizzo kiosk** copiabile e apribile in una nuova scheda: `{origin}/kiosk?p=principale`.
+- **Pagina kiosk `/kiosk?p=<postazione>`** (§4.8): è l'unico indirizzo dell'app con una pagina propria, perché la navigazione interna non usa l'URL. L'entry point (`src/index.tsx`) controlla il pathname all'avvio: se è `/kiosk` (anche con `/` finale, maiuscole indifferenti) monta `KioskPage` **al posto** di `App`, quindi senza sidenav, topbar, login, Toaster né ConfirmDialog. Il parametro `p` è la postazione (spazi ai lati tolti, max 40 caratteri; assente o vuoto → «principale»). In produzione `vercel.json` ha il rewrite `{ "source": "/kiosk", "destination": "/index.html" }`; in sviluppo il dev server CRA serve già `index.html` su ogni percorso.
+- Nessun deep link in ingresso verso la pagina Timbrature; nessuna navigazione verso altre pagine.
 
 ## 3. Layout
 
@@ -39,7 +40,7 @@ Ogni modifica ricalcola la presenza della giornata nel Registro presenze (06) e 
 │ │ 176px  │  2. Il dipendente apre …      │ │136px │  Da attivare: Oscar P. · Chiara F.│
 │ └────────┘  3. Inquadra il QR …          │ └──────┘  [✈ Invia invito]                 │
 │ Si rinnova  Il codice cambia ogni minuto…│ Inquadralo Link d'installazione app.sib… ⎘│
-│ tra 42s     Indirizzo del kiosk /kiosk… ⎘│ per …     1. 2. 3. (istruzioni grigie)    │
+│ tra 42s     Indirizzo del kiosk /kiosk… ⎘ ↗│ per …     1. 2. 3. (istruzioni grigie)    │
 │                                          │           [Timbratura con nome … fino al] │
 ├──────────────────────────────────────────┴───────────────────────────────────────────┤
 │ ⏰ Avvisi di ritardo di oggi (2)                                                       │
@@ -62,7 +63,7 @@ Ogni modifica ricalcola la presenza della giornata nel Registro presenze (06) e 
 - Card `.tmb__card`: bordo 1px `--color-border` (#CFD4DA), radius `--radius-md` 6px, sfondo `--color-surface` (#FFFFFF), `min-width:0`. Header card: flex, gap 10px, padding 12px 16px, bordo inferiore 1px. Corpo QR `.tmb__qr-body`: flex, gap 20px, padding 16px (QR a sinistra, testo a destra).
 - Card «Avvisi di ritardo» e «Storico» a tutta larghezza; le tabelle dentro le card non hanno bordo proprio (`.tmb__table.sib-table-wrap { border:none; border-radius:0 }`).
 - Modale «Nuova / Modifica timbratura»: `Modal size="md"`.
-- Kiosk: overlay `position:fixed; inset:0; z-index:1000`, montato con portal su `document.body`.
+- Kiosk: componente unico `Kiosk` (`Kiosk.tsx` + `Kiosk.sass`), `position:fixed; inset:0; z-index:1000`. Nella pagina è montato con portal su `document.body` (overlay); su `/kiosk` è l'unico contenuto del documento.
 
 ## 4. Elementi e testi
 
@@ -80,7 +81,7 @@ Ogni modifica ricalcola la presenza della giornata nel Registro presenze (06) e 
   - `h3` «Come funziona»;
   - elenco numerato: «Apri il **kiosk** su un tablet o un monitor all'ingresso del personale.» / «Il dipendente apre l'**App Op!** sul telefono.» / «Inquadra il QR: Sibylla riconosce da sola se è un'entrata o un'uscita.»;
   - hint: «Il codice cambia ogni minuto: una foto del QR non basta per timbrare da casa.»;
-  - riga indirizzo (in fondo alla colonna, `margin-top:auto`): «Indirizzo del kiosk» + `code` «/kiosk?p=principale» + pulsante icona `fa-solid fa-copy` (Tooltip «Copia l'indirizzo», aria «Copia l'indirizzo del kiosk»).
+  - riga indirizzo (in fondo alla colonna, `margin-top:auto`, va a capo se non entra): «Indirizzo del kiosk» + `code` «/kiosk?p=principale» (su una riga) + pulsante icona `fa-solid fa-copy` (Tooltip «Copia l'indirizzo», aria «Copia l'indirizzo del kiosk») + pulsante icona `fa-solid fa-arrow-up-right-from-square` (Tooltip «Apri in una nuova scheda», aria «Apri il kiosk in una nuova scheda»). I due pulsanti stanno in `.tmb__url-tools` (inline-flex, gap 4px) e vanno a capo insieme.
 
 ### 4.3 Card «App dipendenti»
 - Titolo: `fa-solid fa-mobile-screen` + «App dipendenti».
@@ -124,14 +125,22 @@ Ogni modifica ricalcola la presenza della giornata nel Registro presenze (06) e 
 - Se la data è futura: hint rosso «La data è nel futuro: la timbratura comparirà nello storico da quel giorno.»
 - Azioni: «Annulla» (secondary), primario «Aggiungi timbratura» / «Salva modifiche» (disabilitato se manca dipendente, data o ora).
 
-### 4.7 Kiosk a schermo intero
+### 4.7 Kiosk a schermo intero (overlay)
 - `role="dialog"`, `aria-label="Kiosk di timbratura"`. Sfondo `#204769`, testo bianco.
-- Pulsante chiudi in alto a destra `fa-solid fa-xmark` (aria «Chiudi il kiosk»).
+- Pulsante chiudi in alto a destra `fa-solid fa-xmark` (Tooltip «Chiudi il kiosk» in basso, aria «Chiudi il kiosk»).
 - Orologio «HH:MM»; data `it-IT` estesa (giorno della settimana, giorno, mese) con iniziale maiuscola, es. «Giovedì 5 novembre».
 - QR grande su riquadro bianco (`alt="QR code di timbratura"`).
 - «Inquadra il codice con l'**App Op!** per timbrare l'entrata o l'uscita».
 - Barra di avanzamento oro che si svuota con i secondi rimanenti.
-- «Il codice si rinnova tra {s}s · Esc per uscire».
+- «Il codice si rinnova tra {s}s · Postazione principale · Esc per uscire».
+
+### 4.8 Pagina kiosk `/kiosk?p=<postazione>`
+- Stesso componente e stesso aspetto dell'overlay, con queste differenze:
+  - `role="main"` (`aria-label="Kiosk di timbratura"`); titolo della scheda «Kiosk di timbratura · {postazione}»;
+  - in alto a destra, al posto della X, il pulsante `fa-solid fa-expand` (Tooltip e aria «Schermo intero») che porta il documento a tutto schermo; a schermo intero diventa `fa-solid fa-compress` «Esci dallo schermo intero»; Esc lo gestisce il browser;
+  - ultima riga «Il codice si rinnova tra {s}s · Postazione {postazione}» (senza «Esc per uscire»);
+  - il QR codifica la postazione del parametro: `https://app.sibyllaop.it/timbra?p={postazione}&k={token}`;
+  - chiede al browser di tenere acceso lo schermo (Screen Wake Lock, rinnovato quando la scheda torna visibile); se non è supportato o viene negato, nessun messaggio.
 
 ## 5. Stati e interazioni
 
@@ -142,12 +151,13 @@ Ogni modifica ricalcola la presenza della giornata nel Registro presenze (06) e 
 ### 5.2 QR del kiosk
 - Finestra = `floor(epochSecondi / 60)`; scade tra = `60 − (epochSecondi mod 60)`.
 - Token = `((finestra × 2654435761) >>> 0).toString(36).toUpperCase()` (mock deterministico).
-- Testo codificato: `https://app.sibyllaop.it/timbra?p=principale&k={token}`.
+- Testo codificato: `https://app.sibyllaop.it/timbra?p={postazione}&k={token}` (postazione codificata con `encodeURIComponent`; in pagina e nell'overlay è «principale»). Calcolo condiviso nell'hook `useQrTimbratura(postazione, adesso)` di `Kiosk.tsx`: pagina, overlay e `/kiosk` mostrano nello stesso minuto lo stesso codice.
 - Generazione con la libreria `qrcode` (`toDataURL`): correzione errore **M**, margine 1, colori scuro `#1E293B` / chiaro `#FFFFFF`; larghezza 480px per il kiosk (mostrato a 176px in pagina), 240px per il QR app (mostrato a 136px). Rigenerato a ogni cambio di testo (ogni minuto).
 
 ### 5.3 Kiosk
-- «Apri kiosk» → overlay a schermo intero. Chiusura con il pulsante X o con **Esc** (listener su `window`).
-- Il QR e il countdown sono gli stessi della pagina; la barra ha larghezza `scadeTra / 60 × 100%`.
+- «Apri kiosk» → overlay a schermo intero (anteprima veloce senza lasciare la pagina). Chiusura con il pulsante X o con **Esc** (listener su `window`).
+- Il pulsante «Apri in una nuova scheda» accanto all'indirizzo apre `{origin}/kiosk?p=principale` con `window.open(…, '_blank', 'noopener')`: è la schermata da lasciare sul dispositivo all'ingresso.
+- Overlay e pagina hanno orologio proprio (al secondo); QR e countdown coincidono con quelli della card; la barra ha larghezza `scadeTra / 60 × 100%` (custom property `--p`).
 
 ### 5.4 Copia e invito
 - Copia indirizzo kiosk (`{origin}/kiosk?p=principale`) → toast success titolo «Copiato» testo «Indirizzo del kiosk copiato.»; copia link app (`https://app.sibyllaop.it/`) → «Link d'installazione copiato.»; errore clipboard → toast error titolo «Errore» testo «Copia non riuscita.».
@@ -226,7 +236,7 @@ Per ogni dipendente:
 | `GET /Sibylla/hr/timbrature/avvisi-ritardo?data=2026-11-05` | avvisi di oggi | → `[{ "dipendenteId": 7, "turno": 420, "previsto": 450, "motivo": "Visita medica", "avvisatoAlle": 401, "entrata": 455 }]` (inviati dal dipendente dall'App Op!) |
 | `GET /Sibylla/hr/app/stato` | stato attivazioni | → `{ "attivi": [1,2,…], "daAttivare": [8,11], "timbratureApp7gg": 84 }` |
 | `POST /Sibylla/hr/app/inviti` | «Invia invito» | `{ "dipendenti": [8, 11] }` → invia email/SMS d'invito all'App Op! |
-| pagina pubblica `/kiosk?p=principale` | kiosk su tablet | mostra orologio, QR a rotazione e countdown come §4.7 |
+| pagina `/kiosk?p=principale` (già presente nel front end) | kiosk su tablet | oggi il token è un mock calcolato nel browser: va sostituito con `GET /Sibylla/hr/kiosk/token` ogni 60 s, e l'accesso alla pagina va protetto (dispositivo registrato o codice della postazione) |
 
 Le correzioni manuali vanno storicizzate (autore, prima/dopo). L'avviso di ritardo nasce in App Op! e può generare una notifica nel Centro notifiche per l'HR (oggi non implementato).
 
@@ -241,8 +251,8 @@ Token tema chiaro: `--color-primary` #204769, `--color-primary-100` #e6eaee, `--
 - `.tmb__how`: colonna gap 8px, min-width 0. `.tmb__how-title`: heading 13px 700 text-active.
 - `.tmb__steps`: padding-left 18px, decimal, colonna gap 5px, 12.5px text-active; `--muted` 11.5px text-inactive.
 - `.tmb__hint`: 11.5px text-inactive; `--warn` error.
-- `.tmb__url`: flex centrato gap 8px; l'ultimo `.tmb__url` della colonna ha `margin-top:auto`. Label 11px text-inactive. `.tmb__code`: padding 2px 8px, radius 4px, sfondo `--color-bg`, 11.5px text-active.
-- `.tmb__app-stat`: 13px text-active, `b` primary.
+- `.tmb__url`: flex centrato gap 6px 8px, `flex-wrap: wrap`; l'ultimo `.tmb__url` della colonna ha `margin-top:auto`. Label 11px text-inactive nowrap. `.tmb__code`: nowrap, padding 2px 8px, radius 4px, sfondo `--color-bg`, 11.5px text-active.
+- `.tmb__app-info`: 13px text-active, `b` primary (nome di classe senza suffisso «stat», che il selettore globale `[class$="stat"]` ombreggerebbe).
 - `.tmb__attivare`: flex wrap gap 6px 12px text-inactive. `.tmb__pill`: 12px 600 text-active; dal secondo in poi prefisso `·` (margin-right 6px, text-inactive). `.tmb__invita` icona mr 6px.
 - `.tmb__nome`: colonna gap 4px, max-width 340px.
 - Icone pulsante `.tmb__ico.sib-btn--icon i`: primary 16px.
@@ -254,13 +264,14 @@ Token tema chiaro: `--color-primary` #204769, `--color-primary-100` #e6eaee, `--
 - `.tmb__filters`: flex wrap, align end, gap 12px, padding 12px 16px, bordo inferiore. `.tmb__field` 190px, `--sm` 170px. `.tmb__search` margin-left auto, 240px.
 - `.tmb__pager`: relative, flex centrato, padding 10px 16px, bordo superiore. `.tmb__count`: absolute left 16px, centrato verticalmente, 12px text-inactive.
 - Modale `.tmb-form`: colonna gap 14px; griglia 3 colonne gap 12px; azioni end gap 10px padding-top 14px bordo superiore.
-- Kiosk `.tmb-kiosk`: fixed inset 0, z 1000, colonna centrata gap 14px, sfondo `#204769`, testo `#FFFFFF` (fissi, non a token).
-  - `__close`: absolute top 20px right 24px, 42×42 tondo, bordo 1px rgba(255,255,255,.35), trasparente, bianco 18px; hover sfondo rgba(255,255,255,.12).
+- Kiosk `.tmb-kiosk` (in `Kiosk.sass`): fixed inset 0, z 1000, colonna centrata gap 14px, padding 16px, sfondo `#204769`, testo `#FFFFFF` (fissi, non a token).
+  - `__tools`: absolute top 20px right 24px, flex gap 10px. `__tool` (X o schermo intero): 42×42 tondo, bordo 1px rgba(255,255,255,.35), trasparente, bianco 18px; hover sfondo rgba(255,255,255,.12); focus visibile contorno 2px `#A2864C`.
   - `__clock`: heading 64px 700 line-height 1 tabular. `__date`: 18px opacity .8, first-letter maiuscola.
-  - `__qr`: margin-top 12px, padding 18px, radius 18px, sfondo bianco; img `min(46vh, 420px)` quadrata.
-  - `__msg`: margin-top 6px, 20px.
-  - `__bar`: larghezza `min(46vh, 420px)`, alt. 6px, radius 3px, sfondo rgba(255,255,255,.2), overflow hidden; `__bar-fill` larghezza `--p`, sfondo `#A2864C` (oro).
-  - `__scade`: 13px opacity .7.
+  - `__qr`: margin-top 12px, padding 18px, radius 18px, sfondo bianco; img `min(46vh, 420px, 72vw)` quadrata.
+  - `__msg`: margin-top 6px, 20px, centrato.
+  - `__bar`: larghezza `min(46vh, 420px, 72vw)`, alt. 6px, radius 3px, sfondo rgba(255,255,255,.2), overflow hidden; `__bar-fill` larghezza `--p`, sfondo `#A2864C` (oro).
+  - `__scade`: 13px opacity .7, centrato.
+  - Schermi bassi (`@media (max-height: 640px)`): gap 8px, orologio 44px, messaggio 16px.
 - Tema scuro: card, testi, bordi e badge seguono i token; restano fissi il fondo bianco dei QR e i colori del kiosk.
 
 ## 9. Responsività
@@ -269,21 +280,21 @@ Token tema chiaro: `--color-primary` #204769, `--color-primary-100` #e6eaee, `--
 - Filtri dello storico sempre `flex-wrap: wrap`.
 - Tabelle a colonne percentuali, `table-layout:fixed`, testi lunghi con `TruncatedText` (ellipsis + tooltip): nessuno scroll orizzontale a nessuna larghezza.
 - Laptop 1366 px con sidebar aperta: card superiori impilate se il contenuto è sotto 1080 px; 1920 px: affiancate.
-- Kiosk: QR e barra dimensionati su `min(46vh, 420px)`, quindi si adattano all'altezza dello schermo.
+- Kiosk (overlay e `/kiosk`): QR e barra dimensionati su `min(46vh, 420px, 72vw)`, quindi si adattano all'altezza e, sul telefono, alla larghezza; padding 16px ai lati; sotto 640 px di altezza orologio e messaggio si riducono. Nessuno scroll orizzontale a 390 px.
 
 ## 10. Effetti e animazioni
 
 - Countdown aggiornato ogni secondo; QR rigenerato ogni 60 s (sostituzione istantanea).
 - Barra del kiosk: `transition: width 1s linear` (si svuota in modo continuo; al rinnovo torna piena con la stessa transizione).
 - Countdown in pagina diventa rosso negli ultimi 10 secondi.
-- Hover del pulsante chiudi kiosk: sfondo bianco al 12%.
+- Hover dei pulsanti del kiosk (chiudi, schermo intero): sfondo bianco al 12%.
 - Nessuna animazione d'ingresso; nessuna regola `prefers-reduced-motion` specifica.
 
 ## 11. Accessibilità
 
-- Pulsanti a sola icona con `aria-label` (copia indirizzo, copia link, esporta, modifica, elimina, chiudi kiosk) e Tooltip scuro.
+- Pulsanti a sola icona con `aria-label` (copia indirizzo, apri il kiosk in una nuova scheda, copia link, esporta, modifica, elimina, chiudi kiosk, schermo intero) e Tooltip scuro.
 - Immagini QR con `alt` descrittivo.
-- Kiosk `role="dialog"` con `aria-label="Kiosk di timbratura"`; Esc chiude.
+- Kiosk overlay `role="dialog"` con `aria-label="Kiosk di timbratura"`; Esc chiude. Pagina `/kiosk`: `role="main"`, stesso `aria-label`.
 - Icona «modificata» con `aria-label`; icone decorative `aria-hidden`.
 - Il campo Dipendente della modale è `required`.
 
@@ -292,8 +303,10 @@ Token tema chiaro: `--color-primary` #204769, `--color-primary-100` #e6eaee, `--
 1. La pagina mostra in alto due card affiancate «QR code timbratura» e «App dipendenti» e, sotto, «Avvisi di ritardo di oggi (n)» e «Storico timbrature».
 2. Il QR del kiosk cambia allo scoccare di ogni minuto e il testo «Si rinnova tra {s}s» scende di un secondo alla volta; negli ultimi 10 secondi è rosso.
 3. Il QR codifica `https://app.sibyllaop.it/timbra?p=principale&k={token}` con token diverso per ogni minuto.
-4. «Apri kiosk» apre la schermata blu a tutto schermo con orologio, data con iniziale maiuscola, QR, barra oro e «Il codice si rinnova tra {s}s · Esc per uscire»; Esc o X la chiudono.
-5. Il pulsante copia accanto a «/kiosk?p=principale» copia `{origin}/kiosk?p=principale` e mostra il toast «Copiato» / «Indirizzo del kiosk copiato.».
+4. «Apri kiosk» apre la schermata blu a tutto schermo con orologio, data con iniziale maiuscola, QR, barra oro e «Il codice si rinnova tra {s}s · Postazione principale · Esc per uscire»; Esc o X la chiudono e la pagina resta com'era.
+5. Il pulsante copia accanto a «/kiosk?p=principale» copia `{origin}/kiosk?p=principale` e mostra il toast «Copiato» / «Indirizzo del kiosk copiato.»; il pulsante accanto apre lo stesso indirizzo in una nuova scheda.
+5a. Aprendo direttamente `{origin}/kiosk?p=principale` (anche ricaricando, in locale e su Vercel) compare solo il kiosk: niente sidenav, topbar o login; titolo della scheda «Kiosk di timbratura · principale», ultima riga «Il codice si rinnova tra {s}s · Postazione principale», pulsante «Schermo intero» in alto a destra; il QR si rinnova a ogni minuto ed è identico a quello della card nello stesso minuto.
+5b. `{origin}/kiosk?p=ingresso%20cucina` mostra «Postazione ingresso cucina» e il QR codifica `p=ingresso%20cucina`; `{origin}/kiosk` senza parametro usa «principale».
 6. La card App dipendenti dice «10 di 12 dipendenti hanno attivato l'App Op!», elenca «Oscar Pettinari · Chiara Ferri» e «Invia invito» mostra «Invito all'App Op! inviato a Oscar e Chiara.».
 7. Impostando «Timbratura con nome e cognome consentita fino al» a ieri, l'hint diventa rosso «Scaduta: ora si timbra solo inquadrando il QR del kiosk.»; il valore resta dopo il ricaricamento.
 8. Lo storico, all'apertura, contiene solo le timbrature di oggi fino all'ora attuale, dalla più recente; il contatore in basso a sinistra riporta il totale e la paginazione centrata ha 10 righe per pagina.
@@ -311,6 +324,8 @@ Token tema chiaro: `--color-primary` #204769, `--color-primary-100` #e6eaee, `--
 
 - `src/modules/hr/Timbrature/Timbrature.tsx`
 - `src/modules/hr/Timbrature/Timbrature.sass`
+- `src/modules/hr/Timbrature/Kiosk.tsx` (componente `Kiosk`, `KioskPage`, `useQrTimbratura`, `useQr`, `useAdesso`, `kioskPath`), `Kiosk.sass`
+- `src/index.tsx` (scelta tra `KioskPage` e `App` dal pathname), `vercel.json` (rewrite `/kiosk`)
 - `src/modules/hr/_presenze/ModaleTimbrature.tsx` (`POSTAZIONI`)
 - `src/modules/hr/_presenze/presenze.model.ts`
 - `src/modules/hr/hrExport.ts`

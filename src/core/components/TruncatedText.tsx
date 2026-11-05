@@ -47,7 +47,7 @@ export default function TruncatedText({ text, full, className, position = 'top' 
   const span = <span ref={ref} className={clsx('sib-truncate', className)}>{text}</span>
 
   if (overflow || abbreviated) {
-    return <Tooltip content={full ?? text} position={position} variant="light">{span}</Tooltip>
+    return <Tooltip content={full ?? text} position={position}>{span}</Tooltip>
   }
   return span
 }

@@ -15,14 +15,46 @@ import {
 import { useAnagraficaOpStore, abilitazioneVuota, type AbilitazioneOp } from '../../../store/useAnagraficaOpStore'
 import { useModuloAttivo } from '../../../hooks/useModuloAttivo'
 import OpAccessoAnagrafica from '../../appop/OpAccessoAnagrafica'
+import AvatarPicker from '../../../core/components/AvatarPicker'
+import { avatarUrl } from '../../../core/avatar'
+import { toast } from '../../../core/components/Toast/useToast'
+import { useAnagrafichePersonaleStore, prossimoIdLocale } from '../../../store/useAnagrafichePersonaleStore'
+import { FALLBACK, backendNonRaggiungibile, messaggioErrore } from '../ArchivioPersonale/personaleDemo'
 import './CreaAnagrafica.sass'
 import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
 /**
  * Crea anagrafica personale — scheda del dipendente (stile "scheda personale",
  * sezioni raggruppate) anziché il vecchio layout "profilo" con avatar dominante.
- * BE: `anagrafica-personale/Insert`.
+ * BE: `anagrafica-personale/Insert` (creazione) e `anagrafica-personale/Update`
+ * (modifica, con l'id). Senza backend raggiungibile la scheda si salva nella
+ * copia locale della demo (useAnagrafichePersonaleStore).
  */
+
+// Foto del dipendente ridotta a un riquadro di 320 px (JPEG): resta leggera da
+// salvare nell'anagrafica anche quando arriva dalla fotocamera.
+const ridimensionaFoto = (dataUrl: string, lato = 320): Promise<string> =>
+  new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const k = Math.min(1, lato / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, Math.round(img.width * k))
+      canvas.height = Math.max(1, Math.round(img.height * k))
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { resolve(dataUrl); return }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/jpeg', 0.85))
+    }
+    img.onerror = () => resolve(dataUrl)
+    img.src = dataUrl
+  })
+
+// yyyy-mm-dd → gg/mm/aaaa (formato delle righe dell'Archivio)
+const isoToIt = (iso: string) => {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso
+}
 
 const SESSI = [
   { value: '', label: 'Seleziona sesso' },
@@ -353,7 +385,7 @@ function ContrattiSection({ anagraficaId, nomeDefault, inq, navigate }: {
               {storico.map((r, i) => (
                 <li key={r.id} className="crea-anag__ctr-item">
                   <div className="crea-anag__ctr-item-main">
-                    {i === 0 && <span className="crea-anag__ctr-tag">Vigente</span>}
+                    {i === 0 && <span className="crea-anag__ctr-tag"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Vigente</span>}
                     <span className="crea-anag__ctr-item-tip">{r.tipologia}</span>
                     <span className="crea-anag__ctr-item-meta">
                       {r.ruolo || '—'}{r.livello ? ` · ${r.livello} livello` : ''}{r.ccnl ? ` · ${r.ccnl}` : ''}{r.reparto ? ` · ${r.reparto}` : ''} · RAL € {r.ral || '—'} · dal {fmtDate(r.decorrenza)}{r.scadenza ? ` al ${fmtDate(r.scadenza)}` : ''}
@@ -381,21 +413,29 @@ function ContrattiSection({ anagraficaId, nomeDefault, inq, navigate }: {
 export default function CreaAnagrafica({ navigate, editing = false }: { navigate: (p: string) => void; editing?: boolean }) {
   // Strutture abilitabili: quelle del cliente corrente.
   const { elenco: STRUTTURE } = useStrutturaCorrente()
-  const photoInputRef = useRef<HTMLInputElement>(null)
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const camInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
   const initial = editing ? getEditingAnagrafica() : null
+  // In modifica serve l'id: se la pagina è stata ricaricata il dato in memoria è
+  // perso e la scheda si comporta come una creazione.
+  const inModifica = editing && initial?.id != null
+  // Foto: id avatar (`avatar-07`) o foto ridimensionata (data URL), salvata nell'anagrafica.
+  const [foto, setFoto] = useState<string>(initial?.avatarUrl ?? '')
+  const [pickerOpen, setPickerOpen] = useState(false)
   const appOpAttivo = useModuloAttivo('app-op')
   const { reparti: repartiHr, orari, schemi, turni } = useHrConfigStore()
   const ultimoContratto = useContrattiPersonaleStore((s) => s.ultimoContratto)
   const updateContratto = useContrattiPersonaleStore((s) => s.updateContratto)
+  const riassegnaContratti = useContrattiPersonaleStore((s) => s.riassegnaAnagrafica)
   const salvaAbilOp = useAnagraficaOpStore((s) => s.set)
+  const rimuoviAbilOp = useAnagraficaOpStore((s) => s.rimuovi)
+  const salvaLocale = useAnagrafichePersonaleStore((s) => s.salva)
 
-  // Chiave stabile per collegare i contratti a questa anagrafica: in modifica è
-  // l'id del dipendente, in creazione un id di sessione (i contratti restano
-  // agganciati al profilo appena creato).
+  // Chiave per collegare contratti e App Op! a questa anagrafica: in modifica è
+  // l'id del dipendente, in creazione una chiave provvisoria `nuovo-…` che al
+  // salvataggio viene sostituita dall'id definitivo (vedi handleSave).
   const [anagId] = useState(() =>
     initial?.id != null ? String(initial.id) : `nuovo-${Math.round(performance.now())}`)
   const vigente = ultimoContratto(anagId)
@@ -432,39 +472,112 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
     repartoId: vigente?.repartoId ?? '', orarioId: vigente?.orarioId ?? '', schemaTurniId: vigente?.schemaTurniId ?? '',
     ...(initial ? {
       nome: initial.nome ?? '', cognome: initial.cognome ?? '', data_nascita: initial.data_nascita ?? '',
-      codice_fiscale: initial.codice_fiscale ?? '', indirizzo: initial.indirizzo ?? '',
+      sesso: initial.sesso ?? '', codice_fiscale: initial.codice_fiscale ?? '',
+      email: initial.email ?? '', email_aziendale: abilOp.emailAziendale || initial.email_aziendale || '',
+      telefono: initial.telefono ?? '', contatto_emergenza: initial.contatto_emergenza ?? '',
+      indirizzo: initial.indirizzo ?? '', indirizzo2: initial.indirizzo2 ?? '',
       cap: initial.cap ?? '', provincia: initial.provincia ?? '', nazionalita: initial.nazionalita ?? 'ITALIA',
+      strutture: initial.strutture ?? '',
     } : {}),
   })
 
   const set = (k: keyof typeof form, v: any) => setForm((f) => ({ ...f, [k]: v }))
 
-  function onPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  // Foto dalla fotocamera (o da file su desktop): ridotta e salvata nell'anagrafica.
+  function onCamera(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
+    e.target.value = ''
     if (!f) return
+    if (!f.type.startsWith('image/')) { toast.error('Seleziona un file immagine.', 'Foto'); return }
     const reader = new FileReader()
-    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string)
+    reader.onload = () => { ridimensionaFoto(String(reader.result)).then(setFoto) }
     reader.readAsDataURL(f)
   }
+  // Dall'AvatarPicker: id avatar così com'è, foto caricata ridotta.
+  const onAvatar = (v: string) => {
+    if (v.startsWith('data:')) ridimensionaFoto(v).then(setFoto)
+    else setFoto(v)
+  }
+
+  const nomiDocumenti = () => ({
+    identita: docs.identita?.name, codiceFiscale: docs.codiceFiscale?.name,
+    privacy: docs.privacy?.name, sicurezza: docs.sicurezza?.name,
+    altri: altri.map((d) => d.name),
+  })
 
   async function handleSave() {
     if (!form.nome || !form.cognome) {
       setError('Nome e cognome sono obbligatori'); return
     }
     setError(null); setPending(true)
+    const nomeCompleto = `${form.nome} ${form.cognome}`.trim()
+    const fallito = (msg: string) => {
+      setPending(false)
+      toast.error(msg, 'Anagrafica non salvata')
+    }
+
+    // 1. Backend: Insert (creazione) o Update (modifica, con l'id). Senza backend
+    //    raggiungibile si salva nella copia locale della demo; qualunque altro
+    //    errore ferma il salvataggio e resta sulla scheda.
+    const body = {
+      ...form,
+      ...(inModifica ? { id: initial!.id } : {}),
+      avatarUrl: foto || null,
+      documenti: nomiDocumenti(),
+    }
+    let risposta: unknown
+    let locale = false
     try {
-      await apiFetchSibylla(editing ? 'anagrafica-personale/Update' : 'anagrafica-personale/Insert', { method: 'POST', body: form })
-    } catch { /* mock: salva comunque */ }
-    // L'inquadramento operativo (reparto, orario, turnazione) vive sul contratto vigente
+      risposta = await apiFetchSibylla(inModifica ? 'anagrafica-personale/Update' : 'anagrafica-personale/Insert', { method: 'POST', body })
+    } catch (e) {
+      if (!backendNonRaggiungibile(e)) { fallito(messaggioErrore(e, 'Il salvataggio non è riuscito.')); return }
+      locale = true
+    }
+
+    // 2. Id definitivo del dipendente
+    let idDef: string
+    if (inModifica) idDef = String(initial!.id)
+    else if (locale) idDef = String(prossimoIdLocale(FALLBACK.map((p) => p.id)))
+    else {
+      const r = risposta as { id?: number | string; Id?: number | string } | null | undefined
+      const id = r && typeof r === 'object' ? r.id ?? r.Id : undefined
+      if (id == null) {
+        fallito('Il server non ha restituito il codice del nuovo dipendente: contratti e accesso all’App Op! non sono stati collegati. Riprova o contatta l’assistenza.')
+        return
+      }
+      idDef = String(id)
+    }
+
+    // 3. L'inquadramento operativo (reparto, orario, turnazione) vive sul contratto vigente
     if (vigente) {
       const rep = findById(repartiHr, form.repartoId)
       updateContratto(vigente.id, {
         repartoId: rep?.id, reparto: rep?.nome, orarioId: form.orarioId || undefined, schemaTurniId: form.schemaTurniId || undefined,
       })
     }
-    // Abilitazione App Op! (l'invito resta un'azione esplicita della sezione)
-    salvaAbilOp(anagId, { ...useAnagraficaOpStore.getState().abilitazioni[anagId], ...abilOp, emailAziendale: form.email_aziendale })
+    // 4. Contratti e abilitazione App Op! passano dalla chiave provvisoria all'id definitivo
+    riassegnaContratti(anagId, idDef)
+    const abilPrec = useAnagraficaOpStore.getState().abilitazioni
+    salvaAbilOp(idDef, { ...abilPrec[idDef], ...abilPrec[anagId], ...abilOp, emailAziendale: form.email_aziendale })
+    if (anagId !== idDef) rimuoviAbilOp(anagId)
+
+    // 5. Copia locale della demo (letta dall'Archivio senza backend)
+    if (locale) {
+      salvaLocale({
+        id: Number(idDef), matricola: initial?.matricola ?? Number(idDef),
+        nome: form.nome, cognome: form.cognome, sesso: form.sesso,
+        telefono: form.telefono, email: form.email, email_aziendale: form.email_aziendale, contatto_emergenza: form.contatto_emergenza,
+        nato_il: form.data_nascita ? isoToIt(form.data_nascita) : '',
+        codice_fiscale: form.codice_fiscale, indirizzo: form.indirizzo, indirizzo2: form.indirizzo2,
+        cap: form.cap, provincia: form.provincia, nazione: form.nazionalita === 'ITALIA' ? 'ITA' : form.nazionalita, strutture: form.strutture,
+        avatarUrl: foto || undefined, documenti: nomiDocumenti(),
+      })
+    }
+
     setPending(false)
+    toast.success(locale
+      ? `${nomeCompleto}: backend non raggiungibile, la scheda è salvata in questo browser (dati della demo).`
+      : `${nomeCompleto} è nell’Archivio del personale.`, 'Anagrafica salvata')
     clearEditingAnagrafica()
     navigate('archivio-personale')
   }
@@ -484,20 +597,26 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
           <div className="crea-anag__identity">
             {/* Foto compatta */}
             <div className="crea-anag__photo">
-              <div className="crea-anag__photo-thumb" onClick={() => photoInputRef.current?.click()}>
-                {photoPreview
-                  ? <img src={photoPreview} alt="anteprima" />
-                  : <i className="fa-duotone fa-user" />}
-              </div>
+              <button type="button" className="crea-anag__photo-thumb" aria-label="Scegli avatar o foto" onClick={() => setPickerOpen(true)}>
+                {foto
+                  ? <img src={avatarUrl(foto)} alt={`Foto di ${`${form.nome} ${form.cognome}`.trim() || 'dipendente'}`} />
+                  : <i className="fa-duotone fa-user" aria-hidden="true" />}
+              </button>
               <div className="crea-anag__photo-btns">
-                <button type="button" className="sib-btn sib-btn--icon" title="Scatta foto" onClick={() => photoInputRef.current?.click()}>
+                <button type="button" className="sib-btn sib-btn--icon" title="Scatta foto" onClick={() => camInputRef.current?.click()}>
                   <i className="fa-duotone fa-camera" />
                 </button>
-                <button type="button" className="sib-btn sib-btn--icon" title="Carica immagine" onClick={() => photoInputRef.current?.click()}>
+                <button type="button" className="sib-btn sib-btn--icon" title="Scegli avatar o carica foto" onClick={() => setPickerOpen(true)}>
                   <i className="fa-duotone fa-image" />
                 </button>
+                {foto && (
+                  <button type="button" className="sib-btn sib-btn--icon" title="Rimuovi foto" onClick={() => setFoto('')}>
+                    <i className="fa-duotone fa-trash-can" />
+                  </button>
+                )}
               </div>
-              <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
+              <input ref={camInputRef} type="file" accept="image/*" capture="user" className="hidden" onChange={onCamera} />
+              <AvatarPicker open={pickerOpen} onClose={() => setPickerOpen(false)} value={foto} onSelect={onAvatar} allowUpload />
             </div>
 
             {/* Campi anagrafici */}

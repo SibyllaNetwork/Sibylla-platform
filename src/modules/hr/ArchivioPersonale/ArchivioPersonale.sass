@@ -48,6 +48,31 @@ $cols: (matricola: 7%, nome: 9%, cognome: 8%, reparto: 10%, telefono: 9%, nato_i
     > :first-child
       min-width: 0
 
+  // Pulsante imbuto del filtro di colonna: grigio, primario quando il filtro è attivo
+  &__filtro-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex: none
+    width: 20px
+    height: 20px
+    padding: 0
+    border: 0
+    border-radius: 4px
+    background: none
+    color: $text-inactive
+    cursor: pointer
+
+    i
+      font-size: 11px
+
+    &:hover
+      background: var(--color-primary-100)
+      color: $primary
+
+    &--on
+      color: $primary
+
   &__matr
     display: inline-flex
     align-items: center
@@ -73,3 +98,71 @@ $cols: (matricola: 7%, nome: 9%, cognome: 8%, reparto: 10%, telefono: 9%, nato_i
 
     i
       font-size: 14px
+
+// ─── Popover del filtro di colonna ───────────────────────────────────────────
+// Montato in un portale su <body> (fuori da .arch-pers): top/left sono calcolati
+// dal pulsante imbuto al momento dell'apertura.
+.arch-pers-filtro__overlay
+  position: fixed
+  inset: 0
+  z-index: 30
+
+.arch-pers-filtro
+  position: fixed
+  z-index: 31
+  width: 208px
+  padding: 8px
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 8px
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .14)
+
+  &__acts
+    display: flex
+    justify-content: space-between
+    gap: 8px
+    margin-top: 8px
+
+// ─── Conferma eliminazione dipendente ────────────────────────────────────────
+.arch-pers-conf
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+  p
+    margin: 0
+
+  ul
+    margin: 0
+    padding-left: 18px
+    list-style: disc
+
+// ─── Modale Contratto: stato «Vigente» (icona + testo, nessuno sfondo) ───────
+.arch-pers-ctr__vigente
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  color: $success
+  font-size: 12px
+  font-weight: 600
+
+// ─── Dettaglio: stato del fascicolo (icona + testo, nessuno sfondo) ──────────
+.arch-pers-doc__stato
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  font-size: 12px
+  font-weight: 600
+
+  &--ok
+    color: $success
+
+  &--ko
+    color: $warning
+
+    i
+      animation: arch-pers-pulse 2s cubic-bezier(.4, 0, .6, 1) infinite
+
+@keyframes arch-pers-pulse
+  50%
+    opacity: .5

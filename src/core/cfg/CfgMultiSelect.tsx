@@ -18,6 +18,9 @@ export interface CfgMultiSelectProps {
   placeholder?: string
   /** Nome plurale delle opzioni, per il riepilogo ("3 sale selezionate"). */
   nomePlurale?: string
+  /** Genere grammaticale di `nomePlurale`, per accordare il riepilogo:
+   *  'f' → «3 sale selezionate» (default), 'm' → «2 reparti selezionati». */
+  genere?: 'm' | 'f'
   /** Oltre questa soglia il pannello mostra il campo di ricerca. */
   sogliaRicerca?: number
   disabled?: boolean
@@ -31,6 +34,7 @@ export default function CfgMultiSelect({
   label, options, value, onChange,
   placeholder = 'Seleziona',
   nomePlurale = 'voci',
+  genere = 'f',
   sogliaRicerca = 7,
   disabled = false,
   className,
@@ -82,7 +86,7 @@ export default function CfgMultiSelect({
 
   const riepilogo = value.length === 1
     ? value[0]
-    : `${value.length} ${nomePlurale} selezionate`
+    : `${value.length} ${nomePlurale} ${genere === 'm' ? 'selezionati' : 'selezionate'}`
 
   return (
     <div className={clsx('cfg-msel', className)} ref={wrapRef}>

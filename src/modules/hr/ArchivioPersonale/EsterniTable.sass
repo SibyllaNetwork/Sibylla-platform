@@ -82,34 +82,32 @@
     background: $primary-50
 
   // Etichetta di stato: il testo (TruncatedText) va in ellissi con tooltip se non entra
+  // Stato dell'autorizzazione: icona e testo colorato, niente pillola
   &__badge
     display: inline-flex
     align-items: center
+    gap: 6px
     max-width: 100%
     min-width: 0
     vertical-align: middle
-    height: 22px
-    line-height: 22px
-    padding: 0 8px
-    border-radius: 11px
-    font-size: 11px
+    font-size: 12px
     font-weight: 600
+
+    i
+      flex: none
+      font-size: 12px
 
     &--attiva
       color: $success
-      background: alpha($success, .12)
 
     &--in-scadenza
       color: $warning
-      background: alpha($warning, .13)
 
     &--scaduta
       color: $error
-      background: alpha($error, .1)
 
     &--futura
       color: $text-inactive
-      background: alpha($text-inactive, .1)
 
   &__acts
     display: flex

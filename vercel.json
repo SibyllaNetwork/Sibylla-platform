@@ -1,4 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "CI=false react-scripts build"
+  "buildCommand": "CI=false react-scripts build",
+  "rewrites": [
+    {
+      "source": "/kiosk",
+      "destination": "/index.html"
+    }
+  ]
 }

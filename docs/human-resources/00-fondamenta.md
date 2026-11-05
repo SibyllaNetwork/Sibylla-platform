@@ -4,7 +4,7 @@ Questo file raccoglie **tutto ciò che è condiviso** dalle pagine della sezione
 
 Stack di riferimento: React 19 + TypeScript (Create React App), SASS (sintassi indentata `.sass`, BEM), Tailwind CSS 3.4 per le classi condivise `sib-*` e alcune utility, zustand 5 (store, alcuni con `persist` su `localStorage`), Font Awesome Pro (kit JS), RSuite (solo per il `DateRangePicker`).
 
-> Dove il codice **non coincide** con una regola dichiarata (es. tooltip di `TruncatedText` chiaro invece che scuro), lo segnalo con **⚠ Nota di fedeltà**: per riprodurre le pagine identiche vale il **comportamento del codice**, la regola indica la direzione per il codice nuovo.
+> Dove il codice **non coincide** con una regola dichiarata (es. le righe delle tabelle che cambiano sfondo all'hover), lo segnalo con **⚠ Nota di fedeltà**: per riprodurre le pagine identiche vale il **comportamento del codice**, la regola indica la direzione per il codice nuovo.
 
 ## Indice
 
@@ -662,7 +662,7 @@ Props: `text: string` (testo mostrato, anche abbreviato), `full?: string` (testo
 - Misura l'overflow (`scrollWidth > clientWidth + 1`) al montaggio e con un `ResizeObserver` (si riadatta quando la sidebar apre/chiude).
 - Se il testo è troncato **oppure** `full` ≠ `text` (abbreviazione) avvolge lo span in `<Tooltip content={full ?? text} variant="light">`.
 
-⚠ Nota di fedeltà: `TruncatedText` usa la variante **light** del Tooltip (sfondo bianco, bordo `#E2E8F0`, testo `#1f2937`, radius 10, padding `12px 14px`, max-width 320px, testo a capo). Tutti gli altri tooltip (icone, filtri, bottoni) sono **scuri**. Per una riproduzione identica mantenere questa differenza.
+`TruncatedText` usa il Tooltip **scuro** standard (`#1E293B`, testo bianco), come tutti gli altri tooltip della piattaforma: i testi lunghi vanno a capo dentro la box (max-width 320px).
 
 ### 3.8 ThLabel (`src/core/components/ThLabel.tsx`)
 

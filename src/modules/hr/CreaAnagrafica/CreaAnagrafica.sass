@@ -117,7 +117,15 @@
     align-items: center
     justify-content: center
     overflow: hidden
+    padding: 0
     cursor: pointer
+
+    &:hover
+      border-color: $primary
+
+    &:focus-visible
+      outline: 2px solid $primary
+      outline-offset: 2px
 
     img
       width: 100%
@@ -393,15 +401,14 @@
     flex-wrap: wrap
     min-width: 0
 
+  // Stato «Vigente»: icona + testo verde (token --color-success), nessuno sfondo
   &__ctr-tag
     display: inline-flex
     align-items: center
-    padding: 2px 8px
-    border-radius: 20px
-    background: $success
-    color: #fff
-    font-size: 11px
-    font-weight: 700
+    gap: 5px
+    color: $success
+    font-size: 12px
+    font-weight: 600
 
   &__ctr-item-tip
     font-weight: 600

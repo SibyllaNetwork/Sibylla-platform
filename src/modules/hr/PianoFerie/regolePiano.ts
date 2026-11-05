@@ -1,5 +1,5 @@
 import {
-  DIPENDENTI_HR, repartoDipendente, saldoFerie, giorniLavorativi, fmtDataHr, isoOf,
+  DIPENDENTI_HR, repartoDipendente, saldoFerie, giorniLavorativi, fmtDataHr, isoOf, annoRichiesta,
   type RichiestaAssenza,
 } from '../../../store/useHrGestioneStore'
 import type { PianoFerie, RegolePiano } from '../../../store/usePianiFerieStore'
@@ -43,10 +43,16 @@ export function bloccoConsecutivo(r: Pick<RichiestaAssenza, 'id' | 'dipendenteId
   return { dal, al, giorni: giorniCalendario(dal, al) }
 }
 
-/** Saldo ferie della persona se la richiesta venisse approvata (le altre in attesa non contano). */
+/**
+ * Saldo ferie della persona, nell'anno della richiesta, se la richiesta venisse approvata
+ * (le altre in attesa non contano). I giorni della richiesta si sottraggono sempre, tranne
+ * quando è già approvata nell'elenco e quindi già fra le godute: così vale anche per una
+ * richiesta nuova, non ancora salvata, che l'HR inserisce direttamente «Approvata».
+ */
 export function saldoDopo(r: Pick<RichiestaAssenza, 'id' | 'dipendenteId' | 'dal' | 'al' | 'stato'>, richieste: RichiestaAssenza[]) {
-  const s = saldoFerie(richieste, r.dipendenteId, Number(r.dal.slice(0, 4)))
-  return s.residue - (r.stato === 'Approvata' ? 0 : giorniLavorativi(r.dal, r.al))
+  const s = saldoFerie(richieste, r.dipendenteId, annoRichiesta(r))
+  const giaGoduta = r.stato === 'Approvata' && richieste.some(x => x.id === r.id && x.stato === 'Approvata')
+  return s.residue - (giaGoduta ? 0 : giorniLavorativi(r.dal, r.al))
 }
 
 /** Giorni del periodo in cui il reparto scenderebbe sotto la presenza minima approvando la richiesta. */

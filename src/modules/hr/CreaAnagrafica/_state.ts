@@ -7,14 +7,24 @@
 
 export interface EditingAnagrafica {
   id?: number | string
+  matricola?: number | string
   nome?: string
   cognome?: string
   data_nascita?: string // ISO yyyy-mm-dd
+  sesso?: string
   codice_fiscale?: string
+  email?: string
+  email_aziendale?: string
+  telefono?: string
+  contatto_emergenza?: string
   indirizzo?: string
+  indirizzo2?: string
   cap?: string
   provincia?: string
   nazionalita?: string
+  strutture?: string
+  /** Id avatar (`avatar-07`) o foto come data URL. */
+  avatarUrl?: string
   documenti?: {
     identita?: string
     codiceFiscale?: string

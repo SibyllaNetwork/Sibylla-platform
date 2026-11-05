@@ -19,6 +19,7 @@ import {
 import { useAccessStore, allowedConfiguratoreIds, type AccessProfile } from '../../../store/useAccessStore'
 import { useModuliStore } from '../../../store/useModuliStore'
 import { useConfirmStore } from '../../../store/useConfirmStore'
+import { useNavGuard } from '../../../store/useNavGuard'
 import ConfiguratoreHub from './ConfiguratoreHub'
 import ConfiguratoreSidebar, { type SidebarLane } from './ConfiguratoreSidebar'
 import ConfiguratorePalette from './ConfiguratorePalette'
@@ -79,6 +80,31 @@ export interface CfgPaneComponentProps {
   onGoTo?: (id: ConfiguratoreId) => void
   /** Navigazione di piattaforma: serve ai pane che montano pagine intere. */
   navigate?: (page: string) => void
+  /** Scheda interna da aprire (deep link `<voce>:<scheda>`, es. `hr-ccnl:tipologie`). */
+  initialTab?: string
+}
+
+// ─── Deep link di voci assorbite da un'altra voce ────────────────────────────
+//  Le Tipologie di contratto sono diventate una scheda interna di «Contratti
+//  collettivi»: il vecchio link `hr-configurazione:hr-tipologie-contratto`
+//  apre Contratti collettivi direttamente su quella scheda.
+const ALIAS_VOCI: Partial<Record<string, { id: ConfiguratoreId; tab: string }>> = {
+  'hr-tipologie-contratto': { id: 'hr-ccnl', tab: 'tipologie' },
+}
+
+/** `<voce>` o `<voce>:<scheda>` → voce e scheda interna (alias risolti). */
+function risolviDeepLink(initialPane?: string): { id?: string; tab?: string } {
+  if (!initialPane) return {}
+  const [id, tab] = initialPane.split(':')
+  const alias = ALIAS_VOCI[id]
+  return alias ? { id: alias.id, tab: tab ?? alias.tab } : { id, tab }
+}
+
+/** Testo della conferma di abbandono, uguale per cambio voce e cambio pagina. */
+function messaggioAbbandono(n: number, dove: 'voce' | 'pagina') {
+  return n === 1
+    ? `C'è 1 modifica non salvata: uscendo da questa ${dove} andrà persa.`
+    : `Ci sono ${n} modifiche non salvate: uscendo da questa ${dove} andranno perse.`
 }
 
 // ─── Configurazioni F&B ──────────────────────────────────────────────────────
@@ -198,11 +224,14 @@ export default function Configuratore({ navigate, initialPane, group, title, sub
   [visibleDefs, completion])
 
   // ── Vista corrente: null = hub; deep link non valido (es. `contratti`) → hub
-  const validInitial = initialPane
-    && isConfiguratoreId(initialPane)
-    && visibleDefs.some(d => d.id === initialPane)
-    ? (initialPane as ConfiguratoreId)
+  const deepLink = risolviDeepLink(initialPane)
+  const validInitial = deepLink.id
+    && isConfiguratoreId(deepLink.id)
+    && visibleDefs.some(d => d.id === deepLink.id)
+    ? (deepLink.id as ConfiguratoreId)
     : null
+  // Scheda interna del deep link: vale solo per la voce aperta all'ingresso
+  const initialTab = validInitial ? deepLink.tab : undefined
   // Configuratore di sezione: niente hub, si apre sulla prima voce del gruppo
   const [activeId, setActiveId] = useState<ConfiguratoreId | null>(validInitial ?? (group ? visibleDefs[0]?.id ?? null : null))
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -214,9 +243,7 @@ export default function Configuratore({ navigate, initialPane, group, title, sub
     if (dirtyCount > 0) {
       const ok = await confirm({
         title: 'Modifiche non salvate',
-        message: dirtyCount === 1
-          ? "C'è 1 modifica non salvata: uscendo da questa voce andrà persa."
-          : `Ci sono ${dirtyCount} modifiche non salvate: uscendo da questa voce andranno perse.`,
+        message: messaggioAbbandono(dirtyCount, 'voce'),
         confirmLabel: 'Abbandona',
         cancelLabel: 'Resta',
         danger: true,
@@ -226,6 +253,32 @@ export default function Configuratore({ navigate, initialPane, group, title, sub
     }
     setActiveId(id)
   }
+
+  // Uscita dalla pagina (sidenav, Indietro, tab, link interni) con modifiche
+  // pendenti: il guard di navigazione blocca il cambio, chiede conferma con lo
+  // stesso testo del cambio voce e, se confermato, riprende la navigazione.
+  const setNavGuard = useNavGuard(s => s.setGuard)
+  useEffect(() => {
+    const guard = (_page: string, proceed?: () => void) => {
+      const n = useConfiguratoreStore.getState().dirtyCount
+      if (n === 0) return true
+      void confirm({
+        title: 'Modifiche non salvate',
+        message: messaggioAbbandono(n, 'pagina'),
+        confirmLabel: 'Abbandona',
+        cancelLabel: 'Resta',
+        danger: true,
+      }).then(ok => {
+        if (!ok) return
+        resetDirty()
+        proceed?.()
+      })
+      return false
+    }
+    setNavGuard(guard)
+    // Smontando la pagina il guard si toglie, solo se è ancora il nostro
+    return () => { if (useNavGuard.getState().guard === guard) setNavGuard(null) }
+  }, [confirm, resetDirty, setNavGuard])
 
   // Skeleton breve alla transizione tra le voci (disattivato con reduced motion)
   useEffect(() => {
@@ -262,7 +315,8 @@ export default function Configuratore({ navigate, initialPane, group, title, sub
         <PageHead title={title ?? 'Configuratore'} subtitle={subtitle} />
         {activeDef && (
           <ConfiguratoreSezione items={items} activeId={activeDef.id} onSelect={guardedGo}>
-            <PaneSwitch def={activeDef} completion={completion} onGoTo={guardedGo} navigate={navigate} />
+            <PaneSwitch def={activeDef} completion={completion} onGoTo={guardedGo} navigate={navigate}
+              initialTab={activeDef.id === validInitial ? initialTab : undefined} />
           </ConfiguratoreSezione>
         )}
       </div>
@@ -309,6 +363,7 @@ export default function Configuratore({ navigate, initialPane, group, title, sub
                 completion={completion}
                 onGoTo={guardedGo}
                 navigate={navigate}
+                initialTab={activeDef.id === validInitial ? initialTab : undefined}
               />
             </CfgPane>
           </div>
@@ -329,8 +384,10 @@ export default function Configuratore({ navigate, initialPane, group, title, sub
 //  Ordine: pane in arrivo → voce bloccata (gating) → pane esistente →
 //  sub-app Outlet (F&B) → empty di riserva.
 
-function PaneSwitch({ def, completion, onGoTo, navigate }: {
+function PaneSwitch({ def, completion, onGoTo, navigate, initialTab }: {
   def: ConfiguratoreDef
+  /** Scheda interna richiesta dal deep link. */
+  initialTab?: string
   completion: Record<string, CfgCompletion>
   onGoTo: (id: ConfiguratoreId) => void
   /** Navigazione di piattaforma, per i pane che montano pagine intere. */
@@ -376,7 +433,7 @@ function PaneSwitch({ def, completion, onGoTo, navigate }: {
   }
 
   const Pane = PANES[def.id]
-  if (Pane) return <Pane onGoTo={onGoTo} navigate={navigate} />
+  if (Pane) return <Pane onGoTo={onGoTo} navigate={navigate} initialTab={initialTab} />
 
   return (
     <CfgEmpty

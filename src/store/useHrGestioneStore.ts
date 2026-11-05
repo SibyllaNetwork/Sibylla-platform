@@ -137,6 +137,9 @@ const pad = (n: number) => String(n).padStart(2, '0')
 export const isoOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 export const todayIsoHr = () => isoOf(new Date())
 const dayOffset = (offset: number) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + offset); return isoOf(d) }
+const addGiorniIso = (iso: string, n: number) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return isoOf(d) }
+/** Autore delle decisioni dell'HR nei dati d'esempio (lo stesso ripiego di `autoreHr`). */
+const HR_SEED = 'Ufficio del personale'
 const monthOffset = (offset: number) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + offset); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}` }
 export const fmtDataHr = (iso: string) => iso.split('-').reverse().join('/')
 
@@ -338,8 +341,10 @@ function seedRichieste(): RichiestaAssenza[] {
       return { ...x, id, responsabile: { nome, esito: 'Rifiutata' as const, at: decisa, motivo: x.motivo },
         storico: [{ at: decisa, autore: nome, azione: 'Rifiutata dal responsabile', messaggio: x.motivo }] }
     }
-    return { ...x, id, responsabile: { nome, esito: 'Approvata' as const, at: decisa },
-      storico: [{ at: decisa, autore: nome, azione: 'Approvata dal responsabile' }] }
+    const storico: EventoHr[] = [{ at: decisa, autore: nome, azione: 'Approvata dal responsabile' }]
+    // Rifiutata dall'HR dopo l'ok del responsabile (ra-21, ra-32): l'evento del rifiuto, col motivo, il giorno dopo alle 10.
+    if (x.stato === 'Rifiutata') storico.push({ at: `${addGiorniIso(x.createdAt.slice(0, 10), 1)}T10:00:00`, autore: HR_SEED, azione: 'Rifiutata', messaggio: x.motivo })
+    return { ...x, id, responsabile: { nome, esito: 'Approvata' as const, at: decisa }, storico }
   })
 }
 
@@ -376,7 +381,8 @@ interface HrGestioneState {
 
   aggiungiRichiesta: (r: Omit<RichiestaAssenza, 'id' | 'stato' | 'createdAt'>) => void
   /** Richiesta inserita dall'ufficio del personale (es. dal calendario): stato scelto dall'HR, resta nello storico. */
-  inserisciRichiestaHr: (r: Omit<RichiestaAssenza, 'id' | 'createdAt' | 'storico' | 'responsabile'>, messaggio?: string) => void
+  /** `nota` finisce nello storico insieme allo stato (es. "Saldo negativo autorizzato: -2 gg"). */
+  inserisciRichiestaHr: (r: Omit<RichiestaAssenza, 'id' | 'createdAt' | 'storico' | 'responsabile'>, messaggio?: string, nota?: string) => void
   /** `nota` finisce nello storico (es. "Saldo negativo autorizzato: -2 gg"). */
   decidiRichiesta: (id: string, stato: 'Approvata' | 'Rifiutata', motivo?: string, nota?: string) => void
   /** Primo livello (App Op!): il responsabile di reparto approva → passa all'HR; rifiuta → chiusa. */
@@ -428,8 +434,8 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
   eliminaCedolino: (id) => set(st => ({ cedolini: st.cedolini.filter(c => c.id !== id) })),
 
   aggiungiRichiesta: (r) => set(st => ({ richieste: [{ ...r, id: uid('ra'), ...iterIniziale(r.dipendenteId, r.tipo), createdAt: new Date().toISOString() }, ...st.richieste] })),
-  inserisciRichiestaHr: (r, messaggio) => set(st => ({ richieste: [
-    { ...r, id: uid('ra'), createdAt: new Date().toISOString(), storico: [evento('Inserita dall\'ufficio del personale', { modifiche: [`Stato: ${r.stato}`], messaggio })] },
+  inserisciRichiestaHr: (r, messaggio, nota) => set(st => ({ richieste: [
+    { ...r, id: uid('ra'), createdAt: new Date().toISOString(), storico: [evento('Inserita dall\'ufficio del personale', { modifiche: [`Stato: ${r.stato}`, ...(nota ? [nota] : [])], messaggio })] },
     ...st.richieste,
   ] })),
   decidiRichiesta: (id, stato, motivo, nota) => set(st => ({ richieste: st.richieste.map(r => r.id === id
@@ -458,13 +464,17 @@ export const useHrGestioneStore = create<HrGestioneState>()(persist((set, get) =
     return conEvento({ ...r, ...patch, motivo: stato === 'Rifiutata' ? (patch.motivo ?? r.motivo) : undefined }, evento('Modificata', { modifiche, messaggio: messaggio || undefined }))
   }) })),
   eliminaRichiesta: (id) => set(st => ({ richieste: st.richieste.filter(r => r.id !== id) })),
-}), { name: 'sibylla.hr-gestione', version: 8, migrate: () => ({ noteSpese: seedNoteSpese(), buoniPasto: seedBuoni(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
+}), { name: 'sibylla.hr-gestione', version: 9, migrate: () => ({ noteSpese: seedNoteSpese(), buoniPasto: seedBuoni(), cedolini: seedCedolini(), richieste: seedRichieste() }) as unknown as HrGestioneState }))
 
-/** Ferie godute (approvate) nell'anno solare corrente per dipendente. */
-export function ferieGodute(richieste: RichiestaAssenza[], dipendenteId: number, anno = new Date().getFullYear()) {
-  return richieste
-    .filter(r => r.dipendenteId === dipendenteId && r.tipo === 'Ferie' && r.stato === 'Approvata' && r.dal.startsWith(String(anno)))
-    .reduce((s, r) => s + giorniLavorativi(r.dal, r.al), 0)
+/**
+ * Anno a cui si attribuisce una richiesta: quello di `dal`, per intero anche se finisce l'anno dopo.
+ * Residui, godute e saldo dopo l'approvazione di una richiesta si calcolano tutti su quest'anno.
+ */
+export const annoRichiesta = (r: Pick<RichiestaAssenza, 'dal'>) => Number(r.dal.slice(0, 4))
+
+/** Ferie godute (approvate) dal dipendente nell'anno indicato: le `godute` di `saldoFerie`. */
+export function ferieGodute(richieste: RichiestaAssenza[], dipendenteId: number, anno: number) {
+  return saldoFerie(richieste, dipendenteId, anno).godute
 }
 
 /** Ore di una richiesta: quelle indicate, oppure 8 h per ogni giorno lavorativo. */

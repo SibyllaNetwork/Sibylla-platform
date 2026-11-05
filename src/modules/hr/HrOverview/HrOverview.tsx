@@ -11,6 +11,9 @@ import {
 } from '../../../core/bi'
 import { useStrutturaPagina, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
 import type { SchedaDemo } from '../../../core/demo/struttureDemo'
+import {
+  useObiettiviStore, avanzamentoPct, annoObiettivo, statoAvanzamento, STATO_AVANZAMENTO_LABEL, type StatoAvanzamento,
+} from '../../../store/useObiettiviStore'
 import './HrOverview.sass'
 
 // ─── HR OVERVIEW ────────────────────────────────────────────────────────────────
@@ -20,8 +23,14 @@ import './HrOverview.sass'
 //    • andamento dell'organico mese per mese contro anno precedente
 //    • composizione (contratti / genere) dietro i tab verticali
 //    • organico per reparto e assenze per tipologia
-//    • obiettivi di performance e stato della documentazione, con il rimando alle
-//      pagine operative (Monitoraggio performance, Archivio personale)
+//    • obiettivi di performance (dallo store degli obiettivi, come Monitoraggio
+//      performance) e stato della documentazione, con il rimando alle pagine
+//      operative (Monitoraggio performance, Archivio personale)
+//
+//  Dati dimostrativi: l'organico si scala sulla struttura selezionata (fattore
+//  organico / ORGANICO_BASE) e sull'anno (fattore d'anno da `valoreAnno`),
+//  sempre in modo deterministico. Gli obiettivi sono quelli reali dello store,
+//  filtrati per anno di avvio e non per struttura (un obiettivo non ne ha una).
 
 const TUTTE = 'Tutte le strutture'
 /** Organico di riferimento dei dati base qui sotto: si scala sulla selezione. */
@@ -33,7 +42,8 @@ const organicoDi = (s: SchedaDemo) =>
     : s.categoria === 'studentato' ? Math.round(s.camere * 0.12) + 6
     : s.camere === 0 ? 14 + (s.seme % 10)
     : Math.round(s.camere * (s.stelle >= 5 ? 1.1 : s.stelle === 4 ? 0.7 : 0.45)) + 8
-const ANNI = [2026, 2025, 2024]
+const ANNO_BASE = 2026
+const ANNI = [ANNO_BASE, ANNO_BASE - 1, ANNO_BASE - 2]
 const MESI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
 
 // ─── DATI BASE (organico di 142) ──────────────────────────────────────────────
@@ -72,10 +82,11 @@ const ASSENZE: Parte[] = [
   { label: 'Permessi', value: 24 },
   { label: 'Congedi',  value: 12 },
 ]
-const PERFORMANCE: Parte[] = [
-  { label: 'Raggiunti', value: 38 },
-  { label: 'In linea',  value: 64 },
-  { label: 'A rischio', value: 21 },
+/** Etichette della card Obiettivi (plurale delle etichette di stato dello store). */
+const STATI_OBIETTIVO: { stato: StatoAvanzamento; label: string }[] = [
+  { stato: 'raggiunto', label: 'Raggiunti' },
+  { stato: 'in-linea',  label: STATO_AVANZAMENTO_LABEL['in-linea'] },
+  { stato: 'a-rischio', label: STATO_AVANZAMENTO_LABEL['a-rischio'] },
 ]
 const DOCUMENTAZIONE: Parte[] = [
   { label: 'Completa',   value: 118 },
@@ -83,6 +94,15 @@ const DOCUMENTAZIONE: Parte[] = [
 ]
 
 const pct = (a: number, b: number) => (b ? ((a - b) / b) * 100 : 0)
+
+/**
+ * Valore di un indicatore `k` anni prima di ANNO_BASE, dati quello di
+ * ANNO_BASE (`ty`) e quello dell'anno precedente (`ly`): k = 0 → ty, k = 1 → ly,
+ * oltre si prosegue con lo stesso rapporto ly/ty. Così il «LY» di un anno è
+ * sempre il «TY» dell'anno prima e i numeri cambiano con l'anno in modo stabile.
+ */
+const valoreAnno = (ty: number, ly: number, k: number) => (k <= 0 ? ty : ly * Math.pow(ty ? ly / ty : 1, k - 1))
+const arrot1 = (n: number) => Math.round(n * 10) / 10
 const somma = (xs: Parte[]) => xs.reduce((s, x) => s + x.value, 0)
 
 type Composizione = 'contratti' | 'genere'
@@ -93,7 +113,8 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
   // scalano sull'organico stimato della selezione.
   const [struttura, setStruttura, , elenco] = useStrutturaPagina()
   const schede = useStruttureCliente()
-  const [anno, setAnno] = useState(2026)
+  const [anno, setAnno] = useState(ANNO_BASE)
+  const obiettivi = useObiettiviStore((s) => s.obiettivi)
   const [composizione, setComposizione] = useState<Composizione>('contratti')
   const [stato, setStato] = useState<Stato>('obiettivi')
   const [dataAt, setDataAt] = useState(() => new Date())
@@ -102,9 +123,21 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
 
   const d = useMemo(() => {
     const selezione = struttura === TUTTE ? schede : schede.filter((x) => x.nome === struttura)
-    const organico = Math.max(1, selezione.reduce((a, x) => a + organicoDi(x), 0))
+    const k = ANNO_BASE - anno
+    // Fattore d'anno: organico di fine anno rispetto a quello di ANNO_BASE.
+    const fa = valoreAnno(ORGANICO_TY[11], ORGANICO_LY[11], k) / ORGANICO_TY[11]
+    const organico = Math.max(1, Math.round(selezione.reduce((a, x) => a + organicoDi(x), 0) * fa))
     const f = organico / ORGANICO_BASE
+    // Fattore di struttura (organico della selezione su quello di ANNO_BASE).
+    const fs = f / fa
     const sc = (n: number) => Math.max(0, Math.round(n * f))
+    const scS = (n: number) => Math.max(0, Math.round(n * fs))
+    // Indicatore dell'anno scelto e dell'anno prima.
+    const tyLy = (ty: number, ly: number) => [valoreAnno(ty, ly, k), valoreAnno(ty, ly, k + 1)]
+    const [assunzioni, assunzioniLY] = tyLy(ASSUNZIONI, ASSUNZIONI_LY)
+    const [cessazioni, cessazioniLY] = tyLy(CESSAZIONI, CESSAZIONI_LY)
+    const [turnover, turnoverLY] = tyLy(TURNOVER, TURNOVER_LY)
+    const [assenteismo, assenteismoLY] = tyLy(ASSENTEISMO, ASSENTEISMO_LY)
     const scParti = (xs: Parte[]) => xs.map((x) => ({ ...x, value: sc(x.value) }))
     // Le parti di un intero tornano sempre all'organico (niente scarti di arrotondamento).
     const chiudi = (xs: Parte[]) => {
@@ -113,19 +146,32 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
     }
     return {
       organico,
-      assunzioni: sc(ASSUNZIONI), assunzioniLY: sc(ASSUNZIONI_LY),
-      cessazioni: sc(CESSAZIONI), cessazioniLY: sc(CESSAZIONI_LY),
+      assunzioni: scS(assunzioni), assunzioniLY: scS(assunzioniLY),
+      cessazioni: scS(cessazioni), cessazioniLY: scS(cessazioniLY),
+      turnover: arrot1(turnover), turnoverLY: arrot1(turnoverLY),
+      assenteismo: arrot1(assenteismo), assenteismoLY: arrot1(assenteismoLY),
+      assenteismoMesi: ASSENTEISMO_MESI.map((v) => arrot1(v * (assenteismo / ASSENTEISMO))),
       // Costo annuo in €: la serie mensile è in migliaia
       costoMesi: COSTO_MESI.map((v) => v * 1000 * f),
-      trend: MESI.map((m, i) => ({ mese: m, ty: sc(ORGANICO_TY[i]), ly: sc(ORGANICO_LY[i]) })),
+      trend: MESI.map((m, i) => ({
+        mese: m,
+        ty: scS(valoreAnno(ORGANICO_TY[i], ORGANICO_LY[i], k)),
+        ly: scS(valoreAnno(ORGANICO_TY[i], ORGANICO_LY[i], k + 1)),
+      })),
       contratti: chiudi(scParti(CONTRATTI)),
       genere: chiudi(scParti(GENERE)),
       reparti: scParti(REPARTI),
       assenze: scParti(ASSENZE),
-      performance: scParti(PERFORMANCE),
       documentazione: chiudi(scParti(DOCUMENTAZIONE)),
     }
-  }, [struttura, schede])
+  }, [struttura, schede, anno])
+
+  // Obiettivi del Premio performance avviati nell'anno scelto (store condiviso
+  // con Assegna obiettivo e Monitoraggio performance).
+  const obiettiviAnno = useMemo(() => obiettivi.filter((o) => annoObiettivo(o) === anno), [obiettivi, anno])
+  const performance: Parte[] = STATI_OBIETTIVO.map(({ stato: st, label }) => ({
+    label, value: obiettiviAnno.filter((o) => statoAvanzamento(o) === st).length,
+  }))
 
   const costo = d.costoMesi.reduce((s, v) => s + v, 0)
   const fmtCosto = (n: number) => (n >= 1e6
@@ -133,15 +179,18 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
     : `${fmtInt(n / 1000)} k€`)
 
   const parti = composizione === 'contratti' ? d.contratti : d.genere
-  const partiStato = stato === 'obiettivi' ? d.performance : d.documentazione
+  const partiStato = stato === 'obiettivi' ? performance : d.documentazione
   // Lo stato ha un significato: verde = a posto, rosso = da sistemare, il resto neutro
   const coloreStato = (label: string, i: number) =>
     label === 'Raggiunti' || label === 'Completa' ? CHART.good
       : label === 'A rischio' || label === 'Incompleta' ? CHART.bad
       : series(i === 1 ? 0 : i)
   const docIncompleta = d.documentazione[1]?.value ?? 0
-  const aRischio = d.performance[2]?.value ?? 0
-  const avanzamento = Math.round(((d.performance[0].value + d.performance[1].value * 0.6) / Math.max(1, somma(d.performance))) * 100)
+  const aRischio = performance[2]?.value ?? 0
+  // Avanzamento medio degli obiettivi dell'anno (stessa % della pista di Monitoraggio performance).
+  const avanzamento = obiettiviAnno.length
+    ? Math.round(obiettiviAnno.reduce((s, o) => s + avanzamentoPct(o), 0) / obiettiviAnno.length)
+    : null
 
   return (
     <BiPage
@@ -189,16 +238,16 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
         />
         <KpiTile
           label="Turnover" icon="fa-arrows-rotate" slot={3} index={3}
-          value={TURNOVER} format={(n) => fmtPct(n)}
-          delta={TURNOVER - TURNOVER_LY} invertDelta
-          deltaLabel={`${TURNOVER - TURNOVER_LY >= 0 ? '+' : '−'}${Math.abs(TURNOVER - TURNOVER_LY).toLocaleString('it-IT', { maximumFractionDigits: 1 })} pt`}
+          value={d.turnover} format={(n) => fmtPct(n)}
+          delta={d.turnover - d.turnoverLY} invertDelta
+          deltaLabel={`${d.turnover - d.turnoverLY >= 0 ? '+' : '−'}${Math.abs(d.turnover - d.turnoverLY).toLocaleString('it-IT', { maximumFractionDigits: 1 })} pt`}
           info="Cessazioni del periodo sull'organico medio."
         />
         <KpiTile
           label="Assenteismo" icon="fa-calendar-xmark" slot={4} index={4}
-          value={ASSENTEISMO} format={(n) => fmtPct(n)}
-          delta={ASSENTEISMO - ASSENTEISMO_LY} invertDelta spark={ASSENTEISMO_MESI}
-          deltaLabel={`${ASSENTEISMO - ASSENTEISMO_LY >= 0 ? '+' : '−'}${Math.abs(ASSENTEISMO - ASSENTEISMO_LY).toLocaleString('it-IT', { maximumFractionDigits: 1 })} pt`}
+          value={d.assenteismo} format={(n) => fmtPct(n)}
+          delta={d.assenteismo - d.assenteismoLY} invertDelta spark={d.assenteismoMesi}
+          deltaLabel={`${d.assenteismo - d.assenteismoLY >= 0 ? '+' : '−'}${Math.abs(d.assenteismo - d.assenteismoLY).toLocaleString('it-IT', { maximumFractionDigits: 1 })} pt`}
           info="Ore di assenza non programmata (malattia, permessi non pianificati) sulle ore lavorabili."
         />
         <KpiTile
@@ -343,7 +392,9 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
         className="hr-ov__stato"
         index={4}
         title={stato === 'obiettivi' ? 'Obiettivi' : 'Documenti'}
-        subtitle={stato === 'obiettivi' ? `${fmtInt(aRischio)} a rischio` : `${fmtInt(docIncompleta)} incompleti`}
+        subtitle={stato === 'obiettivi'
+          ? (obiettiviAnno.length ? `${fmtInt(aRischio)} a rischio` : `Nessuno nel ${anno}`)
+          : `${fmtInt(docIncompleta)} incompleti`}
         legend={partiStato.map((p, i) => ({ key: p.label, name: `${p.label} ${fmtInt(p.value)}`, color: coloreStato(p.label, i) }))}
         rail={(
           <BiVerticalTabs
@@ -382,7 +433,7 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
           <div className="hr-ov__donut-center">
             <span className="hr-ov__donut-val">
               {stato === 'obiettivi'
-                ? `${avanzamento}%`
+                ? (avanzamento == null ? '—' : `${avanzamento}%`)
                 : fmtPct((d.documentazione[0].value / Math.max(1, d.organico)) * 100, 0)}
             </span>
             <span className="hr-ov__donut-lbl">{stato === 'obiettivi' ? 'avanz. medio' : 'completa'}</span>

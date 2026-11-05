@@ -16,7 +16,8 @@ import './HrTurnistica.sass'
 
 // ─── RISORSE UMANE › TURNISTICA ──────────────────────────────────────────────
 //  1) Turni di servizio: sigla, fasce (anche spezzate), pausa, colore e reparti
-//     in cui si usano; notturno riconosciuto da solo (almeno un'ora 22–6).
+//     in cui si usano; notturno riconosciuto da solo (almeno 3 ore tra le 22 e le 6,
+//     sommando le due fasce del turno spezzato).
 //  2) Schemi di rotazione: la sequenza ciclica di turni e riposi assegnabile
 //     al dipendente in Crea anagrafica (es. ciclo continuo M-M-P-P-N-N-R-R).
 
@@ -207,6 +208,7 @@ export default function HrTurnistica() {
               label="Reparti in cui si usa"
               placeholder="Tutti i reparti"
               nomePlurale="reparti"
+              genere="m"
               options={reparti.filter(r => r.attivo).map(r => r.nome)}
               value={turno.reparti.map(nomeReparto)}
               onChange={(nomi) => setT('reparti', nomi.map(n => reparti.find(r => r.nome === n)?.id).filter(Boolean))}

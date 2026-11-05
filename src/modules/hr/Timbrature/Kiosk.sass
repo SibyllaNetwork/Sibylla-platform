@@ -1,0 +1,102 @@
+// ─── KIOSK DI TIMBRATURA (overlay di Timbrature e pagina /kiosk) ─────────────────
+@use '../../../styles/tokens' as *
+
+.tmb-kiosk
+  position: fixed
+  inset: 0
+  z-index: 1000
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 14px
+  padding: 16px
+  background: #204769
+  color: #FFFFFF
+
+  // Strumenti in alto a destra: chiudi (overlay) o schermo intero (pagina /kiosk)
+  &__tools
+    position: absolute
+    top: 20px
+    right: 24px
+    display: flex
+    gap: 10px
+
+  &__tool
+    width: 42px
+    height: 42px
+    border: 1px solid rgba(255, 255, 255, .35)
+    border-radius: 50%
+    background: transparent
+    color: #FFFFFF
+    font-size: 18px
+    cursor: pointer
+
+    &:hover
+      background: rgba(255, 255, 255, .12)
+
+    &:focus-visible
+      outline: 2px solid #A2864C
+      outline-offset: 2px
+
+  &__clock
+    font-family: $font-heading
+    font-size: 64px
+    font-weight: 700
+    line-height: 1
+    font-variant-numeric: tabular-nums
+
+  &__date
+    font-size: 18px
+    opacity: .8
+
+    &::first-letter
+      text-transform: uppercase
+
+  &__qr
+    margin-top: 12px
+    padding: 18px
+    border-radius: 18px
+    background: #FFFFFF
+
+    img
+      display: block
+      width: min(46vh, 420px, 72vw)
+      height: min(46vh, 420px, 72vw)
+
+  &__msg
+    margin: 6px 0 0
+    font-size: 20px
+    text-align: center
+
+  &__bar
+    width: min(46vh, 420px, 72vw)
+    height: 6px
+    border-radius: 3px
+    background: rgba(255, 255, 255, .2)
+    overflow: hidden
+
+  &__bar-fill
+    display: block
+    width: var(--p)
+    height: 100%
+    background: #A2864C
+    transition: width 1s linear
+
+  &__scade
+    margin: 0
+    text-align: center
+    font-size: 13px
+    opacity: .7
+
+// Schermi bassi (tablet in orizzontale): QR e orologio si riducono
+@media (max-height: 640px)
+  .tmb-kiosk
+    gap: 8px
+
+    &__clock
+      font-size: 44px
+
+    &__msg
+      font-size: 16px
+      text-align: center

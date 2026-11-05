@@ -2,12 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
 import { SelectField, SearchField } from '../../../core/components/form'
 import { avatarUrl } from '../../../core/avatar'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import {
   useObiettiviStore, type Obiettivo,
   tuttiSotto, targetTotale, vendutoTotale, premioTotale, premioSbloccato, avanzamentoPct,
+  statoAvanzamento as statoOf, STATO_AVANZAMENTO_LABEL as STATO_LABEL, type StatoAvanzamento,
 } from '../../../store/useObiettiviStore'
 import './MonitoraggioPerformance.sass'
 
@@ -19,13 +21,7 @@ import './MonitoraggioPerformance.sass'
  * sblocco premi aggiornati in real-time.
  */
 
-type Stato = 'raggiunto' | 'in-linea' | 'a-rischio'
-const STATO_LABEL: Record<Stato, string> = { 'raggiunto': 'Raggiunto', 'in-linea': 'In linea', 'a-rischio': 'A rischio' }
-const statoOf = (o: Obiettivo): Stato => {
-  if (o.stato === 'concluso') return 'raggiunto'
-  const pct = avanzamentoPct(o)
-  return pct >= 100 ? 'raggiunto' : pct >= 50 ? 'in-linea' : 'a-rischio'
-}
+const STATO_ICON: Record<StatoAvanzamento, string> = { 'raggiunto': 'fa-circle-check', 'in-linea': 'fa-circle-half-stroke', 'a-rischio': 'fa-triangle-exclamation' }
 
 const eur = (n: number) => '€ ' + Math.round(n || 0).toLocaleString('it-IT')
 const eurShort = (n: number) => '€' + Math.round(n || 0).toLocaleString('it-IT')
@@ -42,6 +38,7 @@ const REPARTO_ICON: Record<string, string> = {
   'Housekeeping': 'fa-broom',
   'Manutenzione': 'fa-screwdriver-wrench',
   'Amministrazione': 'fa-calculator',
+  'Cucina': 'fa-hat-chef',
   'Marketing': 'fa-bullhorn',
   'Direzione': 'fa-user-tie',
 }
@@ -107,7 +104,7 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
         actions={
           <button type="button" className={'mon-perf__live' + (live ? ' is-live' : '')} onClick={() => setLive((v) => !v)}>
             <span className="mon-perf__live-dot" />
-            {live ? 'LIVE · in aggiornamento' : 'In pausa'}
+            {live ? 'Live · in aggiornamento' : 'In pausa'}
             <i className={`fa-solid ${live ? 'fa-pause' : 'fa-play'}`} />
           </button>
         }
@@ -141,7 +138,7 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
             <div className="mon-perf__c-name">Obiettivo</div>
             <div className="mon-perf__c-rep">Reparto</div>
             <div className="mon-perf__c-track">Percorso premi</div>
-            <div className="mon-perf__c-kpi">Premio maturato</div>
+            <div className="mon-perf__c-maturato">Premio maturato</div>
           </div>
 
           {filtered.length === 0 ? (
@@ -159,8 +156,8 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
                     ? <img className="mon-perf__avatar" src={avatarUrl(o.assegnatario || o.nome)} alt="" />
                     : <span className="mon-perf__icon-circle"><i className={`fa-light ${REPARTO_ICON[o.reparto ?? ''] ?? 'fa-users'}`} /></span>}
                   <span className="mon-perf__user-wrap">
-                    <span className="mon-perf__user-name">{o.nome}</span>
-                    <span className="mon-perf__user-chall">{isInd ? o.assegnatario : `Reparto ${o.reparto}`}</span>
+                    <TruncatedText className="mon-perf__user-name" text={o.nome} />
+                    <TruncatedText className="mon-perf__user-chall" text={isInd ? `${o.assegnatario} · ${o.reparto}` : `Reparto ${o.reparto}`} />
                   </span>
                 </div>
                 <div className="mon-perf__c-rep">
@@ -183,16 +180,22 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
                     <div className="mon-perf__track-prog" style={{ '--pct': runner } as React.CSSProperties} />
                     {nodi.map((nd) => (
                       <div key={nd.id} className={'mon-perf__node' + (nd.done ? ' is-on' : '')} style={{ '--pos': nd.pos } as React.CSSProperties}>
-                        {nd.done ? <i className="fa-solid fa-trophy" /> : ''}
+                        <Tooltip text={`${nd.nome} — premio ${eur(nd.premio)}${nd.done ? ' · raggiunto' : ''}`}>
+                          <span className="mon-perf__node-hit">{nd.done ? <i className="fa-solid fa-trophy" aria-hidden="true" /> : null}</span>
+                        </Tooltip>
                       </div>
                     ))}
-                    <div className="mon-perf__runner" style={{ '--pos': runner } as React.CSSProperties} title={`${runner}% · ${raggiunti}/${nodi.length} traguardi`}>
-                      <i className="fa-solid fa-person-running" />
+                    <div className="mon-perf__runner" style={{ '--pos': runner } as React.CSSProperties}>
+                      <Tooltip text={`${runner}% · ${raggiunti}/${nodi.length} traguardi`}>
+                        <i className="fa-solid fa-person-running" aria-label={`Avanzamento ${runner}%`} />
+                      </Tooltip>
                     </div>
                   </div>
                 </div>
-                <div className="mon-perf__c-kpi">
-                  <span className={`mon-perf__stato-badge mon-perf__stato-badge--${st}`}>{STATO_LABEL[st]}</span>
+                <div className="mon-perf__c-maturato">
+                  <span className={`mon-perf__stato mon-perf__stato--${st}`}>
+                    <i className={`fa-solid ${STATO_ICON[st]}`} aria-hidden="true" />{STATO_LABEL[st]}
+                  </span>
                   <span className="mon-perf__kpi-prize">{eur(premioSbloccato(o))} <em>/ {eur(premioTotale(o))}</em></span>
                   <span className="mon-perf__kpi-sub">{raggiunti}/{nodi.length} traguardi · {runner}%</span>
                 </div>
@@ -244,7 +247,9 @@ function DettaglioObiettivoModal({ obiettivo, onClose }: { obiettivo: Obiettivo 
                 <div className="mon-perf__detail-sub">{isInd ? `${o.assegnatario} · ` : ''}Reparto {o.reparto} · {o.report}</div>
                 <div className="mon-perf__detail-chall"><i className="fa-solid fa-tags" /> {o.segmenti.join(' · ')}</div>
               </div>
-              <span className={`mon-perf__stato mon-perf__stato--${st} mon-perf__detail-stato`}>{STATO_LABEL[st]}</span>
+              <span className={`mon-perf__stato mon-perf__stato--${st} mon-perf__detail-stato`}>
+                <i className={`fa-solid ${STATO_ICON[st]}`} aria-hidden="true" />{STATO_LABEL[st]}
+              </span>
             </div>
 
             <div className="mon-perf__detail-obj">
@@ -266,15 +271,15 @@ function DettaglioObiettivoModal({ obiettivo, onClose }: { obiettivo: Obiettivo 
                       const done = s.target > 0 && s.venduto >= s.target
                       return (
                         <li key={s.id} className={done ? 'is-ok' : ''}>
-                          <span className="mon-perf__tr-node" style={done ? { '--node': 'var(--color-success)' } as React.CSSProperties : undefined}>
-                            {done ? <i className="fa-solid fa-trophy" /> : <i className="fa-solid fa-hourglass-half" />}
+                          <span className="mon-perf__tr-node">
+                            {done ? <i className="fa-solid fa-trophy" aria-hidden="true" /> : <i className="fa-solid fa-hourglass-half" aria-hidden="true" />}
                           </span>
                           <span className="mon-perf__tr-premio">
                             <strong>{s.nome}</strong>
                             <span className="mon-perf__tr-meta">{eur(s.venduto)} / {eur(s.target)} · {spct}%{s.al ? ` · scad. ${fmtDate(s.al)}` : ''}</span>
                           </span>
                           <span className="mon-perf__tr-eur">{eur(s.premio)}</span>
-                          {done && <span className="mon-perf__tr-badge">Sbloccato</span>}
+                          {done && <span className="mon-perf__tr-badge"><i className="fa-solid fa-lock-open" aria-hidden="true" />Sbloccato</span>}
                         </li>
                       )
                     })}

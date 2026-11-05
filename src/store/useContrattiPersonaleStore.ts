@@ -73,6 +73,10 @@ interface ContrattiState {
   addContratto: (patch: Omit<ContrattoPersonale, 'id' | 'createdAt'>) => string
   updateContratto: (id: string, patch: Partial<ContrattoPersonale>) => void
   removeContratto: (id: string) => void
+  /** Ricollega i contratti da una chiave provvisoria (`nuovo-…`) all'id definitivo dell'anagrafica. */
+  riassegnaAnagrafica: (da: string, a: string) => void
+  /** Elimina tutto lo storico contrattuale di un'anagrafica (eliminazione del dipendente). */
+  rimuoviPerAnagrafica: (anagraficaId: string) => void
 }
 
 const sortDesc = (list: ContrattoPersonale[]) =>
@@ -95,6 +99,12 @@ export const useContrattiPersonaleStore = create<ContrattiState>()(
         set(s => ({ contratti: s.contratti.map(c => c.id === id ? { ...c, ...patch } : c) })),
       removeContratto: (id) =>
         set(s => ({ contratti: s.contratti.filter(c => c.id !== id) })),
+      riassegnaAnagrafica: (da, a) => {
+        if (da === a) return
+        set(s => ({ contratti: s.contratti.map(c => c.anagraficaId === da ? { ...c, anagraficaId: a } : c) }))
+      },
+      rimuoviPerAnagrafica: (anagraficaId) =>
+        set(s => ({ contratti: s.contratti.filter(c => c.anagraficaId !== anagraficaId) })),
     }),
     {
       name: 'sibylla.contratti-personale',

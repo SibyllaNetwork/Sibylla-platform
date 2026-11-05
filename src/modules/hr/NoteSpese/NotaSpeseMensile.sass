@@ -538,6 +538,12 @@
   font-size: 16px
   cursor: pointer
 
+  // Approva senza ricevuta: spento, il Tooltip sul contenitore spiega perché
+  &:disabled
+    cursor: default
+    opacity: .35
+    pointer-events: none
+
 .nsm-day__empty
   padding: 14px 0
   color: var(--color-text-inactive)

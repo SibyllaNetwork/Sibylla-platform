@@ -166,7 +166,7 @@ Le **rifiutate non compaiono mai** (né nel piano né nel generale). Una richies
   - con un piano: `null` se il giorno è fuori periodo o il piano non ha presenza minima; altrimenti i reparti visibili per cui `assenti approvati del giorno > assentiConsentiti(n. dipendenti del reparto, pct)`; testo «{reparti separati da ", "} sotto il {pct}% di presenza»;
   - con il Calendario generale: `n` = dipendenti visibili assenti quel giorno con richieste approvate; se `n ≥ 3` testo «{n} assenti: controlla la copertura dei turni».
 - `segnalaDipendente(id)`: solo con un piano **aperto**; per ogni richiesta di Ferie del dipendente non rifiutata e sovrapposta al periodo, `verificaRegole` (§6.3) **senza** la presenza minima (che sta sui giorni); esiti deduplicati per testo; livello `ko` se almeno uno è ko, altrimenti `warn`.
-- `colonnaFinale`: «Residue» = `ferieAnnue − ferieGodute(dipendente, anno del mese visualizzato)` in giorni.
+- `colonnaFinale`: «Residue» = `saldoFerie(dipendente, anno del mese visualizzato).residue` = `ferieAnnue − godute` in giorni, con le ferie approvate attribuite all'anno del loro `dal` (scheda 09 §6.2). È lo stesso numero di «Saldo ferie {anno}» e del «Residuo» nel dettaglio di una ferie approvata di quell'anno; le richieste in attesa non lo scalano.
 - `solaLettura = piano archiviato`.
 
 Interazioni sul calendario (piano aperto o generale): identiche a `09-richieste.md` §5.4–5.12 (dettaglio al clic, modifica col tasto destro su una barra, spostamento per trascinamento con anteprima e conferma, nuova richiesta già decisa dal tasto destro su una casella vuota, approva con autorizzazione del saldo negativo e controllo ROL, rifiuta con motivo, sollecita il responsabile, elimina con conferma). Nella conferma del saldo negativo il piano di riferimento è quello aperto che contiene la richiesta (testo «oltre il negativo consentito da «{piano}» ({n} gg)» oppure «entro il limite di «{piano}»»).
@@ -229,7 +229,7 @@ Conferma: titolo «Elimina piano», testo «Eliminare il piano «{nome}»? Le ri
 - `assentiConsentiti(n, pct) = pct == null ? n : max(0, n − ceil(n × pct / 100))`. Esempi: reparto di 3 al 50% → 1 assente consentito; reparto di 2 al 50% → 1.
 - `pianoDi(r)` = primo piano **Aperto** sovrapposto a una richiesta di Ferie.
 - `bloccoConsecutivo(r)`: parte dal periodo della richiesta e lo estende finché esistono altre Ferie **non rifiutate** dello stesso dipendente che si sovrappongono o sono **attaccate** (iniziano il giorno dopo la fine o finiscono il giorno prima dell'inizio); `giorni` = giorni di calendario del blocco.
-- `saldoDopo(r) = saldoFerie(dip, anno di r.dal).residue − (r.stato = Approvata ? 0 : giorniLavorativi(r))`.
+- `saldoDopo(r) = saldoFerie(dip, anno di r.dal).residue − (giàGoduta ? 0 : giorniLavorativi(r))`, con `giàGoduta` = richiesta Approvata e già presente approvata nell'elenco. Una nuova richiesta inserita «Approvata» dal calendario sottrae quindi i propri giorni (scheda 09 §6.4). Per una ferie in attesa coincide con il «Residuo se approvata» del dettaglio.
 - `giorniSottoPresenza(r)`: per ogni giorno della richiesta (limitato al periodo del piano), dipendenti distinti del reparto con richieste **Approvate** (esclusa questa) + il richiedente; se il numero supera `assentiConsentiti` il giorno è sotto soglia.
 - `verificaRegole(r, piano)` (in ordine):
   1. se `maxGiorniConsecutivi` e blocco > max → (ko) «{giorni} giorni consecutivi (gg/mm/aaaa → gg/mm/aaaa): il piano «{nome}» ne consente al massimo {max}.»
@@ -253,7 +253,7 @@ Per ogni festa si prende l'anno corrente se il periodo non è ancora finito (`al
 «Anno delle feste» `an` = anno corrente da febbraio, l'anno precedente a gennaio.
 - «Natale {an}» (`pf-natale`): Aperto, `{an}-12-01` → `{an+1}-01-07`, termine `{an}-11-20`, regole `{ maxGiorniConsecutivi: 7, presenzaMinimaReparto: 50, entroResidui: true, negativoMax: 2 }`, avviso «Chiedete le ferie di Natale e Capodanno entro il 20 novembre: oltre quella data valutiamo solo i casi urgenti.», creato `{an}-10-15T09:00:00` da «Ufficio del personale». Lo alimentano le 10 ferie di Natale del seed delle richieste (scheda 09 §6.9).
 - «Estate {an}» (`pf-estate`): Archiviato, `{an}-06-01` → `{an}-09-30`, termine `{an}-04-30`, regole `{ 15, 50, true, 0 }`, avviso «Due settimane a testa a rotazione, una in luglio o agosto e una a scelta.», creato `{an}-03-02T09:00:00`, archiviato `{an}-10-01T10:00:00` da «Ufficio del personale». Fotografia di 13 righe (`ra-est-1…13`, dipendente dal→al mm-gg): 1 07-06→07-17, 2 08-10→08-21, 3 08-17→08-28, 4 07-20→07-31, 5 08-03→08-14, 6 06-22→07-03, 7 08-24→09-04, 8 09-07→09-18, 9 08-10→08-14 **Rifiutata**, 9 08-31→09-11, 10 07-27→08-07, 11 06-15→06-26, 12 08-17→08-21; tutte le altre Approvate.
-- **Persistenza attuale**: `zustand` persist in `localStorage`, chiave **`sibylla.hr-piani-ferie`**, **versione 3** (alla migrazione si rigenera il seed). Le richieste stanno in `sibylla.hr-gestione` v8.
+- **Persistenza attuale**: `zustand` persist in `localStorage`, chiave **`sibylla.hr-piani-ferie`**, **versione 3** (alla migrazione si rigenera il seed). Le richieste stanno in `sibylla.hr-gestione` v9.
 
 ## 7. Backend da realizzare
 
@@ -295,7 +295,7 @@ POST /Sibylla/hr/piani-ferie/pf-natale/archivia
 
 ## 8. Stile
 
-Token come in `09-richieste.md` §8 (valori chiaro → scuro). Il calendario usa `RichiesteCalendario.sass` (scheda 09 §8.2), le modali delle richieste `RichiesteFerie.sass` (§8.1), lo storico `StoricoHr.sass` (§8.3).
+Token come in `09-richieste.md` §8 (valori chiaro → scuro). Il calendario usa `RichiesteCalendario.sass` (scheda 09 §8.2), le modali delle richieste `RichiesteFerie.sass` (§8.1), lo storico `StoricoHr.sass` (§8.3). Gli stili della modale «Dettaglio richiesta» non dipendono dal root della pagina: tipo (`.rfe-det .rfe__tipo--*`) e stato (`.rfe-det .rfe__stato--*`) hanno gli stessi colori qui (root `.pfe`) e in Richieste.
 
 ### 8.1 Pagina (`PianoFerie.sass`)
 - `.pfe`: mixin `hr-root(pianoferie)` → flex colonna, `align-items: stretch`, `gap: 12px`, `font-size: 13px`, `container-type: inline-size`, `container-name: pianoferie`.
@@ -371,7 +371,9 @@ Nessuna regola dedicata in `_skin-dark.sass`: tutto passa dai token (`[data-them
 15. «Storico piani» elenca prima gli aperti poi gli archiviati con colonne 16/27/12/11/11/13/10%; l'occhio apre il piano e chiude la modale; l'icona xls esporta `piano-ferie_{nome}.xls`.
 16. Il pulsante «Richieste ({N})» mostra le richieste in attesa e naviga alla pagina Richieste.
 17. Su container ≤ 1360px la select Piano è larga 220px; su container calendario ≤ 1180px la colonna Dipendente è 136px; a nessuna larghezza compare lo scroll orizzontale.
-18. Clic su una barra in un piano aperto apre «Dettaglio richiesta»; approvando ferie che vanno sotto zero oltre il negativo del piano, la conferma «Autorizza il saldo negativo» ha il pulsante rosso e cita «oltre il negativo consentito da «{piano}»».
+18. Clic su una barra in un piano aperto apre «Dettaglio richiesta» con tipo e stato colorati come in Richieste (es. «Ferie» primary, «Approvata» verde, «Da approvare» arancio); approvando ferie che vanno sotto zero oltre il negativo del piano, la conferma «Autorizza il saldo negativo» ha il pulsante rosso e cita «oltre il negativo consentito da «{piano}»».
+19. Per ogni dipendente la colonna «Residue» di dicembre è uguale al residuo di «Saldo ferie {anno}» in Richieste e al «Residuo» del dettaglio di una sua ferie approvata di dicembre; navigando a gennaio dell'anno dopo la colonna mostra il residuo del nuovo anno (con le ferie che iniziano a gennaio, es. «Settimana bianca» di Paolo Greco, scalate lì).
+20. Tasto destro su una casella vuota di un dipendente a 0 gg residui → «Ferie» → «Salva modifiche» con stato «Approvata» chiede «Autorizza il saldo negativo» («il saldo va a -1 gg» per un giorno).
 
 ## 13. File sorgente
 

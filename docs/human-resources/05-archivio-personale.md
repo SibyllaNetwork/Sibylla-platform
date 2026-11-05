@@ -7,7 +7,7 @@
 ## 1. Scopo e utenti
 
 Elenco di tutto il personale della struttura per l'**ufficio del personale**, su due schede:
-- **Dipendenti**: tabella delle anagrafiche con reparto (dal contratto vigente), segnalazione del fascicolo incompleto, dettaglio, modifica, storico contratti con PDF, invito all'App Op!;
+- **Dipendenti**: tabella delle anagrafiche con reparto (dal contratto vigente), segnalazione del fascicolo incompleto, dettaglio con la foto, modifica, storico contratti con PDF, invito all'App Op!, eliminazione con conferma;
 - **Collaboratori esterni**: addetti delle ditte in appalto con azienda, categoria, reparti App Op!, periodo e stato dell'autorizzazione, documenti mancanti, invito App Op!, stampa del badge ed eliminazione.
 
 È anche il punto di partenza per creare nuovi profili.
@@ -65,7 +65,8 @@ Root `.arch-pers`: `container-type: inline-size` (container query sulla larghezz
 - **Barra schede** `.arch-pers__bar`: flex, `align-items: flex-end`, `justify-content: space-between`, `gap: 12px`, `margin-bottom: 16px`, bordo inferiore `1px solid --color-border`. Le Tabs usano questo bordo (`.arch-pers__bar .arch-pers__tabs`: `margin-bottom: -1px`, `border-bottom: 0`). Il pulsante a destra ha `margin-bottom: 8px`.
 - **Tabella dipendenti**: `.sib-table-wrap` > `table.sib-table.arch-pers__table` con `table-layout: fixed`, `width: 100%`, `colgroup` in percentuale (§8), celle `white-space: nowrap; overflow: hidden`.
 - **Vista esterni** `.arch-est`: colonna, `gap: 14px`, a sua volta `container-type: inline-size`; filtri sopra, tabella sotto.
-- Modali: «Dettaglio dipendente» (xl, max 780px), «Contratto — {nome}» (xl), «Invito per {nome}» (sm, 360px).
+- Modali: «Dettaglio dipendente» (xl, max 780px), «Contratto — {nome}» (xl), «Invito per {nome}» (sm, 360px), conferma «Elimina dipendente» (ConfirmDialog).
+- **Popover filtro di colonna**: montato in un portale su `<body>`, fuori dalla tabella (§4.3).
 
 ## 4. Elementi e testi
 
@@ -96,10 +97,10 @@ Root `.arch-pers`: `container-type: inline-size` (container query sulla larghezz
 | azioni | «Azioni» | — | 15% | — |
 
 - Le intestazioni abbreviate sono un `TruncatedText` con `full` = nome intero: tooltip con il testo completo all'hover; quelle intere mostrano il tooltip solo se troncate.
-- Colonne filtrabili: accanto all'etichetta un pulsante `fa-solid fa-filter` (`title="Filtra"`, colore ereditato; l'icona è identica con o senza filtro attivo).
-- **Popover filtro** (sotto l'intestazione, `absolute top-full left-0 mt-1`, `z-index: 10`, larghezza 192px, sfondo bianco, bordo 1px `--color-border`, radius 4px, ombra Tailwind `shadow-md`, padding 8px):
-  - input `.sib-input` con autofocus, placeholder «Filtra {label in minuscolo}» (es. «Filtra contatto telefonico», «Filtra codice fiscale»);
-  - riga `justify-between` `mt-2`: `.sib-btn--ghost` «Reset» e `.sib-btn--primary` «OK» (testo `text-xs`).
+- Colonne filtrabili: accanto all'etichetta il pulsante `.arch-pers__filtro-btn` 20×20 con `fa-solid fa-filter` 11px, `aria-label="Filtra {label in minuscolo}"`, `aria-expanded`; `title` «Filtra» o, con un filtro attivo, «Filtro attivo su {label in minuscolo}». Colore `--color-text-inactive`, **`--color-primary` quando il filtro della colonna è attivo**; hover sfondo `--color-primary-100` e icona primary.
+- **Popover filtro** `.arch-pers-filtro` (`role="dialog"`, `aria-label="Filtra {label}"`): renderizzato con un **portale su `<body>`** e `position: fixed`, con `top` = bordo inferiore del pulsante + 6px e `left` = sinistra del pulsante − 8px, limitato a 12px dai bordi della finestra (`max(12, min(left, larghezza finestra − 208 − 12))`). Così non viene mai tagliato dall'`overflow: hidden` delle intestazioni né spostato dal container della pagina, ed è visibile anche sull'ultima colonna e con la tabella filtrata a poche righe. Aspetto: larghezza 208px, padding 8px, sfondo `--color-surface`, bordo 1px `--color-border`, radius 8px, ombra `0 8px 24px rgba(0,0,0,.14)`, `z-index: 31` sopra un fondale trasparente `.arch-pers-filtro__overlay` (`position: fixed; inset: 0; z-index: 30`).
+  - InputField condiviso (senza label, `ariaLabel` e placeholder «Filtra {label in minuscolo}», es. «Filtra contatto telefonico», «Filtra codice fiscale»), con il fuoco all'apertura;
+  - riga `.arch-pers-filtro__acts` (flex `space-between`, gap 8px, `margin-top: 8px`): `.sib-btn--ghost.sib-btn--sm` «Reset» e `.sib-btn--primary.sib-btn--sm` «OK».
 
 **Celle**: ogni valore in `TruncatedText` (ellissi + tooltip se troncato); valore vuoto/nullo → «-» (span `text-text-muted`).
 - **Matricola**: `.arch-pers__matr` (inline-flex, gap 6px). Se il fascicolo è incompleto, prima del numero un pulsante trasparente con `fa-solid fa-triangle-exclamation` (arancio `--color-warning`, `animate-pulse`), `aria-label="Documentazione incompleta — inserisci documenti mancanti"`, avvolto da un Tooltip `variant="light"` `position="right"` con:
@@ -114,13 +115,13 @@ Root `.arch-pers`: `container-type: inline-size` (container query sulla larghezz
 2. `fa-pen` `title="Modifica"` → modifica.
 3. `fa-file-pdf` `title="Contratto (PDF)"` → modale Contratto; se il dipendente ha variazioni, contatore in alto a destra (`absolute -top-1 -right-1`, min 15×15px, `padding: 0 4px`, tondo, sfondo `--color-primary`, testo bianco 9px 700, `line-height: 15px`, centrato).
 4. Solo se il modulo `app-op` è attivo **e** il dipendente è abilitato: `fa-mobile-screen` (durante l'invio `fa-spinner fa-spin`, pulsante disabilitato), `aria-label="Invita {nome} {cognome} all'App Op!"`, Tooltip (dark): con invito precedente «Invita Op! — ultimo invito a {email mascherata}, valido fino al {gg/mm/aaaa}», altrimenti «Invita Op! — invia il token di invito a {email aziendale}» o «… a email aziendale mancante».
-5. `fa-trash-can` `title="Elimina"`: **oggi senza azione** (nessun handler).
+5. `fa-trash-can` `title="Elimina"`, `aria-label="Elimina {nome} {cognome}"` → conferma ed eliminazione (§5.4).
 
 **Stato vuoto** (nessuna riga dopo i filtri): riga unica su tutte le colonne, classe `.sib-empty`, testo «Nessun collaboratore trovato.»
 
 ### 4.4 Modale «Dettaglio dipendente» (size `xl`)
 - In alto, flex `gap: 20px`:
-  - avatar `<img>` 112×144 (`w-28 h-36`), radius 8px, `object-cover`, bordo 1px `--color-border`, sfondo `--color-bg`; sorgente `avatarUrl("{nome} {cognome}")` (o l'id se il nome è vuoto), `alt` = nome completo;
+  - avatar `<img>` 112×144 (`w-28 h-36`), radius 8px, `object-cover`, bordo 1px `--color-border`, sfondo `--color-bg`; sorgente `avatarUrl(avatarUrl dell'anagrafica)` cioè la **foto o l'avatar scelti in Crea anagrafica**; se l'anagrafica non ne ha, `avatarUrl("{nome} {cognome}")` (o l’id se il nome è vuoto); `alt` = nome completo;
   - `<dl>` a 2 colonne (gap orizzontale 20px, verticale 12px, 13px): per ogni voce `dt` 11px muted, `dd` 600 con `break-words`, «-» se vuoto. Voci in ordine: «Matricola N°», «Nome», «Cognome», «Contatto telefonico», «E-mail», «Contatto di emergenza», «Nato il», «Codice fiscale», «Indirizzo», «CAP», «Provincia», «Nazione».
 - **Inquadramento contrattuale** (solo se c'è un contratto): blocco con `margin-top: 20px`, `padding-top: 16px`, bordo superiore 1px; titolo `<h4>` 13px 600 «Inquadramento contrattuale»; `<dl>` a 3 colonne (gap 20px / 12px, 13px), valori in `TruncatedText`:
   | dt | dd |
@@ -138,15 +139,15 @@ Root `.arch-pers`: `container-type: inline-size` (container query sulla larghezz
   | «Periodo di prova» | «{n} giorni» o «—» |
   | «RAL» | «€ {ral}» o «—» |
 - **Documenti allegati** (blocco con stesso margine/bordo): titolo `<h4>` «Documenti allegati» e a destra:
-  - incompleto: pillola `fa-solid fa-triangle-exclamation` «Documentazione incompleta — {n}/5 mancanti» (12px 600, testo `--color-warning`, sfondo `--color-warning-light` `#FFF3E0`, tonda, `padding: 4px 12px`, `animate-pulse`);
-  - completo: `fa-solid fa-circle-check` «Documentazione completa» (12px 600 verde).
+  - incompleto: `.arch-pers-doc__stato--ko` = icona `fa-solid fa-triangle-exclamation` + testo «Documentazione incompleta — {n}/5 mancanti», 12px 600, colore `--color-warning`, **nessuno sfondo**; lampeggia solo l'icona (§10);
+  - completo: `.arch-pers-doc__stato--ok` = `fa-solid fa-circle-check` + «Documentazione completa», 12px 600, `--color-success`.
   - Lista (righe con bordo inferiore, l'ultima senza; `padding: 8px 0`): a sinistra `fa-light fa-file-lines` (muted) + etichetta + asterisco rosso `*` se obbligatorio; a destra, se c'è il file: nome (12px muted, max 200px, `title`) + tre pulsanti icona `fa-light fa-eye` «Visualizza documento», `fa-light fa-download` «Scarica documento», `fa-light fa-print` «Stampa documento» (disabilitati se non c'è un URL del PDF); se manca: `fa-solid fa-triangle-exclamation` (pulsante) «Mancante» (12px 600 arancio).
   - Righe in ordine: i 4 documenti obbligatori, «Contratto di lavoro» (dal PDF del contratto vigente, obbligatorio), poi «Altro documento 1», «Altro documento 2»… (non obbligatori).
 
 ### 4.5 Modale «Contratto — {Nome Cognome}» (size `xl`)
 - Senza contratti: «Nessun contratto registrato per questo profilo. Aggiungilo dalla scheda anagrafica → sezione “Contratto”.» (13px muted).
 - Con contratti: lista (gap 8px) di card (bordo 1px, radius 8px, padding 12px, flex `space-between`, wrap):
-  - sinistra: pillola «Vigente» sulla prima (sfondo **`--color-success-mid` `#00CF86`**, testo bianco 11px 700, `padding: 2px 8px`), tipologia (13px 600), meta 12px muted con lo stesso formato dello storico della scheda («{ruolo} · {livello} livello · {ccnl} · {reparto} · RAL € {ral} · dal {data}[ al {data}]»);
+  - sinistra: sulla prima lo stato «Vigente» `.arch-pers-ctr__vigente` = icona `fa-solid fa-circle-check` (`aria-hidden`) + testo «Vigente», gap 5px, 12px 600, colore **`--color-success`** (stesso token e stesso aspetto della scheda anagrafica, nessuno sfondo né pillola); tipologia (13px 600), meta 12px muted con lo stesso formato dello storico della scheda («{ruolo} · {livello} livello · {ccnl} · {reparto} · RAL € {ral} · dal {data}[ al {data}]»);
   - destra: `fa-light fa-file-pdf` (primary) + nome PDF (max 200px, `title`) se presente; pulsante icona `fa-light fa-eye` «Apri PDF» se c'è il data URL, altrimenti testo corsivo 11px «PDF non disponibile».
 
 ### 4.6 Vista «Collaboratori esterni» (`EsterniTable`)
@@ -163,7 +164,7 @@ Root `.arch-pers`: `container-type: inline-size` (container query sulla larghezz
 | «Categoria» | 13% | nome categoria o «—» |
 | «Reparti App Op!» (in TruncatedText) | 11% | se abilitato: nomi dei reparti separati da «, » (o «—» se nessuno); altrimenti «Non abilitato» |
 | «Autorizzazione» | 15% | «gg/mm/aa – gg/mm/aa» (anno a 2 cifre); tooltip sempre presente «Dal gg/mm/aaaa al gg/mm/aaaa» |
-| «Stato» | 11% | badge colorato con «Autorizzato» / «In scadenza» / «Scaduto» / «Non ancora attivo» (testo in TruncatedText) |
+| «Stato» | 11% | icona + testo colorato (niente pillola) con «Autorizzato» / «In scadenza» / «Scaduto» / «Non ancora attivo» (testo in TruncatedText) |
 | «Azioni» (allineata a destra) | 13% | pulsanti icona |
 
 - **Triangolo**: pulsante `.arch-est__warn` (trasparente, arancio) `fa-solid fa-triangle-exclamation`, `aria-label="Documentazione incompleta"`, Tooltip light a destra con «**Documentazione incompleta**» + elenco dei documenti mancanti o scaduti; clic → `modifica-collaboratore-esterno:{id}`. Non lampeggia.
@@ -180,8 +181,8 @@ Comune alle due schede (`OpInvitoModal`, size `sm`): titolo «Invito per {nome c
 ## 5. Stati e interazioni
 
 ### 5.1 Caricamento dati dipendenti
-- Stato iniziale = elenco **FALLBACK** (11 righe, §6.4): la tabella è piena da subito, senza skeleton.
-- Al montaggio: `POST /Sibylla/anagrafica-personale/GetAll` con corpo `{}`. Se risponde, sostituisce l'elenco; se fallisce, resta il FALLBACK in silenzio (nessun messaggio d'errore).
+- Stato iniziale = **elenco della demo**: i dati di esempio FALLBACK (11 righe, §6.4) con sopra le schede salvate in questo browser da Crea anagrafica (stessa matricola → i campi salvati sostituiscono quelli di esempio; matricole nuove in coda, ordinate per id) e senza i dipendenti eliminati in demo (store `useAnagrafichePersonaleStore`, §6.3). La tabella è piena da subito, senza skeleton.
+- Al montaggio: `POST /Sibylla/anagrafica-personale/GetAll` con corpo `{}`. Se risponde con un array, quello diventa l'elenco (**fonte backend**: la copia locale della demo non viene più letta); se fallisce resta l'elenco della demo, in silenzio.
 
 ### 5.2 Schede
 - Iniziale da `vista` (route). Clic su una scheda: cambia contenuto e pulsante a destra; i filtri di ciascuna scheda restano nello stato del componente finché la pagina è montata.
@@ -189,8 +190,8 @@ Comune alle due schede (`OpInvitoModal`, size `sm`): titolo «Invito per {nome c
 ### 5.3 Filtri colonna (Dipendenti)
 - Clic sull'imbuto: apre il popover di quella colonna (uno solo alla volta; ri-clic chiude). Il filtro si applica **mentre si digita**.
 - Regola: per ogni filtro non vuoto la riga resta se `String(valore cella).toLowerCase()` **contiene** il testo in minuscolo; filtri in AND. Per «Reparto» si usa il reparto del contratto vigente.
-- «Reset» rimuove il filtro della colonna e chiude; «OK» chiude e mantiene il filtro. Non c'è chiusura al clic esterno né con Esc.
-- Nota di riproduzione: le `th` hanno `overflow: hidden` (regola della tabella) e il popover è posizionato in assoluto dentro la `th`; nella riproduzione il popover deve risultare **visibile sopra la tabella** (es. renderizzato in un portale o con `overflow: visible` sulle intestazioni), senza introdurre scroll orizzontale.
+- «Reset» rimuove il filtro della colonna e chiude; «OK» chiude e mantiene il filtro. Il popover si chiude anche con **Esc**, con un **clic fuori** (fondale trasparente), allo **scroll** di qualunque contenitore e al **ridimensionamento** della finestra (con la posizione fissa non seguirebbe l'intestazione); il filtro digitato resta.
+- Il popover non cambia la larghezza della tabella: nessuno scroll orizzontale.
 - Nessun ordinamento e nessuna paginazione: le righe sono nell'ordine ricevuto.
 
 ### 5.4 Azioni sui dipendenti
@@ -198,7 +199,14 @@ Comune alle due schede (`OpInvitoModal`, size `sm`): titolo «Invito per {nome c
 - **Modifica** (matita o triangolo) → imposta l'anagrafica in modifica (id, nome, cognome, data di nascita convertita da gg/mm/aaaa a ISO, codice fiscale, indirizzo, cap, provincia, nazionalità «ITALIA», documenti) e naviga a `modifica-anagrafica`.
 - **Contratto (PDF)** → modale storico (§4.5), dal più recente.
 - **Invita Op!** → usa l'abilitazione salvata del dipendente (`invitaDipendenteOp`): successo → modale con il codice (nessun toast); errore → toast error titolo «Invita Op!» con il messaggio del servizio (es. «Inserisci un’email aziendale valida: è lì che arriva il token di invito.», «Scegli almeno un reparto dell’App Op!.») o «Invito non inviato.». Dopo l'invio il tooltip mostra l'ultimo invito.
-- **Elimina** → nessuna azione oggi. Comportamento richiesto per la riproduzione con backend: ConfirmDialog (standard piattaforma: nessuna eliminazione senza conferma) e cancellazione via API; finché non esiste, il pulsante va riprodotto identico (presente, senza effetto).
+- **Elimina** → ConfirmDialog (standard piattaforma: ogni eliminazione si conferma), titolo «Elimina dipendente», pulsanti «Annulla» / «Elimina» (distruttivo). Messaggio:
+  - «Eliminare l’anagrafica di **{Nome Cognome}** (matricola {matricola})? L’operazione non si può annullare.» (se nome e cognome sono vuoti: «matricola {n}» al posto del nome);
+  - elenco puntato di cosa sparisce insieme alla scheda: «Si elimina anche il contratto dello storico contrattuale, con il PDF.» (1 contratto) / «Si eliminano anche i {n} contratti dello storico contrattuale, con i PDF.» (più contratti) / «Il dipendente non ha contratti registrati.»; se il dipendente è abilitato all'App Op! anche «Si toglie l’abilitazione all’App Op!: l’eventuale utenza va bloccata da Utenti e ruoli.».
+  - Confermato:
+    - **fonte backend** → `POST /Sibylla/anagrafica-personale/Delete` `{ id }`. Se fallisce: toast error titolo «Dipendente non eliminato», testo «L’eliminazione non è riuscita. {dettaglio}» (dettaglio dal corpo `error`/`message`/`detail`/`title`, altrimenti «(errore {status})»; es. `409` con presenze o cedolini collegati) oppure, se il servizio non risponde, «Il servizio dell’anagrafica non risponde: il dipendente non è stato eliminato.»; nulla cambia. Se riesce, la riga sparisce dall'elenco;
+    - **fonte demo** → la matricola si aggiunge agli eliminati della copia locale (e un'eventuale scheda salvata in locale viene tolta).
+    - In entrambi i casi poi: si eliminano tutti i contratti del dipendente (`rimuoviPerAnagrafica`) e la sua abilitazione App Op! (`rimuovi`); il contatore «Dipendenti ({n})» scende di 1; se il Dettaglio di quel dipendente era aperto si chiude; toast success titolo «Dipendente eliminato», testo «{Nome Cognome} è stato tolto dall’Archivio del personale.» o «{Nome Cognome} è stato tolto dall’Archivio del personale insieme a 1 contratto.» / «… insieme a {n} contratti.».
+  - Annullato (o Esc) → nessun effetto.
 
 ### 5.5 Collaboratori esterni
 - Filtri combinati in AND: azienda (uguaglianza su `fornitoreId`), stato autorizzazione (calcolato alla data odierna), ricerca testuale (contenuto case-insensitive in «{nome} {cognome} {email}»). Aggiornamento immediato.
@@ -212,12 +220,14 @@ Comune alle due schede (`OpInvitoModal`, size `sm`): titolo «Invito per {nome c
 ### 6.1 Riga dipendente (risposta di `GetAll`)
 ```ts
 interface PersonaleItem {
-  id?: number; matricola?: number | string; nome?; cognome?; telefono?; email?; contatto_emergenza?;
-  nato_il?: string /* gg/mm/aaaa */; codice_fiscale?; indirizzo?; cap?; provincia?; nazione?: string /* 'ITA' */;
+  id?: number; matricola?: number | string; nome?; cognome?; sesso?; telefono?; email?; email_aziendale?; contatto_emergenza?;
+  nato_il?: string /* gg/mm/aaaa */; codice_fiscale?; indirizzo?; indirizzo2?; cap?; provincia?; nazione?: string /* 'ITA' */;
+  strutture?; avatarUrl?: string /* id avatar 'avatar-05' o foto data URL / URL */;
   documenti?: { identita?; codiceFiscale?; contratto?; privacy?; sicurezza?; altri?: string[] } /* nomi file */;
   [k: string]: unknown;
 }
 ```
+Il tipo, i dati di esempio e le regole della demo stanno in `personaleDemo.ts`, condiviso con Crea anagrafica. I campi in più (sesso, indirizzo 2, strutture, foto…) passano alla scheda in modifica (vedi `03-crea-anagrafica.md` §6.2).
 
 ### 6.2 Regole
 - **Contratto vigente / reparto**: contratti con `anagraficaId === String(id)` ordinati per `decorrenza ?? createdAt` decrescente; il primo dà reparto e inquadramento.
@@ -231,7 +241,7 @@ interface PersonaleItem {
 ### 6.3 Persistenza attuale
 | Dato | Store | Chiave `localStorage` | Versione |
 |---|---|---|---|
-| Elenco dipendenti | nessuna (API o FALLBACK in memoria) | — | — |
+| Elenco dipendenti | API; senza backend FALLBACK + `useAnagrafichePersonaleStore` (schede salvate in demo, eliminati) | `sibylla.anagrafiche-personale` | 1 |
 | Contratti | `useContrattiPersonaleStore` | `sibylla.contratti-personale` | 2 |
 | Abilitazioni App Op! | `useAnagraficaOpStore` | `sibylla.anagrafica-op` | 2 |
 | Collaboratori esterni | `useCollaboratoriEsterniStore` | `sibylla.collaboratori-esterni` | 2 |
@@ -267,7 +277,7 @@ Collaboratori esterni seed (oggi 05/11/2026), nell'ordine visualizzato: **Benali
 | Dettaglio | `GET /Sibylla/hr/anagrafiche/{id}` | da realizzare (vedi `03` §7) |
 | Storico contratti | `GET /Sibylla/hr/anagrafiche/{id}/contratti` | da realizzare |
 | PDF / documenti | `GET /Sibylla/hr/contratti/{idContratto}/pdf`, `GET /Sibylla/hr/anagrafiche/{id}/documenti/{slot}` | da realizzare: sostituiscono i data URL e abilitano Visualizza/Scarica/Stampa |
-| Elimina dipendente | `DELETE /Sibylla/hr/anagrafiche/{id}` | da realizzare; `409` se ci sono presenze/cedolini che impediscono la cancellazione (proporre la cessazione) |
+| Elimina dipendente | `POST /Sibylla/anagrafica-personale/Delete` `{ "id": 66 }` → `204` o `{ "success": true }` | da realizzare (il FE la chiama già con la fonte backend). Deve eliminare nella stessa transazione storico contrattuale con i PDF e abilitazione App Op!. `409 { "error": "Ci sono presenze e cedolini collegati: registra la cessazione del rapporto." }` se la cancellazione non è possibile; il testo arriva nel toast |
 | Invita Op! | `OpApp/utenti/Salva` / `OpApp/inviti/Invia` | esistono lato Portal/Op.Api (`03` §7) |
 | Elenco esterni | `GET /Sibylla/hr/collaboratori-esterni?fornitoreId=&stato=&q=` | da realizzare; ordinato per cognome, nome; `stato` calcolato dal server alla data corrente |
 | Elimina esterno | `DELETE /Sibylla/hr/collaboratori-esterni/{id}` | da realizzare (`04` §7) |
@@ -280,13 +290,13 @@ Esempio elenco arricchito:
    "reparto": "F&B", "nContratti": 1, "fascicoloMancanti": ["sicurezza"],
    "appOp": { "abilitato": false } }]
 ```
-Errori: `401` → login; `5xx` → oggi silenzioso (resta il FALLBACK); nella riproduzione con backend reale mostrare lo stato vuoto «Nessun collaboratore trovato.» in caso di elenco vuoto. L'invito App Op! invia l'email al destinatario; nessuna notifica nel Centro notifiche.
+Errori: `401` → login; errori di `GetAll` → resta l'elenco della demo, in silenzio; con backend reale un elenco vuoto mostra lo stato vuoto «Nessun collaboratore trovato.». L'elenco deve includere `avatarUrl` perché il Dettaglio mostri la foto. L'invito App Op! invia l'email al destinatario; nessuna notifica nel Centro notifiche.
 
 ## 8. Stile
 
-Token come in `03-crea-anagrafica.md` §8 (in più `--color-warning-light` `#FFF3E0` → scuro `#2A2012`; `--color-success-mid` `#00CF86` in entrambi i temi). Tabella standard `.sib-table` (bordi 1px, header muted case normale, nessuna zebra; vedi `00-fondamenta.md`); in tema scuro wrap e celle usano `--color-surface`/`--color-bg`/`--color-border` per le regole globali della skin.
+Token come in `03-crea-anagrafica.md` §8. Gli stati verdi («Vigente», «Documentazione completa») usano **`--color-success`** (chiaro `#007035`, scuro `#34D399`), lo stesso della scheda anagrafica; gli stati sono sempre icona + testo colorato, senza sfondi a pillola. Tabella standard `.sib-table` (bordi 1px, header muted case normale, nessuna zebra; vedi `00-fondamenta.md`); in tema scuro wrap e celle usano `--color-surface`/`--color-bg`/`--color-border` per le regole globali della skin.
 
-Note sulle classi Tailwind usate nell'archivio: `text-text-muted` e `text-text` **non sono definite** nella configurazione Tailwind del progetto, quindi quei testi ereditano il colore del contenitore (nelle celle di tabella e nelle modali è `--color-text-active`); `border-line` = `--color-border`; `bg-canvas` = `--color-bg`; `bg-success` = `--color-success-mid`; `text-success` = `--color-success-mid`; `text-warning` = `--color-warning`; `bg-warning-light` = `--color-warning-light`; `bg-primary` = `--color-primary`; `text-error` = `--color-error`; `bg-white` in dark = `--color-surface`.
+Note sulle classi Tailwind usate nell'archivio: `text-text-muted` e `text-text` **non sono definite** nella configurazione Tailwind del progetto, quindi quei testi ereditano il colore del contenitore (nelle celle di tabella e nelle modali è `--color-text-active`); `border-line` = `--color-border`; `bg-canvas` = `--color-bg`; `text-warning` = `--color-warning`; `bg-primary` = `--color-primary`; `text-error` = `--color-error`.
 
 ### 8.1 `ArchivioPersonale.sass`
 | Classe | Valori |
@@ -297,6 +307,15 @@ Note sulle classi Tailwind usate nell'archivio: `text-text-muted` e `text-text` 
 | `.arch-pers__table` | `table-layout: fixed`, `width: 100%`; `th, td` `white-space: nowrap`, `overflow: hidden` |
 | colonne `.arch-pers__col--*` | matricola 7%, nome 9%, cognome 8%, reparto 10%, telefono 9%, nato_il 7%, codice_fiscale 10%, indirizzo 9%, cap 5%, provincia 6%, nazione 5%, azioni 15% (totale 100%) |
 | `.arch-pers__th` | flex, centrato, gap 6px, `min-width: 0`; primo figlio `min-width: 0` |
+| `.arch-pers__filtro-btn` | inline-flex centrato, `flex: none`, 20×20, padding 0, senza bordo/sfondo, radius 4px, `--color-text-inactive`, icona 11px; hover sfondo `--color-primary-100` e colore primary; `--on` colore `--color-primary` |
+| `.arch-pers-filtro__overlay` | `position: fixed`, `inset: 0`, `z-index: 30` |
+| `.arch-pers-filtro` | `position: fixed`, `z-index: 31`, larghezza 208px, padding 8px, sfondo `--color-surface`, bordo 1px `--color-border`, radius 8px, ombra `0 8px 24px rgba(0,0,0,.14)`; `top`/`left` impostati dallo script all'apertura |
+| `.arch-pers-filtro__acts` | flex `space-between`, gap 8px, `margin-top: 8px` |
+| `.arch-pers-conf` (messaggio di conferma) | colonna, gap 8px; `p` margin 0; `ul` margin 0, `padding-left: 18px`, `list-style: disc` |
+| `.arch-pers-ctr__vigente` | inline-flex centrato, gap 5px, colore `--color-success`, 12px, 600; nessuno sfondo |
+| `.arch-pers-doc__stato` | inline-flex centrato, gap 8px, 12px, 600; `--ok` `--color-success`; `--ko` `--color-warning` con l'icona animata `arch-pers-pulse` |
+
+Le classi `.arch-pers-filtro*`, `.arch-pers-conf`, `.arch-pers-ctr__*` e `.arch-pers-doc__*` sono di primo livello perché portale, ConfirmDialog e Modal sono montati fuori da `.arch-pers`.
 | `.arch-pers__matr` | inline-flex, centrato, gap 6px |
 | `.arch-pers__acts` | flex, centrato, `justify-content: flex-end`, gap 2px |
 
@@ -312,11 +331,11 @@ Note sulle classi Tailwind usate nell'archivio: `text-text-muted` e `text-text` 
 | `.arch-est__warn` | padding 0, senza bordo/sfondo, colore `--color-warning`, pointer |
 | `.arch-est__tip` | testo a sinistra, 12px; `ul` `margin: 4px 0 0`, `padding-left: 16px` |
 | `.arch-est__tag` | `flex-shrink: 0`, `padding: 0 6px`, radius 4px, 10px, 700, `letter-spacing: .3px`, `line-height: 18px`, testo `--color-primary`, sfondo `--color-primary-50` |
-| `.arch-est__badge` | inline-flex, `max-width: 100%`, `min-width: 0`, `vertical-align: middle`, altezza e `line-height` 22px, `padding: 0 8px`, radius 11px, 11px, 600 |
-| `--attiva` | `--color-success` su `alpha(success, .12)` |
-| `--in-scadenza` | `--color-warning` su `alpha(warning, .13)` |
-| `--scaduta` | `--color-error` su `alpha(error, .1)` |
-| `--futura` | `--color-text-inactive` su `alpha(text-inactive, .1)` |
+| `.arch-est__badge` | stato dell'autorizzazione come **icona + testo colorato, senza sfondo né pillola**: inline-flex, gap 6px, `max-width: 100%`, `min-width: 0`, `vertical-align: middle`, 12px 600; icona 12px `flex: none` |
+| `--attiva` | testo e icona `--color-success`, icona `fa-solid fa-circle-check` |
+| `--in-scadenza` | `--color-warning`, icona `fa-solid fa-clock` |
+| `--scaduta` | `--color-error`, icona `fa-solid fa-circle-xmark` |
+| `--futura` | `--color-text-inactive`, icona `fa-solid fa-hourglass-start` |
 | `.arch-est__acts` | flex a destra, gap 2px |
 
 ### 8.3 Pulsanti icona
@@ -338,7 +357,8 @@ Container query (non media query), così il comportamento segue la larghezza rea
 
 ## 10. Effetti e animazioni
 
-- Triangolo del fascicolo (tabella dipendenti), pillola «Documentazione incompleta» e icona «Mancante» nel Dettaglio: `animate-pulse` di Tailwind (`pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite`, opacità 0.5 a metà ciclo). Il triangolo della tabella esterni non lampeggia.
+- Triangolo del fascicolo (tabella dipendenti) e icona «Mancante» nel Dettaglio: `animate-pulse` di Tailwind (`pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite`, opacità 0.5 a metà ciclo). Nello stato «Documentazione incompleta» del Dettaglio lampeggia **solo l'icona** con la stessa curva (`arch-pers-pulse`), il testo resta fermo. Il triangolo della tabella esterni non lampeggia.
+- Popover filtro: compare e sparisce senza animazione.
 - Invio in corso: `fa-spinner fa-spin` al posto dell'icona.
 - Tabs: transizione colori 150 ms.
 - Tooltip: componente condiviso (dark per le azioni, light per l'elenco documenti).
@@ -347,9 +367,9 @@ Container query (non media query), così il comportamento segue la larghezza rea
 
 ## 11. Accessibilità
 
-- Pulsanti icona dipendenti con `title` («Dettaglio dipendente», «Modifica», «Contratto (PDF)», «Elimina», «Filtra»); Invita Op! con `aria-label`; triangolo con `aria-label="Documentazione incompleta — inserisci documenti mancanti"`.
+- Pulsanti icona dipendenti con `title` («Dettaglio dipendente», «Modifica», «Contratto (PDF)», «Elimina»); Elimina e Invita Op! con `aria-label` col nome; imbuto con `aria-label="Filtra {colonna}"` e `aria-expanded`; triangolo con `aria-label="Documentazione incompleta — inserisci documenti mancanti"`.
+- Popover filtro con `role="dialog"`, fuoco sul campo all'apertura, Esc lo chiude.
 - Pulsanti esterni con `aria-label` completi («Modifica {nome} {cognome}», «Invita … all'App Op!», «Stampa badge di …», «Elimina …») e tooltip.
-- Input del filtro con autofocus all'apertura.
 - Modali: Esc, ✕ e fondale chiudono; ConfirmDialog con Esc = annulla.
 - Pulsanti disabilitati (invio, documenti senza URL) con attributo `disabled`.
 
@@ -362,9 +382,9 @@ Container query (non media query), così il comportamento segue la larghezza rea
 5. Le righe 82, 83, 84, 85, 86, 90 mostrano il triangolo arancio lampeggiante; il tooltip dice «5/5 documenti mancanti — clicca per inserirli:» con i 5 elementi; la riga 88 dice «3/5»; le righe 66, 67, 89 non hanno triangolo.
 6. Il filtro «Nome» con «andrea» lascia Andrea Grimaudo, Andrea G Test (e non Sicilia Andrea, che ha «Andrea» nel cognome); «Reset» ripristina l'elenco; con un filtro senza risultati compare «Nessun collaboratore trovato.»
 7. La colonna Reparto mostra «Direzione» per Aragona, «F&B» per Grimaudo, «-» per chi non ha contratti; filtrando Reparto con «house» resta solo Andrea G Test.
-8. Il pulsante PDF di Aragona mostra il contatore «2»; la modale «Contratto — Piero Aragona» elenca due card, la prima con la pillola «Vigente» verde chiaro e «PDF non disponibile».
+8. Il pulsante PDF di Aragona mostra il contatore «2»; la modale «Contratto — Piero Aragona» elenca due card, la prima con «Vigente» reso come icona `circle-check` + testo verde `--color-success` (`#007035`, in scuro `#34D399`) **senza sfondo**, identico allo storico della scheda anagrafica, e «PDF non disponibile».
 9. Il Dettaglio di Aragona mostra l'avatar 112×144, 12 voci anagrafiche, il blocco «Inquadramento contrattuale» con Orario «Full time 40 h · 5 giorni (40 h)», Part time «Full time», Permessi annui «72 h ROL + 32 h ex fest.», RAL «€ 52.000», e «Documentazione completa» in verde.
-10. Il Dettaglio di «mario idraulico» mostra la pillola lampeggiante «Documentazione incompleta — 5/5 mancanti» e cinque righe «Mancante».
+10. Il Dettaglio di «mario idraulico» mostra «Documentazione incompleta — 5/5 mancanti» in arancio con l'icona lampeggiante e nessuno sfondo, e cinque righe «Mancante».
 11. Con il modulo App Op! attivo l'icona telefono compare solo per Aragona e Campo; il tooltip di Campo è «Invita Op! — invia il token di invito a m.campo@hotelnoto.it»; cliccando, l'icona diventa uno spinner e poi si apre la modale «Invito per Marco Campo» con il codice.
 12. La matita di un dipendente apre «Modifica anagrafica personale» con i dati precompilati; il triangolo fa lo stesso.
 13. Nella scheda esterni l'ordine è Benali, Lupo, Morra; Benali ha il triangolo con «DURC» nel tooltip, stato «Scaduto» rosso, reparti «Non abilitato» e nessuna icona telefono; Lupo è «In scadenza» arancio; Morra «Autorizzato» verde; la colonna Autorizzazione mostra «01/03/26 – 28/02/27» con tooltip «Dal 01/03/2026 al 28/02/2027».
@@ -373,19 +393,25 @@ Container query (non media query), così il comportamento segue la larghezza rea
 16. L'icona badge di Morra apre la finestra di stampa con la tessera orizzontale (fronte e retro) su A4.
 17. Con container < 1100 px le celle dei dipendenti passano a 12px con padding laterale 6px e i pulsanti azione a 22px; con container < 1000 px lo stesso vale per la tabella esterni.
 18. In tema scuro tabella, popover filtro e modali usano le superfici scure (`#1A1E26`, header `#12151B`, bordi `#2B313D`), senza sfondi bianchi residui.
+19. **Filtro sempre visibile**: aprendo l'imbuto di «Naz.» (ultima colonna filtrabile, vicino al bordo destro) il popover compare intero sotto l'intestazione, dentro la finestra, sopra la tabella; lo stesso con un filtro che lascia una sola riga. Esc, clic fuori o scroll lo chiudono; con un filtro attivo l'imbuto è blu primary.
+20. **Elimina**: il cestino di Piero Aragona apre «Elimina dipendente» con «Eliminare l’anagrafica di Piero Aragona (matricola 66)? L’operazione non si può annullare.», «Si eliminano anche i 2 contratti dello storico contrattuale, con i PDF.» e la riga sull'App Op!; «Annulla» non cambia nulla; «Elimina» toglie la riga, la scheda diventa «Dipendenti (10)», compare il toast «Dipendente eliminato» / «Piero Aragona è stato tolto dall’Archivio del personale insieme a 2 contratti.» e in `sibylla.contratti-personale` non restano contratti con `anagraficaId: "66"`. In demo l'eliminazione resta dopo il ricaricamento della pagina.
+21. Con il backend che risponde `409 { "error": "…" }` a Delete compare il toast error «Dipendente non eliminato» con quel testo e la riga resta.
+22. **Foto**: un dipendente salvato in Crea anagrafica con un avatar o una foto mostra quell'immagine nel «Dettaglio dipendente»; chi non ne ha mostra l'avatar calcolato dal nome come prima.
+23. Un dipendente creato in demo (es. matricola 91) compare in fondo alla tabella con il contatore del PDF pari ai contratti aggiunti nella scheda prima del salvataggio.
 
 ## 13. File sorgente
 
 - `src/router/PageContent.tsx`
 - `src/modules/hr/ArchivioPersonale/ArchivioPersonale.tsx`, `ArchivioPersonale.sass`
 - `src/modules/hr/ArchivioPersonale/EsterniTable.tsx`, `EsterniTable.sass`
+- `src/modules/hr/ArchivioPersonale/personaleDemo.ts`
 - `src/modules/hr/CreaAnagrafica/_state.ts`
 - `src/modules/hr/_badge/badgeEsterno.ts`
-- `src/store/useContrattiPersonaleStore.ts`, `useAnagraficaOpStore.ts`, `useCollaboratoriEsterniStore.ts`, `useHrConfigStore.ts`, `useCatalogoStore.ts`, `useConfirmStore.ts`
+- `src/store/useContrattiPersonaleStore.ts`, `useAnagrafichePersonaleStore.ts`, `useAnagraficaOpStore.ts`, `useCollaboratoriEsterniStore.ts`, `useHrConfigStore.ts`, `useCatalogoStore.ts`, `useConfirmStore.ts`
 - `src/modules/appop/invitoAnagrafica.ts`, `OpInvitoModal.tsx`, `opApi.ts`, `opCatalogo.ts`, `appOpSibylla.ts`
 - `src/hooks/useModuloAttivo.ts`, `src/hooks/useStrutturaCorrente.ts`
 - `src/core/avatar.ts`
-- `src/core/components/PageHead.tsx`, `BtnBack.tsx`, `Tabs.tsx`, `Tooltip.tsx`, `TruncatedText.tsx`, `Modal.tsx`, `ConfirmDialog.tsx`
+- `src/core/components/PageHead.tsx`, `BtnBack.tsx`, `Tabs.tsx`, `Tooltip.tsx`, `TruncatedText.tsx`, `Modal.tsx`, `ConfirmDialog.tsx`, `Toast/useToast.ts`, `form/InputField.tsx`
 - `src/services/api.ts`
 - `src/navigation/menu.ts`, `pageSubtitles.ts`, `src/core/icons/MenuIco.tsx`, `src/modules/home/Timone/Timone.tsx`, `src/modules/hr/HrOverview/HrOverview.tsx`
 - `src/styles/_themes.sass`, `_colors.sass`, `_components.sass`, `_skin-dark.sass`, `src/tailwind.css`, `tailwind.config.js`

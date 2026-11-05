@@ -20,6 +20,9 @@ import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 import { stampaBadge } from '../_badge/badgeEsterno'
 import './EsterniTable.sass'
 
+/** Icona dello stato dell'autorizzazione (accanto al testo colorato, niente pillola). */
+const ICO_STATO: Record<StatoAutorizzazione, string> = { attiva: 'fa-circle-check', 'in-scadenza': 'fa-clock', scaduta: 'fa-circle-xmark', futura: 'fa-hourglass-start' }
+
 // ─── ARCHIVIO DEL PERSONALE › COLLABORATORI ESTERNI ──────────────────────────
 //  Addetti delle ditte in appalto: azienda (fornitore di Purchasing), categoria,
 //  reparti App Op!, periodo e stato dell'autorizzazione, documenti mancanti e
@@ -144,7 +147,7 @@ export default function EsterniTable({ navigate }: { navigate: (p: string) => vo
                   <td><TruncatedText text={cat?.nome ?? '—'} /></td>
                   <td><TruncatedText text={abil?.abilitato ? abil.reparti.map(nomeReparto).join(', ') || '—' : 'Non abilitato'} /></td>
                   <td><TruncatedText text={`${fmtBreve(c.autorizzatoDal)} – ${fmtBreve(c.autorizzatoAl)}`} full={`Dal ${fmt(c.autorizzatoDal)} al ${fmt(c.autorizzatoAl)}`} /></td>
-                  <td><span className={`arch-est__badge arch-est__badge--${st}`}><TruncatedText text={STATO_AUT_LABEL[st]} /></span></td>
+                  <td><span className={`arch-est__badge arch-est__badge--${st}`}><i className={`fa-solid ${ICO_STATO[st]}`} aria-hidden="true" /><TruncatedText text={STATO_AUT_LABEL[st]} /></span></td>
                   <td>
                     <div className="arch-est__acts">
                       <Tooltip text="Modifica">

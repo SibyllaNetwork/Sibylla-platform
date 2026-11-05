@@ -237,9 +237,11 @@ Voci, nell'ordine:
 - Rail con i tab «Obiettivi» e «Documenti».
 - Titolo: «Obiettivi» oppure «Documenti».
 - Sottotitolo:
-  - tab «Obiettivi»: «{n} a rischio»;
+  - tab «Obiettivi»: «{n} a rischio»; se nell'anno non è stato avviato nessun obiettivo, «Nessuno nel {anno}»;
   - tab «Documenti»: «{n} incompleti».
 - Legenda: «{label} {n}» per ogni parte.
+
+Le parti del tab «Obiettivi» vengono dallo **store degli obiettivi** (`useObiettiviStore`, lo stesso di Assegna obiettivo e Monitoraggio performance): obiettivi con anno di `dataAvvio` uguale all'anno scelto, contati per `statoAvanzamento` (§6). Non dipendono dalla struttura selezionata, perché un obiettivo non è legato a una struttura.
 
 Parti e colori di stato:
 
@@ -266,7 +268,7 @@ Ciambella: stessa configurazione della card 4.5. Tooltip con formato `fmtInt`.
 
 Centro della ciambella:
 
-- tab «Obiettivi»: «{avanzamento}%» con l'etichetta «avanz. medio»;
+- tab «Obiettivi»: «{avanzamento}%» con l'etichetta «avanz. medio» (media di `avanzamentoPct` degli obiettivi dell'anno, la stessa percentuale della pista di Monitoraggio performance); «—» se nell'anno non ce ne sono (ciambella vuota, legenda «Raggiunti 0 · In linea 0 · A rischio 0»);
 - tab «Documenti»: `fmtPct(completa / organico × 100, 0)` (es. «83%») con l'etichetta «completa».
 
 ## 5. Stati e interazioni
@@ -282,7 +284,7 @@ Centro della ciambella:
 
 - **Cambio struttura**: i numeri si riscalano sull'organico stimato della selezione (§6). Con «Tutte le strutture» si sommano tutte le strutture dell'elenco.
 - **Struttura cambiata dalla sidenav**: se si cambia la struttura in alto mentre la pagina è aperta, la select locale la segue.
-- **Cambio anno**: cambiano **solo i testi**, cioè il titolo «Andamento organico · {anno}», le voci di legenda e i nomi in tooltip «{anno}» e «{anno−1}». I dati restano gli stessi, perché nella demo sono indipendenti dall'anno. Nel backend reale l'anno dovrà filtrare i dati.
+- **Cambio anno**: cambiano i testi (titolo «Andamento organico · {anno}», voci di legenda e nomi in tooltip «{anno}» e «{anno−1}») **e i numeri**, in modo deterministico (§6 «Anno»): l'anno scelto prende il «LY» dell'anno dopo come proprio «TY», quindi i dati dei tre anni sono coerenti fra loro. La card «Obiettivi» mostra gli obiettivi avviati in quell'anno. La select resta perché la pagina è dimostrativa e deve far vedere che l'anno filtra i dati; nel backend reale l'anno filtrerà i dati veri.
 
 ### Tab, hover e navigazione
 
@@ -303,7 +305,7 @@ Non ci sono stati vuoti, di caricamento o d'errore, né modali, conferme o toast
 
 ## 6. Dati e regole di business
 
-Oggi i dati sono **mock nel componente**: costanti riferite a un organico base di **142** dipendenti, riscalate sull'organico stimato della selezione.
+I dati del personale sono **mock nel componente**: costanti dell'anno base **2026** riferite a un organico base di **142** dipendenti, riscalate sull'organico stimato della selezione e sull'anno. Gli **obiettivi** invece sono quelli reali di `useObiettiviStore`.
 
 ### Dati base (organico 142)
 
@@ -333,7 +335,6 @@ Oggi i dati sono **mock nel componente**: costanti riferite a un organico base d
 | Genere | Donne 78 · Uomini 64 |
 | Reparti | Housekeeping 34 · F&B 30 · Front office 28 · Cucina 16 · Manutenzione 14 · Amministrazione 10 · Marketing 6 · Direzione 4 |
 | Assenze (giorni) | Ferie 52 · Malattia 31 · Permessi 24 · Congedi 12 |
-| Obiettivi | Raggiunti 38 · In linea 64 · A rischio 21 |
 | Documentazione | Completa 118 · Incompleta 24 |
 
 ### Organico stimato della struttura
@@ -361,24 +362,38 @@ Come si ottiene la scheda demo (`schedaDemo(nome)`):
 const hashNome = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619) >>> 0; return h }
 ```
 
+### Anno
+
+Con `k = 2026 − anno` (0, 1 o 2) ogni indicatore con un valore TY (2026) e LY (2025) vale:
+
+```ts
+valoreAnno(ty, ly, k) = k <= 0 ? ty : ly × (ly / ty)^(k − 1)
+```
+
+cioè 2026 → TY, 2025 → LY, 2024 → LY ridotto dello stesso rapporto. Per l'anno scelto il «TY» è `valoreAnno(…, k)` e il «LY» è `valoreAnno(…, k + 1)`: il LY di un anno coincide sempre col TY dell'anno prima.
+
+- Si applica a: ogni mese di `ORGANICO_TY`/`ORGANICO_LY`, assunzioni, cessazioni, turnover e assenteismo (questi due arrotondati a un decimale).
+- Fattore d'anno `fa = valoreAnno(142, 130, k) / 142` (organico di dicembre rispetto al 2026): 1 nel 2026, 0,915 nel 2025, 0,838 nel 2024.
+- La serie mensile dell'assenteismo si moltiplica per `assenteismo dell'anno / 4,1`.
+
 ### Riscalatura
 
-- `organico = max(1, Σ organicoDi(strutture selezionate))`.
-- Fattore di scala: `f = organico / 142`.
-- `sc(n) = max(0, round(n × f))`, applicata a:
-  - assunzioni e cessazioni, TY e LY;
-  - ogni mese di `ORGANICO_TY` e di `ORGANICO_LY`;
-  - ogni parte di ogni ripartizione.
+- `organico = max(1, round(Σ organicoDi(strutture selezionate) × fa))`.
+- Fattore di scala complessivo: `f = organico / 142`; fattore della sola struttura `fs = f / fa`.
+- `sc(n) = max(0, round(n × f))`, applicata a ogni parte di contratti, genere, reparti, assenze e documentazione.
+- `scS(n) = max(0, round(n × fs))`, applicata ai valori già portati all'anno: assunzioni e cessazioni (TY e LY), ogni mese dell'andamento TY e LY.
 - **Chiusura sull'organico**: per contratti, genere e documentazione l'ultima parte vale `max(0, organico − somma delle altre)`. Così le parti sommano sempre all'organico, senza scarti di arrotondamento.
-  - Reparti, assenze e obiettivi **non** vengono chiusi.
+  - Reparti e assenze **non** vengono chiusi.
 - Costo: `costoMesi[i] = COSTO_MESI[i] × 1000 × f`, e `costo = Σ costoMesi`.
-- **Non riscalati**: turnover, assenteismo e la serie dell'assenteismo restano costanti.
+- **Non riscalati sulla struttura**: turnover, assenteismo e la serie dell'assenteismo (variano solo con l'anno).
+- **Obiettivi**: non riscalati; filtrati per anno di avvio (`annoObiettivo(o)`, anno di `dataAvvio`).
 
 ### Derivati
 
 - Delta dell'organico: `pct(a, b) = b ? (a − b)/b × 100 : 0`, applicata a `pct(trend[11].ty, trend[11].ly)`.
-- `avanzamento = round((raggiunti + inLinea × 0,6) / max(1, Σ obiettivi) × 100)`.
-- `aRischio` = la terza parte degli obiettivi.
+- Stato di ogni obiettivo: `statoAvanzamento(o)` dello store (concluso o ≥ 100% → «Raggiunti», ≥ 50% → «In linea», sotto → «A rischio»), la stessa regola di Monitoraggio performance.
+- `avanzamento = round(Σ avanzamentoPct(o) / n)` sugli n obiettivi dell'anno; `null` («—») con n = 0.
+- `aRischio` = numero degli obiettivi «A rischio» dell'anno.
 - `docIncompleta` = la seconda parte della documentazione.
 
 ### Valori attesi nella demo
@@ -395,7 +410,7 @@ const hashNome = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++)
 | Genere | 53 · 43 | 129 · 105 |
 | Reparti | 23 · 20 · 19 · 11 · 9 · 7 · 4 · 3 | 56 · 49 · 46 · 26 · 23 · 16 · 10 · 7 |
 | Assenze (badge) | 35 · 21 · 16 · 8 («80 gg») | 86 · 51 · 40 · 20 («197 gg») |
-| Obiettivi | 26 · 43 · 14 («14 a rischio», centro «62%») | 63 · 105 · 35 («35 a rischio», «62%») |
+| Obiettivi (2026, seed prima di ogni avanzamento Live) | 1 · 0 · 2 («2 a rischio», centro «56%») | uguale (non dipende dalla struttura) |
 | Documenti | 80 · 16 («16 incompleti», centro «83%») | 194 · 40 («40 incompleti», «83%») |
 
 L'organico di «Tutte le strutture» si compone così:
@@ -407,13 +422,15 @@ L'organico di «Tutte le strutture» si compone così:
 | Hotel Catania | 40 | 3 | 26 |
 | Resort Taormina | 53 | 5 | 66 |
 
-Gli indicatori costanti valgono in tutti e due i casi: turnover «6,3%» con delta «−0,8 pt», assenteismo «4,1%» con delta «+0,3 pt».
+Gli indicatori non riscalati sulla struttura valgono in tutti e due i casi (2026): turnover «6,3%» con delta «−0,8 pt», assenteismo «4,1%» con delta «+0,3 pt».
+
+Con l'anno **2025** e «Hotel Noto»: organico 88 («+8,6%»), assunzioni 9 («+2 vs LY»), cessazioni 7 («−2 vs LY»), turnover «7,1%» («−0,9 pt»), assenteismo «3,8%» («+0,3 pt»), costo «760 k€»; Obiettivi «Nessuno nel 2025», centro «—» (i seed partono tutti nel 2026).
 
 **Formato dei numeri**: `fmtInt` e `fmtPct` usano `Intl it-IT` e non raggruppano le 4 cifre (vedi la scheda 13, §6.7).
 
 **Persistenza**: la pagina non persiste nulla. La struttura attiva viene da `useOrgStore`, che persiste solo `activeStruttura`. Se è caricato un profilo, `elenco` si riduce alla struttura del profilo; in assistenza, alle strutture del cliente assistito (vedi `01-modello-dati-e-api.md`).
 
-**Legame con le altre pagine HR**: oggi nessuno. La card «Obiettivi» **non** legge `useObiettiviStore` e i numeri dei reparti non vengono da `DIPENDENTI_HR`. Il backend reale deve invece calcolare tutto dai dati veri:
+**Legame con le altre pagine HR**: la card «Obiettivi» legge `useObiettiviStore` (un obiettivo creato in Assegna obiettivo, eliminato o fatto avanzare in Monitoraggio performance cambia subito la card). Gli altri numeri non vengono ancora da `DIPENDENTI_HR`. Il backend reale deve calcolare tutto dai dati veri:
 
 - personale e contratti;
 - richieste di assenza;
@@ -618,11 +635,11 @@ A 1920 px valgono le dimensioni piene.
    - area blu sfumata per il 2026 e linea grigia per il 2025;
    - asse Y senza decimali, dal minimo −10 al massimo +5;
    - all'hover cursore tratteggiato e tooltip «81 dipendenti» / «76 dipendenti» su «Gen».
-7. Con l'anno «2025» il titolo diventa «Andamento organico · 2025» e la legenda «2025 / 2024». I numeri non cambiano.
+7. Con l'anno «2025» il titolo diventa «Andamento organico · 2025», la legenda «2025 / 2024» e i numeri cambiano come nella §6 (Hotel Noto: organico 88, assunzioni 9, cessazioni 7, turnover «7,1%», assenteismo «3,8%», costo «760 k€»); tornando al 2026 si rivedono esattamente i valori iniziali. La linea grigia del 2026 coincide con l'area del 2025.
 8. Il tab «Genere» della card composizione cambia titolo in «Genere», legenda in «Donne 53 · Uomini 43» e la ciambella; il centro resta «96 dipendenti».
 9. «Organico per reparto» ha 8 barre orizzontali blu, ordinate come nella §4.6, con il numero a destra di ogni barra e solo linee di griglia verticali.
 10. «Assenze per tipologia» ha il badge «80 gg» e 4 barre arancio con le etichette «35 gg», «21 gg», «16 gg», «8 gg».
-11. La card «Obiettivi» ha il sottotitolo «14 a rischio», la ciambella verde/blu/rossa e il centro «62%» con «avanz. medio»; la freccia porta a Monitoraggio performance. Con il tab «Documenti» si legge «16 incompleti», la ciambella è verde/rossa, il centro «83%» con «completa» e la freccia porta ad Archivio del personale.
+11. La card «Obiettivi» conta gli obiettivi dello store avviati nell'anno: con i seed del 2026, prima di ogni avanzamento Live, legenda «Raggiunti 1 · In linea 0 · A rischio 2», sottotitolo «2 a rischio», centro «56%» con «avanz. medio». Creando un obiettivo in Assegna obiettivo o eliminandone uno in Monitoraggio performance la card cambia; con l'anno 2025 mostra «Nessuno nel 2025» e il centro «—»; la freccia porta a Monitoraggio performance. Con il tab «Documenti» si legge «16 incompleti», la ciambella è verde/rossa, il centro «83%» con «completa» e la freccia porta ad Archivio del personale.
 12. A 1366×768 con sidenav aperta, a 1440×900 e a 1920×1080 non compare nessuno scroll. Sotto i 1180 px di contenuto i filtri passano a 180 e 128px. Sotto i 760 px di altezza spariscono le etichette sotto i numeri delle ciambelle.
 13. Card e KPI entrano in cascata (KPI ogni 70ms, card ogni 80ms dopo 80ms); i numeri contano in 0,9 s. Con «riduci movimento» tutto è statico.
 14. In tema scuro i grafici usano la palette scura (`--chart-1 #4A8BC9`, griglia `#262C38`) su superficie `#1A1E26`.
@@ -633,6 +650,7 @@ A 1920 px valgono le dimensioni piene.
 - `src/router/PageContent.tsx` (route `hr-overview`)
 - `src/modules/hr/HrOverview/HrOverview.tsx`
 - `src/modules/hr/HrOverview/HrOverview.sass`
+- `src/store/useObiettiviStore.ts` (`statoAvanzamento`, `avanzamentoPct`, `annoObiettivo`)
 - `src/hooks/useStrutturaCorrente.ts` (`useStrutturaPagina`, `useStruttureCliente`)
 - `src/core/demo/struttureDemo.ts` (`schedaDemo`, `hashNome`)
 - `src/store/useOrgStore.ts` (strutture demo), `src/admin/SibyllaAdminPanel/constants.ts` (`CLIENTS_INIT`)

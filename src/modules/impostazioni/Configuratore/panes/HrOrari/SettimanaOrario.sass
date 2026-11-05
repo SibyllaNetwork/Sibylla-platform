@@ -75,7 +75,10 @@
     &.is-off .sett-ora__track
       opacity: .45
 
+  // Il Tooltip avvolge il pulsante: il pulsante riempie la colonna del giorno
   &__day
+    flex: 1 1 auto
+    width: 100%
     height: 34px
     border: 1px solid $border
     border-radius: $radius-md
@@ -125,6 +128,13 @@
   &__fascia .sett-ora__time .sib-input
     padding-left: 8px
     padding-right: 4px
+
+  // Icona d'errore della fascia (il messaggio è nel Tooltip)
+  &__err
+    padding: 0 2px
+    font-size: 13px
+    color: $error
+    cursor: help
 
   &__dash
     color: $text-inactive

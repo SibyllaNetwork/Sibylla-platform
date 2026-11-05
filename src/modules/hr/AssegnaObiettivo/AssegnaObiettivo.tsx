@@ -1,10 +1,14 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
+import Tooltip from '../../../core/components/Tooltip'
 import { InputField, SelectField } from '../../../core/components/form'
 import {
   useObiettiviStore, type Obiettivo, type Periodo, type SottoPeriodo, type Segmento, type TipologiaObiettivo,
   premioTotale, targetTotale, margineAtteso, tuttiSotto,
 } from '../../../store/useObiettiviStore'
+import { useConfirmStore } from '../../../store/useConfirmStore'
+import { useHrConfigStore } from '../../../store/useHrConfigStore'
+import { DIPENDENTI_HR, REPARTI_HR } from '../../../store/useHrGestioneStore'
 import './AssegnaObiettivo.sass'
 
 /**
@@ -22,8 +26,22 @@ import './AssegnaObiettivo.sass'
 const uid = (p = 'w') => `${p}-${Math.round(performance.now())}-${Math.floor(Math.random() * 1e4)}`
 const eur = (n: number) => '€ ' + Math.round(n || 0).toLocaleString('it-IT')
 
-const REPARTI = ['Commerciale', 'Front office', 'F&B', 'Housekeeping', 'Manutenzione', 'Amministrazione', 'Marketing', 'Direzione']
-const DIPENDENTI = ['Andrea Grimaudo', 'Piero Aragona', 'Marco Campo', 'Giulia Neri', 'Ali Aslan']
+const nomeCompleto = (d: { nome: string; cognome: string }) => `${d.nome} ${d.cognome}`
+
+/** Reparti attivi della Configurazione HR (fallback: reparti dell'anagrafica HR). */
+function useRepartiObiettivo() {
+  const reparti = useHrConfigStore((s) => s.reparti)
+  return useMemo(() => {
+    const attivi = reparti.filter((r) => r.attivo).map((r) => r.nome)
+    return attivi.length ? attivi : [...REPARTI_HR]
+  }, [reparti])
+}
+
+/** Dipendenti del reparto, in ordine alfabetico di cognome. */
+const dipendentiDi = (reparto: string) =>
+  DIPENDENTI_HR.filter((d) => d.reparto === reparto)
+    .sort((a, b) => a.cognome.localeCompare(b.cognome, 'it'))
+    .map(nomeCompleto)
 const REPORT_OPTS = ['Report vendite reparto', 'Report upselling', 'Report esperienze / attività', 'Report F&B', 'Report camere / RevPAR', 'CRM · conversioni']
 const SEGMENTI: { key: Segmento; label: string; icon: string }[] = [
   { key: 'prodotti',   label: 'Prodotti',   icon: 'fa-bag-shopping' },
@@ -72,12 +90,15 @@ function newPeriodo(n: number): Periodo {
 
 function Wizard({ onAvviato }: { onAvviato: () => void }) {
   const addObiettivo = useObiettiviStore((s) => s.addObiettivo)
+  const confirm = useConfirmStore((s) => s.confirm)
+  const reparti = useRepartiObiettivo()
 
   const [step, setStep] = useState(0)
   const [nome, setNome] = useState('')
   const [tipologia, setTipologia] = useState<TipologiaObiettivo>('reparto')
-  const [reparto, setReparto] = useState('Commerciale')
-  const [assegnatario, setAssegnatario] = useState(DIPENDENTI[0])
+  const [reparto, setReparto] = useState(() => reparti[0] ?? '')
+  const dipendenti = useMemo(() => dipendentiDi(reparto), [reparto])
+  const [assegnatario, setAssegnatario] = useState(() => dipendentiDi(reparto)[0] ?? '')
   const [report, setReport] = useState(REPORT_OPTS[0])
   const [segmenti, setSegmenti] = useState<Segmento[]>(['servizi'])
   const [budgetLordo, setBudgetLordo] = useState(120000)
@@ -86,15 +107,40 @@ function Wizard({ onAvviato }: { onAvviato: () => void }) {
   const [periodi, setPeriodi] = useState<Periodo[]>([newPeriodo(1)])
   const [errore, setErrore] = useState<string | null>(null)
 
+  // Reparto disattivato in Configurazione HR → torna al primo attivo.
+  useEffect(() => {
+    if (reparti.length && !reparti.includes(reparto)) setReparto(reparti[0])
+  }, [reparti, reparto])
+  // L'assegnatario appartiene sempre al reparto scelto.
+  useEffect(() => {
+    if (!dipendenti.includes(assegnatario)) setAssegnatario(dipendenti[0] ?? '')
+  }, [dipendenti, assegnatario])
+
   const toggleSegmento = (k: Segmento) =>
     setSegmenti((s) => (s.includes(k) ? s.filter((x) => x !== k) : [...s, k]))
 
   // editing periodi/sottoperiodi
   const addP = () => setPeriodi((ps) => [...ps, newPeriodo(ps.length + 1)])
-  const removeP = (pid: string) => setPeriodi((ps) => ps.filter((p) => p.id !== pid))
+  const removeP = async (p: Periodo) => {
+    const ok = await confirm({
+      title: 'Rimuovi periodo',
+      message: `Rimuovere «${p.nome || 'Periodo'}» e ${p.sottoperiodi.length === 1 ? 'il suo sottoperiodo' : `i suoi ${p.sottoperiodi.length} sottoperiodi`}? Target e premi inseriti andranno persi.`,
+      confirmLabel: 'Rimuovi',
+      danger: true,
+    })
+    if (ok) setPeriodi((ps) => ps.filter((x) => x.id !== p.id))
+  }
   const setPNome = (pid: string, v: string) => setPeriodi((ps) => ps.map((p) => (p.id === pid ? { ...p, nome: v } : p)))
   const addS = (pid: string) => setPeriodi((ps) => ps.map((p) => (p.id === pid ? { ...p, sottoperiodi: [...p.sottoperiodi, newSotto(p.sottoperiodi.length + 1)] } : p)))
-  const removeS = (pid: string, sid: string) => setPeriodi((ps) => ps.map((p) => (p.id === pid ? { ...p, sottoperiodi: p.sottoperiodi.filter((s) => s.id !== sid) } : p)))
+  const removeS = async (pid: string, s: SottoPeriodo) => {
+    const ok = await confirm({
+      title: 'Rimuovi sottoperiodo',
+      message: `Rimuovere «${s.nome || 'Sottoperiodo'}»? Target e premio inseriti andranno persi.`,
+      confirmLabel: 'Rimuovi',
+      danger: true,
+    })
+    if (ok) setPeriodi((ps) => ps.map((p) => (p.id === pid ? { ...p, sottoperiodi: p.sottoperiodi.filter((x) => x.id !== s.id) } : p)))
+  }
   const setS = (pid: string, sid: string, patch: Partial<SottoPeriodo>) =>
     setPeriodi((ps) => ps.map((p) => (p.id === pid ? { ...p, sottoperiodi: p.sottoperiodi.map((s) => (s.id === sid ? { ...s, ...patch } : s)) } : p)))
 
@@ -109,14 +155,15 @@ function Wizard({ onAvviato }: { onAvviato: () => void }) {
   const copertura = budgetLordo > 0 ? Math.min(100, Math.round((totTarget / budgetLordo) * 100)) : 0
 
   const canNext = () => {
-    if (step === 0) return nome.trim().length > 0
+    if (step === 0) return nome.trim().length > 0 && (tipologia === 'reparto' || !!assegnatario)
     if (step === 1) return segmenti.length > 0 && budgetLordo > 0
     if (step === 2) return nSotto > 0 && totTarget > 0
     return true
   }
   const next = () => {
     if (!canNext()) {
-      setErrore(step === 0 ? 'Inserisci il nome dell’obiettivo.' : step === 1 ? 'Seleziona almeno un tipo di vendita e un budget.' : 'Aggiungi almeno un sottoperiodo con un target.')
+      setErrore(step === 0
+        ? (nome.trim() ? 'Il reparto scelto non ha dipendenti: scegli un altro reparto o un obiettivo di reparto.' : 'Inserisci il nome dell’obiettivo.') : step === 1 ? 'Seleziona almeno un tipo di vendita e un budget.' : 'Aggiungi almeno un sottoperiodo con un target.')
       return
     }
     setErrore(null)
@@ -167,10 +214,11 @@ function Wizard({ onAvviato }: { onAvviato: () => void }) {
               </div>
             </div>
             <SelectField name="reparto" label="Reparto" value={reparto} onChange={(e) => setReparto(e.target.value)}
-              options={REPARTI.map((r) => ({ value: r, label: r }))} />
+              options={reparti.map((r) => ({ value: r, label: r }))} />
             {tipologia === 'individuale' ? (
               <SelectField name="assegnatario" label="Assegnatario" value={assegnatario} onChange={(e) => setAssegnatario(e.target.value)}
-                options={DIPENDENTI.map((d) => ({ value: d, label: d }))} />
+                placeholder={dipendenti.length ? undefined : 'Nessun dipendente nel reparto'}
+                options={dipendenti.map((d) => ({ value: d, label: d }))} />
             ) : (
               <SelectField name="report" label="Fonte dati / KPI (report)" value={report} onChange={(e) => setReport(e.target.value)}
                 options={REPORT_OPTS.map((r) => ({ value: r, label: r }))} />
@@ -226,9 +274,13 @@ function Wizard({ onAvviato }: { onAvviato: () => void }) {
                     <span className="ao2-per__idx">{pi + 1}</span>
                     <input className="ao2-per__name" value={p.nome} onChange={(e) => setPNome(p.id, e.target.value)} aria-label="Nome periodo" />
                     <span className="ao2-per__tot">Target {eur(pTarget)} · Premio {eur(pPremio)}</span>
-                    <button type="button" className="ao2-icon-btn" title="Aggiungi sottoperiodo" onClick={() => addS(p.id)}><i className="fa-solid fa-plus" /></button>
+                    <Tooltip text="Aggiungi sottoperiodo">
+                      <button type="button" className="ao2-icon-btn" aria-label="Aggiungi sottoperiodo" onClick={() => addS(p.id)}><i className="fa-solid fa-plus" /></button>
+                    </Tooltip>
                     {periodi.length > 1 && (
-                      <button type="button" className="ao2-icon-btn ao2-icon-btn--danger" title="Rimuovi periodo" onClick={() => removeP(p.id)}><i className="fa-solid fa-trash" /></button>
+                      <Tooltip text="Rimuovi periodo">
+                        <button type="button" className="ao2-icon-btn ao2-icon-btn--danger" aria-label="Rimuovi periodo" onClick={() => removeP(p)}><i className="fa-solid fa-trash" /></button>
+                      </Tooltip>
                     )}
                   </div>
                   <div className="ao2-sub">
@@ -242,7 +294,9 @@ function Wizard({ onAvviato }: { onAvviato: () => void }) {
                         <input className="ao2-in" type="date" value={s.al || ''} onChange={(e) => setS(p.id, s.id, { al: e.target.value })} aria-label="Al" />
                         <input className="ao2-in ao2-in--num" type="number" value={String(s.target)} onChange={(e) => setS(p.id, s.id, { target: Number(e.target.value || 0) })} aria-label="Target" />
                         <input className="ao2-in ao2-in--num" type="number" value={String(s.premio)} onChange={(e) => setS(p.id, s.id, { premio: Number(e.target.value || 0) })} aria-label="Premio" />
-                        <button type="button" className="ao2-icon-btn ao2-icon-btn--danger" title="Rimuovi sottoperiodo" onClick={() => removeS(p.id, s.id)} disabled={p.sottoperiodi.length === 1}><i className="fa-solid fa-xmark" /></button>
+                        <Tooltip text={p.sottoperiodi.length === 1 ? 'Un periodo ha almeno un sottoperiodo' : 'Rimuovi sottoperiodo'}>
+                          <button type="button" className="ao2-icon-btn ao2-icon-btn--danger" aria-label="Rimuovi sottoperiodo" onClick={() => removeS(p.id, s)} disabled={p.sottoperiodi.length === 1}><i className="fa-solid fa-xmark" /></button>
+                        </Tooltip>
                       </div>
                     ))}
                   </div>

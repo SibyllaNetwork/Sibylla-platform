@@ -22,6 +22,11 @@ export const spostaMese = (ym: string, n: number) => {
 /** Le spese che contano nei totali (le rifiutate no). */
 export const valida = (n: NotaSpesa) => n.stato !== 'Rifiutata'
 
+// Regola unica dell'approvazione: senza ricevuta una spesa non si approva, né in
+// blocco né singolarmente né cambiando lo stato dalla modale «Modifica nota».
+export const approvabile = (n: NotaSpesa) => !!n.giustificativo
+export const SENZA_RICEVUTA_APPROVA = 'Manca la ricevuta: allegala da Modifica per poter approvare la spesa'
+
 export interface Cella { voce: CategoriaSpesa; note: NotaSpesa[]; importo: number; stato: StatoSpesa | 'misto' | null }
 export interface RigaGiorno {
   iso: string

@@ -34,7 +34,7 @@ Il dipendente non usa questa pagina: le sue richieste arrivano dall'App Op!.
 - Archivio del personale (`archivio-personale`): pulsante «Crea anagrafica profilo» → `crea-anagrafica`; icona matita «Modifica» o triangolo «Documentazione incompleta» → `modifica-anagrafica` dopo aver impostato il dipendente in modifica.
 
 **Verso dove si naviga**
-- `archivio-personale`: «Indietro» del PageHead, «Annulla», e dopo «Salva».
+- `archivio-personale`: «Indietro» del PageHead, «Annulla», e dopo un «Salva» riuscito (con errore si resta sulla scheda).
 - `hr-configurazione`: pulsante «Configurazione HR» nell'header della sezione «Inquadramento e turni».
 - `hr-configurazione:hr-ccnl`: link «Configuralo in Human Resources › Configurazione» quando nessun CCNL è selezionato.
 
@@ -138,12 +138,13 @@ Root `.crea-anag`: colonna flex, `align-items: stretch`. Nessuna larghezza massi
 | 7 | `fa-folder-open` | «Documenti e allegati» | — |
 
 ### 4.3 Dati anagrafici
-**Foto** (`.crea-anag__photo`)
-- Miniatura tonda 96×96 cliccabile: senza foto mostra `fa-duotone fa-user` (40px, `--color-text-inactive`); con foto mostra `<img alt="anteprima">`.
-- Sotto, due pulsanti `.sib-btn.sib-btn--icon` (gap 6px):
-  - `fa-duotone fa-camera`, `title="Scatta foto"`;
-  - `fa-duotone fa-image`, `title="Carica immagine"`.
-  - Entrambi, e la miniatura, aprono lo **stesso** input file nascosto `accept="image/*"` (senza `capture`).
+**Foto** (`.crea-anag__photo`) — la foto fa parte dell'anagrafica (campo `avatarUrl`, §6.1) e si vede poi nel «Dettaglio dipendente» dell'Archivio.
+- Miniatura tonda 96×96: è un `<button type="button" aria-label="Scegli avatar o foto">` che apre l'**AvatarPicker** condiviso. Senza foto mostra `fa-duotone fa-user` (40px, `--color-text-inactive`); con foto mostra `<img alt="Foto di {nome cognome}">` (o «Foto di dipendente» se nome e cognome sono vuoti) con sorgente `avatarUrl(valore)`.
+- Sotto, pulsanti `.sib-btn.sib-btn--icon` (gap 6px):
+  - `fa-duotone fa-camera`, `title="Scatta foto"` → input file nascosto `accept="image/*" capture="user"` (fotocamera frontale su mobile, scelta file su desktop);
+  - `fa-duotone fa-image`, `title="Scegli avatar o carica foto"` → AvatarPicker;
+  - solo con una foto impostata: `fa-duotone fa-trash-can`, `title="Rimuovi foto"` → toglie la foto dalla scheda (senza conferma: diventa definitivo solo con «Salva», «Annulla» lo annulla).
+- **AvatarPicker** (componente condiviso, con `allowUpload`): modale «Scegli avatar», testo «Seleziona un avatar oppure carica una tua foto. Viene salvato solo il riferimento.», pulsante «Carica una foto» / «Cambia foto» (immagini fino a 2 MB, errori «Seleziona un file immagine.» / «Immagine troppo grande (max 2MB).»), griglia dei 50 avatar `/avatars/avatar-01…50.svg`. Un clic su un avatar o il caricamento chiudono la modale.
 
 **Campi** (griglia a 3 colonne, in quest'ordine)
 | name | Label | Tipo | Opzioni / note |
@@ -224,7 +225,7 @@ Senza CCNL selezionato al suo posto: `<p class="crea-anag__hint">` «Nessun CCNL
 - Titolo `<h4>` `fa-light fa-clock-rotate-left` + «Storico contrattuale».
 - Vuoto: «Nessun contratto registrato per questo profilo.»
 - Altrimenti lista, dalla più recente; per ogni riga:
-  - tag «Vigente» solo sulla prima;
+  - solo sulla prima, lo stato «Vigente»: icona `fa-solid fa-circle-check` + testo «Vigente», verde `--color-success` (nessuno sfondo, nessuna pillola; stesso aspetto della modale Contratto dell'Archivio);
   - tipologia (grassetto);
   - meta: «{ruolo o —}» + « · {livello} livello» + « · {ccnl}» + « · {reparto}» + « · RAL € {ral o —}» + « · dal {gg/mm/aaaa o —}» + « al {gg/mm/aaaa}» se c'è la scadenza. Esempio: «Direttore di struttura · Q.A livello · CCNL Turismo – Aziende alberghiere · Direzione · RAL € 52.000 · dal 01/01/2026».
   - azioni: chip `fa-light fa-file-pdf` + nome PDF (`title` = nome, max 220px ellissi) se presente; pulsante icona `fa-light fa-eye` `title="Visualizza PDF"` solo se il PDF ha contenuto (data URL); pulsante icona `fa-light fa-trash-can` `title="Elimina variazione"`.
@@ -277,8 +278,8 @@ Per ogni riga `.crea-anag__doc-row`:
 ## 5. Stati e interazioni
 
 ### 5.1 Stato iniziale
-- **Creazione**: tutti i campi vuoti tranne `nazionalita = ITALIA`; `email_aziendale` = email dell'abilitazione App Op! (vuota); reparto/orario/schema = quelli del contratto vigente (nessuno). Chiave dipendente temporanea `nuovo-{ms}`.
-- **Modifica**: precompila da `getEditingAnagrafica()` solo `nome`, `cognome`, `data_nascita`, `codice_fiscale`, `indirizzo`, `cap`, `provincia`, `nazionalita` (sempre `ITALIA`, vedi §6) e i **nomi** dei documenti (i quattro slot + altri). Non precompila: sesso, email, telefono, contatto di emergenza, indirizzo 2, strutture. Reparto/orario/schema vengono dal contratto vigente del dipendente. Se la pagina viene ricaricata in modifica, il dato in memoria è perso e la scheda è vuota (il titolo resta «Modifica anagrafica personale»).
+- **Creazione**: tutti i campi vuoti tranne `nazionalita = ITALIA`; nessuna foto; `email_aziendale` = email dell'abilitazione App Op! (vuota); reparto/orario/schema = quelli del contratto vigente (nessuno). Chiave dipendente **provvisoria** `nuovo-{ms}`, sostituita dall'id definitivo al salvataggio (§6.3).
+- **Modifica**: precompila da `getEditingAnagrafica()` tutti i campi che l'Archivio conosce: `nome`, `cognome`, `data_nascita`, `sesso`, `codice_fiscale`, `email`, `telefono`, `contatto_emergenza`, `indirizzo`, `indirizzo2`, `cap`, `provincia`, `nazionalita` (vedi §6.2), `strutture`, la **foto** (`avatarUrl`) e i **nomi** dei documenti (i quattro slot + altri). `email_aziendale` = email dell'abilitazione App Op! o, se manca, quella dell'anagrafica. Reparto/orario/schema vengono dal contratto vigente del dipendente. I dati di esempio non hanno sesso, indirizzo 2, strutture né foto: quei campi restano vuoti finché non si salvano. Se la pagina viene ricaricata in modifica, il dato in memoria è perso: la scheda è vuota (il titolo resta «Modifica anagrafica personale») e «Salva» la tratta come una **nuova** anagrafica (Insert), non come una modifica senza id.
 - **Contratto**: `ccnlId` = CCNL del contratto vigente, altrimenti il **primo** CCNL configurato (quindi il blocco spettanze è visibile da subito); `ruolo`, `livelloId`, `tipologiaId` dal vigente; RAL, decorrenza, scadenza, prova, note vuoti; PDF assente; storico chiuso.
 - **App Op!**: abilitazione salvata per la chiave dipendente, altrimenti `{ abilitato: false, emailAziendale: '', livello: 'impiegato', reparti: [], responsabile: false, hr: false }`.
 
@@ -287,7 +288,9 @@ Per ogni riga `.crea-anag__doc-row`:
 - Clic sulle azioni a destra dell'header **non** apre/chiude la sezione.
 
 ### 5.3 Foto
-Scelta un'immagine → anteprima locale (FileReader data URL) nella miniatura. La foto **non** viene salvata né inviata al backend (oggi è solo anteprima).
+- Scelto un **avatar** nell'AvatarPicker → la scheda tiene l'id (es. `avatar-05`).
+- Caricata una **foto** (AvatarPicker o «Scatta foto») → l'immagine viene ridotta a un riquadro di **320 px** sul lato lungo e salvata come JPEG qualità 0,85 (data URL `data:image/jpeg;base64,…`), così resta leggera anche se arriva dalla fotocamera. «Scatta foto» con un file che non è un'immagine → toast error titolo «Foto», testo «Seleziona un file immagine.».
+- La miniatura mostra subito la scelta. La foto entra nell'anagrafica **con «Salva»** (campo `avatarUrl` del corpo, §6.1); «Annulla» la scarta.
 
 ### 5.4 Contratto
 - Cambio CCNL → azzera livello e periodo di prova. Cambio livello → azzera periodo di prova (che torna al valore suggerito dal livello).
@@ -323,14 +326,19 @@ Scelta un'immagine → anteprima locale (FileReader data URL) nella miniatura. L
 - Scelto un file: le immagini vengono lette come data URL (miniatura, Visualizza e Stampa funzionanti); i PDF e gli altri file salvano **solo il nome** (Visualizza e Stampa non fanno nulla).
 - Stampa: apre una finestra con `<img src=… style="max-width:100%">` e lancia `print()` al caricamento.
 - Elimina documento: immediata, **senza conferma** (comportamento attuale; il file non è ancora salvato sul server). Per la riproduzione fedele mantenere; se il backend persiste i documenti, la cancellazione di un documento già salvato deve passare da ConfirmDialog (standard piattaforma).
-- Il caricamento non viene inviato al backend al salvataggio (oggi solo stato locale).
+- Al salvataggio viaggiano solo i **nomi** dei file (`documenti` del corpo, §6.1), che l'Archivio usa per il fascicolo; il contenuto dei file resta nella scheda aperta (upload: API di §7).
 
 ### 5.7 Salva
 1. Se `nome` o `cognome` vuoti → errore di pagina «Nome e cognome sono obbligatori» (senza punto finale), nessuna navigazione.
-2. Altrimenti `pending = true` (pulsante «Salvataggio…», disabilitato) e chiamata `POST /Sibylla/anagrafica-personale/Insert` (creazione) o `…/Update` (modifica) con il corpo = oggetto `form` (§6.1). **Qualunque errore viene ignorato** (mock: si salva comunque).
-3. Se esiste un contratto vigente per la chiave dipendente, gli aggiorna `repartoId`, `reparto` (nome), `orarioId`, `schemaTurniId` con i valori della sezione Inquadramento (l'inquadramento operativo vive sul contratto vigente).
-4. Salva l'abilitazione App Op! = abilitazione salvata ∪ stato locale, con `emailAziendale` = campo «E-mail aziendale». L'invito **non** parte al salvataggio.
-5. Azzera l'anagrafica in modifica e naviga a `archivio-personale`. Nessun toast.
+2. Altrimenti `pending = true` (pulsante «Salvataggio…», disabilitato) e chiamata `POST /Sibylla/anagrafica-personale/Insert` (creazione) o `POST /Sibylla/anagrafica-personale/Update` (modifica, **con `id`**) con il corpo di §6.1.
+3. Esito della chiamata:
+   - **Backend non raggiungibile** (rete assente, Portal non configurato, risposta 404, 501, 502, 503, 504, oppure 401 senza alcun token di sessione, cioè la demo senza login) → si prosegue in **modalità demo**: la scheda si salva nella copia locale del browser (§6.5) e, in creazione, riceve il primo id numerico libero (dopo i dati di esempio, le schede locali e quelle eliminate: con i dati di esempio è **91**).
+   - **Qualsiasi altro errore** (400, 409, 422, 500, 401 con sessione…) → `pending = false`, toast **error** titolo «Anagrafica non salvata», testo «Il salvataggio non è riuscito. {dettaglio}», dove il dettaglio è il campo `error` / `message` / `detail` / `title` del corpo della risposta o il testo semplice (se assente o più lungo di 300 caratteri: «Il salvataggio non è riuscito. (errore {status})»). Si **resta sulla scheda** con i dati inseriti; contratti e abilitazione non vengono toccati.
+   - **Successo**: in modifica l'id è quello del dipendente; in creazione è l'`id` (o `Id`) restituito dall'Insert. Se l'Insert risponde senza id → toast error «Anagrafica non salvata», testo «Il server non ha restituito il codice del nuovo dipendente: contratti e accesso all’App Op! non sono stati collegati. Riprova o contatta l’assistenza.», si resta sulla scheda.
+4. Se esiste un contratto vigente per la chiave della scheda, gli aggiorna `repartoId`, `reparto` (nome), `orarioId`, `schemaTurniId` con i valori della sezione Inquadramento (l'inquadramento operativo vive sul contratto vigente).
+5. **Riassegnazione all'id definitivo**: tutti i contratti con `anagraficaId` = chiave provvisoria `nuovo-…` passano all'id definitivo (`riassegnaAnagrafica`), così l'Archivio li ritrova (contatore del PDF, reparto, fascicolo). L'abilitazione App Op! si salva sotto l'id definitivo = abilitazione già salvata per l'id ∪ quella salvata sotto la chiave provvisoria (es. dopo un invito) ∪ stato locale, con `emailAziendale` = campo «E-mail aziendale»; la voce sotto la chiave provvisoria viene tolta. L'invito **non** parte al salvataggio.
+6. Solo in modalità demo: scrive la scheda nella copia locale (§6.5) con i campi del form, `nato_il` in gg/mm/aaaa, `nazione` «ITA» per Italia (altrimenti il nome del paese), foto e nomi dei documenti.
+7. `pending = false`, toast **success** titolo «Anagrafica salvata», testo «{Nome Cognome} è nell’Archivio del personale.» oppure, in demo, «{Nome Cognome}: backend non raggiungibile, la scheda è salvata in questo browser (dati della demo).»; azzera l'anagrafica in modifica e naviga a `archivio-personale`.
 
 ### 5.8 Annulla / Indietro
 Azzerano l'anagrafica in modifica e vanno a `archivio-personale`, senza conferma e senza salvare.
@@ -338,34 +346,39 @@ Azzerano l'anagrafica in modifica e vanno a `archivio-personale`, senza conferma
 ### 5.9 Caricamento, vuoti, errori
 - Nessuno skeleton: la pagina è subito interattiva.
 - Stato vuoto storico: «Nessun contratto registrato per questo profilo.»
-- Errori di rete del salvataggio: silenziati (vedi 5.7).
+- Errori del salvataggio: toast error «Anagrafica non salvata» e nessuna navigazione; backend non raggiungibile: salvataggio nella copia locale della demo con toast success che lo dichiara (vedi 5.7).
 
 ## 6. Dati e regole di business
 
 ### 6.1 Form anagrafica (corpo di Insert/Update)
 ```ts
 {
+  id?: number | string /* solo in Update: id del dipendente */;
   nome: string; cognome: string; data_nascita: string /* yyyy-mm-dd */; sesso: '' | 'M' | 'F' | 'A';
   codice_fiscale: string; email: string; email_aziendale: string; telefono: string; contatto_emergenza: string;
   indirizzo: string; indirizzo2: string; cap: string; provincia: string; nazionalita: string /* 'ITALIA'… */;
   strutture: string /* una struttura */;
   repartoId: string; orarioId: string; schemaTurniId: string;
+  avatarUrl: string | null /* id avatar 'avatar-05' o foto 'data:image/jpeg;base64,…' (max 320 px), null se assente */;
+  documenti: { identita?: string; codiceFiscale?: string; privacy?: string; sicurezza?: string; altri: string[] } /* nomi file */;
 }
 ```
-Foto e documenti non fanno parte del corpo inviato oggi.
+I file dei documenti non viaggiano in questo corpo (solo i nomi): l'upload è un'API a parte (§7).
 
 ### 6.2 Passaggio dell'anagrafica in modifica (`_state.ts`)
 Variabile di modulo (non persistita, non context): `setEditingAnagrafica(a)`, `getEditingAnagrafica()`, `clearEditingAnagrafica()`.
 ```ts
 interface EditingAnagrafica {
-  id?: number | string; nome?; cognome?; data_nascita? /* ISO */; codice_fiscale?; indirizzo?; cap?; provincia?; nazionalita?;
+  id?: number | string; matricola?; nome?; cognome?; data_nascita? /* ISO */; sesso?; codice_fiscale?;
+  email?; email_aziendale?; telefono?; contatto_emergenza?; indirizzo?; indirizzo2?; cap?; provincia?; nazionalita?;
+  strutture?; avatarUrl? /* id avatar o data URL */;
   documenti?: { identita?; codiceFiscale?; contratto?; privacy?; sicurezza?; altri?: string[] } // nomi file
 }
 ```
-L'Archivio la imposta convertendo `nato_il` da `gg/mm/aaaa` a ISO e passa sempre `nazionalita: 'ITALIA'` (l'espressione attuale restituisce `ITALIA` in entrambi i rami).
+L'Archivio la imposta convertendo `nato_il` da `gg/mm/aaaa` a ISO; `nazionalita` = «ITALIA» se `nazione` è vuota, «IT» o «ITA» (maiuscole o minuscole), altrimenti `nazione` in maiuscolo (le schede salvate in demo portano già il nome del paese).
 
 ### 6.3 Chiave del dipendente e contratti
-- `anagId` = `String(initial.id)` in modifica; in creazione `nuovo-{Math.round(performance.now())}` (id di sessione). I contratti creati in creazione restano agganciati a questa chiave temporanea: oggi **non** vengono ricollegati all'id definitivo dopo l'Insert (il backend dovrà restituire l'id e riassegnarli, vedi §7).
+- `anagId` = `String(initial.id)` in modifica; in creazione `nuovo-{Math.round(performance.now())}` (chiave provvisoria). I contratti aggiunti e l'eventuale abilitazione App Op! creata da un invito prima del salvataggio usano questa chiave; al «Salva» riuscito vengono **ricollegati all'id definitivo** (§5.7 punto 5: `useContrattiPersonaleStore.riassegnaAnagrafica(da, a)`, `useAnagraficaOpStore.set(id)` + `rimuovi(chiave provvisoria)`). Uscendo con «Annulla» o «Indietro» restano sotto la chiave provvisoria e non compaiono nell'Archivio.
 - **Record contratto** (`ContrattoPersonale`, store `useContrattiPersonaleStore`):
   ```ts
   { id: string /* 'ctr-{ms}-{rand}' */; anagraficaId: string; nomeImpiegato: string; ruolo: string; livello?: string /* codice, es. 'Q.A' */;
@@ -397,7 +410,8 @@ L'Archivio la imposta convertendo `nato_il` da `gg/mm/aaaa` a ISO e passa sempre
   - Tipologie (8, tutte attive): Tempo indeterminato; Tempo determinato (scadenza, max 24 mesi); Stagionale (scadenza, max 8); Apprendistato professionalizzante (max 36, senza scadenza); Intermittente (a chiamata) (senza prova); Somministrazione (scadenza, max 24, senza prova); Collaborazione (Co.co.co.) (scadenza, senza prova); Tirocinio / Stage (scadenza, max 6, senza prova).
   - CCNL (2): «CCNL Turismo – Aziende alberghiere» (40 h, 14 mensilità, ferie 26, ROL 72, ex fest. 32, mensile, scatti 6 ogni 4 anni, Fondo FAST / Fon.Te. / EBNT, 10 livelli da Q.A a 7°), «CCNL Pubblici esercizi» (6 livelli).
 - **Contratti** (`sibylla.contratti-personale`, persist **v2**; la migrazione riallinea i record seed `ctr-seed-*` e conserva quelli dell'utente): 6 record — dipendente 66 Piero Aragona (2: Direttore di struttura Q.A 52.000 dal 2026-01-01; Vice direttore Q.B 44.000 dal 2023-03-01), 67 Ruggero Novi (Responsabile amministrativo 2°, 29.000), 69 Andrea Grimaudo (Maître 2°, 27.500, a turni sch-61), 88 Andrea G Test (Cameriera ai piani 6°S, Stagionale 2026-04-01→2026-10-31, part time 75%), 89 Marco Campo (Addetto ricevimento 4°, Stagionale 2026-04-15→2026-11-15). I seed hanno solo `pdfName` (nessun data URL).
-- **Abilitazioni App Op!** (`sibylla.anagrafica-op`, persist **v2**): `66` abilitato (p.aragona@hotelnoto.it, amministratore, Front Office + Risorse umane, responsabile, HR), `89` abilitato (m.campo@hotelnoto.it, impiegato, Front Office); più due collaboratori esterni (`est-ce-1`, `est-ce-2`).
+- **Anagrafiche salvate in demo** (`sibylla.anagrafiche-personale`, store `useAnagrafichePersonaleStore`, persist **v1**): `{ anagrafiche: Record<id, AnagraficaLocale>, eliminati: string[] }`. Scritto solo quando il backend non è raggiungibile; `AnagraficaLocale` ha i campi di una riga dell'Archivio (`id`, `matricola`, `nome`, `cognome`, `sesso`, `telefono`, `email`, `email_aziendale`, `contatto_emergenza`, `nato_il` gg/mm/aaaa, `codice_fiscale`, `indirizzo`, `indirizzo2`, `cap`, `provincia`, `nazione`, `strutture`, `avatarUrl`, `documenti`) più `aggiornatoIl` (ISO). Salvare una scheda la toglie da `eliminati`. L'Archivio la sovrappone ai dati di esempio (vedi `05-archivio-personale.md` §5.1).
+- **Abilitazioni App Op!** (`sibylla.anagrafica-op`, persist **v2**; azioni `set`, `patch`, `sposta`, `rimuovi`): `66` abilitato (p.aragona@hotelnoto.it, amministratore, Front Office + Risorse umane, responsabile, HR), `89` abilitato (m.campo@hotelnoto.it, impiegato, Front Office); più due collaboratori esterni (`est-ce-1`, `est-ce-2`).
 - **Ruoli**: store non persistito `useRuoliStore` (seed «Operation», «Prova», «Prova», «Ruoloooo»).
 - Copia di prova App Op! nel browser: chiave `sibylla-app-op-prova`.
 
@@ -407,8 +421,8 @@ Convenzione: chiamate attraverso il proxy `/Sibylla/{path}` (vedi `01-modello-da
 
 | Azione FE | Metodo e percorso | Note |
 |---|---|---|
-| Crea anagrafica | `POST /Sibylla/anagrafica-personale/Insert` | già chiamato. Deve restituire `{ id }` |
-| Aggiorna anagrafica | `POST /Sibylla/anagrafica-personale/Update` | già chiamato; il corpo attuale **non contiene l'id**: aggiungere `id` |
+| Crea anagrafica | `POST /Sibylla/anagrafica-personale/Insert` | già chiamato, corpo §6.1 (con `avatarUrl` e nomi dei documenti). **Deve** restituire `{ id }` (o `{ Id }`): senza id il FE mostra l'errore di §5.7 e non collega contratti e App Op! |
+| Aggiorna anagrafica | `POST /Sibylla/anagrafica-personale/Update` | già chiamato, corpo §6.1 **con `id`** |
 | Leggi anagrafica per la modifica | `GET /Sibylla/hr/anagrafiche/{id}` | da introdurre per sostituire `_state` (deep link `modifica-anagrafica:{id}` consigliato) |
 | Elenco contratti di un dipendente | `GET /Sibylla/hr/anagrafiche/{id}/contratti` | ordinati per decorrenza desc |
 | Aggiungi variazione | `POST /Sibylla/hr/anagrafiche/{id}/contratti` (multipart: JSON + PDF) | transazionale; calcola lato server perc, RAL minima, spettanze con le stesse formule §6.4 |
@@ -416,7 +430,7 @@ Convenzione: chiamate attraverso il proxy `/Sibylla/{path}` (vedi `01-modello-da
 | Elimina variazione | `DELETE /Sibylla/hr/contratti/{idContratto}` | dopo conferma |
 | PDF contratto | `GET /Sibylla/hr/contratti/{idContratto}/pdf` | sostituisce il data URL |
 | Documenti fascicolo | `PUT /Sibylla/hr/anagrafiche/{id}/documenti/{slot}` (multipart), `DELETE …/{slot}`; `POST …/documenti/altri`, `DELETE …/altri/{docId}` | slot: `identita`, `codiceFiscale`, `privacy`, `sicurezza` |
-| Foto | `PUT /Sibylla/hr/anagrafiche/{id}/foto` | oggi non salvata |
+| Foto | campo `avatarUrl` di Insert/Update | id avatar o JPEG data URL ≤ 320 px (≈ 20–40 kB); va restituito da `GetAll` perché l'Archivio lo mostri. In alternativa `PUT /Sibylla/hr/anagrafiche/{id}/foto` che restituisce l'URL da salvare in `avatarUrl` |
 | Abilitazione App Op! | `PUT /Sibylla/hr/anagrafiche/{id}/app-op` | corpo `AbilitazioneOp` (§6) |
 | Stato utenza App Op! | `POST /Sibylla/OpApp/config/Get` | già usato (fonte `portal`); prima si tenta Op.Api `GET /admin/collegata?struttura={id}&nome={nome}` (fonte `op`); se nessuno risponde (404/≥500/rete) → copia di prova (fonte `prova`) |
 | Crea utenza + invito | `POST /Sibylla/OpApp/utenti/Salva` | già usato; vedi sotto |
@@ -435,6 +449,8 @@ POST /Sibylla/hr/anagrafiche/88/contratti
 ```
 Errori 422 con gli stessi testi delle validazioni §5.4.
 
+Errori di Insert/Update: restituire `4xx` con `{ "error": "<testo in italiano>" }` (es. `422 { "error": "Codice fiscale non valido." }`): il FE lo mostra nel toast «Anagrafica non salvata» come «Il salvataggio non è riuscito. Codice fiscale non valido.». Le risposte 404/501/502/503/504 vengono trattate come backend assente (salvataggio demo), quindi non vanno usate per errori di validazione.
+
 **Utenza App Op!** (`OpApp/utenti/Salva`)
 ```json
 { "id_utente": null, "nome": "Marco", "cognome": "Campo", "email": "m.campo@hotelnoto.it", "livello": "impiegato",
@@ -443,7 +459,7 @@ Errori 422 con gli stessi testi delle validazioni §5.4.
 ```
 Id reparti App Op!: Magazzino 1, Pulizie 2, Manutenzione 3, Front Office 4, Food & Beverage 5, Risorse umane 6, Business Intelligence 7, Purchasing 8. Se l'utenza esiste già (trovata per `opId` o per email, case insensitive) si chiama `OpApp/inviti/Invia`: un nuovo invito annulla il precedente. Codice di prova: 4 gruppi da 4 caratteri dell'alfabeto `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` separati da «-», validità 15 giorni, email mascherata = prima lettera + «•••••» + dominio. L'invio genera l'**email al dipendente** (lato Op.Api/Portal); nessuna notifica nel Centro notifiche.
 
-Transazionalità: Insert/Update anagrafica + aggiornamento inquadramento del contratto vigente + abilitazione App Op! vanno salvati nella stessa transazione. In creazione, i contratti aggiunti prima del primo salvataggio vanno creati dopo l'Insert con l'id restituito.
+Transazionalità: Insert/Update anagrafica + aggiornamento inquadramento del contratto vigente + abilitazione App Op! vanno salvati nella stessa transazione. In creazione, i contratti aggiunti prima del primo salvataggio vanno creati dopo l'Insert con l'id restituito (il FE oggi li tiene in locale e li ricollega all'id definitivo, §6.3).
 
 ## 8. Stile
 
@@ -454,7 +470,7 @@ Token (tema chiaro → scuro): `--color-primary` `#204769` → `#6F9BCB`; `--col
 | `.crea-anag__section-head i` | colore `--color-primary`, 15px |
 | `.crea-anag__section-head h3` | margin 0, Poppins (`--font-heading`), 600, 14px, `--color-primary` |
 | `.crea-anag__section-chev` | `margin-left: 6px`, `font-size: 12px !important`, `color: --color-text-inactive !important`, `transition: transform .15s ease`; `.is-collapsed` → `rotate(-90deg)` |
-| `.crea-anag__photo-thumb` | 96×96, `border-radius: 50%`, bordo 1px `--color-border`, sfondo `--color-primary-50`, flex centrato, overflow hidden, `cursor: pointer`; `img` 100% cover; `i` 40px `--color-text-inactive` |
+| `.crea-anag__photo-thumb` (`<button>`) | 96×96, `padding: 0`, `border-radius: 50%`, bordo 1px `--color-border`, sfondo `--color-primary-50`, flex centrato, overflow hidden, `cursor: pointer`; hover bordo `--color-primary`; `:focus-visible` outline 2px `--color-primary` con offset 2px; `img` 100% cover; `i` 40px `--color-text-inactive` |
 | `.crea-anag__photo-btns` | flex, gap 6px |
 | `.crea-anag__label` | Poppins, 12px, 600, `--color-primary` |
 | `.crea-anag__doc-rows` | colonna, gap 8px |
@@ -478,7 +494,7 @@ Token (tema chiaro → scuro): `--color-primary` `#204769` → `#6F9BCB`; `--col
 | `.crea-anag__ctr-empty` | margin 0, 13px, `--color-text-inactive` |
 | `.crea-anag__ctr-list` | lista, colonna, gap 8px |
 | `.crea-anag__ctr-item-main` | flex, gap 10px, wrap, `min-width: 0` |
-| `.crea-anag__ctr-tag` («Vigente») | inline-flex, `padding: 2px 8px`, radius 20px, sfondo `--color-success` (`#007035`), testo `#fff`, 11px, 700 |
+| `.crea-anag__ctr-tag` («Vigente») | inline-flex, centrato, gap 5px, colore `--color-success` (chiaro `#007035`, scuro `#34D399`) per icona e testo, 12px, 600; **nessuno sfondo, bordo o raggio** (regola piattaforma: stati come icona + testo colorato, mai pillole) |
 | `.crea-anag__ctr-item-tip` | 600, `--color-text-active`, 13px |
 | `.crea-anag__ctr-item-meta` | 12px, `--color-text-inactive` |
 | `.crea-anag__ctr-item-acts` | inline-flex, gap 6px, `flex: none` |
@@ -522,7 +538,8 @@ Nessuna container query: la pagina usa media query sul viewport.
 ## 11. Accessibilità
 
 - Header di sezione: `<button type="button" aria-expanded>`; icone `aria-hidden="true"`; titolo come `<h3>`.
-- I pulsanti solo icona hanno il testo nel `title` (Scatta foto, Carica immagine, Visualizza, Stampa, Elimina, Rimuovi, Visualizza PDF, Elimina variazione).
+- I pulsanti solo icona hanno il testo nel `title` (Scatta foto, Scegli avatar o carica foto, Rimuovi foto, Visualizza, Stampa, Elimina, Rimuovi, Visualizza PDF, Elimina variazione); la miniatura foto è un pulsante con `aria-label="Scegli avatar o foto"`; l'icona di «Vigente» è `aria-hidden` (il testo dice lo stato).
+- Toast di esito (successo ed errore) dal componente Toast condiviso.
 - Input file nascosti (`.hidden`) attivati dai pulsanti.
 - Campi con label associate (componenti condivisi); errori e hint sotto il campo.
 - Modale invito: Esc e clic sul fondale chiudono; il codice è selezionabile in un solo clic (`user-select: all`).
@@ -534,7 +551,7 @@ Nessuna container query: la pagina usa media query sul viewport.
 1. Da sidenav Human Resources › Gestione delle anagrafiche › «Crea anagrafica personale» si apre la pagina con titolo «Crea anagrafica personale» e il sottotitolo esatto di §4.1.
 2. Le sezioni sono, nell'ordine: Dati anagrafici, Contatti, Residenza, Inquadramento e turni, Contratto, (App Op!), Documenti e allegati; tutte aperte; cliccando l'header il corpo sparisce, il chevron ruota di −90° in 150 ms e il bordo inferiore dell'header scompare.
 3. Con il modulo `app-op` non attivo la sezione «App Op!» non c'è.
-4. Premendo «Salva» con nome o cognome vuoti compare sotto l'header «Nome e cognome sono obbligatori» in rosso e non si cambia pagina; con entrambi compilati si torna all'Archivio del personale.
+4. Premendo «Salva» con nome o cognome vuoti compare sotto l'header «Nome e cognome sono obbligatori» in rosso e non si cambia pagina; con entrambi compilati e backend raggiungibile si torna all'Archivio del personale con il toast «Anagrafica salvata» / «{Nome Cognome} è nell’Archivio del personale.».
 5. «Nazionalità» ha 10 opzioni con la bandiera davanti e parte da «🇮🇹 ITALIA».
 6. Scegliendo il reparto «Front office» compare l'hint «Responsabile: Piero Aragona»; «Marketing» non è tra le opzioni.
 7. Scegliendo l'orario «Full time 40 h · 5 giorni» l'hint è «40 h su 5 giorni»; con «Turnista 40 h · 6 giorni» è «40 h su 6 giorni · a turni» e lo schema vuoto mostra «Orario a turni: scegli la rotazione»; con lo schema «Ciclo continuo 3 turni» l'hint è «M · M · P · P · N · N · R · R».
@@ -542,14 +559,17 @@ Nessuna container query: la pagina usa media query sul viewport.
 9. Il «Livello» è disabilitato con «Scegli prima il CCNL» se il CCNL è «Seleziona»; scegliendo livello 2° e orario full time, il placeholder RAL è «25.060» e l'hint «Minimo da CCNL: € 25.060»; con l'orario «Part time 30 h orizzontale» l'hint aggiunge « (part time 75%)» e le ferie diventano 19.5.
 10. Inserendo una RAL «20.000» con livello 2° full time compare l'errore «Sotto il minimo del livello (€ 25.060)», ma l'aggiunta della variazione non viene bloccata da questo.
 11. Con tipologia «Stagionale» compare «Fine rapporto» con hint «Durata massima 8 mesi»; decorrenza 01/01 e fine 30/11 dello stesso anno → errore «Oltre la durata massima di 8 mesi». Con «Intermittente (a chiamata)» il campo «Periodo di prova (giorni)» sparisce.
-12. «Aggiungi variazione contrattuale» senza PDF mostra «Carica il PDF del contratto.»; con tutti i dati aggiunge la riga in cima allo storico con il tag verde «Vigente», apre lo storico e il contatore del pulsante «Storico» aumenta di 1.
+12. «Aggiungi variazione contrattuale» senza PDF mostra «Carica il PDF del contratto.»; con tutti i dati aggiunge la riga in cima allo storico con lo stato «Vigente» reso come icona `circle-check` + testo verde `--color-success`, **senza sfondo**, apre lo storico e il contatore del pulsante «Storico» aumenta di 1.
 13. Il cestino di una variazione apre la conferma «Eliminare questa variazione contrattuale dallo storico?»; confermando la riga sparisce.
 14. Nella sezione App Op!, con il toggle acceso e reparto HR «Housekeeping», è preselezionato «Pulizie»; con email «abc» compare «Email non valida» e il pulsante «Invia token di invito» è disabilitato.
 15. Inviando il token con i dati di prova compare il toast «Token di invito inviato a m•••••@…» e la modale «Invito per …» con un codice in 4 gruppi da 4; dopo la chiusura lo stato dice «Invito inviato a … il … · valido fino al …» e il pulsante diventa «Invia nuovo token».
 16. Ogni riga documento parte con «Mancante» arancio con icona lampeggiante (1 s); caricando un'immagine diventa «Caricato» verde con miniatura 40×30 e i pulsanti Visualizza/Stampa/Elimina.
 17. Sotto 900 px le griglie diventano a 2 colonne, sotto 560 px a 1; sotto 720 px la foto va sopra i campi; la griglia App Op! è a 1 colonna sotto 900 px.
 18. In tema scuro sfondi, bordi e testi seguono i token (superficie `#1A1E26`, bordo `#2B313D`, header di sezione `#12151B`) senza colori chiari residui.
-19. Da Archivio › matita su «Piero Aragona» si apre «Modifica anagrafica personale» con nome, cognome, data di nascita (12/03/1959), codice fiscale e indirizzo precompilati, reparto «Direzione» e orario «Full time 40 h · 5 giorni» presi dal contratto vigente, e lo storico (pulsante «Storico 2»).
+19. Da Archivio › matita su «Piero Aragona» si apre «Modifica anagrafica personale» con nome, cognome, data di nascita (12/03/1959), codice fiscale, e-mail personale (p.aragona@hotelnoto.it), telefono, contatto di emergenza e indirizzo precompilati, reparto «Direzione» e orario «Full time 40 h · 5 giorni» presi dal contratto vigente, e lo storico (pulsante «Storico 2»).
+20. **Contratti ricollegati** (demo, backend spento): nuova scheda «Giulia Verdi», si aggiunge una variazione con PDF e si salva → toast «Anagrafica salvata» / «Giulia Verdi: backend non raggiungibile, la scheda è salvata in questo browser (dati della demo).»; nell'Archivio compare la riga matricola **91** con il contatore «1» sul pulsante PDF e la modale «Contratto — Giulia Verdi» mostra la variazione; in `sibylla.contratti-personale` il contratto ha `anagraficaId: "91"` (nessun `nuovo-…` residuo). Con il backend attivo vale lo stesso con l'id restituito dall'Insert.
+21. **Foto**: clic sulla miniatura → modale «Scegli avatar»; scelto un avatar la miniatura lo mostra; salvato, il «Dettaglio dipendente» dell'Archivio mostra quell'avatar. Caricando una foto di 4000×3000 px si salva una JPEG di 320×240 px; «Rimuovi foto» torna all'icona utente. Riaprendo la scheda in modifica la foto è precompilata.
+22. **Errori**: con il backend che risponde `422 { "error": "Codice fiscale non valido." }` a Update, «Salva» mostra il toast error «Anagrafica non salvata» / «Il salvataggio non è riuscito. Codice fiscale non valido.», il pulsante torna «Salva» e si resta sulla scheda. Il corpo di Update contiene `"id": 66` per Piero Aragona.
 
 ## 13. File sorgente
 
@@ -558,6 +578,8 @@ Nessuna container query: la pagina usa media query sul viewport.
 - `src/modules/hr/CreaAnagrafica/CreaAnagrafica.sass`
 - `src/modules/hr/CreaAnagrafica/_state.ts`
 - `src/store/useContrattiPersonaleStore.ts`
+- `src/store/useAnagrafichePersonaleStore.ts` (copia locale della demo)
+- `src/modules/hr/ArchivioPersonale/personaleDemo.ts` (tipo `PersonaleItem`, dati di esempio, regola «backend non raggiungibile», messaggi d'errore)
 - `src/store/useHrConfigStore.ts`
 - `src/store/useAnagraficaOpStore.ts`
 - `src/store/useRuoliStore.ts`
@@ -567,10 +589,10 @@ Nessuna container query: la pagina usa media query sul viewport.
 - `src/modules/appop/invitoAnagrafica.ts`, `appOpSibylla.ts`, `opApi.ts`, `opCatalogo.ts`
 - `src/hooks/useModuloAttivo.ts`, `src/hooks/useStrutturaCorrente.ts`
 - `src/core/utils/countryFlags.ts`
-- `src/core/components/PageHead.tsx`, `BtnBack.tsx`, `Modal.tsx`, `ConfirmDialog.tsx`, `TruncatedText.tsx`
+- `src/core/components/PageHead.tsx`, `BtnBack.tsx`, `Modal.tsx`, `ConfirmDialog.tsx`, `TruncatedText.tsx`, `Toast/useToast.ts`
 - `src/core/components/AvatarPicker.tsx`, `AvatarPicker.sass`, `src/core/avatar.ts` (vedi nota sotto)
 - `src/navigation/menu.ts`, `menuTourOperator.ts`, `menuRistoranti.ts`, `pageSubtitles.ts`, `src/core/icons/MenuIco.tsx`
 - `src/services/api.ts`
 - `src/styles/_themes.sass`, `_colors.sass`, `_spacing.sass`, `_components.sass`, `_skin-dark.sass`, `tailwind.config.js`
 
-> **Nota su avatar e AvatarPicker.** La pagina **non** usa `AvatarPicker` né `avatar.ts`: la foto del dipendente è un caricamento locale (§5.3). `AvatarPicker` (modale «Scegli avatar», griglia 6 colonne dei 50 SVG `/avatars/avatar-01…50.svg`, caricamento foto max 2 MB con errori «Seleziona un file immagine.» / «Immagine troppo grande (max 2MB).») è usato da Modifica profilo e Ruoli & funzioni. `avatar.ts` serve all'**Archivio del personale**, che nel «Dettaglio dipendente» mostra `avatarUrl(nome cognome)`: un id `avatar-NN` va a `/avatars/avatar-NN.svg`, un'immagine (`data:`, `blob:`, `http`, `/…`) si usa così com'è, qualsiasi altra stringa sceglie un avatar stabile con l'hash `h = (h×31 + charCode) >>> 0`, indice `h % 50` (vedi `05-archivio-personale.md`). Avatar predefiniti per sesso: Femmina → `avatar-05`, altrimenti `avatar-18`.
+> **Nota su avatar e AvatarPicker.** La pagina usa lo stesso `AvatarPicker` di Modifica profilo e Ruoli & funzioni (modale «Scegli avatar», griglia 6 colonne dei 50 SVG `/avatars/avatar-01…50.svg`, caricamento foto max 2 MB) e `avatarUrl()` di `avatar.ts` per la miniatura. Il valore salvato in `avatarUrl` è l'id avatar o la foto ridotta (§5.3). L'**Archivio del personale** nel «Dettaglio dipendente» mostra `avatarUrl(avatarUrl dell'anagrafica || "nome cognome")`: un id `avatar-NN` va a `/avatars/avatar-NN.svg`, un'immagine (`data:`, `blob:`, `http`, `/…`) si usa così com'è, qualsiasi altra stringa sceglie un avatar stabile con l'hash `h = (h×31 + charCode) >>> 0`, indice `h % 50` (vedi `05-archivio-personale.md`).

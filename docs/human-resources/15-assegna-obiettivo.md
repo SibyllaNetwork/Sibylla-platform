@@ -132,18 +132,19 @@ I campi seguono l'ordine della griglia, sinistra → destra e alto → basso.
      - «Individuale», icona `fa-solid fa-user`.
 3. **`SelectField name="reparto"`**
    - Label «Reparto».
-   - Opzioni: «Commerciale», «Front office», «F&B», «Housekeeping», «Manutenzione», «Amministrazione», «Marketing», «Direzione».
-   - Default «Commerciale».
+   - Opzioni: i **reparti attivi della Configurazione HR** (`useHrConfigStore().reparti`, `attivo: true`, nell'ordine della configurazione). Con i dati seed: «Front office», «F&B», «Housekeeping», «Manutenzione», «Cucina», «Amministrazione», «Direzione» («Marketing» è disattivato e non compare). Se nessun reparto è attivo si usano i reparti dell'anagrafica HR (`REPARTI_HR`).
+   - Default: il primo reparto dell'elenco («Front office»). Se il reparto scelto viene disattivato mentre la pagina è aperta, si torna al primo attivo.
 4. Quarto campo, dipende dalla tipologia:
    - **Tipologia «Di reparto»**: `SelectField name="report"`, label «Fonte dati / KPI (report)».
      - Opzioni: «Report vendite reparto», «Report upselling», «Report esperienze / attività», «Report F&B», «Report camere / RevPAR», «CRM · conversioni».
      - Default «Report vendite reparto».
    - **Tipologia «Individuale»**: `SelectField name="assegnatario"`, label «Assegnatario».
-     - Opzioni: «Andrea Grimaudo», «Piero Aragona», «Marco Campo», «Giulia Neri», «Ali Aslan».
-     - Default «Andrea Grimaudo».
+     - Opzioni: i **dipendenti reali del reparto scelto** (`DIPENDENTI_HR` con `reparto` uguale), come «Nome Cognome», in ordine alfabetico di cognome. Con i dati seed e «Front office»: «Giulia Conti», «Andrea Grimaudo», «Davide Marini».
+     - Default: il primo dell'elenco. Cambiando reparto, se l'assegnatario non ne fa parte passa al primo dipendente del nuovo reparto.
+     - Reparto senza dipendenti (per esempio «Direzione»): la select mostra solo il placeholder «Nessun dipendente nel reparto» e «Avanti» mostra l'errore del §4.8.
 5. Solo con tipologia «Individuale», un quinto campo nella riga successiva, colonna sinistra: lo stesso `SelectField` «Fonte dati / KPI (report)».
 
-> L'elenco degli assegnatari è **fisso nel codice** e diverso dal personale HR (`DIPENDENTI_HR`). Solo «Andrea Grimaudo» coincide con un dipendente dell'archivio, e solo per lui Profile analysis aggancia il premio all'obiettivo (scheda 13). Va riprodotto così.
+L'aspetto della fase non cambia: stessa griglia a due colonne e stessi componenti. Poiché l'assegnatario è sempre «Nome Cognome» di un dipendente HR, Profile analysis (scheda 13) aggancia il premio a qualunque obiettivo individuale.
 
 ### 4.4 Fase 2 · «Vendita & budget»
 
@@ -181,8 +182,8 @@ I campi seguono l'ordine della griglia, sinistra → destra e alto → basso.
   - `input.ao2-per__name`, `aria-label` «Nome periodo»;
   - default «Periodo {n}»;
 - totali «Target {eur} · Premio {eur}», per esempio «Target € 0 · Premio € 0»;
-- pulsante `fa-solid fa-plus`, con `title` nativo «Aggiungi sottoperiodo»;
-- pulsante `fa-solid fa-trash` (variante danger), con `title` «Rimuovi periodo». Compare solo se i periodi sono più di uno.
+- pulsante `fa-solid fa-plus`, con Tooltip scuro e `aria-label` «Aggiungi sottoperiodo»;
+- pulsante `fa-solid fa-trash` (variante danger), con Tooltip e `aria-label` «Rimuovi periodo». Compare solo se i periodi sono più di uno; chiede conferma (§5).
 
 **Tabella dei sottoperiodi** (`.ao2-sub`, una griglia):
 
@@ -197,7 +198,7 @@ I campi seguono l'ordine della griglia, sinistra → destra e alto → basso.
 | Target € | `number`, allineato a destra | «Target» | 0 |
 | Premio € | `number`, allineato a destra | «Premio» | 0 |
 
-- Pulsante `fa-solid fa-xmark` (danger), con `title` «Rimuovi sottoperiodo». È **disabilitato** quando il periodo ha un solo sottoperiodo.
+- Pulsante `fa-solid fa-xmark` (danger), con Tooltip e `aria-label` «Rimuovi sottoperiodo»; chiede conferma (§5). È **disabilitato** quando il periodo ha un solo sottoperiodo (Tooltip «Un periodo ha almeno un sottoperiodo»).
 
 **Pulsante** `.ao2-add-per`: «Aggiungi periodo», con icona `fa-solid fa-circle-plus`.
 
@@ -258,6 +259,7 @@ Compaiono in `p.ao2-wiz__err` sopra il pannello, con l'icona `fa-solid fa-circle
 | Fase | Condizione per proseguire | Messaggio se non soddisfatta |
 |---|---|---|
 | 1 | nome non vuoto, dopo `trim` | «Inserisci il nome dell’obiettivo.» |
+| 1 | con «Individuale», un assegnatario scelto (il reparto ha dipendenti) | «Il reparto scelto non ha dipendenti: scegli un altro reparto o un obiettivo di reparto.» (il messaggio del nome ha la precedenza) |
 | 2 | almeno un segmento **e** budget > 0 | «Seleziona almeno un tipo di vendita e un budget.» |
 | 3 | almeno un sottoperiodo **e** target totale > 0 | «Aggiungi almeno un sottoperiodo con un target.» |
 
@@ -266,7 +268,7 @@ Compaiono in `p.ao2-wiz__err` sopra il pannello, con l'icona `fa-solid fa-circle
 ### Stato iniziale
 
 - Fase 1.
-- Nome vuoto, tipologia «Di reparto», reparto «Commerciale», assegnatario «Andrea Grimaudo», report «Report vendite reparto».
+- Nome vuoto, tipologia «Di reparto», reparto = primo reparto attivo («Front office»), assegnatario = primo dipendente di quel reparto («Giulia Conti»), report «Report vendite reparto».
 - Segmenti: solo «Servizi». Budget 120000, margine 35, `dataAvvio` `2026-05-01T09:00`.
 - Un periodo «Periodo 1» con un sottoperiodo «Sottoperiodo 1»: date vuote, target 0, premio 0.
 - Nessun errore.
@@ -286,7 +288,7 @@ Compaiono in `p.ao2-wiz__err` sopra il pannello, con l'icona `fa-solid fa-circle
 - **Tipologia**:
   - il clic su «Individuale» sostituisce il campo report in quarta posizione con «Assegnatario» e sposta il report in una nuova riga;
   - il clic su «Di reparto» ripristina la disposizione iniziale.
-  - Il reparto resta comunque selezionabile e viene salvato anche per un obiettivo individuale.
+  - Il reparto resta comunque selezionabile e viene salvato anche per un obiettivo individuale; filtra l'elenco degli assegnatari.
 
 ### Fase 2
 
@@ -300,12 +302,13 @@ Tutto lo stato è locale finché non si preme «Avvia».
 
 - **«Aggiungi periodo»**: aggiunge in fondo un periodo «Periodo {n+1}», con un sottoperiodo «Sottoperiodo 1». Il nuovo riquadro entra con l'animazione `ao2-in`.
 - **Pulsante + di un periodo**: aggiunge in fondo a quel periodo un sottoperiodo «Sottoperiodo {k+1}», dove k è il numero attuale di sottoperiodi.
-- **Cestino del periodo**: rimuove il periodo **subito, senza conferma**.
-- **X del sottoperiodo**: rimuove il sottoperiodo subito, senza conferma; è disabilitata sull'ultimo rimasto.
+- **Cestino del periodo**: apre la modale di conferma della piattaforma (`useConfirmStore` + `ConfirmDialog`, `danger: true`):
+  - titolo «Rimuovi periodo»;
+  - messaggio «Rimuovere «{nome periodo}» e il suo sottoperiodo? Target e premi inseriti andranno persi.» (con più sottoperiodi: «… e i suoi {n} sottoperiodi? …»);
+  - pulsanti «Annulla» e «Rimuovi». Solo «Rimuovi» toglie il periodo; Annulla o Esc lasciano tutto com'è.
+- **X del sottoperiodo**: stessa modale con titolo «Rimuovi sottoperiodo», messaggio «Rimuovere «{nome sottoperiodo}»? Target e premio inseriti andranno persi.», pulsanti «Annulla» e «Rimuovi»; è disabilitata sull'ultimo rimasto.
 - **Numerazione**: dopo una rimozione i nomi esistenti restano invariati, quindi possono ripetersi. Nell'intestazione l'indice del cerchietto si ricalcola invece dalla posizione.
 - **Date**: non c'è nessuna validazione, né sulla presenza né su «Dal ≤ Al».
-
-> Scostamento dalla regola generale «Ogni eliminazione passa da una modale di conferma»: qui periodi e sottoperiodi di una **bozza** non ancora salvata si rimuovono senza conferma. Va riprodotto così, segnalato come difformità.
 
 ### Fase 4: avvio dell'obiettivo
 
@@ -360,7 +363,7 @@ Da qui in poi l'obiettivo vive nelle altre pagine:
 
 - **Monitoraggio performance**: avanzamento live, dettaglio ed eliminazione;
 - **Profile analysis**: premio di risultato, se l'obiettivo è individuale e l'assegnatario coincide con «Nome Cognome» di un dipendente;
-- **HR Overview**: oggi usa dati propri e non legge lo store.
+- **HR Overview**: la card «Obiettivi» conta gli obiettivi dell'anno di avvio per stato (Raggiunti / In linea / A rischio) e ne mostra l'avanzamento medio (scheda 16).
 
 ## 7. Backend da realizzare
 
@@ -648,7 +651,7 @@ Non ci sono tabelle con scroll orizzontale: la griglia dei sottoperiodi si compr
   - «Al»;
   - «Target»;
   - «Premio».
-- I pulsanti icona hanno `title` nativo: «Aggiungi sottoperiodo», «Rimuovi periodo», «Rimuovi sottoperiodo». Non hanno `aria-label`.
+- I pulsanti icona hanno `aria-label` e Tooltip scuro (nessun `title` nativo): «Aggiungi sottoperiodo», «Rimuovi periodo», «Rimuovi sottoperiodo».
 - Label personalizzate:
   - le label «Tipologia» e «Tipologia di vendita» (`label.ao2-lbl`) non sono associate a un controllo;
   - le opzioni del segmentato e i chip sono `button` senza `aria-pressed`.
@@ -663,14 +666,14 @@ Non ci sono tabelle con scroll orizzontale: la griglia dei sottoperiodi si compr
 1. Il titolo è «Premio performance» e il sottotitolo è esatto. Il pulsante «In corso» mostra il badge arancio «2» con i dati seed e porta a Monitoraggio performance.
 2. Lo stepper mostra 4 pallini da 42px con le etichette «Dati obiettivo», «Vendita & budget», «Periodi & premi» e «Riepilogo & avvio». Quello attivo ha l'alone ed è leggermente ingrandito.
 3. «Avanti» con il nome vuoto mostra «Inserisci il nome dell’obiettivo.» in rosso e non avanza.
-4. Con «Individuale» il quarto campo diventa «Assegnatario» (Andrea Grimaudo, Piero Aragona, Marco Campo, Giulia Neri, Ali Aslan) e «Fonte dati / KPI (report)» passa nella riga sotto.
+4. Il campo «Reparto» elenca i reparti attivi della Configurazione HR («Front office», «F&B», «Housekeeping», «Manutenzione», «Cucina», «Amministrazione», «Direzione»). Con «Individuale» il quarto campo diventa «Assegnatario» con i dipendenti del reparto (con «Front office»: Giulia Conti, Andrea Grimaudo, Davide Marini; con «Cucina»: Marco Esposito, Paolo Greco) e «Fonte dati / KPI (report)» passa nella riga sotto. Con «Direzione» la select dice «Nessun dipendente nel reparto» e «Avanti» mostra «Il reparto scelto non ha dipendenti: scegli un altro reparto o un obiettivo di reparto.».
 5. Nella fase 2 «Servizi» è preselezionato con la spunta. Togliendo tutti i chip, «Avanti» mostra «Seleziona almeno un tipo di vendita e un budget.».
 6. Con budget 120000 e margine 35 il riquadro mostra «€ 120.000 → Margine atteso (35%) € 42.000», con il margine in verde.
 7. Nella fase 3 «Avanti» con il target a 0 mostra «Aggiungi almeno un sottoperiodo con un target.». Con un target di 20000 e il budget di 120000, «Copertura del budget» indica «17%» e la barra si riempie in 0,9 s.
-8. «Aggiungi periodo» aggiunge «Periodo 2» con «Sottoperiodo 1», che entra con un'animazione di 0,35 s. Il cestino del periodo compare solo con almeno 2 periodi. La X dell'ultimo sottoperiodo è disabilitata, con opacità 0,4.
+8. «Aggiungi periodo» aggiunge «Periodo 2» con «Sottoperiodo 1», che entra con un'animazione di 0,35 s. Il cestino del periodo compare solo con almeno 2 periodi e apre la conferma «Rimuovi periodo»: solo «Rimuovi» lo toglie. Anche la X di un sottoperiodo chiede conferma. La X dell'ultimo sottoperiodo è disabilitata, con opacità 0,4.
 9. I totali del periodo «Target € … · Premio € …» e la fascia «Sottoperiodi / Target totale / Premio totale (v.a.)» si aggiornano mentre si digita.
 10. Nella fase 4 ci sono, nell'ordine:
-    - l'hero blu con il nome, «Reparto Commerciale» oppure il nome della persona, i tag dei segmenti, «PREMIO IN PALIO» e l'importo in 32px;
+    - l'hero blu con il nome, «Reparto {reparto}» (per esempio «Reparto Front office») oppure il nome della persona, i tag dei segmenti, «PREMIO IN PALIO» e l'importo in 32px;
     - 4 riquadri;
     - «Sequenza premi» con un trofeo arancio per ogni sottoperiodo;
     - l'anteprima con il testo esatto, che termina con «…all'avvio del 01/05/2026 09:00. In bocca al lupo!».
@@ -686,6 +689,8 @@ Non ci sono tabelle con scroll orizzontale: la griglia dei sottoperiodi si compr
 - `src/modules/hr/AssegnaObiettivo/AssegnaObiettivo.tsx`
 - `src/modules/hr/AssegnaObiettivo/AssegnaObiettivo.sass`
 - `src/store/useObiettiviStore.ts`
+- `src/store/useHrConfigStore.ts` (reparti attivi), `src/store/useHrGestioneStore.ts` (`DIPENDENTI_HR`, `REPARTI_HR`)
+- `src/store/useConfirmStore.ts`, `src/core/components/ConfirmDialog.tsx`, `src/core/components/Tooltip.tsx`
 - `src/core/components/PageHead.tsx`, `src/core/components/form/InputField.tsx`, `src/core/components/form/SelectField.tsx`
 - `src/styles/_colors.sass`, `src/styles/_spacing.sass`, `src/styles/_themes.sass`, `src/styles/_components.sass` (riduzione del movimento globale)
 - `src/navigation/menu.ts`, `src/navigation/pageSubtitles.ts`, `src/core/icons/MenuIco.tsx`, `src/modules/home/Timone/Timone.tsx`

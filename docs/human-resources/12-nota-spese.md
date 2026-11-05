@@ -188,7 +188,7 @@ Celle (tutte su una riga; testi in TruncatedText con tooltip se troncati):
 - Stato: testo colorato peso 600 (Da approvare → warning; Approvata → `--color-link` `#5C9CD4`; Rimborsata → `--color-success` `#007035`; Rifiutata → `--color-error` `#FF616E`). Se Rifiutata e ha motivo: «Rifiutata» + icona `fa-solid fa-circle-info` 12px, tooltip = testo del motivo, cursore `help`. Se la nota ha un evento «Modificata» nello storico: a destra icona `fa-solid fa-pen` 11px warning (`aria-label="Modificata dall'HR"`, cursore help) con tooltip «Modificata da <autore> il <gg/mm/aaaa>: <modifica1>; <modifica2>» (ultima modifica).
 - Azioni (`.nsp__acts`, gap 14px; icone `fa-solid` 16px `--color-primary`, senza box), in quest'ordine e con queste condizioni:
   - «Modifica» `fa-solid fa-pen-to-square` — sempre.
-  - «Approva» `fa-solid fa-circle-check` — se Da approvare o Rifiutata.
+  - «Approva» `fa-solid fa-circle-check` — se Da approvare o Rifiutata. Se la spesa **non ha ricevuta** l'icona resta al suo posto ma è **disabilitata** (opacità .35, cursore default, nessun clic) e tooltip = aria-label = «Manca la ricevuta: allegala da Modifica per poter approvare la spesa».
   - «Rifiuta» `fa-solid fa-circle-xmark` — se Da approvare o Approvata.
   - «Segna come rimborsata» `fa-solid fa-money-bill-wave` — se Approvata.
   - «Elimina» `fa-solid fa-trash` — sempre.
@@ -262,7 +262,7 @@ Messaggi di validazione (sotto il campo):
 - Titolo «gg/mm/aaaa» oppure «gg/mm/aaaa · <Voce>» se aperta da una cella voce (filtra le note di quella voce).
 - Ogni nota (griglia `86px minmax(0,1fr) auto 96px auto`): pill voce (teal per trasporti, oro per vitto/varie); descrizione (peso 600) e sotto il file (`fa-solid fa-file-pdf` + nome) oppure «Ricevuta mancante» in rosso con `fa-solid fa-triangle-exclamation`; se Rifiutata con motivo, il motivo in rosso 11px; importo `eurHr`; stato colorato; azioni icona 16px `--color-primary`:
   - «Modifica» `fa-solid fa-pen` (chiude questa modale e apre «Modifica nota») — sempre;
-  - «Approva» `fa-solid fa-circle-check` — Da approvare o Rifiutata;
+  - «Approva» `fa-solid fa-circle-check` — Da approvare o Rifiutata; senza ricevuta disabilitata (opacità .35) con tooltip = aria-label = «Manca la ricevuta: allegala da Modifica per poter approvare la spesa»;
   - «Rifiuta» `fa-solid fa-circle-xmark` — Da approvare o Approvata;
   - «Segna come rimborsata» `fa-solid fa-money-bill` — Approvata;
   - «Elimina» `fa-solid fa-trash-can` — sempre.
@@ -288,7 +288,7 @@ Tabella `table-layout: fixed`; colonne (ThLabel full/short) e larghezze: «Dipen
 - **Paginazione**: 10 righe per pagina; `totalPages = max(1, ceil(n/10))`; torna a pagina 1 quando cambia un filtro (toolbar o colonna). Cambiare l'ordinamento non riporta a pagina 1.
 - **Selezione**: si azzera al cambio di qualunque filtro; **sopravvive** al cambio pagina (si possono accumulare righe di pagine diverse). Il checkbox d'intestazione seleziona/deseleziona solo le righe della pagina corrente (indeterminato se solo alcune). Dopo un'eliminazione gli id non più esistenti escono dalla selezione. Riga selezionata: sfondo `--color-primary-50` (`#f2f5f6`).
 - **Clic nome dipendente** → foglio mensile di quel dipendente per il mese della spesa.
-- **Approva (riga)**: immediato, senza conferma e **senza controllo della ricevuta** → stato Approvata, evento storico «Approvata»; toast success titolo «Spesa approvata», testo «Spesa di <Nome Cognome> approvata: <importo> da rimborsare.»
+- **Approva (riga)**: solo se la spesa ha la ricevuta (stessa regola dell'approvazione in blocco e della modale «Modifica nota»). Con ricevuta: immediato, senza conferma → stato Approvata, evento storico «Approvata»; toast success titolo «Spesa approvata», testo «Spesa di <Nome Cognome> approvata: <importo> da rimborsare.» Senza ricevuta il pulsante è disabilitato e il tooltip spiega il motivo («Manca la ricevuta: allegala da Modifica per poter approvare la spesa»); per allegarla si passa da «Modifica». Se l'azione arrivasse comunque (difesa in profondità) la spesa non cambia stato e compare il toast error titolo «Spesa non approvata», testo «Manca la ricevuta: allegala da Modifica per poter approvare la spesa.»
 - **Rifiuta (riga)** → modale rifiuto con quella riga; «Rifiuta» → stato Rifiutata con motivo trimmato, evento «Rifiutata» con messaggio = motivo; toast info «Spesa rifiutata» / «Spesa di <Nome Cognome> rifiutata.»
 - **Segna come rimborsata (riga)** → conferma: titolo «Segna come rimborsata», testo «Confermi il rimborso di <importo> a <Nome Cognome>?», pulsante «Conferma rimborso» (non distruttivo) → stato Rimborsata, evento «Rimborsata»; toast success «Spesa rimborsata» / «Rimborso di <importo> registrato.»
 - **Elimina (riga)** → conferma distruttiva: titolo «Elimina spesa», testo «Eliminare la spesa "<descrizione>" di <Nome Cognome> (<importo>)?» + se Rimborsata « È già stata rimborsata: il rimborso resta in busta paga, ma la spesa sparirà dalla nota.» + « L'operazione non si può annullare.», pulsante «Elimina» → rimozione definitiva; toast success «Eliminata» / «Spesa eliminata.»
@@ -311,7 +311,7 @@ Tabella `table-layout: fixed`; colonne (ThLabel full/short) e larghezze: «Dipen
 - **Clic sulla data**: abilitato solo se nel giorno esiste almeno una nota (anche rifiutata) → modale «Note del giorno» con tutte le note del giorno.
 - **Clic su una cella voce** → modale con le note di quel giorno e quella voce.
 - **Checkbox Pasto**: commuta immediatamente il buono pasto del dipendente in quel giorno (nessuna conferma, nessun toast); disabilitata per i giorni futuri.
-- **Azioni nella modale del giorno**: Approva (immediato, toast success «Spesa approvata» / «<Voce> di <importo> approvata.»), Rifiuta (modale, toast info «Spesa rifiutata» / «<Voce> di <importo> rifiutata.»), Segna come rimborsata (stessa conferma e toast di 5.1), Elimina (conferma titolo «Elimina nota», testo «Eliminare la nota "<descrizione>" del gg/mm/aaaa (<importo>)?» + eventuale frase su rimborso + « L'operazione non si può annullare.», «Elimina»; toast success «Eliminata» / «Nota eliminata.»), Modifica.
+- **Azioni nella modale del giorno**: Approva (solo con ricevuta: immediato, toast success «Spesa approvata» / «<Voce> di <importo> approvata.»; senza ricevuta pulsante disabilitato con tooltip «Manca la ricevuta: allegala da Modifica per poter approvare la spesa», e lo stesso toast error «Spesa non approvata» della riga se l'azione arrivasse comunque), Rifiuta (modale, toast info «Spesa rifiutata» / «<Voce> di <importo> rifiutata.»), Segna come rimborsata (stessa conferma e toast di 5.1), Elimina (conferma titolo «Elimina nota», testo «Eliminare la nota "<descrizione>" del gg/mm/aaaa (<importo>)?» + eventuale frase su rimborso + « L'operazione non si può annullare.», «Elimina»; toast success «Eliminata» / «Nota eliminata.»), Modifica.
 - **Approva il mese**: conferma titolo «Approva il mese», testo «Approvare le N note in attesa di <Nome Cognome> (<importo>)? Quelle senza ricevuta restano da controllare.», «Approva» → approva le Da approvare con ricevuta; toast success «Mese approvato» / «K note approvate.» oppure «K note approvate, M senza ricevuta da controllare.»
 - **Segna rimborsate (mese)**: conferma titolo «Inserisci in busta paga», testo «Segnare come rimborsate le note approvate di <Nome Cognome> (<importo>)?», pulsante «Segna rimborsate» → tutte le Approvate del mese diventano Rimborsate; toast success «Rimborso registrato» / «<importo> inseriti nel rimborso di <mese anno in minuscolo>.» (es. «novembre 2026»).
 - **PDF**: selezione = dipendenti con note o buoni nel mese (opzione `con-note`) oppure il dipendente scelto. Se vuota → toast info «Niente da stampare» / «Nessun dipendente ha note in questo mese.». Altrimenti scarica (vedi 6.6).
@@ -323,7 +323,7 @@ Tabella `table-layout: fixed`; colonne (ThLabel full/short) e larghezze: «Dipen
 
 1. Apertura: precompila dipendente, data, voce, importo, descrizione, ricevuta, stato, motivo; messaggio vuoto; errori azzerati.
 2. Caricamento ricevuta: accetta solo PDF (MIME `application/pdf` o estensione `.pdf`), massimo 3 MB; oggi si salva **solo il nome del file** (nessun upload reale). L'input file viene azzerato dopo ogni scelta.
-3. «Salva modifiche»: valida (messaggi in 4.6). Se valido costruisce il nuovo valore (importo arrotondato al centesimo; descrizione vuota → uguale alla voce; motivo solo se Rifiutata) e calcola le differenze:
+3. «Salva modifiche»: valida (messaggi in 4.6). Fra le validazioni c'è la stessa regola dell'Approva di riga: se lo Stato scelto è «Approvata» (o «Rimborsata») e non c'è ricevuta, il salvataggio è bloccato e sotto il blocco ricevuta compare «Senza ricevuta la spesa non si può approvare né rimborsare»; caricando la ricevuta il salvataggio passa. Se valido costruisce il nuovo valore (importo arrotondato al centesimo; descrizione vuota → uguale alla voce; motivo solo se Rifiutata) e calcola le differenze:
    - «Dipendente: <vecchio> → <nuovo>», «Data: gg/mm/aaaa → gg/mm/aaaa», «Voce: <v> → <v>», «Importo: <€> → <€>», «Descrizione: «<nuova>»», «Ricevuta sostituita: <file>» o «Ricevuta rimossa», «Stato: <s> → <s>» oppure, se lo stato resta Rifiutata e cambia il motivo, «Motivo del rifiuto aggiornato».
    - Nessuna differenza → toast info «Nessuna modifica» / «Non hai cambiato nessun valore.» (la modale resta aperta).
    - Altrimenti salva con evento «Modificata» (modifiche + messaggio = messaggio al dipendente, o in mancanza il motivo del rifiuto); toast success «Nota modificata» / «Nota di <Nome Cognome> aggiornata.»; chiude.
@@ -364,7 +364,7 @@ Autore degli eventi: nome del profilo collegato, altrimenti «Ufficio del person
 
 Uscendo da Rifiutata il motivo viene cancellato.
 
-Vincoli: approvazione in blocco e «Approva il mese» saltano le spese senza ricevuta; la modale Modifica impedisce Approvata/Rimborsata senza ricevuta; l'Approva della singola riga oggi **non** lo impedisce (comportamento attuale da riprodurre identico, il backend può aggiungere il vincolo solo se concordato).
+Vincolo unico (regola `approvabile(n) = !!n.giustificativo` in `notaSpeseModel.ts`): **senza ricevuta una spesa non si approva in nessun modo**. L'approvazione in blocco e «Approva il mese» saltano le spese senza ricevuta; l'Approva della singola riga (tabella e modale del giorno) è disabilitato con tooltip; la modale Modifica impedisce di salvare Approvata/Rimborsata senza ricevuta. Il backend applica lo stesso vincolo su `POST /hr/note-spese/{id}/approva` (422 `ricevuta-obbligatoria`).
 
 ### 6.3 Calcoli — Nota spese
 
@@ -456,7 +456,7 @@ Esempi:
 // POST /hr/note-spese/mese/3/2026-11/approva → 200 { "approvate": 4, "senzaRicevuta": 1 }
 ```
 
-Errori: 400 `{ "error": "motivo-obbligatorio" }` (rifiuto senza motivo), 409 `{ "error": "transizione-non-ammessa" }` (es. rimborsare una Da approvare), 422 `{ "error": "ricevuta-obbligatoria" }` (Approvata/Rimborsata senza ricevuta via PATCH), 413/415 sul file (oltre 3 MB / non PDF), 404 id inesistente.
+Errori: 400 `{ "error": "motivo-obbligatorio" }` (rifiuto senza motivo), 409 `{ "error": "transizione-non-ammessa" }` (es. rimborsare una Da approvare), 422 `{ "error": "ricevuta-obbligatoria" }` (Approvata/Rimborsata senza ricevuta via PATCH, o approva di una spesa senza ricevuta), 413/415 sul file (oltre 3 MB / non PDF), 404 id inesistente.
 
 Semantica: ogni azione genera l'evento di storico lato server (autore = utente autenticato, `at` = ora server). Le azioni massive e quelle sul mese sono **transazionali** per singola nota e restituiscono l'esito per id. **Notifiche App Op!** al dipendente: su rifiuto (con motivo), modifica (con elenco modifiche e messaggio), approvazione e rimborso. L'eliminazione di una spesa rimborsata non storna il rimborso in busta paga. PDF ed Excel restano generati lato client.
 
@@ -571,7 +571,7 @@ Container query sul root di pagina (mai `@media`):
 ## 11. Accessibilità
 
 - Checkbox con `aria-label`: «Seleziona le spese della pagina», «Seleziona la spesa di <Nome>», «Buono pasto del gg/mm/aaaa»; header in stato indeterminato.
-- Pulsanti icona con `aria-label` uguale al tooltip («Modifica», «Approva», «Rifiuta», «Segna come rimborsata», «Elimina», «Visualizza <file>», «Esporta in Excel»); icone decorative `aria-hidden="true"`.
+- Pulsanti icona con `aria-label` uguale al tooltip («Modifica», «Approva», «Rifiuta», «Segna come rimborsata», «Elimina», «Visualizza <file>», «Esporta in Excel»; «Approva» di una spesa senza ricevuta: «Manca la ricevuta: allegala da Modifica per poter approvare la spesa», pulsante `disabled`); icone decorative `aria-hidden="true"`. Il pulsante disabilitato ha `pointer-events: none`, così il passaggio del mouse arriva al contenitore del Tooltip e la spiegazione resta leggibile.
 - Icona modifica HR `aria-label="Modificata dall'HR"`. Barra selezione `role="region"` `aria-label="Azioni sulle righe selezionate"`. Select report `aria-label` «Dipendenti del report». Storico `section aria-label="Storico"`.
 - Modali: Esc chiude; clic sul backdrop chiude. ColFilters: la ricerca prende il fuoco all'apertura (`autoFocus`). Tutti i controlli sono `<button>` nativi, quindi raggiungibili con Tab e attivabili con Invio/Spazio; i giorni senza note sono `disabled`.
 
@@ -582,20 +582,21 @@ Container query sul root di pagina (mai `@media`):
 3. Con Stato = «Rifiutata» compaiono solo spese rifiutate; il loro stato mostra l'icona info e il tooltip con il motivo.
 4. Impostando un filtro (toolbar o colonna) si torna a pagina 1 e la selezione si azzera; cambiando pagina la selezione resta.
 5. Una spesa senza ricevuta mostra il triangolo arancione con tooltip «Nessun giustificativo allegato»; selezionata insieme a una con ricevuta, «Approva» riporta (1) e la conferma dice «Una spesa senza ricevuta resta da controllare.»
-6. «Rifiuta» resta disabilitato finché il motivo è vuoto; dopo il rifiuto lo storico della nota contiene l'evento «Rifiutata» col messaggio.
-7. «Elimina» apre sempre una conferma con «L'operazione non si può annullare.»; per una spesa rimborsata il testo aggiunge la frase sul rimborso in busta paga.
-8. In «Modifica nota», impostando Stato «Approvata» dopo aver rimosso la ricevuta, il salvataggio è bloccato con «Senza ricevuta la spesa non si può approvare né rimborsare»; caricando un file non PDF compare «La ricevuta deve essere un PDF»; salvando senza cambi compare il toast «Nessuna modifica».
-9. Dopo una modifica, accanto allo stato compare la matita arancione con tooltip «Modificata da <autore> il <data>: <modifiche>».
-10. «Esporta in Excel» scarica `nota-spese.xls` con le 9 colonne indicate e tutte le righe filtrate; toast «N righe esportate in Excel.»
-11. Il clic sul nome di un dipendente apre il foglio mensile di quel dipendente nel mese della spesa e la sidenav resta su «Nota spese».
-12. Nel foglio mensile ogni giorno del mese ha una riga; sabati e domeniche in tinta leggera, oggi evidenziato, giorni futuri al 55% di opacità e checkbox Pasto disabilitata.
-13. Le spese rifiutate appaiono barrate e grigie e non entrano in «Tot. spese», «Totali mese» e «Spese X €»; la legenda dice «Rifiutata (esclusa dai totali)».
-14. La legenda calcola «Buoni pasto N × 8 € = X €» e cambia subito spuntando/despuntando un Pasto.
-15. «Approva il mese» approva solo le note con ricevuta e il toast segnala quante restano «senza ricevuta da controllare»; «Segna rimborsate» porta la pill di stato a «Rimborsata».
-16. «PDF» con «Tutti i dipendenti con note» genera un PDF A4 orizzontale con una pagina per dipendente; «Download ricevute» genera `ricevute_<aaaa-mm>.pdf` con «Ricevuta mancante» in rosso.
-17. «Total view» elenca 12 dipendenti con riga «Totale struttura»; cliccando una riga il foglio passa a quel dipendente e la modale si chiude.
-18. A container ≤ 1360px la tabella Nota spese passa a 12px e a intestazioni abbreviate con tooltip, senza scroll orizzontale; a ≤ 1100px nel foglio mensile spariscono le abbreviazioni dei giorni e il riquadro report va a capo.
-19. Esc chiude qualunque modale della pagina.
+6. Nella stessa riga (Da approvare o Rifiutata, senza ricevuta) l'icona «Approva» è visibile ma disabilitata e al passaggio del mouse mostra il tooltip scuro «Manca la ricevuta: allegala da Modifica per poter approvare la spesa»; il clic non cambia lo stato. Lo stesso vale per «Approva» nella modale del giorno del foglio mensile. Caricata la ricevuta da «Modifica nota», l'icona torna attiva con tooltip «Approva».
+7. «Rifiuta» resta disabilitato finché il motivo è vuoto; dopo il rifiuto lo storico della nota contiene l'evento «Rifiutata» col messaggio.
+8. «Elimina» apre sempre una conferma con «L'operazione non si può annullare.»; per una spesa rimborsata il testo aggiunge la frase sul rimborso in busta paga.
+9. In «Modifica nota», impostando Stato «Approvata» dopo aver rimosso la ricevuta, il salvataggio è bloccato con «Senza ricevuta la spesa non si può approvare né rimborsare»; caricando un file non PDF compare «La ricevuta deve essere un PDF»; salvando senza cambi compare il toast «Nessuna modifica».
+10. Dopo una modifica, accanto allo stato compare la matita arancione con tooltip «Modificata da <autore> il <data>: <modifiche>».
+11. «Esporta in Excel» scarica `nota-spese.xls` con le 9 colonne indicate e tutte le righe filtrate; toast «N righe esportate in Excel.»
+12. Il clic sul nome di un dipendente apre il foglio mensile di quel dipendente nel mese della spesa e la sidenav resta su «Nota spese».
+13. Nel foglio mensile ogni giorno del mese ha una riga; sabati e domeniche in tinta leggera, oggi evidenziato, giorni futuri al 55% di opacità e checkbox Pasto disabilitata.
+14. Le spese rifiutate appaiono barrate e grigie e non entrano in «Tot. spese», «Totali mese» e «Spese X €»; la legenda dice «Rifiutata (esclusa dai totali)».
+15. La legenda calcola «Buoni pasto N × 8 € = X €» e cambia subito spuntando/despuntando un Pasto.
+16. «Approva il mese» approva solo le note con ricevuta e il toast segnala quante restano «senza ricevuta da controllare»; «Segna rimborsate» porta la pill di stato a «Rimborsata».
+17. «PDF» con «Tutti i dipendenti con note» genera un PDF A4 orizzontale con una pagina per dipendente; «Download ricevute» genera `ricevute_<aaaa-mm>.pdf` con «Ricevuta mancante» in rosso.
+18. «Total view» elenca 12 dipendenti con riga «Totale struttura»; cliccando una riga il foglio passa a quel dipendente e la modale si chiude.
+19. A container ≤ 1360px la tabella Nota spese passa a 12px e a intestazioni abbreviate con tooltip, senza scroll orizzontale; a ≤ 1100px nel foglio mensile spariscono le abbreviazioni dei giorni e il riquadro report va a capo.
+20. Esc chiude qualunque modale della pagina.
 
 ## 13. File sorgente
 

@@ -212,11 +212,13 @@ export default function SettimanaOrario({ value, onChange }: { value: FasciaGior
           const min = minutiGiorno(g)
           return (
             <div key={GIORNI_SETTIMANA[i]} className={`sett-ora__row${g.attivo ? '' : ' is-off'}`}>
-              <button type="button" className={`sett-ora__day${g.attivo ? ' is-on' : ''}`} aria-pressed={g.attivo}
-                title={g.attivo ? `Segna ${GIORNI_SETTIMANA[i]} come riposo` : `Imposta l’orario di ${GIORNI_SETTIMANA[i]}`}
-                onClick={() => attivaGiorno(i, !g.attivo)}>
-                {GIORNI_SETTIMANA[i]}
-              </button>
+              <Tooltip text={g.attivo ? `Segna ${GIORNI_SETTIMANA[i]} come riposo` : `Imposta l’orario di ${GIORNI_SETTIMANA[i]}`}>
+                <button type="button" className={`sett-ora__day${g.attivo ? ' is-on' : ''}`} aria-pressed={g.attivo}
+                  aria-label={g.attivo ? `Segna ${GIORNI_SETTIMANA[i]} come riposo` : `Imposta l’orario di ${GIORNI_SETTIMANA[i]}`}
+                  onClick={() => attivaGiorno(i, !g.attivo)}>
+                  {GIORNI_SETTIMANA[i]}
+                </button>
+              </Tooltip>
 
               <div className="sett-ora__fasce">
                 {!g.attivo ? (
@@ -231,12 +233,17 @@ export default function SettimanaOrario({ value, onChange }: { value: FasciaGior
                     {g.fasce.map((f, k) => {
                       const err = erroreFascia(g, k)
                       return (
-                        <span key={k} className={`sett-ora__fascia${err ? ' is-err' : ''}${s?.giorno === i && s.idx === k ? ' is-sel' : ''}`} title={err || undefined}>
+                        <span key={k} className={`sett-ora__fascia${err ? ' is-err' : ''}${s?.giorno === i && s.idx === k ? ' is-sel' : ''}`}>
                           <DatePickerField name={`so-${i}-${k}-in`} type="time" value={f.inizio} className="sett-ora__time"
                             onChange={(e) => setFascia(i, k, { inizio: e.target.value })} />
                           <span className="sett-ora__dash">–</span>
                           <DatePickerField name={`so-${i}-${k}-out`} type="time" value={f.fine} className="sett-ora__time"
                             onChange={(e) => setFascia(i, k, { fine: e.target.value })} />
+                          {err && (
+                            <Tooltip text={err}>
+                              <i className="fa-solid fa-circle-exclamation sett-ora__err" role="img" aria-label={err} />
+                            </Tooltip>
+                          )}
                           <Tooltip text="Togli questa fascia">
                             <button type="button" className="sett-ora__x" aria-label={`Togli la fascia ${f.inizio}–${f.fine} di ${GIORNI_SETTIMANA[i]}`} onClick={() => elimina(i, k)}>
                               <i className="fa-solid fa-xmark" aria-hidden="true" />

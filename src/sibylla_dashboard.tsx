@@ -177,9 +177,15 @@ export default function App() {
   const historyRef = useRef<string[]>([])
 
   const navigate = (page: string) => {
-    // Una pagina con modifiche non salvate può bloccare il cambio pagina
+    // Una pagina con modifiche non salvate può bloccare il cambio pagina;
+    // confermata l'uscita, la pagina riprende la navigazione con `proceed`.
+    // Riaprire la pagina corrente non la smonta: niente guard.
     const guard = useNavGuard.getState().guard
-    if (guard && !guard(page)) return
+    if (page !== currentPage && guard && !guard(page, () => vaiA(page))) return
+    vaiA(page)
+  }
+
+  const vaiA = (page: string) => {
     setCurrentPage(prev => {
       if (page !== prev) historyRef.current.push(prev)
       return page
@@ -194,11 +200,14 @@ export default function App() {
   const goBack = useCallback(() => {
     const hist = historyRef.current
     const target = hist.length ? hist[hist.length - 1] : 'home'
+    const torna = () => {
+      if (hist.length) hist.pop()
+      setCurrentPage(target)
+      if (isMobile) setSideOpen(false)
+    }
     const guard = useNavGuard.getState().guard
-    if (guard && !guard(target)) return
-    if (hist.length) hist.pop()
-    setCurrentPage(target)
-    if (isMobile) setSideOpen(false)
+    if (guard && !guard(target, torna)) return
+    torna()
   }, [isMobile])
 
   // Espone goBack al componente BtnBack (default quando manca un onClick).

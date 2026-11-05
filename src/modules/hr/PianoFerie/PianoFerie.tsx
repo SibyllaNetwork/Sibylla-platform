@@ -10,7 +10,7 @@ import { toast } from '../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import {
   useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, todayIsoHr, fmtDataHr,
-  ferieGodute, inAttesaRichiesta, type StatoRichiesta, type RichiestaAssenza,
+  saldoFerie, inAttesaRichiesta, type StatoRichiesta, type RichiestaAssenza,
 } from '../../../store/useHrGestioneStore'
 import { usePianiFerieStore, feriePianoCorrenti, type PianoFerie as Piano, type DatiPiano } from '../../../store/usePianiFerieStore'
 import { exportXls } from '../hrExport'
@@ -295,9 +295,9 @@ export default function PianoFerie({ navigate }: { navigate: (p: string) => void
         allertaGiorno={allertaGiorno}
         segnalaDipendente={segnalaDipendente}
         colonnaFinale={{ titolo: 'Residue', tooltip: "Giorni di ferie ancora disponibili nell'anno", valore: (id, anno) => {
-          const d = DIPENDENTI_HR.find(x => x.id === id)
-          if (!d) return null
-          const res = d.ferieAnnue - ferieGodute(richieste, id, anno)
+          if (!DIPENDENTI_HR.some(x => x.id === id)) return null
+          // Stesso residuo di Saldo ferie e del dettaglio: anno del mese visualizzato, ferie attribuite all'anno di `dal`.
+          const res = saldoFerie(richieste, id, anno).residue
           return <span className={res <= 3 ? 'pfe__res--low' : undefined}>{res} gg</span>
         } }}
       />

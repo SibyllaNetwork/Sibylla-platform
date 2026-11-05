@@ -362,13 +362,19 @@ export const giorniLavorativiOrario = (o: OrarioHr) =>
 export const oreTurno = (t: TurnoHr) =>
   Math.max(0, durataMin(t.inizio, t.fine) + durataMin(t.inizio2 ?? '', t.fine2 ?? '') - t.pausaMin) / 60
 
-/** Turno notturno: almeno 3 ore della fascia tra le 22 e le 6. */
-export const turnoNotturno = (t: TurnoHr) => {
-  const s = minuti(t.inizio), e = s + durataMin(t.inizio, t.fine)
+/** Minuti di una fascia che cadono tra le 22 e le 6 (a passi di 15 minuti). */
+const minutiNotturni = (inizio: string, fine: string) => {
+  if (!inizio || !fine) return 0
+  const s = minuti(inizio), e = s + durataMin(inizio, fine)
   let notte = 0
   for (let m = s; m < e; m += 15) { const h = (m % 1440) / 60; if (h >= 22 || h < 6) notte += 15 }
-  return notte >= 180
+  return notte
 }
+
+/** Turno notturno: almeno 3 ore lavorate tra le 22 e le 6, sommando le due
+ *  fasce del turno spezzato (soglia del lavoratore notturno, D.Lgs. 66/2003). */
+export const turnoNotturno = (t: TurnoHr) =>
+  minutiNotturni(t.inizio, t.fine) + minutiNotturni(t.inizio2 ?? '', t.fine2 ?? '') >= 180
 
 /** Percentuale di part time rispetto all'orario pieno del CCNL (100 = full time). */
 export const percentualePartTime = (orario?: OrarioHr, ccnl?: CcnlHr) => {

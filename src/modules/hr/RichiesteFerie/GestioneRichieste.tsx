@@ -7,8 +7,8 @@ import { useConfirmStore } from '../../../store/useConfirmStore'
 import { toast } from '../../../core/components/Toast/useToast'
 import {
   useHrGestioneStore, DIPENDENTI_HR, REPARTI_HR, TIPI_ASSENZA, STATI_RICHIESTA,
-  nomeDipendente, repartoDipendente, fmtDataHr, giorniLavorativi, ferieGodute, sovrapposizioni,
-  saldoRol, oreRichiesta, ORE_GIORNO, inAttesaRichiesta,
+  nomeDipendente, repartoDipendente, fmtDataHr, giorniLavorativi, sovrapposizioni,
+  saldoRol, saldoFerie, annoRichiesta, oreRichiesta, ORE_GIORNO, inAttesaRichiesta,
   type RichiestaAssenza, type TipoAssenza, type StatoRichiesta,
 } from '../../../store/useHrGestioneStore'
 import StoricoHr from '../_storico/StoricoHr'
@@ -129,15 +129,14 @@ interface Bozza { id: string; dipendenteId: string; tipo: TipoAssenza; dal: stri
 
 /** Richiesta con i dati che servono a calendario e dettaglio: residuo, sovrapposizioni, valutazione di Sibylla. */
 export function arricchisciRichiesta(r: RichiestaAssenza, richieste: RichiestaAssenza[], piani: PianoFerie[]) {
-      const d = DIPENDENTI_HR.find(x => x.id === r.dipendenteId)
       const giorni = giorniLavorativi(r.dal, r.al)
-      const godute = ferieGodute(richieste, r.dipendenteId)
-      // Residuo dopo la richiesta: per una richiesta di ferie ancora in attesa si sottraggono anche i suoi giorni.
-      // Per i ROL il residuo è in ore: sul monte ore annuo, togliendo anche questa richiesta se in attesa.
-      const rol = r.tipo === 'ROL' ? saldoRol(richieste, r.dipendenteId, Number(r.dal.slice(0, 4))) : null
+      // Residuo nell'anno della richiesta (quello di `dal`), come saldoDopo e il saldo ROL:
+      // per una richiesta ancora in attesa si sottraggono anche i suoi giorni (o le sue ore, per i ROL).
+      const anno = annoRichiesta(r)
+      const rol = r.tipo === 'ROL' ? saldoRol(richieste, r.dipendenteId, anno) : null
       const residuo = rol
         ? rol.residue - (inAttesaRichiesta(r.stato) ? oreRichiesta(r) : 0)
-        : (d?.ferieAnnue ?? 0) - godute - (r.tipo === 'Ferie' && inAttesaRichiesta(r.stato) ? giorni : 0)
+        : saldoFerie(richieste, r.dipendenteId, anno).residue - (r.tipo === 'Ferie' && inAttesaRichiesta(r.stato) ? giorni : 0)
       const base = {
         ...r,
         dipendente: nomeDipendente(r.dipendenteId),
@@ -292,11 +291,14 @@ export default function GestioneRichieste({ richieste: visibili, reparto, azioni
         note: bozza.note.trim() || undefined, ore: ore && ore < ORE_GIORNO ? ore : undefined,
         stato: bozza.stato, motivo: bozza.stato === 'Rifiutata' ? bozza.motivo.trim() : undefined,
       }
+      // Nuova e già approvata: non è ancora nell'elenco, saldoDopo sottrae i suoi giorni come per una in attesa.
+      let nota: string | undefined
       if (nuova.stato === 'Approvata') {
         const neg = await autorizzaNegativo([{ ...nuova, id: 'nuova', createdAt: new Date().toISOString() }])
         if (!neg) return
+        nota = neg.get('nuova')
       }
-      inserisci(nuova, bozza.messaggio.trim() || undefined)
+      inserisci(nuova, bozza.messaggio.trim() || undefined, nota)
       toast.success(`${nuova.tipo} di ${nomeDipendente(nuova.dipendenteId)} ${nuova.dal === nuova.al ? `del ${fmtDataHr(nuova.dal)}` : `dal ${fmtDataHr(nuova.dal)} al ${fmtDataHr(nuova.al)}`} inserita (${nuova.stato.toLowerCase()}).`, 'Richiesta inserita')
       setBozza(null)
       return

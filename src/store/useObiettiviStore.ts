@@ -58,12 +58,26 @@ export const avanzamentoPct = (o: Obiettivo) => {
 }
 export const margineAtteso = (o: Obiettivo) => Math.round((o.budgetLordo * o.marginePct) / 100)
 
+/** Stato di avanzamento mostrato da Monitoraggio performance e HR Overview:
+ *  concluso o al 100% → raggiunto; dal 50% → in linea; sotto → a rischio. */
+export type StatoAvanzamento = 'raggiunto' | 'in-linea' | 'a-rischio'
+export const STATO_AVANZAMENTO_LABEL: Record<StatoAvanzamento, string> = { 'raggiunto': 'Raggiunto', 'in-linea': 'In linea', 'a-rischio': 'A rischio' }
+export const statoAvanzamento = (o: Obiettivo): StatoAvanzamento => {
+  if (o.stato === 'concluso') return 'raggiunto'
+  const pct = avanzamentoPct(o)
+  return pct >= 100 ? 'raggiunto' : pct >= 50 ? 'in-linea' : 'a-rischio'
+}
+/** Anno di avvio dell'obiettivo (da `dataAvvio`). */
+export const annoObiettivo = (o: Obiettivo) => Number((o.dataAvvio || o.createdAt).slice(0, 4)) || new Date().getFullYear()
+
 const uid = (p = 'ob') => `${p}-${Math.round(performance.now())}-${Math.floor(Math.random() * 1e4)}`
 
 // ─── Seed dimostrativo (2 in corso + 1 concluso) ──────────────────────────────
+//  Reparti e assegnatari sono quelli reali dell'HR (Configurazione HR e
+//  `DIPENDENTI_HR`): la v2 usava «Commerciale» e «Marketing», vedi `migrate`.
 const SEED: Obiettivo[] = [
   {
-    id: 'ob-commerciale-q2', nome: 'Spinta commerciale estate', tipologia: 'reparto', reparto: 'Commerciale',
+    id: 'ob-commerciale-q2', nome: 'Spinta commerciale estate', tipologia: 'reparto', reparto: 'F&B',
     report: 'Report vendite reparto', segmenti: ['servizi', 'esperienze'], budgetLordo: 120000, marginePct: 35,
     dataAvvio: '2026-08-01T09:00', stato: 'in-corso', createdAt: '2026-07-20T09:00:00.000Z',
     periodi: [
@@ -97,7 +111,7 @@ const SEED: Obiettivo[] = [
     ],
   },
   {
-    id: 'ob-esperienze-inverno', nome: 'Esperienze inverno', tipologia: 'reparto', reparto: 'Marketing',
+    id: 'ob-esperienze-inverno', nome: 'Esperienze inverno', tipologia: 'reparto', reparto: 'Front office',
     report: 'Report esperienze / attività', segmenti: ['esperienze'], budgetLordo: 40000, marginePct: 30,
     dataAvvio: '2026-01-07T09:00', stato: 'concluso', createdAt: '2025-12-20T09:00:00.000Z',
     periodi: [
@@ -153,6 +167,19 @@ export const useObiettiviStore = create<ObiettiviState>()(
           }),
         })),
     }),
-    { name: 'sibylla.obiettivi', version: 2 },
+    {
+      name: 'sibylla.obiettivi',
+      version: 3,
+      // v2 → v3: i due obiettivi di esempio passano ai reparti reali dell'HR.
+      migrate: (persisted, version) => {
+        const st = persisted as { obiettivi?: Obiettivo[] } | undefined
+        if (!st?.obiettivi) return { obiettivi: SEED } as ObiettiviState
+        if (version < 3) {
+          const nuovo: Record<string, string> = { 'ob-commerciale-q2': 'F&B', 'ob-esperienze-inverno': 'Front office' }
+          st.obiettivi = st.obiettivi.map((o) => (nuovo[o.id] && (o.reparto === 'Commerciale' || o.reparto === 'Marketing') ? { ...o, reparto: nuovo[o.id] } : o))
+        }
+        return st as ObiettiviState
+      },
+    },
   ),
 )

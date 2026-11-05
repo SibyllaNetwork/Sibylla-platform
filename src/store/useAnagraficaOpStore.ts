@@ -37,6 +37,10 @@ interface State {
   abilitazioni: Record<string, AbilitazioneOp>
   set: (anagraficaId: string, a: AbilitazioneOp) => void
   patch: (anagraficaId: string, p: Partial<AbilitazioneOp>) => void
+  /** Sposta l'abilitazione da una chiave provvisoria (`nuovo-…`) all'id definitivo. */
+  sposta: (da: string, a: string) => void
+  /** Toglie l'abilitazione (eliminazione del dipendente). */
+  rimuovi: (anagraficaId: string) => void
 }
 
 export const useAnagraficaOpStore = create<State>()(
@@ -45,6 +49,15 @@ export const useAnagraficaOpStore = create<State>()(
       abilitazioni: SEED,
       set: (id, a) => set(s => ({ abilitazioni: { ...s.abilitazioni, [id]: a } })),
       patch: (id, p) => set(s => ({ abilitazioni: { ...s.abilitazioni, [id]: { ...(s.abilitazioni[id] ?? abilitazioneVuota()), ...p } } })),
+      sposta: (da, a) => set(s => {
+        if (da === a || !s.abilitazioni[da]) return s
+        const { [da]: abil, ...resto } = s.abilitazioni
+        return { abilitazioni: { ...resto, [a]: { ...resto[a], ...abil } } }
+      }),
+      rimuovi: (id) => set(s => {
+        const { [id]: _tolta, ...resto } = s.abilitazioni
+        return { abilitazioni: resto }
+      }),
     }),
     {
       name: 'sibylla.anagrafica-op',

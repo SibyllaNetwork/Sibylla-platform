@@ -230,8 +230,7 @@ Clic su una scheda → cambia il filtro di stato del calendario e dell'export; i
 1. Si apre il menu (§4.8) alla posizione del puntatore; la casella cliccata si evidenzia (`.rfc__cell--on`). Il menu è inizialmente invisibile, misurato e poi posizionato: x tra 8px e `larghezza finestra − larghezza menu − 8px`; se sborderebbe in basso si apre sopra il puntatore (minimo 8px dal bordo).
 2. Si chiude con: mousedown fuori dal menu, Esc, qualsiasi scroll (anche interno, in cattura).
 3. Scelta del tipo → modale «Nuova richiesta» precompilata: dipendente e giorno della casella (dal = al), tipo scelto, **Stato «Approvata»**, ore 2 per ROL/Permesso (8 per gli altri tipi, campo nascosto), note e messaggio vuoti.
-4. «Salva modifiche» → validazioni (§4.10); se lo stato è Approvata passa dalla verifica del saldo negativo (§5.9); poi inserisce la richiesta (nessun iter del responsabile; storico con evento «Inserita dall'ufficio del personale», campi «Stato: {stato}», messaggio se scritto). Toast successo «Richiesta inserita»: «{tipo} di {Nome Cognome} {del gg/mm/aaaa | dal gg/mm/aaaa al gg/mm/aaaa} inserita ({stato minuscolo}).»
-   - Nota sul comportamento attuale: per una nuova richiesta approvata la verifica del saldo usa lo stato «Approvata», quindi non sottrae i giorni della richiesta stessa: la conferma del negativo compare solo se il saldo è già negativo. Per riprodurre identico mantenere; il backend dovrebbe comunque verificare con i giorni della richiesta (§7).
+4. «Salva modifiche» → validazioni (§4.10); se lo stato è Approvata passa dalla verifica del saldo negativo (§5.9): la richiesta nuova non è ancora nell'elenco, quindi `saldoDopo` **sottrae i suoi giorni** come per una richiesta in attesa (§6.4) e la conferma «Autorizza il saldo negativo» compare appena queste ferie portano il saldo sotto zero. Annulla → la modale resta aperta e nulla viene inserito. Poi inserisce la richiesta (nessun iter del responsabile; storico con evento «Inserita dall'ufficio del personale», campi «Stato: {stato}» e, se autorizzato, «Saldo negativo autorizzato: {n} gg»; messaggio se scritto). Toast successo «Richiesta inserita»: «{tipo} di {Nome Cognome} {del gg/mm/aaaa | dal gg/mm/aaaa al gg/mm/aaaa} inserita ({stato minuscolo}).»
 
 ### 5.8 Modifica (salvataggio)
 - Validazioni → errori sotto i campi, la modale resta aperta.
@@ -287,8 +286,9 @@ Visibile se tra le richieste filtrate ce n'è almeno una con valutazione «ok» 
 - `giorniLavorativi(dal, al)` = giorni da lunedì a **sabato** compresi (la domenica non conta).
 - `oreRichiesta(r) = r.ore ?? max(1, giorniLavorativi) × 8`.
 - `inAttesa(stato)` = stato ∈ {Al responsabile, Da approvare}.
-- `ferieGodute(dip, anno)` = Σ giorni lavorativi delle Ferie **Approvate** del dipendente con `dal` nell'anno.
+- `annoRichiesta(r)` = anno di `r.dal`: una richiesta si attribuisce **per intero** all'anno in cui iniziano le ferie, anche se finisce l'anno dopo. Tutti i calcoli legati a una richiesta (residuo del dettaglio, `saldoDopo`, valutazione, saldo ROL) usano quest'anno.
 - `saldoFerie(dip, anno)`: maturate = `ferieAnnue`; godute = Σ giorni Ferie approvate con `dal` nell'anno; inAttesa = Σ giorni Ferie in attesa; **residue = maturate − godute** (le in attesa non scalano il residuo).
+- `ferieGodute(dip, anno)` = `saldoFerie(dip, anno).godute` (anno obbligatorio).
 - `saldoRol(dip, anno)`: maturate = `rolAnnui`; godute = Σ `oreRichiesta` dei ROL approvati con `dal` nell'anno; inAttesa = Σ ore dei ROL in attesa; **residue = maturate − godute**.
 - `sovrapposizioni(r)` = richieste **Approvate** di altri dipendenti dello **stesso reparto** con `x.dal ≤ r.al && x.al ≥ r.dal` (esclusa la richiesta stessa).
 - `durata(r)` = `fmtOre(r.ore)` se ha ore, altrimenti «1 giorno»/«{n} giorni» con n = max(1, giorniLavorativi).
@@ -299,13 +299,14 @@ Visibile se tra le richieste filtrate ce n'è almeno una con valutazione «ok» 
 - `giorni = giorniLavorativi(dal, al)`.
 - **Residuo**:
   - ROL: `saldoRol(dip, anno di dal).residue − (in attesa ? oreRichiesta(r) : 0)` (ore);
-  - altri tipi: `ferieAnnue − ferieGodute(dip, anno corrente) − (tipo Ferie e in attesa ? giorni : 0)` (giorni). Mostrato solo per Ferie e ROL.
+  - altri tipi: `saldoFerie(dip, anno di dal).residue − (tipo Ferie e in attesa ? giorni : 0)` (giorni). Mostrato solo per Ferie e ROL.
+  - Per una Ferie in attesa il residuo coincide con `saldoDopo` (§6.4), quindi dettaglio («Residuo se approvata»), valutazione di Sibylla e conferma del negativo riportano lo stesso numero; per una Ferie approvata coincide con la colonna «Residue» del Piano ferie e con «Saldo ferie {anno}» dello stesso anno.
 - `conflitti` = `[]` se Rifiutata, altrimenti `sovrapposizioni(r)`.
 - `valutazione` = solo se stato Da approvare (§6.6).
 - `urgente` = Da approvare e inizia entro 3 giorni (calcolato ma oggi non mostrato sul calendario).
 
 ### 6.4 Saldo dopo l'approvazione (autorizzazione del negativo)
-`saldoDopo(r) = saldoFerie(dip, anno di dal).residue − (r.stato === 'Approvata' ? 0 : giorniLavorativi(r.dal, r.al))`. Se < 0 per una richiesta di Ferie da approvare, serve l'autorizzazione esplicita (§5.9). «Oltre il limite» del piano: `piano.regole.entroResidui && −saldoDopo > piano.regole.negativoMax`. Piano di riferimento: il primo piano **Aperto** il cui periodo si sovrappone alla richiesta di Ferie (`r.dal ≤ p.al && r.al ≥ p.dal`).
+`saldoDopo(r) = saldoFerie(dip, anno di dal).residue − (giàGoduta ? 0 : giorniLavorativi(r.dal, r.al))`, con `giàGoduta` = `r.stato === 'Approvata'` **e** la richiesta è nell'elenco già approvata (i suoi giorni sono fra le godute). Una richiesta nuova non ancora salvata, anche se inserita «Approvata», sottrae quindi i propri giorni. Se < 0 per una richiesta di Ferie da approvare, serve l'autorizzazione esplicita (§5.9). «Oltre il limite» del piano: `piano.regole.entroResidui && −saldoDopo > piano.regole.negativoMax`. Piano di riferimento: il primo piano **Aperto** il cui periodo si sovrappone alla richiesta di Ferie (`r.dal ≤ p.al && r.al ≥ p.dal`).
 
 ### 6.5 Differenze (storico e notifica al dipendente)
 Elenco di stringhe, nell'ordine:
@@ -346,8 +347,8 @@ Responsabili seed (Configurazione HR): Front office «Piero Aragona», F&B «And
 - **33 richieste** relative a oggi (offset in giorni da oggi `dal..al`, stato, creata a −n giorni):
   - 2 Ferie +6..+12 Da approvare «Matrimonio di mia sorella»; 5 Ferie +8..+10 Da approvare (→ **Al responsabile**); 12 Permesso +20 Da approvare «Visita medica, solo mattina»; 8 ROL +14..+15 Da approvare; 11 Ferie +20..+27 Da approvare «Viaggio programmato da tempo» (→ **Al responsabile**); 1 Ferie −3..+2 Approvata; 4 Malattia −2..+1 Approvata «Certificato INPS n. 2026/118843»; 6 Ferie +9..+16 Approvata; 10 ROL +4 Approvata; 3 Ferie +18..+24 Approvata; 9 Permesso −6 Approvata; 7 Ferie +7..+11 Rifiutata, motivo «Nello stesso periodo è già assente Sergio Benvenuti: la manutenzione resterebbe scoperta.»; 2 Ferie −25..−19 Approvata; 5 Malattia −14..−12 Approvata; 9 ROL +3 Da approvare 3 h «Uscita anticipata per pratiche in comune»; 4 ROL +11 Da approvare 4 h; 6 ROL −40..−38 Approvata; 1 ROL −12 Approvata 4 h; 12 ROL −30 Approvata; 7 ROL −20..−19 Approvata; 5 ROL −50 Rifiutata 6 h, motivo «Giornata di picco: il front office resterebbe con una sola persona.»; 4 Ferie +30..+34 Rifiutata **dal responsabile** «Weekend lungo», motivo «Fine mese c'è il gruppo congressuale: servono tutte le cameriere ai piani.»; 7 Ferie −120..−100 Approvata «Ferie estive in un'unica soluzione».
   - 10 ferie di Natale dell'«anno delle feste» (`an` = anno corrente da febbraio, l'anno precedente a gennaio): 2 22–27/12 Approvata «Natale con la famiglia in Puglia»; 6 26/12–4/1 Da approvare «Vorrei unire Natale e Capodanno»; 7 23–28/12 Da approvare; 9 24–31/12 Approvata; 11 20–26/12 Da approvare «Pranzo di Natale dai nonni»; 8 29/12–4/1 Al responsabile; 3 23–26/12 Da approvare; 12 2–6/1 Approvata «Settimana bianca»; 1 24–26/12 Rifiutata «Front office al completo per il cenone: anticipa al 20-22 dicembre.»; 4 8–10/12 Da approvare «Ponte dell'Immacolata».
-  - Iter: per Ferie/ROL di reparti con responsabile, le richieste chiuse o già all'HR hanno `responsabile.esito = 'Approvata'` (decisa alle 17:30 del giorno di creazione, evento «Approvata dal responsabile»); quelle «Al responsabile» hanno esito «In attesa». Id `ra-1` … `ra-33`. Orari di creazione `T09:mm` (mm = dipendente×7 mod 60) o `T10:mm` per Natale (dipendente×11 mod 60).
-- **Persistenza attuale**: store `zustand` persistito in `localStorage` con chiave **`sibylla.hr-gestione`**, **versione 8** (alla migrazione si rigenera tutto il seed). Lo stesso store contiene note spese, buoni pasto e cedolini. I piani ferie stanno in `sibylla.hr-piani-ferie` (v3).
+  - Iter: per Ferie/ROL di reparti con responsabile, le richieste chiuse o già all'HR hanno `responsabile.esito = 'Approvata'` (decisa alle 17:30 del giorno di creazione, evento «Approvata dal responsabile»); quelle «Al responsabile» hanno esito «In attesa». Le due rifiutate dall'HR dopo l'ok del responsabile (`ra-21` ROL di Davide Marini, `ra-32` ferie di Natale di Andrea Grimaudo) hanno in coda il secondo evento `{ at: <giorno dopo la creazione>T10:00:00, autore: 'Ufficio del personale', azione: 'Rifiutata', messaggio: <motivo> }`, come un rifiuto fatto dalla pagina. Id `ra-1` … `ra-33`. Orari di creazione `T09:mm` (mm = dipendente×7 mod 60) o `T10:mm` per Natale (dipendente×11 mod 60).
+- **Persistenza attuale**: store `zustand` persistito in `localStorage` con chiave **`sibylla.hr-gestione`**, **versione 9** (alla migrazione da qualsiasi versione precedente si rigenera tutto il seed; v9 aggiunge l'evento di rifiuto HR a ra-21 e ra-32). Lo stesso store contiene note spese, buoni pasto e cedolini. I piani ferie stanno in `sibylla.hr-piani-ferie` (v3).
 
 ## 7. Backend da realizzare
 
@@ -380,6 +381,7 @@ POST /Sibylla/hr/richieste
                       "azione": "Inserita dall'ufficio del personale",
                       "modifiche": ["Stato: Approvata"], "messaggio": "Registrata dopo la telefonata" }], … }
 ```
+Inserendo Ferie «Approvata» il server calcola `saldoDopo` **sottraendo i giorni della nuova richiesta** (§6.4); se < 0 e `autorizzaNegativo` non è vero risponde `409 { "errore": "saldo_negativo", "saldoDopo": -1, … }`; con l'autorizzazione aggiunge «Saldo negativo autorizzato: {n} gg» alle `modifiche` dell'evento di inserimento.
 
 ```http
 PATCH /Sibylla/hr/richieste/ra-1
@@ -427,11 +429,11 @@ Token (valori tema chiaro → scuro `[data-theme="dark"]`): `--color-primary` #2
 - **Schede** `.rfe__tabs`: `height: 34px`, inline-flex, `padding: 3px`, `gap: 0`, bordo 1px `--color-border`, `border-radius: 9px`, sfondo `--color-bg`.
   - `.rfe__tab`: inline-flex centrato, `gap: 5px`, `padding: 0 8px`, `border: 0`, `border-radius: 6px`, trasparente, `font-family: --font-body`, `font-size: 11.5px`, `font-weight: 600`, colore text-inactive, `white-space: nowrap`, `transition: all 150ms cubic-bezier(0.4,0,0.2,1)`. Hover (non attiva): colore primary. Attiva `--on`: sfondo `--color-surface`, colore primary, `box-shadow: 0 1px 3px rgba(15,17,23,.12)`.
   - `.rfe__tab-n`: `min-width: 18px`, `height: 16px`, `padding: 0 5px`, centrato, `border-radius: 9px`, sfondo `--color-border`, `font-size: 10.5px`, colore text-inactive. In scheda attiva: sfondo primary-50, colore primary. `--hot` (anche in scheda attiva): sfondo `--color-warning`, colore `#fff`.
-- Stati (`.rfe .rfe__stato`): `font-weight: 600`, `display: block`, `min-width: 0`; `--attesa` warning, `--ok` success, `--ko` error, `--info` link (Al responsabile), `--neutro` text-inactive.
+- Stati (`.rfe .rfe__stato`, `.rfe-det .rfe__stato`): `font-weight: 600`, `display: block`, `min-width: 0`; `--attesa` warning, `--ok` success, `--ko` error, `--info` link (Al responsabile), `--neutro` text-inactive.
 - `.rfe__stato-cell`: flex, `align-items: center`, `gap: 6px`, `min-width: 0`.
 - `.rfe__iter`: `flex: 0 0 auto`, `font-size: 12px`, `cursor: help`; `--ok` success, `--ko` error, `--attesa` link.
 - `.rfe__mod`: `font-size: 11px`, warning, `cursor: help`.
-- Tipo (`.rfe .rfe__tipo`): inline-flex, `gap: 6px`, `font-weight: 600`, icona 12px; colori: `--ferie` primary, `--permesso` link, `--rol` success, `--malattia` error.
+- Tipo (`.rfe .rfe__tipo`, `.rfe-det .rfe__tipo`): inline-flex, `gap: 6px`, `font-weight: 600`, icona 12px; colori: `--ferie` primary, `--permesso` link, `--rol` success, `--malattia` error.
 - `.rfe__neg`: error, 600. `.rfe__dash`: text-inactive. `.rfe__strong`: 600, text-active. `.rfe__saldo-warn`: inline-flex, `gap: 4px`, warning, `cursor: help`.
 - `.rfe .rfe__c` center, `.rfe .rfe__r` right (due classi per battere `.sib-table`).
 - Tabella saldo `.rfe .rfe__table`: mixin `table-fit` (`table-layout: fixed`, `width: 100%`; th/td `vertical-align: middle`, `white-space: nowrap`, `overflow: hidden`); `.rfe__wrap`: bordo 1px border, `overflow-x: hidden`. Colonne `.rfe__scol-dip` 28%, `.rfe__scol-rep` 24%, `.rfe__scol-n` 12%.
@@ -444,7 +446,7 @@ Token (valori tema chiaro → scuro `[data-theme="dark"]`): `--color-primary` #2
 - `.rfe-neg__riga`: `display: block`; tra due righe `margin-top: 6px`.
 - **Dettaglio** `.rfe-det__head`: flex, centrato, `gap: 12px`. `__who`: colonna, `flex: 1`, `min-width: 0`. `__nome`: `--font-heading` 15px 700 text-active. `__rep`: 12px text-inactive. `__tipo.rfe__tipo`: `gap: 7px`, 13px, 700. `__facts`: grid `repeat(3, minmax(0,1fr))`, `gap: 12px 16px`, `padding: 12px 0`, bordo superiore e inferiore 1px border; `dt` 11px text-inactive; `dd` `margin: 3px 0 0`, 13px, 600, text-active. `__motivo`: flex, `align-items: flex-start`, `gap: 8px`, 12.5px text-active; icona `margin-top: 2px` error (`--warn`: warning). `__val`: colonna `gap: 6px`. `__motivi`: `padding-left: 18px`, colonna, `gap: 3px`, 12px (lo `ul` non azzera `list-style`: restano anche i marcatori dell'elenco). `__actions .sib-btn i`: `margin-right: 7px`. `__del.sib-btn`: `margin-right: auto`, colore error.
 
-Nota di riproduzione: i colori di `.rfe__tipo--*` e `.rfe__stato--*` sono scritti con l'antenato `.rfe`; nella pagina Piano ferie (root `.pfe`) il dettaglio non li riceve e tipo/stato compaiono nel colore del testo. Riprodurre identico oppure, scelta consigliata, applicarli anche lì.
+I colori di `.rfe__tipo--*` e `.rfe__stato--*` valgono sia sotto il root della pagina `.rfe` sia sotto `.rfe-det` (il contenuto della modale «Dettaglio richiesta»): la stessa modale aperta dal Piano ferie (root `.pfe`) mostra tipo e stato con gli stessi colori di Richieste. Sempre due classi nel selettore, per battere il design system a pari specificità.
 
 ### 8.2 Calendario (`RichiesteCalendario.sass`)
 - `.rfc`: `container: rfc / inline-size`, flex colonna, `gap: 10px`.
@@ -524,6 +526,10 @@ Nota di riproduzione: i colori di `.rfe__tipo--*` e `.rfe__stato--*` sono scritt
 9. Il tasto destro su una barra apre direttamente «Modifica richiesta»; il tasto destro su una casella vuota apre il menu «NOME COGNOME · G MES AAAA» con «Nuova richiesta» e i 4 tipi; scegliendo «ROL» la modale «Nuova richiesta» ha stato «Approvata», ore 2 e il campo Ore visibile.
 10. Salvando la modifica senza cambiare nulla compare il toast «Nessuna modifica» / «Non hai cambiato nessun valore.»; con «Al» prima di «Dal» compare «La data di fine precede quella di inizio»; con Stato «Rifiutata» e motivo vuoto compare «Indica il motivo del rifiuto».
 11. Approvando ferie che portano il saldo sotto zero compare «Autorizza il saldo negativo» con pulsante «Autorizza e approva» (rosso se oltre il negativo del piano); approvando, lo storico mostra «Approvata» con «Saldo negativo autorizzato: {n} gg».
+   - (11a) Con un dipendente a residuo 0 gg nell'anno, inserendo dal tasto destro una nuova Ferie di 1 giorno con stato «Approvata», «Salva modifiche» apre «Autorizza il saldo negativo» con «il saldo va a **-1 gg**»; autorizzando, lo storico della nuova richiesta ha «Inserita dall'ufficio del personale» con «Stato: Approvata» e «Saldo negativo autorizzato: -1 gg».
+   - (11b) Per una Ferie in attesa il «Residuo se approvata» del dettaglio, il saldo citato dalla valutazione e quello della conferma del negativo sono lo stesso numero, calcolato sull'anno di `dal` (es. ferie di gennaio dell'anno prossimo: residuo dell'anno prossimo, non di quello corrente).
+   - (11c) Il dettaglio di una richiesta mostra il tipo (es. «Ferie» primary) e lo stato (es. «Approvata» verde) negli stessi colori sia in Richieste sia in Piano ferie.
+   - (11d) Nel dettaglio di ra-32 (Andrea Grimaudo, Natale, rifiutata) lo storico mostra «Approvata dal responsabile» (Piero Aragona) e poi «Rifiutata» (Ufficio del personale, il giorno dopo) col motivo «Front office al completo per il cenone: anticipa al 20-22 dicembre.»; lo stesso per ra-21 (ROL di Davide Marini) col suo motivo.
 12. Approvando un ROL con ore oltre il residuo compare «ROL insufficienti» con «Approva comunque».
 13. «Rifiuta» resta disabilitato finché il motivo è vuoto; dopo il rifiuto il dettaglio mostra «Motivo del rifiuto: …» e il toast è «Richiesta rifiutata».
 14. «Elimina» chiede sempre conferma (pulsante rosso «Elimina»), con la frase aggiuntiva per le approvate; dopo, la barra sparisce e il toast è «Richiesta eliminata».

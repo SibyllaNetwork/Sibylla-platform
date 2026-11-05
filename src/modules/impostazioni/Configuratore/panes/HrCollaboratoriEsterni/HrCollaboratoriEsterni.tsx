@@ -170,6 +170,7 @@ export default function HrCollaboratoriEsterni(_: CfgPaneComponentProps) {
               label="Reparti App Op! consentiti"
               placeholder="Scegli i reparti"
               nomePlurale="reparti"
+              genere="m"
               options={REPARTI_OPERATIVI.map(r => r.nome)}
               value={form.repartiOp.map(nomeReparto)}
               onChange={(nomi) => set('repartiOp', nomi.map(n => REPARTI_OP.find(r => r.nome === n)?.key).filter(Boolean) as RepartoOp[])}
@@ -178,6 +179,7 @@ export default function HrCollaboratoriEsterni(_: CfgPaneComponentProps) {
               label="Documenti richiesti"
               placeholder="Nessun documento"
               nomePlurale="documenti"
+              genere="m"
               options={DOCUMENTI_ESTERNI}
               value={form.documenti}
               onChange={(v) => set('documenti', v)}

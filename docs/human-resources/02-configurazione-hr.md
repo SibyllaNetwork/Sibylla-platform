@@ -39,7 +39,7 @@ Questi dati sono la **fonte unica** letta dalle altre pagine HR:
 | Voce | Valore |
 | --- | --- |
 | Id pagina | `hr-configurazione` |
-| Deep link | `hr-configurazione:<id-scheda>`. Id validi, nell'ordine delle schede: `hr-reparti`, `hr-orari`, `hr-turnistica`, `hr-ccnl`, `hr-aziende-appalto`, `hr-collaboratori-esterni`, `hr-integrazione-paghe` |
+| Deep link | `hr-configurazione:<id-scheda>` oppure `hr-configurazione:<id-scheda>:<scheda-interna>`. Id validi, nell'ordine delle schede: `hr-reparti`, `hr-orari`, `hr-turnistica`, `hr-ccnl`, `hr-aziende-appalto`, `hr-collaboratori-esterni`, `hr-integrazione-paghe`. Alias: `hr-tipologie-contratto` = `hr-ccnl:tipologie` |
 | Sidenav | Impresa › **Human Resources** › **Configurazione**: prima voce del gruppo, icona `fa-sliders`, colore del gruppo `#9B59B6`. La stessa voce c'è anche nei menu dedicati Tour Operator e Ristoranti |
 | Breadcrumb | Nessuno dentro la pagina. In questa modalità la shell non usa `CfgPane`, quindi non c'è il «trail» del Configuratore |
 | Titolo (PageHead) | «Configurazione HR» |
@@ -48,7 +48,9 @@ Questi dati sono la **fonte unica** letta dalle altre pagine HR:
 **Come si risolve la route.** `page === 'hr-configurazione'` oppure `page.startsWith('hr-configurazione:')` monta il Configuratore ristretto al gruppo `risorse-umane`.
 
 - L'id dopo i due punti diventa la scheda iniziale. Il componente è montato con `key={page}`: cambiare deep link rimonta la pagina.
-- Se l'id non è valido o non appartiene al gruppo, si apre la **prima** scheda (Reparti). Vale anche per `hr-tipologie-contratto`: esiste come pannello autonomo nel codice ma non come voce del gruppo, quindi il deep link apre Reparti.
+- Se l'id non è valido o non appartiene al gruppo, si apre la **prima** scheda (Reparti).
+- **Scheda interna.** Il segmento dopo un secondo «:» sceglie la scheda interna del pannello, se il pannello ne ha (oggi solo Contratti collettivi: `generale`, `tipologie`, `livelli`, `ferie`, `retribuzione`, `enti`). Un valore sconosciuto si ignora e si apre la scheda interna di default. La scheda interna vale solo all'ingresso: cambiando scheda e tornando, il pannello riparte da «Generale».
+- **Alias `hr-tipologie-contratto`.** Le tipologie di contratto non sono più una voce autonoma ma una scheda interna di Contratti collettivi: il deep link `hr-configurazione:hr-tipologie-contratto` apre **Contratti collettivi** direttamente sulla scheda interna **«Tipologie di contratto»** (equivale a `hr-configurazione:hr-ccnl:tipologie`).
 - Cliccare una scheda **non cambia** l'id di pagina: la scheda attiva è stato locale.
 
 **Da dove si arriva:**
@@ -146,14 +148,16 @@ Nel gruppo HR non ci sono prerequisiti né voci «in arrivo»: in pratica compai
 - Toast di successo: il messaggio è specifico della scheda (vedi la tabella in A.5) ed è **senza titolo**.
 - Toast d'errore: «Salvataggio non riuscito. Riprova.». Oggi non può comparire, perché il salvataggio mock non fallisce mai.
 
-### Modale di abbandono (cambio scheda con modifiche pendenti)
+### Modale di abbandono (modifiche pendenti)
 
-| Elemento | Testo |
-| --- | --- |
-| Titolo | «Modifiche non salvate» |
-| Messaggio con 1 modifica | «C'è 1 modifica non salvata: uscendo da questa voce andrà persa.» |
-| Messaggio con N modifiche | «Ci sono N modifiche non salvate: uscendo da questa voce andranno perse.» |
-| Pulsanti | «Resta» (annulla) e «Abbandona» (conferma, variante danger) |
+Compare in due casi, con lo stesso titolo e gli stessi pulsanti; cambia solo la parola «voce» o «pagina» del messaggio.
+
+| Elemento | Cambio scheda | Uscita dalla pagina |
+| --- | --- | --- |
+| Titolo | «Modifiche non salvate» | «Modifiche non salvate» |
+| Messaggio con 1 modifica | «C'è 1 modifica non salvata: uscendo da questa voce andrà persa.» | «C'è 1 modifica non salvata: uscendo da questa pagina andrà persa.» |
+| Messaggio con N modifiche | «Ci sono N modifiche non salvate: uscendo da questa voce andranno perse.» | «Ci sono N modifiche non salvate: uscendo da questa pagina andranno perse.» |
+| Pulsanti | «Resta» (annulla) e «Abbandona» (conferma, variante danger) | uguali |
 
 ## A.5 Stati e interazioni
 
@@ -171,7 +175,17 @@ Nel gruppo HR non ci sono prerequisiti né voci «in arrivo»: in pratica compai
    - «Abbandona»: il contatore delle modifiche si azzera, si cambia scheda e la bozza è persa, perché il pannello si smonta.
 4. Senza modifiche pendenti il cambio è immediato.
 
-**Lasciare la pagina** dalla sidenav o con Indietro **non** chiede conferma. Il pannello si smonta, azzera il contatore (`resetDirty` allo smontaggio) e la bozza va persa. Questo è il comportamento attuale.
+### Uscita dalla pagina
+
+Vale per ogni navigazione della piattaforma: voce della sidenav, «Indietro» del PageHead, schede della barra delle pagine (modalità a schede), preferiti, link interni dei pannelli (per esempio «Nuovo collaboratore», «Lista fornitori (Purchasing)»).
+
+1. Se `dirtyCount = 0` la navigazione è immediata.
+2. Se si naviga verso la **stessa** pagina già aperta (stesso id, deep link compreso) non succede nulla e non si chiede conferma: la pagina non si smonta.
+3. Altrimenti la navigazione si blocca e si apre la ConfirmDialog «Modifiche non salvate» con il messaggio «… uscendo da questa pagina …».
+   - «Resta»: si rimane sulla pagina, la bozza e la barra sono intatte.
+   - «Abbandona»: il contatore si azzera e la navigazione riprende esattamente com'era stata chiesta (verso la pagina scelta, oppure all'indietro nella cronologia con «Indietro»). La bozza è persa.
+
+**Come funziona.** La shell del Configuratore registra un guard nello store `useNavGuard` (`src/store/useNavGuard.ts`) finché è montata, e lo toglie allo smontaggio. Il guard ha la firma `(paginaDestinazione, proceed) => boolean`: `navigate` e `goBack` della piattaforma (`src/sibylla_dashboard.tsx`) lo interrogano prima di cambiare pagina; se restituisce `false` la pagina mostra la conferma e, se l'utente conferma, chiama `proceed()`, che completa la navigazione senza interrogare di nuovo il guard. Il guard è unico per la shell, quindi la stessa conferma vale anche per il Configuratore di Impostazioni (`configuratore`, `configuratore:<id>`) e per il pannello App Op!. Le pagine senza guard navigano come prima. Il cambio di profilo e la chiusura o il ricaricamento del browser non passano dal guard.
 
 ### Modello «bozza → Salva» (hook `useHrDraft`, comune a tutte le schede)
 
@@ -181,6 +195,8 @@ Nel gruppo HR non ci sono prerequisiti né voci «in arrivo»: in pratica compai
 4. Conteggio standard per gli elenchi con `id` (`diffCount`): +1 per ogni elemento della bozza assente in `saved` o con contenuto diverso (confronto `JSON.stringify`), +1 per ogni elemento di `saved` assente nella bozza. Quindi aggiungere, modificare o eliminare un elemento vale 1 ciascuno; modificare due volte lo stesso elemento vale sempre 1.
 5. **Salva**:
    - simula una chiamata di **300 ms**, poi scrive la bozza nello store (`commit`) e azzera il contatore;
+   - subito dopo la **bozza si riallinea ai dati salvati**: lo store (o il `commit` del pannello) può normalizzarli, per esempio Orari di lavoro toglie gli spazi al nome, scarta le fasce non valide e ricalcola il monte ore. Senza il riallineamento la barra ricomparirebbe con modifiche fantasma; con il riallineamento, dopo un salvataggio riuscito la barra resta nascosta finché l'utente non modifica di nuovo qualcosa. Vale per tutte le schede;
+   - se i dati salvati cambiano per altre ragioni (un'altra pagina scrive lo stesso store) e la bozza non ha modifiche, la bozza si allinea; se ha modifiche, resta com'è;
    - durante l'attesa il pulsante «Salva» mostra lo spinner (`sib-btn--loading`: testo trasparente, spinner bianco 14px) e i due pulsanti sono disabilitati;
    - al termine compare il toast di successo e la barra sparisce.
 6. **Annulla**: la bozza torna uguale ai dati salvati, subito, **senza conferma**, e il contatore si azzera.
@@ -197,11 +213,11 @@ Nel gruppo HR non ci sono prerequisiti né voci «in arrivo»: in pratica compai
 | Aziende in appalto | «Aziende in appalto salvate (anche in Purchasing)» |
 | Collaboratori esterni | «Collaboratori esterni salvati» |
 | Integrazione paghe | «Integrazione paghe salvata» |
-| Pannello autonomo Tipologie (non raggiungibile da questa pagina) | «Tipologie di contratto salvate» |
+| Pannello autonomo Tipologie (non raggiungibile da questa pagina: il suo deep link apre Contratti collettivi › Tipologie) | «Tipologie di contratto salvate» |
 
 ### Conferme di eliminazione
 
-Ogni «Elimina» passa dalla ConfirmDialog condivisa (`useConfirmStore`), sempre con `danger: true`. Il pulsante di annullamento ha l'etichetta di default «Annulla», quello di conferma l'etichetta indicata nella scheda. L'eliminazione confermata agisce sulla **bozza**: diventa definitiva solo con «Salva». I testi esatti sono nelle sezioni della Parte B.
+Ogni eliminazione («Elimina», e anche «Rimuovi» di un allegato o di un F24 in Aziende in appalto) passa dalla ConfirmDialog condivisa (`useConfirmStore`), sempre con `danger: true`. Il pulsante di annullamento ha l'etichetta di default «Annulla», quello di conferma l'etichetta indicata nella scheda. L'eliminazione confermata agisce sulla **bozza**: diventa definitiva solo con «Salva». I testi esatti sono nelle sezioni della Parte B.
 
 ### Caricamento ed errore
 
@@ -418,7 +434,7 @@ La barra è `role="status"`. Nella pagina HR è l'ultimo figlio del pannello, qu
 - **Riepilogo nel trigger**:
   - nessuna voce scelta: il placeholder;
   - una voce: il suo nome;
-  - più voci: `"N <nomePlurale> selezionate"`, letteralmente con «selezionate» femminile anche per «reparti» e «documenti».
+  - più voci: `"N <nomePlurale> selezionati"` se la prop `genere` è `'m'`, altrimenti `"N <nomePlurale> selezionate"` (default `'f'`, così gli usi esistenti non cambiano). In questa pagina «reparti» e «documenti» passano `genere="m"`: «2 reparti selezionati», «3 documenti selezionati». Fuori pagina «sale» (Configura outlet) e «aggregazioni» (Contratto di vendita) restano al femminile.
 - **Campo di ricerca**: compare solo se le opzioni sono più di 7 (`sogliaRicerca`). Placeholder «Cerca tra N <nomePlurale>…», `aria-label` «Cerca in <label>», autofocus. Senza risultati: «Nessun risultato».
 - **Riga rapida** in fondo al pannello: «Tutte» (con una ricerca attiva diventa «Seleziona i risultati»), «Nessuna» e il contatore «k/N».
 - **Checkbox**: classe `.sib-checkbox`.
@@ -545,23 +561,26 @@ Su 1920px non cambia nulla rispetto ai valori standard. Le soglie specifiche di 
 ## A.12 Criteri di accettazione (shell)
 
 1. `hr-configurazione` apre la pagina con il titolo «Configurazione HR», il sottotitolo esatto di A.2 e la scheda **Reparti** attiva.
-2. `hr-configurazione:hr-integrazione-paghe` apre direttamente la scheda «Integrazione paghe»; `hr-configurazione:pippo` e `hr-configurazione:hr-tipologie-contratto` aprono «Reparti».
+2. `hr-configurazione:hr-integrazione-paghe` apre direttamente la scheda «Integrazione paghe»; `hr-configurazione:pippo` apre «Reparti»; `hr-configurazione:hr-tipologie-contratto` (e `hr-configurazione:hr-ccnl:tipologie`) apre «Contratti collettivi» con la scheda interna «Tipologie di contratto (8)» attiva.
 3. Le schede sono sette, nell'ordine e con le icone `fa-light` di A.4. Sotto compare la descrizione della voce attiva in 12.5px, con le sigle del glossario (CCNL, ROL…) sottolineate e il tooltip.
 4. La scheda attiva ha testo e sottolineatura di 2px in `--color-primary`; in hover una scheda inattiva prende la sottolineatura `--color-primary-300`.
 5. Con il pannello largo meno di 1180px le schede restano su **una riga**, con padding 10px 9px e font 12.5px.
 6. Una modifica qualsiasi mostra la barra sticky «1 modifica non salvata», con il pallino arancione pulsante e i pulsanti «Annulla» / «Salva».
-7. Cambiando scheda con modifiche pendenti compare «Modifiche non salvate» con il testo al singolare o al plurale corretto. «Resta» non cambia nulla; «Abbandona» cambia scheda e la bozza è persa.
-8. «Salva» mostra lo spinner per circa 300 ms, poi il toast della scheda (per esempio «Reparti salvati») e la barra sparisce; ricaricando il browser i dati restano.
-9. «Annulla» ripristina subito i dati salvati, senza conferma.
-10. Dopo aver aperto «Aziende in appalto» con i dati demo al 5 novembre 2026, la scheda mostra il pallino arancione «Da completare», perché la ditta Movi ha contratto e DURC scaduti.
-11. Ogni eliminazione apre la ConfirmDialog col testo della scheda, e nulla viene eliminato senza conferma.
-12. Con `prefers-reduced-motion: reduce` il cambio scheda e la comparsa della barra non hanno animazioni e il pallino non pulsa.
-13. In tema scuro superfici, bordi e testi usano i valori scuri dei token e non resta nessun bianco puro.
-14. Nessuna tabella della pagina scorre in orizzontale a 1366px con la sidenav aperta, né a 1440 o 1920px.
+7. Cambiando scheda con modifiche pendenti compare «Modifiche non salvate» con il testo al singolare o al plurale corretto («… uscendo da questa voce …»). «Resta» non cambia nulla; «Abbandona» cambia scheda e la bozza è persa.
+8. Con modifiche pendenti, un clic su una voce della sidenav (anche «Configurazione» stessa, se la pagina era aperta con un deep link) o su «Indietro» apre «Modifiche non salvate» con «C'è 1 modifica non salvata: uscendo da questa pagina andrà persa.». «Resta» lascia pagina, bozza e barra intatte; «Abbandona» porta alla pagina scelta (o alla precedente con Indietro). Senza modifiche nessuna conferma. Lo stesso vale nel Configuratore di Impostazioni.
+9. Dopo «Salva» la barra non ricompare, anche se il salvataggio ha normalizzato i dati (per esempio un nome d'orario con spazi finali).
+10. «Salva» mostra lo spinner per circa 300 ms, poi il toast della scheda (per esempio «Reparti salvati») e la barra sparisce; ricaricando il browser i dati restano.
+11. «Annulla» ripristina subito i dati salvati, senza conferma.
+12. Dopo aver aperto «Aziende in appalto» con i dati demo al 5 novembre 2026, la scheda mostra il pallino arancione «Da completare», perché la ditta Movi ha contratto e DURC scaduti.
+13. Ogni eliminazione apre la ConfirmDialog col testo della scheda, e nulla viene eliminato senza conferma.
+14. Con `prefers-reduced-motion: reduce` il cambio scheda e la comparsa della barra non hanno animazioni e il pallino non pulsa.
+15. In tema scuro superfici, bordi e testi usano i valori scuri dei token e non resta nessun bianco puro.
+16. Nessuna tabella della pagina scorre in orizzontale a 1366px con la sidenav aperta, né a 1440 o 1920px.
 
 ## A.13 File sorgente (shell e kit)
 
 - `src/router/PageContent.tsx` (route `hr-configurazione`)
+- `src/sibylla_dashboard.tsx` (`navigate` e `goBack` che interrogano il guard) e `src/store/useNavGuard.ts` (guard di navigazione con `proceed`)
 - `src/modules/impostazioni/Configuratore/Configuratore.tsx`, `Configuratore.sass`
 - `src/modules/impostazioni/Configuratore/ConfiguratoreSezione.tsx`, `ConfiguratoreSezione.sass`
 - `src/modules/impostazioni/Configuratore/registry.ts`
@@ -901,7 +920,7 @@ Intestazione della griglia (`aria-hidden`): «Giorno» | «Fasce di lavoro (dall
 
 **Riga di un giorno** (Lun, Mar, Mer, Gio, Ven, Sab, Dom):
 
-- **Pulsante del giorno**, con il nome abbreviato e `aria-pressed`. Pieno blu se lavorativo, grigio se di riposo. Tooltip **nativo** (`title`):
+- **Pulsante del giorno**, con il nome abbreviato, `aria-pressed` e l'aria-label uguale al tooltip. Pieno blu se lavorativo, grigio se di riposo. Il pulsante sta dentro il componente `Tooltip` scuro (che lo avvolge in uno `span` inline-flex: il pulsante ha `flex:1 1 auto; width:100%` per riempire la colonna di 52px). Testo del tooltip:
   - giorno lavorativo: «Segna {Lun} come riposo»;
   - giorno di riposo: «Imposta l’orario di {Lun}».
 - **Fasce**:
@@ -927,7 +946,7 @@ Intestazione della griglia (`aria-hidden`): «Giorno» | «Fasce di lavoro (dall
 - a sinistra, con icona `fa-light fa-keyboard`: «Scrivi gli orari di ogni fascia, oppure trascina sulla barra del giorno: si disegna una fascia, si sposta, se ne allungano i bordi. Clic sul giorno = lavorativo / riposo.»;
 - a destra: «Totale settimanale **{40 h}** su {5} giorni». I giorni contati sono quelli attivi con minuti maggiori di 0.
 
-**Errori di una fascia** (bordo rosso e tooltip nativo `title` sulla fascia):
+**Errori di una fascia**: bordo rosso sulla fascia e, prima del pulsante ×, un'icona `fa-solid fa-circle-exclamation` (13px, `--color-error`, `padding:0 2px`, cursore `help`, `role="img"` con l'aria-label uguale al messaggio) avvolta dal `Tooltip` scuro con il messaggio:
 
 - «L’orario di fine deve essere dopo l’inizio»: inizio o fine vuoti, oppure fine ≤ inizio;
 - «Si sovrappone a un’altra fascia».
@@ -963,7 +982,7 @@ Intestazione della griglia (`aria-hidden`): «Giorno» | «Fasce di lavoro (dall
   - un giorno di riposo diventa lavorativo; se non ha fasce riceve 09:00–13:00 e 14:00–18:00;
   - un giorno lavorativo diventa di riposo, ma le fasce restano memorizzate: la barra del giorno va a opacità 0.45 e i blocchi diventano grigi.
 - **«Imposta orario»**: equivale a riattivare il giorno.
-- **Campi ora**: modificano inizio o fine della fascia. La validazione è visiva (bordo rosso e title) e non blocca il salvataggio.
+- **Campi ora**: modificano inizio o fine della fascia. La validazione è visiva (bordo rosso e icona d'errore con il Tooltip) e non blocca il salvataggio.
 - **×**: toglie la fascia. Se era l'ultima, il giorno diventa di riposo.
 - **«+ fascia»**:
   - senza fasce: aggiunge 09:00–13:00;
@@ -998,7 +1017,7 @@ Intestazione della griglia (`aria-hidden`): «Giorno» | «Fasce di lavoro (dall
 - un nome vuoto diventa «Orario senza nome»;
 - se l'orario non è a turni, `oreSettimanali` e `giorniSettimana` si ricalcolano dalle fasce.
 
-Anomalia attuale: dopo il salvataggio la bozza **non** viene riallineata ai dati normalizzati. Se la normalizzazione cambia qualcosa (per esempio il monte ore ricalcolato dopo aver modificato le fasce), la barra può ricomparire con «1 modifica non salvata». Nella reimplementazione conviene riallineare la bozza al salvato; se si vuole l'identità assoluta con la demo, riprodurre l'anomalia.
+Dopo il salvataggio la bozza si **riallinea** ai dati normalizzati (A.5): le fasce scartate spariscono anche dall'editor, il nome appare ripulito e la barra non ricompare.
 
 ### B.2.6 Dati e regole di business
 
@@ -1193,7 +1212,7 @@ Copia su… e piede:
 - I blocchi sono `role="button"` con `tabIndex 0`, l'aria-label «{giorno} dalle {inizio} alle {fine}» e la tastiera descritta in B.2.5.
 - La mini-settimana è decorativa (`aria-hidden`).
 - Il campo della pausa ha un aria-label esplicito.
-- I tooltip del pulsante del giorno e gli errori delle fasce sono **nativi** (`title`). È una deroga allo standard del Tooltip scuro, da riprodurre identica.
+- Il pulsante del giorno e l'icona d'errore della fascia usano il `Tooltip` scuro standard (sfondo #1E293B, testo bianco), che compare anche al fuoco da tastiera sul pulsante; l'aria-label ripete il testo.
 
 ### B.2.12 Criteri di accettazione
 
@@ -1203,7 +1222,7 @@ Copia su… e piede:
 4. Trascinando su Sab dalle 09:00 alle 12:00 compare il fantasma «09:00–12:00»; al rilascio Sab diventa lavorativo con la fascia 09:00–12:00 e le ore «3 h».
 5. Un clic singolo su uno spazio vuoto crea una fascia di 1 ora.
 6. Con il fuoco su un blocco, → lo sposta di 15 minuti, Maiusc+→ allunga la fine di 15 minuti, Canc lo elimina.
-7. Scrivendo una fine uguale all'inizio la fascia ha il bordo rosso e il title «L’orario di fine deve essere dopo l’inizio».
+7. Scrivendo una fine uguale all'inizio la fascia ha il bordo rosso e l'icona d'errore; al passaggio del mouse sull'icona il Tooltip scuro dice «L’orario di fine deve essere dopo l’inizio». Passando sul pulsante «Lun» il Tooltip scuro dice «Segna Lun come riposo». Nessun pulsante o fascia della scheda usa `title`.
 8. «Copia» su Lun → «Lun–Ven» → «Applica» copia le fasce del lunedì da Mar a Ven.
 9. «Nuovo orario» aggiunge «Nuovo orario» con il modello 9–13 · 14–18 e la barra conta +1.
 10. Accendendo «Orario a turni» l'editor è sostituito da «Ore settimanali» e «Giorni di servizio a settimana»; scrivendo 9 nei giorni il valore diventa 7.
@@ -1211,6 +1230,7 @@ Copia su… e piede:
 12. Sotto i 980px di larghezza del pannello l'elenco va sopra il dettaglio, in schede affiancate da almeno 240px.
 13. Sotto i 760px di viewport l'intestazione della griglia sparisce.
 14. Salvando compare il toast «Orari di lavoro salvati».
+15. Aggiungendo due spazi in coda al nome la barra dice «1 modifica non salvata»; dopo «Salva» la barra sparisce e **non** ricompare, e il nome è senza spazi.
 
 ### B.2.13 File sorgente
 
@@ -1408,8 +1428,8 @@ Con la conferma «Elimina» il turno esce dalla bozza e il suo id viene tolto da
 **Formule:**
 
 - `oreTurno(t)` = `max(0, durataMin(inizio, fine) + durataMin(inizio2, fine2) − pausaMin) / 60`. `durataMin` gestisce la mezzanotte: per esempio 23:00–07:00 = 480 minuti.
-- `turnoNotturno(t)`: si scorre **solo la prima fascia** a passi di 15 minuti e si contano i minuti in cui l'ora (modulo 24) è ≥ 22 oppure < 6. Il turno è notturno se i minuti sono ≥ **180**, cioè almeno 3 ore.
-  - Il commento nel codice parla di «almeno un'ora», ma vale il codice: 3 ore, come dice anche il testo della modale.
+- `turnoNotturno(t)`: si scorrono **entrambe le fasce** (la seconda solo se il turno è spezzato) a passi di 15 minuti e si contano i minuti in cui l'ora (modulo 24) è ≥ 22 oppure < 6. Il turno è notturno se la **somma** è ≥ **180** minuti, cioè almeno 3 ore: è la soglia del lavoratore notturno (D.Lgs. 66/2003), la stessa del testo della modale. Codice e commento dicono la stessa cosa.
+  - Esempio: spezzato 18:00–20:00 / 22:00–01:00 → 0 + 180 minuti = notturno. Con il seed nessun turno cambia tipo: lo Spezzato 10:00–14:00 / 18:00–22:00 ha 0 minuti notturni.
 - Tipo mostrato in tabella: Notturno se `turnoNotturno`, altrimenti Spezzato se c'è `inizio2`, altrimenti Diurno.
 - Formato delle ore (`fmtOre`): gli interi così come sono, altrimenti 1 decimale con la virgola («7,5»).
 - Piede dello schema:
@@ -1524,9 +1544,9 @@ Il server deve rifiutare uno schema che referenzia un turno inesistente, oppure 
 2. La colonna Reparti di Mattina dice «Tutti i reparti», quella di Spezzato «F&B, Cucina».
 3. Le tre schede degli schemi mostrano i piedi esatti, per esempio «Ciclo di 8 giorni · 6 lavorati, 2 di riposo · ≈ 39,4 h/sett.».
 4. In «Nuovo turno», la sigla «m» diventa «M» e mostra «Sigla già usata»; il pulsante resta disabilitato.
-5. Impostando 22:00–06:00 il riepilogo dice «Ore nette: **7,5 h** · turno notturno (almeno 3 ore tra le 22 e le 6): si applica la maggiorazione del CCNL».
+5. Impostando 22:00–06:00 il riepilogo dice «Ore nette: **7,5 h** · turno notturno (almeno 3 ore tra le 22 e le 6): si applica la maggiorazione del CCNL». Con un turno spezzato 18:00–20:00 / 22:00–01:00 compare la stessa frase; con 18:00–20:00 / 22:00–23:00 no.
 6. Accendendo «Turno spezzato» compaiono 18:00–22:00 come seconda fascia.
-7. La multiselect dei reparti elenca solo i reparti attivi: Marketing non c'è.
+7. La multiselect dei reparti elenca solo i reparti attivi: Marketing non c'è. Scegliendone due il trigger dice «2 reparti selezionati».
 8. Eliminando «Mattina», la conferma cita «2 schemi di rotazione (Ciclo continuo 3 turni, Rotazione 6+1 M/P)»; dopo la conferma le M spariscono dalle sequenze.
 9. Senza turni, «Nuovo schema» è disabilitato.
 10. Nel builder, cliccando «Mattina», «Riposo» e poi il primo chip, la sequenza resta [R].
@@ -1560,8 +1580,8 @@ Crea anagrafica legge da qui livelli, RAL minima, spettanze proposte e tipologie
 ### B.4.2 Accesso
 
 - Scheda 4. Deep link `hr-configurazione:hr-ccnl`; Crea anagrafica ci porta con il link «Configuralo in Human Resources › Configurazione».
-- La scheda interna attiva non ha un deep link: all'apertura è sempre «Generale».
-- Il pannello autonomo `hr-tipologie-contratto` esiste nel codice ma non è raggiungibile da questa pagina (vedi A.2).
+- Scheda interna da deep link: `hr-configurazione:hr-ccnl:<scheda>` con `generale`, `tipologie`, `livelli`, `ferie`, `retribuzione`, `enti`. Senza segmento, o con un valore sconosciuto, si apre «Generale».
+- `hr-configurazione:hr-tipologie-contratto` apre questa scheda direttamente su «Tipologie di contratto» (vedi A.2). Il pannello autonomo `hr-tipologie-contratto` resta nel codice (il suo editor è riusato qui) ma non si monta più da solo.
 
 ### B.4.3 Layout
 
@@ -1598,11 +1618,11 @@ Crea anagrafica legge da qui livelli, RAL minima, spettanze proposte e tipologie
   ┌ form ─────────────────────────────────────┐ ┌ aside anteprima (280px, sfondo primary-50) ┐
   │ Spettanze annue (full time)               │ │ Anteprima spettanze                         │
   │ [Ferie gg/anno] [Giorni su settimana di ▾]│ │        │Full time│Part time 75%             │
-  │ [ROL ore/anno]  [Ex festività ore/anno]   │ │ Ferie / anno   26 gg   19.5 gg              │
-  │ Maturazione e fruizione                   │ │ Ferie / mese   2.17 gg 1.63 gg              │
+  │ [ROL ore/anno]  [Ex festività ore/anno]   │ │ Ferie / anno   26 gg   19,5 gg              │
+  │ Maturazione e fruizione                   │ │ Ferie / mese   2,17 gg 1,63 gg              │
   │ Maturazione ( ) Ratei mensili (1/12) …    │ │ ROL / anno     72 h    54 h                 │
   │ [Frazione di mese…] [Ferie da godere…]    │ │ Ex festività   32 h    24 h                 │
-  │ [Ferie residue: entro] [Permessi … entro] │ │ Permessi / mese 8.67 h 6.5 h                │
+  │ [Ferie residue: entro] [Permessi … entro] │ │ Permessi / mese 8,67 h 6,5 h                │
   │ [toggle] Riproporziona al part time       │ │ [Percentuale di prova  75 ]                 │
   │ [toggle] Maturano anche nelle assenze…    │ └─────────────────────────────────────────────┘
   └───────────────────────────────────────────┘
@@ -1752,7 +1772,7 @@ Modale del livello:
 - righe «Ferie / anno» (gg), «Ferie / mese» (gg), «ROL / anno» (h), «Ex festività» (h), «Permessi / mese» (h);
 - campo `cc-prev` «Percentuale di prova», number, min 10, max 100, step 5, default **75**, con il valore limitato tra 10 e 100.
 
-I numeri si mostrano con il `toString` di JavaScript, quindi con il **punto decimale**: «2.17 gg», «19.5 gg».
+I numeri si mostrano in formato italiano (`toLocaleString('it-IT', { maximumFractionDigits: 2 })`), quindi con la **virgola decimale** e senza zeri finali: «2,17 gg», «19,5 gg», «26 gg».
 
 #### Scheda «Retribuzione»
 
@@ -1778,7 +1798,7 @@ I numeri si mostrano con il `toString` di JavaScript, quindi con il **punto deci
 
 **Selezione.**
 
-- All'apertura è selezionato il primo CCNL salvato, sulla scheda «Generale».
+- All'apertura è selezionato il primo CCNL salvato, sulla scheda «Generale» (oppure su quella chiesta dal deep link, vedi B.4.2).
 - Cambiando CCNL la scheda interna **resta** quella corrente.
 
 **«Nuovo CCNL».** Aggiunge in coda un CCNL con i default di B.4.6, nome «Nuovo CCNL», senza livelli; lo seleziona e porta su «Generale». Vale +1.
@@ -1890,11 +1910,11 @@ Anteprima con il seed Turismo:
 
 | Riga | Full time | Part time 75% |
 | --- | --- | --- |
-| Ferie / anno | 26 gg | 19.5 gg |
-| Ferie / mese | 2.17 gg | 1.63 gg |
+| Ferie / anno | 26 gg | 19,5 gg |
+| Ferie / mese | 2,17 gg | 1,63 gg |
 | ROL / anno | 72 h | 54 h |
 | Ex festività | 32 h | 24 h |
-| Permessi / mese | 8.67 h | 6.5 h |
+| Permessi / mese | 8,67 h | 6,5 h |
 
 **Seed delle tipologie (8):**
 
@@ -2025,7 +2045,7 @@ Il calcolo delle spettanze e della RAL minima può restare sul frontend, ma va r
 2. Le schede interne sono 6, con i conteggi «Tipologie di contratto (8)» e «Livelli (10)».
 3. In «Livelli», la riga 4° mostra «€ 1.590», «€ 22.260», «60 gg» e «30 gg»; la freccia su della prima riga e quella giù dell'ultima sono disabilitate.
 4. Cambiando «Mensilità» in 13 la frase dice «il minimo × 13 mensilità» e la RAL del 4° diventa «€ 20.670».
-5. In «Ferie e permessi» l'anteprima dice, al 75%, «19.5 gg», «1.63 gg», «54 h», «24 h» e «6.5 h».
+5. In «Ferie e permessi» l'anteprima dice, al full time, «26 gg», «2,17 gg», «72 h», «32 h», «8,67 h» e, al 75%, «19,5 gg», «1,63 gg», «54 h», «24 h» e «6,5 h»: mai il punto decimale.
 6. Spegnendo «Riproporziona al part time» le due colonne dell'anteprima diventano uguali.
 7. «Nuovo CCNL» crea «Nuovo CCNL» con la meta «Completa i dati generali», «0 livelli · 26 gg ferie · 104 h permessi», e apre «Generale».
 8. Duplica crea «CCNL Turismo – Aziende alberghiere (copia)», con 10 livelli dagli id nuovi.
@@ -2034,6 +2054,7 @@ Il calcolo delle spettanze e della RAL minima può restare sul frontend, ma va r
 11. Modificando una tipologia e un CCNL la barra dice «2 modifiche non salvate» e un solo «Salva» li scrive entrambi, con il toast «Contratti collettivi salvati».
 12. Sotto i 900px di pannello l'anteprima delle spettanze va sotto il form.
 13. Salvando senza livelli in nessun CCNL la scheda mostra «Da completare».
+14. `hr-configurazione:hr-tipologie-contratto` apre questa scheda con «Tipologie di contratto (8)» attiva e l'elenco delle tipologie visibile.
 
 ### B.4.13 File sorgente
 
@@ -2226,7 +2247,7 @@ ToggleSwitch «Appalto soggetto alle verifiche sulle ritenute (art. 17-bis D.Lgs
 
 Cella F24:
 
-- con l'allegato: il nome del file (`TruncatedText`) e il pulsante `fa-solid fa-xmark` con Tooltip e aria-label «Rimuovi F24»;
+- con l'allegato: il nome del file (`TruncatedText`) e il pulsante `fa-solid fa-xmark` con Tooltip e aria-label «Rimuovi F24», che chiede conferma (B.5.5);
 - senza: il pulsante graffetta `fa-solid fa-paperclip`, aria-label «Allega F24», Tooltip «Allega l’F24 delle ritenute (richiesto)» con l'icona **rossa** se richiesto, altrimenti «Allega l’F24».
 - L'F24 è richiesto quando `art17bis` è attivo **e** manca il DURF.
 
@@ -2245,7 +2266,7 @@ Altri testi:
 Barra: h4 «Collaboratori ({n})» e due pulsanti:
 
 - «Stampa badge degli autorizzati ({k})» (`sib-btn--secondary sib-btn--sm`, icona `fa-light fa-print`), disabilitato con k = 0;
-- «Nuovo collaboratore» (`sib-btn--primary sib-btn--sm`, icona `fa-light fa-user-plus`), disabilitato finché l'azienda non è **salvata**, con il tooltip **nativo** `title` «Salva prima la nuova azienda».
+- «Nuovo collaboratore» (`sib-btn--primary sib-btn--sm cfg-hrapp__coll-new`, icona `fa-light fa-user-plus`), disabilitato finché l'azienda non è **salvata**. È avvolto dal `Tooltip` scuro, che solo da disabilitato dice «Salva prima la nuova azienda» (abilitato non ha tooltip). Da disabilitato il pulsante ha `pointer-events:none`, così l'hover arriva al Tooltip.
 
 | Colonna | Larghezza | Contenuto |
 | --- | --- | --- |
@@ -2265,7 +2286,7 @@ Tabella vuota: «Nessun collaboratore registrato per questa azienda.».
 - Con il file:
   - icona `fa-light fa-file-pdf` in primary e il nome del file (`TruncatedText`, larghezza massima 280px);
   - pulsante «Visualizza» (`fa-solid fa-eye`, aria-label «Visualizza {label}»), solo se il file ha un `dataUrl`: lo apre in una nuova scheda;
-  - pulsante «Rimuovi» (`fa-solid fa-trash-can`, aria-label «Rimuovi {label}»).
+  - pulsante «Rimuovi» (`fa-solid fa-trash-can`, Tooltip «Rimuovi», aria-label «Rimuovi {label}»), che chiede conferma (B.5.5).
 - Campo data opzionale, largo 170px, con la sua label.
 - Pulsante `sib-btn--secondary sib-btn--sm` con icona `fa-light fa-folder-open` e testo «Carica», oppure «Sostituisci» se c'è già un file.
 - Input file nascosto, con `accept="application/pdf,image/*"`.
@@ -2291,7 +2312,10 @@ La nuova azienda viene selezionata e vale +1.
 - **Carica / Sostituisci**: apre la scelta del file.
 - Oltre **2 MB**: toast d'errore con messaggio «Il file supera i 2 MB.» e titolo uguale alla label del campo, oppure «F24» per la cella F24.
 - Altrimenti il file viene letto come Data URL e salvato nella bozza come `{nome, dataUrl}`. Viene registrato anche se il tipo non corrisponde a `accept`.
-- **Rimuovi**: toglie l'allegato **subito, senza conferma**. È una deroga alla regola «ogni eliminazione con conferma», ma resta nella bozza e si può annullare con «Annulla».
+- **Rimuovi** → ConfirmDialog (danger, annullamento «Annulla»):
+  - allegato: titolo «Rimuovi allegato», messaggio «Rimuovere «{nome file}» da «{label}»? Il file si toglie dalla bozza e la rimozione diventa definitiva con «Salva».», conferma «Rimuovi»;
+  - F24: titolo «Rimuovi F24», messaggio «Rimuovere l’F24 «{nome file}» da questo pagamento? Il file si toglie dalla bozza e la rimozione diventa definitiva con «Salva».», conferma «Rimuovi»;
+  - confermando, l'allegato esce dalla bozza (+1 nella barra se l'azienda era salvata così); «Annulla» lascia tutto com'è.
 
 **Pagamenti.**
 
@@ -2306,7 +2330,7 @@ La nuova azienda viene selezionata e vale +1.
 - La struttura sul badge è quella corrente (`useStrutturaCorrente`), oppure «Struttura».
 - «Stampa badge degli autorizzati» stampa i collaboratori con lo stato `attiva` o `in-scadenza`.
 
-**«Nuovo collaboratore».** Abilitato solo se l'azienda selezionata esiste tra quelle **salvate**. Naviga a `nuovo-collaboratore-esterno:<id>` senza salvare né chiedere conferma: eventuali modifiche non salvate della scheda vanno perse, perché la pagina si smonta.
+**«Nuovo collaboratore».** Abilitato solo se l'azienda selezionata esiste tra quelle **salvate**. Naviga a `nuovo-collaboratore-esterno:<id>` senza salvare: con modifiche non salvate compare prima la conferma di uscita dalla pagina (A.5), e con «Abbandona» le modifiche vanno perse.
 
 **Ordine dei collaboratori.** Per cognome (`localeCompare`).
 
@@ -2534,7 +2558,7 @@ Solo le transizioni degli elementi dell'elenco (150ms) e quelle comuni. Il cambi
 - L'icona d'avviso nell'elenco ha l'`aria-label` con l'elenco degli avvisi: non c'è un tooltip, quindi chi vede può leggere gli avvisi solo nella testa del dettaglio.
 - Tutti i pulsanti icona hanno l'aria-label e il Tooltip.
 - I campi in tabella hanno l'`ariaLabel`.
-- Il disabilitato di «Nuovo collaboratore» è spiegato da un `title` nativo.
+- Il disabilitato di «Nuovo collaboratore» è spiegato dal `Tooltip` scuro «Salva prima la nuova azienda».
 
 ### B.5.12 Criteri di accettazione
 
@@ -2549,9 +2573,10 @@ Solo le transizioni degli elementi dell'elenco (150ms) e quelle comuni. Il cambi
 9. In Pagamenti di Splendor ci sono 3 righe e il totale «€ 54.630»; «Registra pagamento» aggiunge una riga con il mese corrente.
 10. Con art. 17-bis attivo e senza DURF, la graffetta F24 è rossa con il tooltip «Allega l’F24 delle ritenute (richiesto)».
 11. In Collaboratori di Movi, Benali Karim ha il triangolo con il tooltip «Documenti mancanti: DURC» e il badge «Scaduto»; «Stampa badge degli autorizzati (0)» è disabilitato.
-12. «Nuova azienda» crea «Nuova azienda» con «P. IVA mancante» e «DUVRI da compilare»; «Nuovo collaboratore» è disabilitato con il title «Salva prima la nuova azienda».
+12. «Nuova azienda» crea «Nuova azienda» con «P. IVA mancante» e «DUVRI da compilare»; «Nuovo collaboratore» è disabilitato e al passaggio del mouse il Tooltip scuro dice «Salva prima la nuova azienda».
 13. Salvando compare il toast «Aziende in appalto salvate (anche in Purchasing)» e la ditta appare in Lista fornitori.
 14. La scheda mostra «Da completare» finché almeno una ditta ha un avviso rosso.
+15. In «Sicurezza» di Splendor, «Rimuovi» sul DUVRI apre «Rimuovi allegato» con «Rimuovere «DUVRI_Splendor_rev2.pdf» da «DUVRI firmato (PDF)»? …»; «Annulla» lascia il file, «Rimuovi» lo toglie e la barra conta +1. Lo stesso per la × dell'F24 in «Pagamenti e fisco».
 
 ### B.5.13 File sorgente
 
@@ -2848,7 +2873,7 @@ Non sono previste notifiche.
 
 1. La tabella mostra 3 categorie con i reparti «Pulizie», «Manutenzione» e «Front Office, Magazzino», le durate 12/12/6 mesi e 1 addetto ciascuna.
 2. In «Nuova categoria» il pulsante «Crea categoria» resta disabilitato finché non si scelgono il nome **e** almeno un reparto.
-3. La multiselect dei reparti ha 6 opzioni, senza Risorse umane né Business Intelligence; scegliendone 2 il trigger dice «2 reparti selezionate».
+3. La multiselect dei reparti ha 6 opzioni, senza Risorse umane né Business Intelligence; scegliendone 2 il trigger dice «2 reparti selezionati» (e «2 documenti selezionati» per i documenti).
 4. I documenti di default di una nuova categoria sono «Contratto d’appalto» e «Documento d’identità»; «DUVRI» non è tra le opzioni.
 5. Eliminando «Facchino» la conferma dice «…è assegnata a 1 collaboratori: resteranno senza categoria…».
 6. L'anteprima mostra il badge di Morra Elena (Splendor), con la banda `--chart-1`, il QR e il retro sotto.
@@ -3422,13 +3447,6 @@ Le operazioni sui segreti vanno tracciate (audit).
 
 Comportamenti attuali discutibili: per avere l'identità con la demo vanno riprodotti; se si correggono, va segnalato.
 
-1. **Orari di lavoro, barra dopo il salvataggio**: la bozza non si riallinea ai dati normalizzati, quindi dopo il salvataggio la barra può ricomparire con «1 modifica non salvata» (B.2.5).
-2. **Uscire dalla pagina** (sidenav o Indietro) con modifiche pendenti non chiede conferma; la chiede solo il cambio scheda.
-3. **CfgMultiSelect**: il riepilogo usa sempre il femminile «selezionate» («2 reparti selezionate»).
-4. **Aziende in appalto, «Rimuovi» allegato**: è immediato, senza conferma; le aziende non si eliminano da questa scheda.
-5. **Tooltip nativi** (`title`): sul pulsante del giorno e sugli errori delle fasce in Orari, e su «Nuovo collaboratore» disabilitato. Sono deroghe al Tooltip scuro standard.
-6. **Ferie e permessi, anteprima**: i decimali hanno il punto («2.17 gg»), non la virgola.
-7. **Turno notturno**: si valuta solo la prima fascia, con la soglia di 3 ore; il commento nel codice dice 1 ora.
-8. **Deep link `hr-tipologie-contratto`**: apre Reparti, perché le tipologie stanno dentro Contratti collettivi.
-9. **Integrazione paghe, prova del collegamento**: il risultato va salvato con «Salva», altrimenti non conta per il completamento.
-10. **Eliminazioni senza controllo d'uso**: reparti, orari, turni, CCNL, livelli, tipologie e categorie si eliminano anche se usati altrove.
+1. **Integrazione paghe, prova del collegamento**: il risultato va salvato con «Salva», altrimenti non conta per il completamento.
+2. **Eliminazioni senza controllo d'uso**: reparti, orari, turni, CCNL, livelli, tipologie e categorie si eliminano anche se usati altrove.
+3. **Chiusura o ricaricamento del browser** con modifiche pendenti: nessuna conferma, la bozza va persa (la conferma copre solo la navigazione interna, A.5).

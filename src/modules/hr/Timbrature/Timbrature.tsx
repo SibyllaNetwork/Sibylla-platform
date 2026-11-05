@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import QRCode from 'qrcode'
 import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
@@ -19,6 +18,7 @@ import {
 } from '../_presenze/presenze.model'
 import { POSTAZIONI } from '../_presenze/ModaleTimbrature'
 import { exportXls } from '../hrExport'
+import Kiosk, { APP_URL, POSTAZIONE_DEFAULT, kioskPath, useAdesso, useQr, useQrTimbratura } from './Kiosk'
 import './Timbrature.sass'
 
 /**
@@ -31,9 +31,7 @@ import './Timbrature.sass'
  */
 
 const PAGE_SIZE = 10
-const DURATA_QR = 60
-const APP_URL = 'https://app.sibyllaop.it/'
-const KIOSK_PATH = '/kiosk?p=principale'
+const KIOSK_PATH = kioskPath(POSTAZIONE_DEFAULT)
 
 const MOTIVI_RITARDO = ['Traffico sulla statale', 'Visita medica', 'Sciopero dei mezzi', 'Accompagno i figli a scuola', '']
 
@@ -59,28 +57,6 @@ interface FormTimbratura {
 const fmtData = (iso: string) => iso.split('-').reverse().join('/')
 const iniziali = (d: { nome: string; cognome: string }) => `${d.nome[0]}${d.cognome[0]}`
 
-/** Token del QR: cambia a ogni finestra di DURATA_QR secondi. */
-const tokenQr = (finestra: number) => (finestra * 2654435761 >>> 0).toString(36).toUpperCase()
-
-function useQr(testo: string, larghezza = 240) {
-  const [url, setUrl] = useState('')
-  useEffect(() => {
-    let vivo = true
-    QRCode.toDataURL(testo, { errorCorrectionLevel: 'M', margin: 1, width: larghezza, color: { dark: '#1E293B', light: '#FFFFFF' } })
-      .then((u) => { if (vivo) setUrl(u) })
-      .catch(() => { if (vivo) setUrl('') })
-    return () => { vivo = false }
-  }, [testo, larghezza])
-  return url
-}
-
-/** Orologio al secondo (per countdown del QR e kiosk). */
-function useAdesso() {
-  const [ora, setOra] = useState(() => new Date())
-  useEffect(() => { const t = window.setInterval(() => setOra(new Date()), 1000); return () => window.clearInterval(t) }, [])
-  return ora
-}
-
 export default function Timbrature({ navigate }: { navigate: (p: string) => void }) {
   const giornata = useGiornataPresenze()
   const timbratureManuali = useRegistroPresenzeStore((s) => s.timbrature)
@@ -94,10 +70,7 @@ export default function Timbrature({ navigate }: { navigate: (p: string) => void
   const minutiOra = adesso.getHours() * 60 + adesso.getMinutes()
 
   // ── QR del kiosk ──
-  const finestra = Math.floor(adesso.getTime() / 1000 / DURATA_QR)
-  const scadeTra = DURATA_QR - (Math.floor(adesso.getTime() / 1000) % DURATA_QR)
-  const testoQr = `${APP_URL}timbra?p=principale&k=${tokenQr(finestra)}`
-  const qrKiosk = useQr(testoQr, 480)
+  const { qr: qrKiosk, scadeTra } = useQrTimbratura(POSTAZIONE_DEFAULT, adesso)
   const qrApp = useQr(APP_URL, 240)
   const [kiosk, setKiosk] = useState(false)
   const kioskUrl = `${window.location.origin}${KIOSK_PATH}`
@@ -255,11 +228,19 @@ export default function Timbrature({ navigate }: { navigate: (p: string) => void
               <div className="tmb__url">
                 <span className="tmb__url-lbl">Indirizzo del kiosk</span>
                 <code className="tmb__code">{KIOSK_PATH}</code>
-                <Tooltip text="Copia l'indirizzo">
-                  <button type="button" className="sib-btn sib-btn--icon tmb__ico" aria-label="Copia l'indirizzo del kiosk" onClick={() => copia(kioskUrl)}>
-                    <i className="fa-solid fa-copy" />
-                  </button>
-                </Tooltip>
+                <span className="tmb__url-tools">
+                  <Tooltip text="Copia l'indirizzo">
+                    <button type="button" className="sib-btn sib-btn--icon tmb__ico" aria-label="Copia l'indirizzo del kiosk" onClick={() => copia(kioskUrl)}>
+                      <i className="fa-solid fa-copy" />
+                    </button>
+                  </Tooltip>
+                  <Tooltip text="Apri in una nuova scheda">
+                    <button type="button" className="sib-btn sib-btn--icon tmb__ico" aria-label="Apri il kiosk in una nuova scheda"
+                      onClick={() => window.open(kioskUrl, '_blank', 'noopener')}>
+                      <i className="fa-solid fa-arrow-up-right-from-square" />
+                    </button>
+                  </Tooltip>
+                </span>
               </div>
             </div>
           </div>
@@ -276,8 +257,8 @@ export default function Timbrature({ navigate }: { navigate: (p: string) => void
               <span className="tmb__qr-note">Inquadralo per installare l'app</span>
             </div>
             <div className="tmb__how">
-              <p className="tmb__app-stat"><b>{attivi.length}</b> di {DIPENDENTI_PRESENZE.length} dipendenti hanno attivato l'App Op!</p>
-              <p className="tmb__app-stat">Ultimi 7 giorni: <b>{dallApp7gg}</b> timbrature dall'app.</p>
+              <p className="tmb__app-info"><b>{attivi.length}</b> di {DIPENDENTI_PRESENZE.length} dipendenti hanno attivato l'App Op!</p>
+              <p className="tmb__app-info">Ultimi 7 giorni: <b>{dallApp7gg}</b> timbrature dall'app.</p>
               {daAttivare.length > 0 && (
                 <div className="tmb__attivare">
                   <span>Da attivare:</span>
@@ -449,7 +430,7 @@ export default function Timbrature({ navigate }: { navigate: (p: string) => void
       </Modal>
 
       {kiosk && createPortal(
-        <Kiosk qr={qrKiosk} scadeTra={scadeTra} adesso={adesso} onClose={() => setKiosk(false)} />,
+        <Kiosk postazione={POSTAZIONE_DEFAULT} onClose={() => setKiosk(false)} />,
         document.body,
       )}
     </div>
@@ -465,29 +446,5 @@ function Persona({ d }: { d: DipendentePresenze }) {
         <span className="tmb__persona-rep"><i className={`fa-solid ${repartoIcon(d.reparto)}`} aria-hidden="true" />{d.reparto}</span>
       </span>
     </span>
-  )
-}
-
-/** Schermata del kiosk: QR grande che si rinnova, orologio e istruzioni. Esc per uscire. */
-function Kiosk({ qr, scadeTra, adesso, onClose }: { qr: string; scadeTra: number; adesso: Date; onClose: () => void }) {
-  useEffect(() => {
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', esc)
-    return () => window.removeEventListener('keydown', esc)
-  }, [onClose])
-  const ora = `${String(adesso.getHours()).padStart(2, '0')}:${String(adesso.getMinutes()).padStart(2, '0')}`
-  const data = adesso.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
-  return (
-    <div className="tmb-kiosk" role="dialog" aria-label="Kiosk di timbratura">
-      <button type="button" className="tmb-kiosk__close" onClick={onClose} aria-label="Chiudi il kiosk">
-        <i className="fa-solid fa-xmark" />
-      </button>
-      <div className="tmb-kiosk__clock">{ora}</div>
-      <div className="tmb-kiosk__date">{data}</div>
-      <div className="tmb-kiosk__qr">{qr && <img src={qr} alt="QR code di timbratura" />}</div>
-      <p className="tmb-kiosk__msg">Inquadra il codice con l'<b>App Op!</b> per timbrare l'entrata o l'uscita</p>
-      <div className="tmb-kiosk__bar"><span className="tmb-kiosk__bar-fill" style={{ '--p': `${(scadeTra / DURATA_QR) * 100}%` } as React.CSSProperties} /></div>
-      <p className="tmb-kiosk__scade">Il codice si rinnova tra {scadeTra}s · Esc per uscire</p>
-    </div>
   )
 }

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
@@ -18,6 +19,10 @@ import { useModuloAttivo } from '../../../hooks/useModuloAttivo'
 import { invitaDipendenteOp, useStrutturaOp } from '../../appop/invitoAnagrafica'
 import { formatoData, type InvitoOp } from '../../appop/opApi'
 import OpInvitoModal from '../../appop/OpInvitoModal'
+import { InputField } from '../../../core/components/form'
+import { useConfirmStore } from '../../../store/useConfirmStore'
+import { useAnagrafichePersonaleStore } from '../../../store/useAnagrafichePersonaleStore'
+import { type PersonaleItem, elencoDemo, backendNonRaggiungibile, messaggioErrore } from './personaleDemo'
 
 // yyyy-mm-dd → dd/mm/yyyy
 const fmtDate = (iso?: string) => {
@@ -56,31 +61,6 @@ const toIsoDate = (d?: string) => {
  * `/Sibylla/anagrafica-personale/GetAll`.
  */
 
-interface PersonaleItem {
-  id?: number
-  matricola?: number | string
-  nome?: string
-  cognome?: string
-  telefono?: string
-  email?: string
-  contatto_emergenza?: string
-  nato_il?: string
-  codice_fiscale?: string
-  indirizzo?: string
-  cap?: string
-  provincia?: string
-  nazione?: string
-  documenti?: {
-    identita?: string
-    codiceFiscale?: string
-    contratto?: string
-    privacy?: string
-    sicurezza?: string
-    altri?: string[]
-  }
-  [key: string]: unknown
-}
-
 // Documenti obbligatori del fascicolo dipendente. Il "Contratto di lavoro" NON
 // è qui: è gestito nella sezione "Contratti del personale" (colonna PDF dedicata).
 const REQUIRED_DOCS = [
@@ -106,20 +86,6 @@ const fascicoloMancanti = (p: PersonaleItem, hasContratto: boolean): { key: stri
   return miss
 }
 
-const FALLBACK: PersonaleItem[] = [
-  { id: 66, matricola: 66, nome: 'Piero',     cognome: 'Aragona',  telefono: '+39 339 1234567', email: 'p.aragona@hotelnoto.it', contatto_emergenza: 'Maria Aragona +39 340 1112233', nato_il: '12/03/1959', codice_fiscale: 'RSSMRA85C10H501Z', indirizzo: 'VIA DEI MILLE, 30',  cap: '00199', provincia: 'to',   nazione: 'ITA', documenti: { identita: 'carta_identita_aragona.pdf', codiceFiscale: 'tessera_sanitaria_aragona.pdf', contratto: 'contratto_lavoro_2026.pdf', privacy: 'informativa_privacy.pdf', sicurezza: 'formazione_sicurezza.pdf', altri: ['patto_riservatezza.pdf'] } },
-  { id: 67, matricola: 67, nome: 'Ruggero',   cognome: 'Novi',     telefono: '+39 340 7654321', nato_il: '17/04/2025', codice_fiscale: 'RSSMRA85C10H501Z', indirizzo: 'VIA DEI MILLE, 30',  cap: '00185', provincia: 'rm',   nazione: 'ITA', documenti: { identita: 'carta_identita_novi.pdf', codiceFiscale: 'tessera_novi.pdf', contratto: 'contratto_novi.pdf', privacy: 'informativa_privacy.pdf', sicurezza: 'formazione_sicurezza.pdf' } },
-  { id: 69, matricola: 69, nome: 'Andrea',    cognome: 'Grimaudo', telefono: '+39 333 9988776', email: 'a.grimaudo@hotelnoto.it', contatto_emergenza: 'Luca Grimaudo +39 333 4455661', nato_il: '10/10/1996', codice_fiscale: 'QSSFC90L23F205X', indirizzo: 'VIA DEI MILLE, 30',  cap: '00185', provincia: 'ROMA', nazione: 'ITA', documenti: { identita: 'patente_grimaudo.pdf', codiceFiscale: 'codice_fiscale_grimaudo.pdf', contratto: 'contratto_indeterminato.pdf', privacy: 'informativa_privacy.pdf', altri: ['allegato_mansioni.pdf'] } },
-  { id: 82, matricola: 82, nome: 'mario',     cognome: 'idraulico',telefono: '+39 366 1472583', nato_il: '01/01/2025', codice_fiscale: 'token',           indirizzo: 'via nicola da bari', cap: '000000',provincia: 'BA',   nazione: 'ITA' },
-  { id: 83, matricola: 83, nome: 'Ali',       cognome: 'Aslan',    telefono: '+39 351 2589631', nato_il: '13/05/2020', codice_fiscale: 'MRSFSDJFKS545ASE',indirizzo: 'Casal Bertone',     cap: '00159', provincia: 'Rome', nazione: 'ITA' },
-  { id: 84, matricola: 84, nome: 'dino 2',    cognome: 'tacchini', telefono: '+39 338 7531594', nato_il: '22/08/1985', codice_fiscale: 'safihiqwruajksfbafj', indirizzo: 'via dei mille, 30', cap: '00123', provincia: 'RM',   nazione: 'ITA' },
-  { id: 85, matricola: 85, nome: 'Scontrino', cognome: 'test',     telefono: '+39 320 1112233', nato_il: '01/01/2001', codice_fiscale: 'BNCMRC90L15F205X',indirizzo: 'Via delle Magnolie 27', cap: '90146', provincia: 'Palermo', nazione: 'ITA' },
-  { id: 86, matricola: 86, nome: 'Scontrino', cognome: 'test',     telefono: '',                nato_il: '01/01/0001', codice_fiscale: 'Vwertyuioi',      indirizzo: 'HR Managment & Innovation', cap: '90146', provincia: 'Palermo', nazione: 'ITA' },
-  { id: 88, matricola: 88, nome: 'Andrea G',  cognome: 'Test',     telefono: '+39 347 4455667', email: 'a.test@hotelnoto.it', contatto_emergenza: 'Giulia Test +39 347 9988770', nato_il: '08/07/1994', codice_fiscale: 'qwertyuiop',      indirizzo: 'Viale Luca Gaurico, 283', cap: '00143', provincia: 'Roma', nazione: 'ITA', documenti: { identita: 'carta_identita_test.pdf', contratto: 'contratto_stagionale.pdf' } },
-  { id: 89, matricola: 89, nome: 'Marco',     cognome: 'Campo',    telefono: '+39 342 8899001', nato_il: '30/06/1989', codice_fiscale: 'VRDLNZ02A22H501Y',indirizzo: 'Viale Luca Gaurico, 283', cap: '00143', provincia: 'Roma', nazione: 'ITA', documenti: { identita: 'carta_identita_campo.pdf', codiceFiscale: 'tessera_campo.pdf', contratto: 'contratto_campo.pdf', privacy: 'informativa_privacy.pdf', sicurezza: 'formazione_sicurezza.pdf' } },
-  { id: 90, matricola: 90, nome: 'Sicilia',   cognome: 'Andrea',   telefono: '+39 331 5566778', nato_il: '01/01/2001', codice_fiscale: 'qwertyuiop',      indirizzo: 'Viale Luca Gaurico, 283', cap: '00143', provincia: 'Roma', nazione: 'ITA' },
-]
-
 // `short` = intestazione abbreviata (tooltip col nome intero), `w` = larghezza in %
 // (riportata in ArchivioPersonale.sass sulle classi `arch-pers__col--<key>`):
 // la tabella è a layout fisso e non scorre mai in orizzontale.
@@ -143,7 +109,16 @@ const cella = (v?: string | number | null) =>
 export default function ArchivioPersonale({ navigate, vista = 'dipendenti' }: { navigate: (p: string) => void; vista?: 'dipendenti' | 'esterni' }) {
   const [tab, setTab] = useState<'dipendenti' | 'esterni'>(vista)
   const nEsterni = useCollaboratoriEsterniStore((s) => s.collaboratori.length)
-  const [items, setItems] = useState<PersonaleItem[]>(FALLBACK)
+  // Elenco dal backend; finché non risponde (o se non è raggiungibile) si usa la
+  // demo: dati di esempio + schede salvate in questo browser − eliminati.
+  const [apiItems, setApiItems] = useState<PersonaleItem[] | null>(null)
+  const locali = useAnagrafichePersonaleStore((s) => s.anagrafiche)
+  const eliminati = useAnagrafichePersonaleStore((s) => s.eliminati)
+  const eliminaLocale = useAnagrafichePersonaleStore((s) => s.elimina)
+  const items = useMemo(() => apiItems ?? elencoDemo(locali, eliminati), [apiItems, locali, eliminati])
+  const confirm = useConfirmStore((s) => s.confirm)
+  const rimuoviContratti = useContrattiPersonaleStore((s) => s.rimuoviPerAnagrafica)
+  const rimuoviAbilOp = useAnagraficaOpStore((s) => s.rimuovi)
   const [filters, setFilters] = useState<Record<string, string>>({})
   const [openFilter, setOpenFilter] = useState<string | null>(null)
   const [docPerson, setDocPerson] = useState<PersonaleItem | null>(null)
@@ -177,22 +152,70 @@ export default function ArchivioPersonale({ navigate, vista = 'dipendenti' }: { 
   useEffect(() => {
     let cancelled = false
     apiFetchSibylla<PersonaleItem[]>('anagrafica-personale/GetAll', { method: 'POST', body: {} })
-      .then((d) => { if (!cancelled) setItems(d) })
+      .then((d) => { if (!cancelled && Array.isArray(d)) setApiItems(d) })
       .catch(() => {})
     return () => { cancelled = true }
   }, [])
 
   const modificaPersona = (p: PersonaleItem) => {
     setEditingAnagrafica({
-      id: p.id,
+      id: p.id, matricola: p.matricola,
       nome: p.nome, cognome: p.cognome,
       data_nascita: toIsoDate(p.nato_il),
-      codice_fiscale: p.codice_fiscale,
-      indirizzo: p.indirizzo, cap: p.cap, provincia: p.provincia,
-      nazionalita: p.nazione && /^IT/i.test(p.nazione) ? 'ITALIA' : 'ITALIA',
+      sesso: p.sesso, codice_fiscale: p.codice_fiscale,
+      email: p.email, email_aziendale: p.email_aziendale, telefono: p.telefono, contatto_emergenza: p.contatto_emergenza,
+      indirizzo: p.indirizzo, indirizzo2: p.indirizzo2, cap: p.cap, provincia: p.provincia,
+      // «ITA» (dati di esempio) → «ITALIA»; le schede salvate hanno già il nome esteso
+      nazionalita: !p.nazione || /^ITA?$/i.test(p.nazione) ? 'ITALIA' : p.nazione.toUpperCase(),
+      strutture: p.strutture, avatarUrl: p.avatarUrl,
       documenti: p.documenti,
     })
     navigate('modifica-anagrafica')
+  }
+
+  // Elimina: conferma che dice cosa sparisce (scheda, storico contrattuale,
+  // abilitazione App Op!), poi backend o copia locale della demo, poi toast.
+  const eliminaPersona = async (p: PersonaleItem) => {
+    const id = String(p.id)
+    const nome = `${p.nome ?? ''} ${p.cognome ?? ''}`.trim() || `matricola ${p.matricola ?? id}`
+    const nCtr = contratti.filter((c) => c.anagraficaId === id).length
+    const abil = abilitazioni[id]?.abilitato
+    const ok = await confirm({
+      title: 'Elimina dipendente',
+      message: (
+        <div className="arch-pers-conf">
+          <p>Eliminare l’anagrafica di <strong>{nome}</strong> (matricola {p.matricola ?? id})? L’operazione non si può annullare.</p>
+          <ul>
+            <li>{nCtr === 0 ? 'Il dipendente non ha contratti registrati.'
+              : nCtr === 1 ? 'Si elimina anche il contratto dello storico contrattuale, con il PDF.'
+              : `Si eliminano anche i ${nCtr} contratti dello storico contrattuale, con i PDF.`}</li>
+            {abil && <li>Si toglie l’abilitazione all’App Op!: l’eventuale utenza va bloccata da Utenti e ruoli.</li>}
+          </ul>
+        </div>
+      ),
+      confirmLabel: 'Elimina',
+      danger: true,
+    })
+    if (!ok) return
+    if (apiItems) {
+      try {
+        await apiFetchSibylla('anagrafica-personale/Delete', { method: 'POST', body: { id: p.id } })
+      } catch (e) {
+        toast.error(messaggioErrore(e, backendNonRaggiungibile(e)
+          ? 'Il servizio dell’anagrafica non risponde: il dipendente non è stato eliminato.'
+          : 'L’eliminazione non è riuscita.'), 'Dipendente non eliminato')
+        return
+      }
+      setApiItems((list) => (list ?? []).filter((x) => String(x.id) !== id))
+    } else {
+      eliminaLocale(id)
+    }
+    rimuoviContratti(id)
+    rimuoviAbilOp(id)
+    if (docPerson && String(docPerson.id) === id) setDocPerson(null)
+    toast.success(nCtr > 0
+      ? `${nome} è stato tolto dall’Archivio del personale insieme a ${nCtr === 1 ? '1 contratto' : `${nCtr} contratti`}.`
+      : `${nome} è stato tolto dall’Archivio del personale.`, 'Dipendente eliminato')
   }
 
   const filtered = useMemo(() => items.filter((p) => {
@@ -241,47 +264,22 @@ export default function ArchivioPersonale({ navigate, vista = 'dipendenti' }: { 
           <thead>
             <tr>
               {COLS.map((c) => (
-                <th key={c.key} className="relative">
+                <th key={c.key}>
                   <span className="arch-pers__th">
                     <TruncatedText text={c.short ?? c.label} full={c.label} />
                     {c.filter && (
-                      <button
-                        type="button"
-                        className="text-text-muted hover:text-text"
-                        onClick={() => setOpenFilter(openFilter === c.key ? null : c.key)}
-                        title="Filtra"
-                      >
-                        <i className={`fa-solid fa-filter${filters[c.key] ? '' : ''}`} />
-                      </button>
+                      <FiltroColonna
+                        label={c.label}
+                        attivo={!!filters[c.key]}
+                        aperto={openFilter === c.key}
+                        onToggle={() => setOpenFilter(openFilter === c.key ? null : c.key)}
+                        onClose={() => setOpenFilter(null)}
+                        value={filters[c.key] ?? ''}
+                        onChange={(v) => setFilters((f) => ({ ...f, [c.key]: v }))}
+                        onReset={() => { setFilters((f) => { const n = { ...f }; delete n[c.key]; return n }); setOpenFilter(null) }}
+                      />
                     )}
                   </span>
-                  {openFilter === c.key && (
-                    <div className="absolute z-10 top-full left-0 mt-1 bg-white border border-line rounded shadow-md p-2 w-48">
-                      <input
-                        autoFocus
-                        className="sib-input"
-                        placeholder={`Filtra ${c.label.toLowerCase()}`}
-                        value={filters[c.key] ?? ''}
-                        onChange={(e) => setFilters((f) => ({ ...f, [c.key]: e.target.value }))}
-                      />
-                      <div className="flex justify-between mt-2">
-                        <button
-                          type="button"
-                          className="sib-btn sib-btn--ghost text-xs"
-                          onClick={() => { setFilters((f) => { const n = { ...f }; delete n[c.key]; return n }); setOpenFilter(null) }}
-                        >
-                          Reset
-                        </button>
-                        <button
-                          type="button"
-                          className="sib-btn sib-btn--primary text-xs"
-                          onClick={() => setOpenFilter(null)}
-                        >
-                          OK
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </th>
               ))}
               <th>Azioni</th>
@@ -350,7 +348,7 @@ export default function ArchivioPersonale({ navigate, vista = 'dipendenti' }: { 
                         </Tooltip>
                       )
                     })()}
-                    <button className="sib-btn sib-btn--icon" title="Elimina">
+                    <button className="sib-btn sib-btn--icon" title="Elimina" aria-label={`Elimina ${p.nome ?? ''} ${p.cognome ?? ''}`.trim()} onClick={() => eliminaPersona(p)}>
                       <i className="fa-solid fa-trash-can" />
                     </button>
                   </div>
@@ -372,6 +370,83 @@ export default function ArchivioPersonale({ navigate, vista = 'dipendenti' }: { 
   )
 }
 
+// ─── Filtro di colonna (Dipendenti) ───────────────────────────────────────────
+// Il popover va in un portale su <body> con posizione fixed calcolata dal
+// pulsante: le `th` hanno overflow hidden e il root pagina è un container
+// (container-type crea un nuovo blocco di riferimento anche per i fixed), quindi
+// dentro la tabella verrebbe tagliato o spostato. Si chiude con OK, Reset, Esc,
+// clic fuori, scroll e ridimensionamento della finestra.
+const FILTRO_W = 208
+function FiltroColonna({ label, attivo, aperto, onToggle, onClose, value, onChange, onReset }: {
+  label: string; attivo: boolean; aperto: boolean
+  onToggle: () => void; onClose: () => void
+  value: string; onChange: (v: string) => void; onReset: () => void
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useLayoutEffect(() => {
+    if (!aperto) return
+    const r = btnRef.current?.getBoundingClientRect()
+    const pop = popRef.current
+    if (!r || !pop) return
+    pop.style.top = `${r.bottom + 6}px`
+    pop.style.left = `${Math.max(12, Math.min(r.left - 8, window.innerWidth - FILTRO_W - 12))}px`
+    inputRef.current?.focus()
+  }, [aperto])
+
+  useEffect(() => {
+    if (!aperto) return
+    const chiudi = () => onClose()
+    const tasto = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('scroll', chiudi, true)
+    window.addEventListener('resize', chiudi)
+    window.addEventListener('keydown', tasto)
+    return () => {
+      window.removeEventListener('scroll', chiudi, true)
+      window.removeEventListener('resize', chiudi)
+      window.removeEventListener('keydown', tasto)
+    }
+  }, [aperto, onClose])
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        className={`arch-pers__filtro-btn${attivo ? ' arch-pers__filtro-btn--on' : ''}`}
+        title={attivo ? `Filtro attivo su ${label.toLowerCase()}` : 'Filtra'}
+        aria-label={`Filtra ${label.toLowerCase()}`}
+        aria-expanded={aperto}
+        onClick={onToggle}
+      >
+        <i className="fa-solid fa-filter" aria-hidden="true" />
+      </button>
+      {aperto && createPortal(
+        <>
+          <div className="arch-pers-filtro__overlay" onClick={onClose} />
+          <div ref={popRef} className="arch-pers-filtro" role="dialog" aria-label={`Filtra ${label.toLowerCase()}`}>
+            <InputField
+              ref={inputRef}
+              name={`filtro-${label}`}
+              ariaLabel={`Filtra ${label.toLowerCase()}`}
+              placeholder={`Filtra ${label.toLowerCase()}`}
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+            />
+            <div className="arch-pers-filtro__acts">
+              <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={onReset}>Reset</button>
+              <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={onClose}>OK</button>
+            </div>
+          </div>
+        </>,
+        document.body,
+      )}
+    </>
+  )
+}
+
 // ─── MODAL: Contratti del personale (storico + PDF) ───────────────────────────
 
 function ContrattiModal({ persona, onClose }: { persona: PersonaleItem | null; onClose: () => void }) {
@@ -390,7 +465,7 @@ function ContrattiModal({ persona, onClose }: { persona: PersonaleItem | null; o
             {storico.map((r, i) => (
               <li key={r.id} className="flex items-center justify-between gap-3 flex-wrap border border-line rounded-lg p-3">
                 <div className="flex items-center gap-2 flex-wrap min-w-0">
-                  {i === 0 && <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success text-white text-[11px] font-bold">Vigente</span>}
+                  {i === 0 && <span className="arch-pers-ctr__vigente"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Vigente</span>}
                   <span className="font-semibold text-text text-[13px]">{r.tipologia}</span>
                   <span className="text-[12px] text-text-muted">
                     {r.ruolo || '—'}{r.livello ? ` · ${r.livello} livello` : ''}{r.ccnl ? ` · ${r.ccnl}` : ''}{r.reparto ? ` · ${r.reparto}` : ''} · RAL € {r.ral || '—'} · dal {fmtDate(r.decorrenza)}{r.scadenza ? ` al ${fmtDate(r.scadenza)}` : ''}
@@ -444,7 +519,7 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
       {persona && (
         <div className="flex gap-5">
           <div className="flex-none">
-            <img src={avatarUrl(fullName || String(persona.id ?? ''))} alt={fullName}
+            <img src={avatarUrl(persona.avatarUrl || fullName || String(persona.id ?? ''))} alt={fullName}
               className="w-28 h-36 rounded-lg object-cover border border-line bg-canvas" />
           </div>
           <dl className="flex-1 grid grid-cols-2 gap-x-5 gap-y-3 text-[13px] m-0">
@@ -468,11 +543,11 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-[13px] font-semibold text-text">Documenti allegati</h4>
               {mancanti > 0
-                ? <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-warning bg-warning-light rounded-full px-3 py-1 animate-pulse">
-                    <i className="fa-solid fa-triangle-exclamation" /> Documentazione incompleta — {mancanti}/{FASCICOLO_TOTALE} mancanti
+                ? <span className="arch-pers-doc__stato arch-pers-doc__stato--ko">
+                    <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /> Documentazione incompleta — {mancanti}/{FASCICOLO_TOTALE} mancanti
                   </span>
-                : <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-success">
-                    <i className="fa-solid fa-circle-check" /> Documentazione completa
+                : <span className="arch-pers-doc__stato arch-pers-doc__stato--ok">
+                    <i className="fa-solid fa-circle-check" aria-hidden="true" /> Documentazione completa
                   </span>}
             </div>
             <ul className="m-0 p-0 list-none">

@@ -78,8 +78,10 @@
   color: var(--color-primary)
   cursor: help
 
-// Tipo di assenza: stesso colore usato nel Piano ferie.
-.rfe .rfe__tipo
+// Tipo di assenza: stesso colore usato nel Piano ferie. Anche sotto .rfe-det:
+// il dettaglio richiesta si apre pure nel Piano ferie (root .pfe), con gli stessi colori.
+.rfe .rfe__tipo,
+.rfe-det .rfe__tipo
   max-width: 100%
   min-width: 0
   display: inline-flex
@@ -125,7 +127,8 @@
 .rfe__dash
   color: $text-inactive
 
-.rfe .rfe__stato
+.rfe .rfe__stato,
+.rfe-det .rfe__stato
   +hr-stato
   display: block
   min-width: 0
