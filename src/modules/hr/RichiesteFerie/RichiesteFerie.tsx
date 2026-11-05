@@ -6,7 +6,7 @@ import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import Pagination from '../../../core/components/Pagination'
 import Ico from '../../../core/icons/Ico'
-import { SelectField, DateRangeField, TextareaField, InputField } from '../../../core/components/form'
+import { SelectField, DateRangeField, TextareaField, InputField, CheckboxField } from '../../../core/components/form'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
@@ -18,6 +18,8 @@ import {
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
 import StoricoHr from '../_storico/StoricoHr'
+import BarraSelezione from '../_selezione/BarraSelezione'
+import { useSelezione } from '../_selezione/useSelezione'
 import { occupazione, addGiorni } from '../../../store/useTurniPersonaleStore'
 import './RichiesteFerie.sass'
 
@@ -131,7 +133,8 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   const [vista, setVista] = useState(VISTA_ATTESA)
   const [reparto, setReparto] = useState('')
   const [page, setPage] = useState(1)
-  const [rifiuto, setRifiuto] = useState<{ row: RichiestaAssenza; motivo: string } | null>(null)
+  // Rifiuto di una o più richieste (selezione multipla): un solo motivo per tutte.
+  const [rifiuto, setRifiuto] = useState<{ rows: RichiestaAssenza[]; motivo: string } | null>(null)
   const [bozza, setBozza] = useState<Bozza | null>(null)
   const [errori, setErrori] = useState<Record<string, string>>({})
 
@@ -169,6 +172,12 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
   useEffect(() => { setPage(1) }, [vista, reparto, cf.text, cf.multi])
   const pageRows = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const sel = useSelezione(pageRows.map(r => r.id), [vista, reparto, cf.text, cf.multi])
+  const { tieni } = sel
+  useEffect(() => { tieni(richieste.map(r => r.id)) }, [richieste, tieni])
+  const selezionate = richieste.filter(r => sel.has(r.id))
+  const selDaApprovare = selezionate.filter(r => r.stato !== 'Approvata')
+  const selDaRifiutare = selezionate.filter(r => r.stato !== 'Rifiutata')
   const inAttesa = richieste.filter(r => r.stato === 'Da approvare').length
   const contaVista = (v: string) => v === VISTA_TUTTE ? richieste.length : v === VISTA_ATTESA ? inAttesa : richieste.filter(r => r.stato === v).length
   // Richieste da approvare che Sibylla valuta senza problemi (sul filtro reparto attivo).
@@ -203,9 +212,12 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   }
   const confermaRifiuto = () => {
     if (!rifiuto || !rifiuto.motivo.trim()) return
-    decidi(rifiuto.row.id, 'Rifiutata', rifiuto.motivo.trim())
-    toast.info(`Richiesta di ${nomeDipendente(rifiuto.row.dipendenteId)} rifiutata.`, 'Richiesta rifiutata')
+    rifiuto.rows.forEach(r => decidi(r.id, 'Rifiutata', rifiuto.motivo.trim()))
+    toast.info(rifiuto.rows.length === 1
+      ? `Richiesta di ${nomeDipendente(rifiuto.rows[0].dipendenteId)} rifiutata.`
+      : `${rifiuto.rows.length} richieste rifiutate.`, rifiuto.rows.length === 1 ? 'Richiesta rifiutata' : 'Richieste rifiutate')
     setRifiuto(null)
+    if (rifiuto.rows.length > 1) sel.svuota()
   }
 
   const apriModifica = (r: RichiestaAssenza) => {
@@ -266,6 +278,40 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
     conflitti: sovrapposizioni(richieste, { id: bozza.id, dipendenteId: Number(bozza.dipendenteId), dal: bozza.dal, al: bozza.al }),
   } : null
 
+  // ── Azioni sulle righe selezionate ──
+  const approvaSelezionate = async () => {
+    const xs = selDaApprovare
+    // Avvisi: ROL oltre il saldo e valutazione "Sconsigliata" di Sibylla.
+    const rolScoperti = xs.filter(r => r.tipo === 'ROL' && oreRichiesta(r) > saldoRol(richieste, r.dipendenteId, Number(r.dal.slice(0, 4))).residue)
+    const sconsigliate = rows.filter(r => sel.has(r.id) && r.stato !== 'Approvata' && r.valutazione?.livello === 'ko')
+    const avvisi = [
+      rolScoperti.length ? `ROL oltre il saldo: ${rolScoperti.map(r => nomeDipendente(r.dipendenteId)).join(', ')}` : '',
+      sconsigliate.length ? `sconsigliate da Sibylla: ${sconsigliate.map(r => r.dipendente).join(', ')}` : '',
+    ].filter(Boolean)
+    const ok = await confirm({
+      title: xs.length === 1 ? 'Approva la richiesta' : `Approva ${xs.length} richieste`,
+      message: <>Approvi {xs.length === 1 ? 'la richiesta selezionata' : <><strong>{xs.length} richieste</strong> selezionate</>}? Compariranno nel Piano ferie.{avvisi.length > 0 && <> Attenzione, {avvisi.join('; ')}.</>}</>,
+      confirmLabel: avvisi.length ? 'Approva comunque' : 'Approva', danger: false,
+    })
+    if (!ok) return
+    xs.forEach(r => decidi(r.id, 'Approvata'))
+    toast.success(xs.length === 1 ? '1 richiesta approvata: è nel Piano ferie.' : `${xs.length} richieste approvate: sono nel Piano ferie.`, 'Richieste approvate')
+    sel.svuota()
+  }
+  const eliminaSelezionate = async () => {
+    const xs = selezionate
+    const approvate = xs.filter(r => r.stato === 'Approvata').length
+    const ok = await confirm({
+      title: xs.length === 1 ? 'Elimina richiesta' : `Elimina ${xs.length} richieste`,
+      message: <>Elimini {xs.length === 1 ? 'la richiesta selezionata' : <><strong>{xs.length} richieste</strong></>}?{approvate > 0 && ` ${approvate === 1 ? 'Una è già approvata e sparirà' : `${approvate} sono già approvate e spariranno`} anche dal Piano ferie.`} L'operazione non si può annullare.</>,
+      confirmLabel: 'Elimina', danger: true,
+    })
+    if (!ok) return
+    xs.forEach(r => elimina(r.id))
+    toast.info(xs.length === 1 ? 'Richiesta eliminata.' : `${xs.length} richieste eliminate.`, 'Richieste eliminate')
+    sel.svuota()
+  }
+
   const esporta = () => exportXls('richieste-assenze', ['Richiesta il', 'Dipendente', 'Reparto', 'Tipo', 'Dal', 'Al', 'Durata', 'Residuo', 'Stato', 'Note', 'Motivo rifiuto'],
     sorted.map(r => [fmtDataHr(r.createdAt.slice(0, 10)), r.dipendente, r.reparto, r.tipo, fmtDataHr(r.dal), fmtDataHr(r.al), durata(r),
       r.tipo === 'Ferie' ? `${r.residuo} gg` : r.tipo === 'ROL' ? fmtOre(r.residuo) : '', r.stato, r.note ?? '', r.motivo ?? '']))
@@ -322,9 +368,16 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
         </div>
       </div>
 
+      <BarraSelezione n={sel.n} nome={['richiesta', 'richieste']} onSvuota={sel.svuota} azioni={[
+        { label: 'Approva', icona: 'fa-circle-check', quante: selDaApprovare.length, onClick: approvaSelezionate },
+        { label: 'Rifiuta', icona: 'fa-circle-xmark', quante: selDaRifiutare.length, onClick: () => setRifiuto({ rows: selDaRifiutare, motivo: '' }) },
+        { label: 'Elimina', icona: 'fa-trash', quante: sel.n, onClick: eliminaSelezionate, pericolo: true },
+      ]} />
+
       <div className="sib-table-wrap rfe__wrap">
         <table className="sib-table rfe__table">
           <colgroup>
+            <col className="rfe__col-sel" />
             <col className="rfe__col-data" />
             <col className="rfe__col-dip" />
             <col className="rfe__col-rep" />
@@ -338,6 +391,10 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
           </colgroup>
           <thead>
             <tr>
+              <th className="rfe__c">
+                <CheckboxField name="rf-sel-all" ariaLabel="Seleziona le richieste della pagina" className="rfe__check"
+                  checked={sel.tutteVisibili} indeterminate={sel.parziale} disabled={!pageRows.length} onChange={sel.toggleVisibili} />
+              </th>
               <th><span className="sib-colf-head"><ThLabel full="Richiesta il" short="Rich. il" />{cf.th('createdAt', 'richiesta il', { sort: true })}</span></th>
               <th><span className="sib-colf-head"><ThLabel full="Dipendente" short="Dip." />{cf.th('dipendente', 'dipendente', { search: true, sort: true })}</span></th>
               <th><ThLabel full="Reparto" /></th>
@@ -352,7 +409,11 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
           </thead>
           <tbody>
             {pageRows.map(r => (
-              <tr key={r.id} className={r.urgente ? 'rfe__row--urgente' : undefined}>
+              <tr key={r.id} className={[r.urgente && 'rfe__row--urgente', sel.has(r.id) && 'rfe__row--sel'].filter(Boolean).join(' ') || undefined}>
+                <td className="rfe__c">
+                  <CheckboxField name={`rf-sel-${r.id}`} ariaLabel={`Seleziona la richiesta di ${r.dipendente}`} className="rfe__check"
+                    checked={sel.has(r.id)} onChange={() => sel.toggle(r.id)} />
+                </td>
                 <td><TruncatedText text={fmtDataHr(r.createdAt.slice(0, 10))} /></td>
                 <td className="rfe__strong">
                   <span className="rfe__dip">
@@ -418,14 +479,14 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
                   <span className="rfe__acts">
                     {act('Modifica', 'edit', () => apriModifica(r))}
                     {r.stato !== 'Approvata' && act('Approva', 'circle-check', () => approva(r))}
-                    {r.stato !== 'Rifiutata' && act('Rifiuta', 'circle-xmark', () => setRifiuto({ row: r, motivo: '' }))}
+                    {r.stato !== 'Rifiutata' && act('Rifiuta', 'circle-xmark', () => setRifiuto({ rows: [r], motivo: '' }))}
                     {act('Elimina', 'trash', () => eliminaRow(r))}
                   </span>
                 </td>
               </tr>
             ))}
             {pageRows.length === 0 && (
-              <tr><td colSpan={10} className="rfe__empty">
+              <tr><td colSpan={11} className="rfe__empty">
                 {vista === VISTA_ATTESA ? 'Nessuna richiesta da approvare.' : 'Nessuna richiesta corrisponde ai filtri impostati.'}
               </td></tr>
             )}
@@ -436,14 +497,18 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
       <div className="rfe__pag"><Pagination page={page} totalPages={totalPages} onPageChange={setPage} /></div>
 
       {/* ── Rifiuto ── */}
-      <Modal open={!!rifiuto} onClose={() => setRifiuto(null)} title="Rifiuta richiesta" size="sm">
+      <Modal open={!!rifiuto} onClose={() => setRifiuto(null)} title={rifiuto && rifiuto.rows.length > 1 ? `Rifiuta ${rifiuto.rows.length} richieste` : 'Rifiuta richiesta'} size="sm">
         {rifiuto && (
           <div className="rfe-modal">
-            <p className="rfe-modal__text">
-              {nomeDipendente(rifiuto.row.dipendenteId)} · {rifiuto.row.tipo} dal {fmtDataHr(rifiuto.row.dal)} al {fmtDataHr(rifiuto.row.al)}
-            </p>
+            {rifiuto.rows.length === 1
+              ? <p className="rfe-modal__text">
+                  {nomeDipendente(rifiuto.rows[0].dipendenteId)} · {rifiuto.rows[0].tipo} dal {fmtDataHr(rifiuto.rows[0].dal)} al {fmtDataHr(rifiuto.rows[0].al)}
+                </p>
+              : <ul className="rfe-modal__lista">
+                  {rifiuto.rows.map(r => <li key={r.id}>{nomeDipendente(r.dipendenteId)} · {r.tipo} · {periodo(r.dal, r.al)}</li>)}
+                </ul>}
             <TextareaField name="rf-motivo" label="Motivo del rifiuto" required rows={3} value={rifiuto.motivo}
-              hint="Il dipendente lo vedrà nella sua richiesta"
+              hint={rifiuto.rows.length > 1 ? 'Lo stesso motivo va a tutti i dipendenti selezionati' : 'Il dipendente lo vedrà nella sua richiesta'}
               onChange={e => setRifiuto({ ...rifiuto, motivo: e.target.value })} />
             <div className="rfe-modal__actions">
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setRifiuto(null)}>Annulla</button>

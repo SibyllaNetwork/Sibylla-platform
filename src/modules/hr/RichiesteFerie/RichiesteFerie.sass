@@ -32,16 +32,18 @@
 +th-labels
 
 // Larghezze di colonna in percentuale (somma 100).
+.rfe__col-sel
+  width: 3%
 .rfe__col-data
   width: 8%
 .rfe__col-dip
-  width: 13%
+  width: 12%
 .rfe__col-rep
-  width: 10%
+  width: 9%
 .rfe__col-tipo
   width: 9%
 .rfe__col-periodo
-  width: 13%
+  width: 11%
 .rfe__col-giorni
   width: 8%
 .rfe__col-residuo
@@ -172,6 +174,20 @@
 
     i
       color: $warning
+
+.rfe__check
+  justify-content: center
+
+.rfe .rfe__row--sel td
+  background: $primary-50
+
+.rfe-modal__lista
+  margin: 0
+  padding-left: 18px
+  max-height: 160px
+  overflow-y: auto
+  font-size: 13px
+  color: $text-active
 
 .rfe__stato-cell
   display: flex

@@ -1,4 +1,4 @@
-import React, { useId } from 'react'
+import React, { useEffect, useId, useRef } from 'react'
 import clsx from 'clsx'
 import { withAcronimi } from '../Acronimo'
 
@@ -12,17 +12,23 @@ export interface CheckboxFieldProps {
   disabled?: boolean
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   className?: string
+  /** Nome accessibile quando non c'è label (es. casella di selezione in tabella). */
+  ariaLabel?: string
+  /** Stato "parziale" (es. selezione di una parte delle righe). */
+  indeterminate?: boolean
 }
 
 const CheckboxField: React.FC<CheckboxFieldProps> = ({
   label, name, checked, defaultChecked, hint, error,
-  disabled = false, onChange, className,
+  disabled = false, onChange, className, ariaLabel, indeterminate = false,
 }) => {
   const id = useId()
+  const ref = useRef<HTMLInputElement>(null)
+  useEffect(() => { if (ref.current) ref.current.indeterminate = indeterminate }, [indeterminate])
   return (
     <div className={clsx('flex items-start gap-2', className)}>
       <input
-        id={id} name={name} type="checkbox"
+        ref={ref} id={id} name={name} type="checkbox" aria-label={ariaLabel}
         className="sib-checkbox mt-0.5"
         checked={checked} defaultChecked={defaultChecked}
         disabled={disabled} onChange={onChange}

@@ -6,7 +6,7 @@ import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import Pagination from '../../../core/components/Pagination'
 import Ico from '../../../core/icons/Ico'
-import { SelectField, DateRangeField, TextareaField } from '../../../core/components/form'
+import { SelectField, DateRangeField, TextareaField, CheckboxField } from '../../../core/components/form'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../store/useConfirmStore'
@@ -17,6 +17,8 @@ import {
 } from '../../../store/useHrGestioneStore'
 import { exportXls } from '../hrExport'
 import ModaleNota from './ModaleNota'
+import BarraSelezione from '../_selezione/BarraSelezione'
+import { useSelezione } from '../_selezione/useSelezione'
 import './NoteSpese.sass'
 
 /**
@@ -48,7 +50,8 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
   const [al, setAl] = useState('')
   const [page, setPage] = useState(1)
   const [inModifica, setInModifica] = useState<NotaSpesa | null>(null)
-  const [rifiuto, setRifiuto] = useState<{ row: NotaSpesa; motivo: string } | null>(null)
+  // Rifiuto di una o più spese (selezione multipla): un solo motivo per tutte.
+  const [rifiuto, setRifiuto] = useState<{ rows: NotaSpesa[]; motivo: string } | null>(null)
   const [dettaglio, setDettaglio] = useState<NotaSpesa | null>(null)
 
   const rows = useMemo(() => noteSpese
@@ -71,6 +74,15 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
   useEffect(() => { setPage(1) }, [stato, reparto, dal, al, cf.text, cf.multi])
   const pageRows = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const sel = useSelezione(pageRows.map(n => n.id), [stato, reparto, dal, al, cf.text, cf.multi])
+  const { tieni } = sel
+  useEffect(() => { tieni(noteSpese.map(n => n.id)) }, [noteSpese, tieni])
+  const selezionate = noteSpese.filter(n => sel.has(n.id))
+  const selDaApprovare = selezionate.filter(n => n.stato === 'Da approvare' || n.stato === 'Rifiutata')
+  // Senza ricevuta una spesa non si approva in blocco: va controllata una per una.
+  const selApprovabili = selDaApprovare.filter(n => n.giustificativo)
+  const selDaRifiutare = selezionate.filter(n => n.stato === 'Da approvare' || n.stato === 'Approvata')
+  const selDaRimborsare = selezionate.filter(n => n.stato === 'Approvata')
 
   const daApprovare = noteSpese.filter(n => n.stato === 'Da approvare')
   const daRimborsare = noteSpese.filter(n => n.stato === 'Approvata')
@@ -93,9 +105,12 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
   }
   const confermaRifiuto = () => {
     if (!rifiuto || !rifiuto.motivo.trim()) return
-    setStato(rifiuto.row.id, 'Rifiutata', rifiuto.motivo.trim())
-    toast.info(`Spesa di ${nomeDipendente(rifiuto.row.dipendenteId)} rifiutata.`, 'Spesa rifiutata')
+    rifiuto.rows.forEach(n => setStato(n.id, 'Rifiutata', rifiuto.motivo.trim()))
+    toast.info(rifiuto.rows.length === 1
+      ? `Spesa di ${nomeDipendente(rifiuto.rows[0].dipendenteId)} rifiutata.`
+      : `${rifiuto.rows.length} spese rifiutate.`, rifiuto.rows.length === 1 ? 'Spesa rifiutata' : 'Spese rifiutate')
     setRifiuto(null)
+    if (rifiuto.rows.length > 1) sel.svuota()
   }
   const cancella = async (n: NotaSpesa) => {
     const ok = await confirm({
@@ -106,6 +121,46 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
     if (!ok) return
     elimina(n.id)
     toast.success('Spesa eliminata.', 'Eliminata')
+  }
+
+  // ── Azioni sulle righe selezionate ──
+  const approvaSelezionate = async () => {
+    const conRicevuta = selApprovabili
+    const senza = selDaApprovare.length - conRicevuta.length
+    const ok = await confirm({
+      title: conRicevuta.length === 1 ? 'Approva la spesa' : `Approva ${conRicevuta.length} spese`,
+      message: `Approvi ${conRicevuta.length === 1 ? 'la spesa selezionata' : `${conRicevuta.length} spese`} per ${eurHr(somma(conRicevuta))}?${senza ? ` ${senza === 1 ? 'Una spesa senza ricevuta resta' : `${senza} spese senza ricevuta restano`} da controllare.` : ''}`,
+      confirmLabel: 'Approva', danger: false,
+    })
+    if (!ok) return
+    conRicevuta.forEach(n => setStato(n.id, 'Approvata'))
+    toast.success(`${conRicevuta.length === 1 ? '1 spesa approvata' : `${conRicevuta.length} spese approvate`}: ${eurHr(somma(conRicevuta))} da rimborsare.`, 'Spese approvate')
+    sel.svuota()
+  }
+  const rimborsaSelezionate = async () => {
+    const xs = selDaRimborsare
+    const ok = await confirm({
+      title: 'Segna come rimborsate',
+      message: `Confermi il rimborso di ${xs.length === 1 ? '1 spesa' : `${xs.length} spese`} per ${eurHr(somma(xs))}?`,
+      confirmLabel: 'Conferma rimborso', danger: false,
+    })
+    if (!ok) return
+    xs.forEach(n => setStato(n.id, 'Rimborsata'))
+    toast.success(`Rimborso di ${eurHr(somma(xs))} registrato.`, 'Spese rimborsate')
+    sel.svuota()
+  }
+  const eliminaSelezionate = async () => {
+    const xs = selezionate
+    const rimborsate = xs.filter(n => n.stato === 'Rimborsata').length
+    const ok = await confirm({
+      title: xs.length === 1 ? 'Elimina spesa' : `Elimina ${xs.length} spese`,
+      message: `Elimini ${xs.length === 1 ? 'la spesa selezionata' : `${xs.length} spese`} (${eurHr(somma(xs))})?${rimborsate ? ` ${rimborsate === 1 ? 'Una è già rimborsata' : `${rimborsate} sono già rimborsate`}: il rimborso resta in busta paga.` : ''} L'operazione non si può annullare.`,
+      confirmLabel: 'Elimina',
+    })
+    if (!ok) return
+    xs.forEach(n => elimina(n.id))
+    toast.info(xs.length === 1 ? 'Spesa eliminata.' : `${xs.length} spese eliminate.`, 'Spese eliminate')
+    sel.svuota()
   }
 
   const apriFoglio = (n: NotaSpesa) => navigate(`hr-note-spese-mese:${n.dipendenteId}:${n.data.slice(0, 7)}`)
@@ -150,9 +205,17 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
         </div>
       </div>
 
+      <BarraSelezione n={sel.n} nome={['spesa', 'spese']} onSvuota={sel.svuota} azioni={[
+        { label: 'Approva', icona: 'fa-circle-check', quante: selApprovabili.length, onClick: approvaSelezionate },
+        { label: 'Rifiuta', icona: 'fa-circle-xmark', quante: selDaRifiutare.length, onClick: () => setRifiuto({ rows: selDaRifiutare, motivo: '' }) },
+        { label: 'Segna rimborsate', icona: 'fa-money-bill', quante: selDaRimborsare.length, onClick: rimborsaSelezionate },
+        { label: 'Elimina', icona: 'fa-trash', quante: sel.n, onClick: eliminaSelezionate, pericolo: true },
+      ]} />
+
       <div className="sib-table-wrap nsp__wrap">
         <table className="sib-table nsp__table">
           <colgroup>
+            <col className="nsp__col-sel" />
             <col className="nsp__col-data" />
             <col className="nsp__col-dip" />
             <col className="nsp__col-rep" />
@@ -165,6 +228,10 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
           </colgroup>
           <thead>
             <tr>
+              <th className="nsp__c">
+                <CheckboxField name="ns-sel-all" ariaLabel="Seleziona le spese della pagina" className="nsp__check"
+                  checked={sel.tutteVisibili} indeterminate={sel.parziale} disabled={!pageRows.length} onChange={sel.toggleVisibili} />
+              </th>
               <th><span className="sib-colf-head"><ThLabel full="Data" />{cf.th('data', 'data', { sort: true })}</span></th>
               <th><span className="sib-colf-head"><ThLabel full="Dipendente" short="Dip." />{cf.th('dipendente', 'dipendente', { search: true, sort: true })}</span></th>
               <th><ThLabel full="Reparto" /></th>
@@ -178,7 +245,11 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
           </thead>
           <tbody>
             {pageRows.map(n => (
-              <tr key={n.id}>
+              <tr key={n.id} className={sel.has(n.id) ? 'nsp__row--sel' : undefined}>
+                <td className="nsp__c">
+                  <CheckboxField name={`ns-sel-${n.id}`} ariaLabel={`Seleziona la spesa di ${n.dipendente}`} className="nsp__check"
+                    checked={sel.has(n.id)} onChange={() => sel.toggle(n.id)} />
+                </td>
                 <td><TruncatedText text={fmtDataHr(n.data)} /></td>
                 <td className="nsp__strong">
                   <Tooltip text="Apri la nota spese mensile">
@@ -212,7 +283,7 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
                   <span className="nsp__acts">
                     {act('Modifica', 'edit', () => setInModifica(n))}
                     {(n.stato === 'Da approvare' || n.stato === 'Rifiutata') && act('Approva', 'circle-check', () => approva(n))}
-                    {(n.stato === 'Da approvare' || n.stato === 'Approvata') && act('Rifiuta', 'circle-xmark', () => setRifiuto({ row: n, motivo: '' }))}
+                    {(n.stato === 'Da approvare' || n.stato === 'Approvata') && act('Rifiuta', 'circle-xmark', () => setRifiuto({ rows: [n], motivo: '' }))}
                     {n.stato === 'Approvata' && act('Segna come rimborsata', 'money-bill', () => rimborsa(n))}
                     {act('Elimina', 'trash', () => cancella(n))}
                   </span>
@@ -220,7 +291,7 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
               </tr>
             ))}
             {pageRows.length === 0 && (
-              <tr><td colSpan={9} className="nsp__empty">Nessuna spesa corrisponde ai filtri impostati.</td></tr>
+              <tr><td colSpan={10} className="nsp__empty">Nessuna spesa corrisponde ai filtri impostati.</td></tr>
             )}
           </tbody>
         </table>
@@ -236,14 +307,18 @@ export default function NoteSpese({ navigate }: { navigate: (p: string) => void 
       <ModaleNota nota={inModifica} onClose={() => setInModifica(null)} />
 
       {/* ── Rifiuto ── */}
-      <Modal open={!!rifiuto} onClose={() => setRifiuto(null)} title="Rifiuta spesa" size="sm">
+      <Modal open={!!rifiuto} onClose={() => setRifiuto(null)} title={rifiuto && rifiuto.rows.length > 1 ? `Rifiuta ${rifiuto.rows.length} spese` : 'Rifiuta spesa'} size="sm">
         {rifiuto && (
           <div className="nsp-modal">
-            <p className="nsp-modal__text">
-              {nomeDipendente(rifiuto.row.dipendenteId)} · {rifiuto.row.descrizione} · <strong>{eurHr(rifiuto.row.importo)}</strong>
-            </p>
+            {rifiuto.rows.length === 1
+              ? <p className="nsp-modal__text">
+                  {nomeDipendente(rifiuto.rows[0].dipendenteId)} · {rifiuto.rows[0].descrizione} · <strong>{eurHr(rifiuto.rows[0].importo)}</strong>
+                </p>
+              : <ul className="nsp-modal__lista">
+                  {rifiuto.rows.map(n => <li key={n.id}>{nomeDipendente(n.dipendenteId)} · {n.descrizione} · {eurHr(n.importo)}</li>)}
+                </ul>}
             <TextareaField name="ns-motivo" label="Motivo del rifiuto" required rows={3} value={rifiuto.motivo}
-              hint="Il dipendente lo vedrà accanto alla spesa"
+              hint={rifiuto.rows.length > 1 ? 'Lo stesso motivo va a tutti i dipendenti selezionati' : 'Il dipendente lo vedrà accanto alla spesa'}
               onChange={e => setRifiuto({ ...rifiuto, motivo: e.target.value })} />
             <div className="nsp-modal__actions">
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setRifiuto(null)}>Annulla</button>
