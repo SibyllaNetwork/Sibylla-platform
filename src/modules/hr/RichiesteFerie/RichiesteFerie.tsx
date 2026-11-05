@@ -216,7 +216,6 @@ export default function RichiesteFerie({ navigate }: { navigate: (p: string) => 
   const selDaRifiutare = selezionate.filter(r => r.stato !== 'Rifiutata' && r.stato !== 'Al responsabile')
   const selDaSollecitare = selezionate.filter(r => r.stato === 'Al responsabile')
   const inAttesa = richieste.filter(r => r.stato === 'Da approvare').length
-  const alResponsabile = richieste.filter(r => r.stato === 'Al responsabile').length
   const contaVista = (v: string) => v === VISTA_TUTTE ? richieste.length : v === VISTA_ATTESA ? inAttesa : richieste.filter(r => r.stato === v).length
   // Richieste da approvare che Sibylla valuta senza problemi (sul filtro reparto attivo).
   const consigliate = rows.filter(r => r.valutazione?.livello === 'ok')
