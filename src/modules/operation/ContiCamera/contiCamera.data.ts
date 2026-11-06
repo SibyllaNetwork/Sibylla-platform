@@ -92,6 +92,7 @@ export type TipoAzione =
   | 'Prenotazione'
   | 'Check-in'
   | 'Cambio camera'
+  | 'Variazione tariffa'
   | 'Addebito'
   | 'Modifica'
   | 'Frazionamento'
@@ -103,7 +104,7 @@ export type TipoAzione =
   | 'Nota'
 
 export const TIPI_AZIONE: TipoAzione[] = [
-  'Prenotazione', 'Check-in', 'Cambio camera', 'Addebito', 'Modifica', 'Frazionamento',
+  'Prenotazione', 'Check-in', 'Cambio camera', 'Variazione tariffa', 'Addebito', 'Modifica', 'Frazionamento',
   'Trasferimento', 'Eliminazione', 'Richiesta ospite', 'Pagamento', 'Tassa di soggiorno', 'Nota',
 ]
 
@@ -112,6 +113,7 @@ export const ICONA_AZIONE: Record<TipoAzione, string> = {
   'Prenotazione':       'fa-calendar-check',
   'Check-in':           'fa-key',
   'Cambio camera':      'fa-door-open',
+  'Variazione tariffa': 'fa-tags',
   'Addebito':           'fa-circle-plus',
   'Modifica':           'fa-pen',
   'Frazionamento':      'fa-arrows-split-up-and-left',
@@ -167,6 +169,7 @@ export const isoDaIt = (it: string) => {
 
 export const TASSA_PER_ADULTO = 3.5
 export const round2 = (v: number) => Math.round(v * 100) / 100
+const fmt = (v: number) => v.toFixed(2).replace('.', ',') + ' €'
 
 const OPERATORI = ['M. Ferri · Reception', 'L. Conti · Reception', 'G. Sala · Night audit', 'A. Riva · Guest relation']
 
@@ -205,17 +208,29 @@ export function datiDemo(struttura: string): Data {
   // soggiorno ha almeno due notti già trascorse.
   const giorniTrascorsi = Math.round((new Date(oggi).getTime() - new Date(x.checkIn).getTime()) / 86400000)
   const conCambio = notti >= 2 && giorniTrascorsi >= 2
-  const altra = pms.camere.find((c) => c.numero !== x.camera && c.categoria === pms.camere.find((k) => k.numero === x.camera)?.categoria)
+  // La camera di partenza è di una categoria più economica: il cambio diventa
+  // un upgrade e porta con sé una variazione di tariffa (listino della nuova
+  // categoria, poi supplemento ridotto per cortesia). In mancanza, una camera
+  // di altra categoria (downgrade) o della stessa (tariffa invariata).
+  const cam = pms.camere.find((k) => k.numero === x.camera)
+  const altra = pms.camere.find((c) => c.numero !== x.camera && cam && c.tariffa < cam.tariffa && (c.categoria !== 'SGL' || x.adulti === 1))
+    ?? pms.camere.find((c) => c.numero !== x.camera && cam && c.categoria !== cam.categoria)
     ?? pms.camere.find((c) => c.numero !== x.camera)
   const camPrima = conCambio && altra ? altra.numero : x.camera
+  // Tariffe a notte: prenotata (camera di partenza), listino della nuova
+  // categoria e applicata dopo lo sconto di cortesia sul supplemento.
+  const listino = prezzo
+  const prenotata = conCambio && altra && cam ? round2(prezzo * altra.tariffa / cam.tariffa) : prezzo
+  const upgrade = listino > prenotata
+  const applicata = upgrade ? round2(prenotata + (listino - prenotata) * 0.5) : listino
 
   const addebiti: Addebito[] = []
   const storico: Azione[] = []
   const add = (a: Omit<Addebito, 'id'>) => { addebiti.push({ ...a, id: addebiti.length + 1 }); return addebiti[addebiti.length - 1] }
   const log = (a: Omit<Azione, 'id'>) => storico.push({ ...a, id: storico.length + 1 })
 
-  // Prenotazione e caparra
-  const camere = round2(prezzo * notti)
+  // Prenotazione e caparra (sul valore prenotato)
+  const camere = round2(prenotata * notti)
   const caparra = Math.max(50, Math.round((camere * 0.25) / 10) * 10)
   const meno = (n: number) => piuGiorni(x.checkIn, -n)
   log({ ts: `${meno(21)}T10:42`, tipo: 'Prenotazione', camera: camPrima, descrizione: `Prenotazione n. ${x.booking} creata`, operatore: agenzia ? `Channel manager · ${agenzia}` : op(0), dettaglio: `${notti} notti, ${x.ospiti.length} ospiti, ${ARRANGIAMENTO[x.arrangiamento].label}` })
@@ -226,7 +241,8 @@ export function datiDemo(struttura: string): Data {
     const iso = piuGiorni(x.checkIn, n)
     const passata = iso < oggi
     const camNotte = conCambio && n === 0 ? camPrima : x.camera
-    add({ camera: x.camera, data: itDi(iso), iso, pertinenza: 'Ospite', descrizione: ARRANGIAMENTO[x.arrangiamento].label, prezzo, iva: 10, trasf: camNotte !== x.camera ? `da ${camNotte}` : '' })
+    const tariffaNotte = !conCambio || n === 0 ? prenotata : applicata
+    add({ camera: x.camera, data: itDi(iso), iso, pertinenza: 'Ospite', descrizione: ARRANGIAMENTO[x.arrangiamento].label, prezzo: tariffaNotte, iva: 10, trasf: camNotte !== x.camera ? `da ${camNotte}` : '' })
 
     // Tassa: la prima notte la incassa l'agenzia (se c'è) o il titolare al
     // check-in; le notti già trascorse le paga il secondo ospite; le altre
@@ -258,7 +274,17 @@ export function datiDemo(struttura: string): Data {
   if (conCambio) {
     const g2 = piuGiorni(x.checkIn, 1)
     log({ ts: `${g2}T08:25`, tipo: 'Richiesta ospite', camera: camPrima, descrizione: 'Cambio camera richiesto', operatore: op(0), dettaglio: `${titolare}: rumore dall'ascensore, chiede una camera più tranquilla` })
-    log({ ts: `${g2}T11:05`, tipo: 'Cambio camera', camera: x.camera, cameraDa: camPrima, descrizione: `Spostamento da camera ${camPrima} a camera ${x.camera}`, operatore: op(0), dettaglio: 'Stessa categoria, nessun supplemento' })
+    log({ ts: `${g2}T11:05`, tipo: 'Cambio camera', camera: x.camera, cameraDa: camPrima, descrizione: `Spostamento da camera ${camPrima} a camera ${x.camera}`, operatore: op(0), dettaglio: altra && cam && altra.categoria !== cam.categoria ? `Da ${altra.tipo} a ${cam.tipo}` : 'Stessa categoria' })
+    const nottiDopo = notti - 1
+    const fino = itDi(x.checkOut)
+    if (!altra || !cam || listino === prenotata) {
+      log({ ts: `${g2}T11:06`, tipo: 'Variazione tariffa', camera: x.camera, cameraDa: camPrima, descrizione: `Tariffa invariata: ${fmt(prenotata)} a notte`, importo: 0, operatore: op(0), dettaglio: 'Stessa categoria, nessun supplemento' })
+    } else if (upgrade) {
+      log({ ts: `${g2}T11:06`, tipo: 'Variazione tariffa', camera: x.camera, cameraDa: camPrima, descrizione: `Upgrade ${altra.categoria} → ${cam.categoria}: tariffa da ${fmt(prenotata)} a ${fmt(listino)} a notte`, importo: round2((listino - prenotata) * nottiDopo), operatore: op(0), dettaglio: `Listino ${cam.tipo} dal ${itDi(g2)} al ${fino} · ${nottiDopo} notti` })
+      log({ ts: `${g2}T11:20`, tipo: 'Variazione tariffa', camera: x.camera, cameraDa: camPrima, descrizione: `Sconto di cortesia sul supplemento: tariffa da ${fmt(listino)} a ${fmt(applicata)} a notte`, importo: round2((applicata - listino) * nottiDopo), operatore: 'R. Galli · Front office manager', dettaglio: 'Motivazione: cambio per disservizio (rumore ascensore) · supplemento ridotto del 50%' })
+    } else {
+      log({ ts: `${g2}T11:06`, tipo: 'Variazione tariffa', camera: x.camera, cameraDa: camPrima, descrizione: `Downgrade ${altra.categoria} → ${cam.categoria}: tariffa da ${fmt(prenotata)} a ${fmt(listino)} a notte`, importo: round2((listino - prenotata) * nottiDopo), operatore: op(0), dettaglio: `Dal ${itDi(g2)} al ${fino} · ${nottiDopo} notti · differenza a favore dell'ospite` })
+    }
     const daTrasferire = addebiti.filter((a) => a.trasf === `da ${camPrima}`)
     log({ ts: `${g2}T11:07`, tipo: 'Trasferimento', camera: x.camera, cameraDa: camPrima, descrizione: `${daTrasferire.length} addebiti trasferiti da camera ${camPrima}`, importo: round2(daTrasferire.reduce((s, a) => s + a.prezzo, 0)), operatore: op(0), dettaglio: daTrasferire.map((a) => `${a.descrizione} ${a.data}`).join(', ') })
 
@@ -288,7 +314,8 @@ export function datiDemo(struttura: string): Data {
   const servizi = round2(addebiti.filter((a) => !a.tassa && a.descrizione !== soggiorno).reduce((s, a) => s + a.prezzo, 0))
   const tassePagate = round2(addebiti.filter((a) => a.tassa?.stato === 'pagata').reduce((s, a) => s + a.prezzo, 0))
   const pagato = round2(caparra + tassePagate)
-  const totale = round2(camere + servizi + tasse)
+  const camereEff = round2(addebiti.filter((a) => a.descrizione === soggiorno).reduce((s, a) => s + a.prezzo, 0))
+  const totale = round2(camereEff + servizi + tasse)
   const arrivoMeno3 = meno(3)
 
   return {
@@ -296,7 +323,7 @@ export function datiDemo(struttura: string): Data {
       prenotazioneNum: x.booking, nominativo: x.nominativo, camera: x.camera, dataArrivo: itDi(x.checkIn), dataPartenza: itDi(x.checkOut),
       giorni: notti, ospiti: x.ospiti.length, agenzia: x.canale, credit: 'NC', struttura,
       arrangiamento: ARRANGIAMENTO[x.arrangiamento].label, nCamere: 1,
-      totale, diCuiCamere: camere, diCuiServizi: servizi, diCuiTasse: tasse,
+      totale, diCuiCamere: camereEff, diCuiServizi: servizi, diCuiTasse: tasse,
       pagato, daPagare: round2(totale - pagato), note: x.note,
       nomiOspiti: x.ospiti.map((o) => o.nome),
     },

@@ -163,7 +163,11 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
 
   const salvaModifica = (a: Addebito, importo: number, motivazione: string) => {
     setAddebiti((rows) => rows.map((r) => (r.id === a.id ? { ...r, prezzo: importo } : r)))
-    registra({ tipo: 'Modifica', camera: a.camera, descrizione: `${a.descrizione} del ${a.data}: importo da ${fmtCurrency(a.prezzo)} a ${fmtCurrency(importo)}`, importo, dettaglio: `Motivazione: ${motivazione}` })
+    // Una notte di soggiorno modificata è una variazione di tariffa.
+    const notte = a.descrizione === data.dettaglio.arrangiamento
+    registra(notte
+      ? { tipo: 'Variazione tariffa', camera: a.camera, descrizione: `Tariffa del ${a.data} da ${fmtCurrency(a.prezzo)} a ${fmtCurrency(importo)}`, importo: round2(importo - a.prezzo), dettaglio: `Motivazione: ${motivazione}` }
+      : { tipo: 'Modifica', camera: a.camera, descrizione: `${a.descrizione} del ${a.data}: importo da ${fmtCurrency(a.prezzo)} a ${fmtCurrency(importo)}`, importo, dettaglio: `Motivazione: ${motivazione}` })
     setModModifica(null)
   }
 
