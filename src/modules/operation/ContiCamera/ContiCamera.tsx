@@ -3,6 +3,7 @@ import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
+import Tabs from '../../../core/components/Tabs'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { apiFetchSibylla } from '../../../services/api'
 import { InputField, SelectField } from '../../../core/components/form'
@@ -43,6 +44,8 @@ const tooltipTassa = (t: TassaInfo, importo: number) => {
     : `Da pagare — ${fmtCurrency(importo)} (${ospiti})`
 }
 
+type Scheda = 'addebiti' | 'anticipi' | 'documenti'
+
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function ContiCamera({ navigate, embedded = false }: { navigate: (p: string) => void; embedded?: boolean }) {
@@ -64,6 +67,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
   const [modAggiungi, setModAggiungi] = useState(false)
   const [modAggiungiAnticipo, setModAggiungiAnticipo] = useState(false)
   const [modTassa, setModTassa] = useState<Addebito | null>(null)
+  const [tab, setTab] = useState<Scheda>('addebiti')
   const [storicoCamera, setStoricoCamera] = useState<string | null>(null)
   const [estrattoOpen, setEstrattoOpen] = useState(false)
 
@@ -240,20 +244,34 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
         </>
       )}
 
-      {/* ─── Layout 2 colonne ──────────────────────────────────────────────── */}
-      <div className="conti-camera__layout">
-        {/* Colonna sx: Addebiti */}
-        <div className="conti-camera__col">
-          <div className="conti-camera__section-head">
-            <h3 className="conti-camera__section-title">Addebiti</h3>
-            <div className="conti-camera__section-actions">
-              {cf.hasActive && (
-                <button type="button" className="sib-btn sib-btn--secondary" onClick={cf.reset}>
-                  <i className="fa-solid fa-filter-circle-xmark" /> Azzera filtri
-                </button>
-              )}
-            </div>
-          </div>
+      {/* ─── Schede: ogni sezione a tutta larghezza ────────────────────────── */}
+      <div className="conti-camera__tabs-bar">
+        <Tabs
+          className="conti-camera__tabs"
+          tabs={[
+            { id: 'addebiti', label: `Addebiti (${data.addebiti.length})` },
+            { id: 'anticipi', label: `Anticipi (${data.anticipi.length})` },
+            ...(embedded ? [] : [{ id: 'documenti', label: `Documenti emessi (${data.documenti.length})` }]),
+          ]}
+          active={tab}
+          onChange={(id) => setTab(id as Scheda)}
+        />
+        <div className="conti-camera__section-actions">
+          {tab === 'addebiti' && cf.hasActive && (
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={cf.reset}>
+              <i className="fa-solid fa-filter-circle-xmark" /> Azzera filtri
+            </button>
+          )}
+          {tab === 'anticipi' && (
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungiAnticipo(true)}>
+              <i className="fa-regular fa-circle-plus" /> Aggiungi anticipo
+            </button>
+          )}
+        </div>
+      </div>
+
+      {tab === 'addebiti' && (
+        <div className="conti-camera__pane">
           <div className="conti-camera__addebiti">
           <div className="sib-table-wrap">
             <table className="sib-table conti-camera__table conti-camera__table--addebiti">
@@ -387,15 +405,10 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
             </span>
           </div>
         </div>
+      )}
 
-        {/* Colonna dx: Anticipi + Documenti */}
-        <div className="conti-camera__col">
-          <div className="conti-camera__section-head">
-            <h3 className="conti-camera__section-title">Anticipi</h3>
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungiAnticipo(true)}>
-              <i className="fa-regular fa-circle-plus" /> Aggiungi anticipo
-            </button>
-          </div>
+      {tab === 'anticipi' && (
+        <div className="conti-camera__pane">
           <div className="sib-table-wrap">
             <table className="sib-table conti-camera__table">
               <thead>
@@ -451,10 +464,11 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
           <div className="conti-camera__total-row">
             Totale: <strong>{fmtCurrency(totAnticipi)}</strong>
           </div>
+        </div>
+      )}
 
-          {!embedded && (
-            <>
-              <h3 className="conti-camera__section-title">Documenti emessi</h3>
+      {!embedded && tab === 'documenti' && (
+        <div className="conti-camera__pane">
               <div className="sib-table-wrap">
                 <table className="sib-table conti-camera__table">
                   <thead>
@@ -488,10 +502,8 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                   </tbody>
                 </table>
               </div>
-            </>
-          )}
         </div>
-      </div>
+      )}
 
       {modModifica && <ModificaAddebitoModal addebito={modModifica} onClose={() => setModModifica(null)} onSave={salvaModifica} />}
       {modFrazionato && <FrazionatoModal addebito={modFrazionato} onClose={() => setModFrazionato(null)} onSave={(p) => salvaFrazioni(modFrazionato, p, false)} />}

@@ -79,19 +79,31 @@
     color: $primary
     font-weight: 500
 
-  // ── Layout 2 colonne ──────────────────────────────────────────────────────
-  // minmax(0, 1fr): le colonne non si allargano oltre la pagina per il contenuto.
-  &__layout
-    display: grid
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
-    gap: 24px
+  // ── Schede Addebiti / Anticipi / Documenti emessi (tutta larghezza) ────
+  &__tabs-bar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 12px
+    border-bottom: 1px solid $border
+    margin-top: 4px
 
+    // La linea sotto le schede la disegna la barra (azioni comprese)
+    .conti-camera__tabs.conti-camera__tabs
+      margin-bottom: -1px
+      border-bottom: none
 
-  &__col
+    .conti-camera__section-actions
+      padding-bottom: 6px
+
+  &__pane
     display: flex
     flex-direction: column
     gap: 10px
     min-width: 0
+
+    .sib-table-wrap
+      margin-bottom: 0
 
   // ── Tabella ───────────────────────────────────────────────────────────────
   &__table
@@ -522,12 +534,6 @@
       &:hover
         opacity: 0.9
 
-// Addebiti (9 colonne, 5 azioni) e anticipi/documenti non stanno affiancati su
-// laptop: sotto questa larghezza le colonne si impilano e ogni tabella ha tutta
-// la riga, senza scroll orizzontale.
-@container conticamera (max-width: 1500px)
-  .conti-camera__layout
-    grid-template-columns: minmax(0, 1fr)
 
 // Numero di camera negli addebiti: apre lo storico di quella camera
 .conti-camera__cam-link
