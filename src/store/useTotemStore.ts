@@ -83,7 +83,20 @@ const CITTA: Record<string, { lat: number; lng: number; regione: string }> = {
   Taormina: { lat: 37.85, lng: 15.29, regione: 'Sicilia' },
   Siracusa: { lat: 37.08, lng: 15.29, regione: 'Sicilia' },
   Cagliari: { lat: 39.22, lng: 9.12,  regione: 'Sardegna' },
+  Verona:   { lat: 45.44, lng: 10.99, regione: 'Veneto' },
+  Genova:   { lat: 44.41, lng: 8.93,  regione: 'Liguria' },
+  Rimini:   { lat: 44.06, lng: 12.57, regione: 'Emilia-Romagna' },
+  Sorrento: { lat: 40.63, lng: 14.38, regione: 'Campania' },
+  Como:     { lat: 45.81, lng: 9.09,  regione: 'Lombardia' },
+  Pisa:     { lat: 43.72, lng: 10.40, regione: 'Toscana' },
+  Lecce:    { lat: 40.35, lng: 18.17, regione: 'Puglia' },
+  Olbia:    { lat: 40.92, lng: 9.50,  regione: 'Sardegna' },
+  Trieste:  { lat: 45.65, lng: 13.78, regione: 'Friuli-Venezia Giulia' },
+  Perugia:  { lat: 43.11, lng: 12.39, regione: 'Umbria' },
+  Matera:   { lat: 40.67, lng: 16.60, regione: 'Basilicata' },
 }
+/** Città con coordinate note (ricerca "vicino a" negli spazi della rete). */
+export const CITTA_RETE = Object.entries(CITTA).map(([nome, c]) => ({ nome, ...c })).sort((a, b) => a.nome.localeCompare(b.nome))
 
 /** Lat/lng → coordinate del viewBox 1000×1304 della mappa d'Italia (Agorà). */
 export const proietta = (lat: number, lng: number) => ({
@@ -320,6 +333,50 @@ export interface Inserzione {
 /** Quota del ricavo che resta al proprietario del totem (il resto è la commissione Sibylla). */
 export const QUOTA_PROPRIETARIO = 0.8
 
+// ─── Rete Sibylla: spazi acquistabili da chi non ha totem propri ─────────────
+/** Tipo di luogo in cui è installato il totem: pesa sul prezzo dello spazio. */
+export type Destinazione = 'hotel' | 'aeroporto' | 'stazione' | 'porto' | 'centro-commerciale' | 'museo' | 'lido'
+
+/** Totem di un altro membro della rete che ne mette in vendita gli spazi. */
+export interface TotemRete {
+  id: string
+  proprietario: string
+  nome: string
+  luogo: string
+  indirizzo: string
+  citta: string
+  regione: string
+  lat: number
+  lng: number
+  destinazione: Destinazione
+  /** Passaggi davanti allo schermo stimati al giorno. */
+  passaggiGiorno: number
+  formato: FormatoSpot
+  touch: boolean
+  modello: string
+  /** Fasce che il proprietario mette in vendita. */
+  fasce: Fascia[]
+  /** Giorni già venduti per fascia (aaaa-mm-gg). */
+  occupati: Record<Fascia, string[]>
+}
+
+export type StatoAcquisto = 'In revisione' | 'Approvato' | 'Rifiutato'
+/** Spazio acquistato su un totem della rete: lo spot va in onda dopo l'approvazione del proprietario. */
+export interface Acquisto {
+  id: string
+  totemId: string
+  progettoId: string
+  dal: string
+  al: string
+  fasce: Fascia[]
+  passaggiOra: number
+  /** Importo totale calcolato dall'algoritmo di Sibylla (€). */
+  importo: number
+  stato: StatoAcquisto
+  createdAt: string
+  motivo?: string
+}
+
 // ─── Date ─────────────────────────────────────────────────────────────────────
 const pad = (n: number) => String(n).padStart(2, '0')
 export const isoT = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -334,6 +391,109 @@ export const eurT = (n: number) => n.toLocaleString('it-IT', { style: 'currency'
 
 /** Trasmissione attiva oggi su un totem nella fascia corrente. */
 export const fasciaOra = (h = new Date().getHours()): Fascia => h < 7 ? 'notte' : h < 12 ? 'mattina' : h < 18 ? 'pomeriggio' : 'sera'
+
+// ─── Algoritmo di prezzo Sibylla ─────────────────────────────────────────────
+// Il proprietario non fissa un listino: Sibylla calcola il prezzo di ogni spazio
+// (al giorno, per fascia, per uno spot di 15 s fino a 6 passaggi l'ora) in base a
+//  · posizione: attrattività turistica e commerciale della zona;
+//  · destinazione: tipo di luogo (aeroporto, stazione, hotel…) e pubblico che lo frequenta;
+//  · orario: peso della fascia, con i picchi tipici di quella destinazione;
+//  · traffico: passaggi davanti allo schermo misurati dal sensore;
+//  · calendario: fine settimana e stagione (estate per mare e porti, città d'arte da aprile a ottobre).
+
+export const DESTINAZIONI: { id: Destinazione; label: string; icona: string; peso: number; picchi: Partial<Record<Fascia, number>>; pubblico: string }[] = [
+  { id: 'aeroporto',          label: 'Aeroporto',           icona: 'fa-plane-departure', peso: 1.45, picchi: { mattina: 1.2, notte: 0.9 }, pubblico: 'viaggiatori in attesa, alta capacità di spesa' },
+  { id: 'stazione',           label: 'Stazione',            icona: 'fa-train-subway',    peso: 1.3,  picchi: { mattina: 1.15, pomeriggio: 1.1 }, pubblico: 'pendolari e turisti in transito' },
+  { id: 'porto',              label: 'Porto e terminal',    icona: 'fa-ship',            peso: 1.15, picchi: { mattina: 1.15 }, pubblico: 'crocieristi e passeggeri in imbarco' },
+  { id: 'centro-commerciale', label: 'Centro commerciale',  icona: 'fa-bag-shopping',    peso: 1.2,  picchi: { pomeriggio: 1.2 }, pubblico: 'clienti già in fase d\'acquisto' },
+  { id: 'hotel',              label: 'Hotel e resort',      icona: 'fa-hotel',           peso: 1.0,  picchi: { sera: 1.15 }, pubblico: 'ospiti in vacanza o per lavoro' },
+  { id: 'museo',              label: 'Museo e cultura',     icona: 'fa-landmark',        peso: 1.1,  picchi: { mattina: 1.1 }, pubblico: 'visitatori e turisti culturali' },
+  { id: 'lido',               label: 'Lido e spiaggia',     icona: 'fa-umbrella-beach',  peso: 1.05, picchi: { pomeriggio: 1.25 }, pubblico: 'bagnanti e famiglie in vacanza' },
+]
+export const destinazioneLbl = (d: Destinazione) => DESTINAZIONI.find(x => x.id === d)!.label
+
+/** Peso base delle fasce orarie. */
+const PESO_FASCIA: Record<Fascia, number> = { mattina: 1, pomeriggio: 1.1, sera: 1.25, notte: 0.35 }
+/** Attrattività della zona (1 = media della rete). */
+const PESO_ZONA: Record<string, number> = {
+  Venezia: 1.4, Roma: 1.35, Milano: 1.3, Firenze: 1.3, Como: 1.25, Taormina: 1.25, Sorrento: 1.2,
+  Olbia: 1.15, Bologna: 1.1, Napoli: 1.1, Verona: 1.1, Pisa: 1.05, Matera: 1.05, Genova: 1.0, Torino: 1.0,
+  Rimini: 1.0, Lecce: 1.0, Siracusa: 1.0, Noto: 0.95, Palermo: 1.0, Catania: 0.95, Trieste: 0.95, Bari: 0.95,
+  Perugia: 0.9, Cagliari: 0.95,
+}
+const CITTA_ARTE = ['Venezia', 'Roma', 'Firenze', 'Verona', 'Matera', 'Pisa', 'Lecce', 'Perugia', 'Noto', 'Siracusa', 'Napoli']
+/** Prezzo base di uno spazio (€/giorno) prima dei coefficienti. */
+export const BASE_SPAZIO = 25
+/** Passaggi all'ora compresi nel prezzo base. */
+export const PASSAGGI_BASE = 6
+/** Durata di uno spazio pubblicitario (s). */
+export const DURATA_SPAZIO = 15
+
+export interface FattorePrezzo { id: 'posizione' | 'destinazione' | 'orario' | 'traffico' | 'calendario'; label: string; valore: number; nota: string }
+export interface LuogoPrezzo { citta: string; destinazione: Destinazione; passaggiGiorno: number }
+
+const r2 = (n: number) => Math.round(n * 100) / 100
+
+/** Prezzo Sibylla di uno spazio in un giorno e fascia, con i coefficienti che lo compongono. */
+export function prezzoSibylla(l: LuogoPrezzo, fascia: Fascia, iso = isoT(new Date())): { prezzo: number; fattori: FattorePrezzo[] } {
+  const dest = DESTINAZIONI.find(d => d.id === l.destinazione)!
+  const d = new Date(`${iso}T12:00:00`)
+  const mese = d.getMonth() + 1, gs = d.getDay()
+  const weekend = gs === 0 || gs === 5 || gs === 6
+  const estate = (l.destinazione === 'lido' || l.destinazione === 'porto') && mese >= 6 && mese <= 9
+  const arte = CITTA_ARTE.includes(l.citta) && mese >= 4 && mese <= 10
+  const zona = PESO_ZONA[l.citta] ?? 1
+  const picco = dest.picchi[fascia] ?? 1
+  const traffico = r2(Math.min(1.8, Math.max(0.6, l.passaggiGiorno / 1500)))
+  const cal = r2((weekend ? 1.12 : 1) * (estate ? 1.3 : arte ? 1.1 : 1))
+  const fattori: FattorePrezzo[] = [
+    { id: 'posizione', label: 'Posizione', valore: zona, nota: `${l.citta}: ${zona > 1.15 ? 'zona ad alta attrattività turistica' : zona >= 1 ? 'zona nella media della rete' : 'zona meno richiesta'}` },
+    { id: 'destinazione', label: 'Destinazione', valore: dest.peso, nota: `${dest.label}: ${dest.pubblico}` },
+    { id: 'orario', label: 'Orario', valore: r2(PESO_FASCIA[fascia] * picco), nota: `${fasciaLbl(fascia)} (${FASCE.find(f => f.id === fascia)!.orario})${picco > 1 ? ': fascia di punta per questa destinazione' : picco < 1 ? ': fascia poco frequentata' : ''}` },
+    { id: 'traffico', label: 'Traffico', valore: traffico, nota: `${l.passaggiGiorno.toLocaleString('it-IT')} passaggi al giorno davanti allo schermo` },
+    { id: 'calendario', label: 'Calendario', valore: cal, nota: [weekend ? 'fine settimana' : 'giorno feriale', estate ? 'alta stagione balneare' : arte ? 'stagione delle città d\'arte' : 'bassa stagione'].join(' · ') },
+  ]
+  const prezzo = Math.max(5, Math.round(fattori.reduce((p, f) => p * f.valore, BASE_SPAZIO)))
+  return { prezzo, fattori }
+}
+
+/** Moltiplicatore per frequenza e durata dello spot: oltre 6 passaggi l'ora e oltre 15 s si paga in proporzione. */
+export const moltiplicatoreSpot = (passaggiOra: number, durataSpot: number) =>
+  Math.max(1, passaggiOra / PASSAGGI_BASE) * Math.max(1, Math.ceil(durataSpot / DURATA_SPAZIO))
+
+/** Costo di una campagna su un totem: somma dei prezzi Sibylla giorno per giorno e fascia per fascia. */
+export function prezzoPeriodo(l: LuogoPrezzo, fasce: Fascia[], dal: string, al: string, passaggiOra = PASSAGGI_BASE, durataSpot = DURATA_SPAZIO) {
+  let base = 0
+  const gg = giorniTra(dal, al)
+  for (let d = new Date(`${dal}T12:00:00`), i = 0; i < gg; i++, d.setDate(d.getDate() + 1)) {
+    const iso = isoT(d)
+    fasce.forEach(f => { base += prezzoSibylla(l, f, iso).prezzo })
+  }
+  return Math.round(base * moltiplicatoreSpot(passaggiOra, durataSpot))
+}
+
+/** Destinazione dei totem di proprietà, ricavata dal tipo di luogo. */
+export function destinazioneDi(luogo: string): Destinazione {
+  const l = luogo.toLowerCase()
+  if (l.includes('aeroporto')) return 'aeroporto'
+  if (l.includes('stazione')) return 'stazione'
+  if (l.includes('terminal') || l.includes('porto') || l.includes('marina')) return 'porto'
+  if (l.includes('commerciale') || l.includes('galleria')) return 'centro-commerciale'
+  if (l.includes('museo')) return 'museo'
+  if (l.includes('lido') || l.includes('baia')) return 'lido'
+  return 'hotel'
+}
+/** Prezzi Sibylla di un totem di proprietà per fascia in un giorno. */
+export const prezziTotem = (t: Pick<Totem, 'citta' | 'luogo' | 'passaggiGiorno'>, iso?: string) =>
+  Object.fromEntries(FASCE.map(f => [f.id, prezzoSibylla({ citta: t.citta, destinazione: destinazioneDi(t.luogo), passaggiGiorno: t.passaggiGiorno }, f.id, iso).prezzo])) as Record<Fascia, number>
+
+/** Distanza in km tra due coordinate (formula dell'emisenoverso). */
+export function distanzaKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371, rad = Math.PI / 180
+  const dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2
+  return Math.round(2 * R * Math.asin(Math.sqrt(h)))
+}
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────
 const uid = (p: string) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
@@ -464,12 +624,78 @@ function seedInserzioni(): Inserzione[] {
   ]
 }
 
+function seedRete(): TotemRete[] {
+  const r = (i: number, proprietario: string, luogo: string, nome: string, citta: string, indirizzo: string, destinazione: Destinazione, passaggiGiorno: number, extra: Partial<TotemRete> = {}): TotemRete => {
+    const c = CITTA[citta]
+    const fasce: Fascia[] = destinazione === 'aeroporto' || destinazione === 'stazione' ? ['mattina', 'pomeriggio', 'sera', 'notte'] : ['mattina', 'pomeriggio', 'sera']
+    const occupati = Object.fromEntries(FASCE.map(f => [f.id,
+      Array.from({ length: 60 }, (_, k) => giornoT(k)).filter((_, k) => (k * 7 + i * 3 + f.ore) % 11 === 0)])) as Record<Fascia, string[]>
+    return {
+      id: `rt-${i}`, proprietario, luogo, nome, citta, indirizzo, regione: c.regione, destinazione, passaggiGiorno,
+      lat: c.lat + ((i * 41) % 7 - 3) * 0.012, lng: c.lng + ((i * 29) % 7 - 3) * 0.012,
+      formato: i % 6 === 5 ? 'orizzontale' : 'verticale', touch: i % 3 !== 1, modello: MODELLI_TOTEM[i % 3],
+      fasce, occupati, ...extra,
+    }
+  }
+  return [
+    r(1,  'Aeroporti Lombardi',         'Aeroporto di Linate',        'Arrivi nazionali',   'Milano',   'Viale Forlanini',            'aeroporto', 4200),
+    r(2,  'Hotel Navigli',              'Hotel Navigli',              'Hall',               'Milano',   'Ripa di Porta Ticinese 45',  'hotel',     900),
+    r(3,  'Galleria Duomo Shopping',    'Galleria Duomo Shopping',    'Piano terra',        'Milano',   'Corso Vittorio Emanuele 24', 'centro-commerciale', 3100),
+    r(4,  'Grandi Stazioni Roma',       'Stazione Termini',           'Binari 1–5',         'Roma',     'Piazza dei Cinquecento',     'stazione',  5200),
+    r(5,  'Hotel Colosseo Palace',      'Hotel Colosseo Palace',      'Reception',          'Roma',     'Via Labicana 12',            'hotel',     1100),
+    r(6,  'Musei del Centro',           'Palazzo delle Esposizioni',  'Biglietteria',       'Roma',     'Via Nazionale 194',          'museo',     1800),
+    r(7,  'Venezia Terminal Passeggeri','Terminal crociere',          'Imbarchi',           'Venezia',  'Marittima, Fabbricato 103',  'porto',     2600),
+    r(8,  'Hotel Laguna',               'Hotel Laguna',               'Hall',               'Venezia',  'Riva degli Schiavoni 4150',  'hotel',     1000),
+    r(9,  'Hotel Arena',                'Hotel Arena',                'Reception',          'Verona',   'Via Mazzini 18',             'hotel',     850),
+    r(10, 'Porto Antico Genova',        'Porto Antico',               'Info point',         'Genova',   'Calata Molo Vecchio',        'porto',     2200),
+    r(11, 'Riviera Beach Club',         'Bagni Riviera',              'Ingresso spiaggia',  'Rimini',   'Lungomare Tintori 6',        'lido',      2400),
+    r(12, 'Hotel Bologna Fiera',        'Hotel Bologna Fiera',        'Hall',               'Bologna',  'Piazza della Costituzione 1','hotel',     1300),
+    r(13, 'Firenze Shopping Center',    'Centro commerciale I Gigli', 'Galleria',           'Firenze',  'Via San Quirico 165',        'centro-commerciale', 3600),
+    r(14, 'Hotel Ponte Vecchio',        'Hotel Ponte Vecchio',        'Reception',          'Firenze',  'Lungarno Acciaiuoli 4',      'hotel',     1200),
+    r(15, 'Aeroporto Galilei',          'Aeroporto di Pisa',          'Partenze',           'Pisa',     'Piazzale D\'Ascanio 1',      'aeroporto', 3300),
+    r(16, 'Hotel Lago di Como',         'Villa sul Lago',             'Lounge',             'Como',     'Via per Cernobbio 41',       'hotel',     700),
+    r(17, 'Hotel Perugia Centro',       'Hotel Perugia Centro',       'Hall',               'Perugia',  'Corso Vannucci 97',          'hotel',     650),
+    r(18, 'Trieste Molo IV',            'Stazione Marittima',         'Sala arrivi',        'Trieste',  'Molo Bersaglieri 3',         'porto',     1500),
+    r(19, 'Napoli Stazione Centrale',   'Stazione Centrale',          'Atrio',              'Napoli',   'Piazza Garibaldi',           'stazione',  4800),
+    r(20, 'Costiera Hotels',            'Grand Hotel Sorrento',       'Terrazza',           'Sorrento', 'Piazza Tasso 34',            'hotel',     900),
+    r(21, 'Sassi Experience',           'Casa Grotta dei Sassi',      'Ingresso museo',     'Matera',   'Vico Solitario 11',          'museo',     1100),
+    r(22, 'Hotel Barocco Lecce',        'Hotel Barocco Lecce',        'Reception',          'Lecce',    'Via Vittorio Emanuele 7',    'hotel',     750),
+    r(23, 'Aeroporto Fontanarossa',     'Aeroporto di Catania',       'Ritiro bagagli',     'Catania',  'Via Fontanarossa',           'aeroporto', 4500),
+    r(24, 'Taormina Bay Resort',        'Lido Isola Bella',           'Bar del lido',       'Taormina', 'Via Nazionale 200',          'lido',      1600),
+    r(25, 'Hotel Ortigia',              'Hotel Ortigia',              'Hall',               'Siracusa', 'Via Roma 66',                'hotel',     800),
+    r(26, 'Palermo Porto Passeggeri',   'Stazione marittima',         'Imbarchi traghetti', 'Palermo',  'Via Francesco Crispi',       'porto',     2900),
+    r(27, 'Costa Smeralda Marina',      'Marina di Olbia',            'Porto turistico',    'Olbia',    'Banchina Isola Bianca',      'porto',     2100),
+    r(28, 'Torino Shopping',            'Centro commerciale 8 Gallery','Galleria',          'Torino',   'Via Nizza 262',              'centro-commerciale', 2700),
+  ]
+}
+
+function seedAcquisti(): Acquisto[] {
+  const now = Date.now()
+  const rete = seedRete()
+  const a = (i: number, totemId: string, progettoId: string, dal: number, al: number, fasce: Fascia[], passaggiOra: number, stato: StatoAcquisto, motivo?: string): Acquisto => {
+    const t = rete.find(x => x.id === totemId)!
+    const importo = prezzoPeriodo(t, fasce, giornoT(dal), giornoT(al), passaggiOra)
+    return { id: `aq-${i}`, totemId, progettoId, dal: giornoT(dal), al: giornoT(al), fasce, passaggiOra, importo, stato, createdAt: new Date(now - (i + 2) * 86400000).toISOString(), motivo }
+  }
+  return [
+    a(1, 'rt-23', 'pr-tour', -5, 16, ['mattina', 'pomeriggio'], 6, 'Approvato'),
+    a(2, 'rt-24', 'pr-tour', -3, 18, ['pomeriggio'], 6, 'Approvato'),
+    a(3, 'rt-7',  'pr-spa',  6, 20, ['mattina'], 6, 'In revisione'),
+    a(4, 'rt-5',  'pr-cena', -40, -26, ['sera'], 6, 'Approvato'),
+    a(5, 'rt-15', 'pr-spa',  -12, 2, ['sera'], 9, 'Rifiutato', 'Le fasce serali di quel periodo sono riservate a un evento dell\'aeroporto.'),
+  ]
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 interface TotemState {
   totem: Totem[]
   progetti: Progetto[]
   trasmissioni: Trasmissione[]
   inserzioni: Inserzione[]
+  /** Totem di altri membri della rete con spazi in vendita. */
+  rete: TotemRete[]
+  /** Spazi acquistati sui totem della rete. */
+  acquisti: Acquisto[]
 
   aggiornaTotem: (id: string, patch: Partial<Totem>) => void
   aggiornaConfig: (id: string, patch: Partial<ConfigTotem>) => void
@@ -487,9 +713,13 @@ interface TotemState {
   eliminaTrasmissione: (id: string) => void
 
   decidiInserzione: (id: string, stato: StatoInserzione, motivo?: string) => void
+
+  acquistaSpazi: (righe: Omit<Acquisto, 'id' | 'createdAt' | 'stato'>[]) => string[]
+  aggiornaAcquisto: (id: string, patch: Partial<Acquisto>) => void
+  annullaAcquisto: (id: string) => void
 }
 
-const seed = () => ({ totem: seedTotem(), progetti: seedProgetti(), trasmissioni: seedTrasmissioni(), inserzioni: seedInserzioni() })
+const seed = () => ({ totem: seedTotem(), progetti: seedProgetti(), trasmissioni: seedTrasmissioni(), inserzioni: seedInserzioni(), rete: seedRete(), acquisti: seedAcquisti() })
 
 export const useTotemStore = create<TotemState>()(persist((set, get) => ({
   ...seed(),
@@ -536,7 +766,19 @@ export const useTotemStore = create<TotemState>()(persist((set, get) => ({
   eliminaTrasmissione: (id) => set(st => ({ trasmissioni: st.trasmissioni.filter(t => t.id !== id) })),
 
   decidiInserzione: (id, stato, motivo) => set(st => ({ inserzioni: st.inserzioni.map(x => x.id === id ? { ...x, stato, motivo: stato === 'Rifiutata' ? motivo : undefined } : x) })),
-}), { name: 'sibylla.totem', version: 2, migrate: () => seed() as unknown as TotemState }))
+
+  acquistaSpazi: (righe) => {
+    const nuovi = righe.map(r => ({ ...r, id: uid('aq'), stato: 'In revisione' as const, createdAt: new Date().toISOString() }))
+    set(st => ({ acquisti: [...nuovi, ...st.acquisti] }))
+    return nuovi.map(n => n.id)
+  },
+  aggiornaAcquisto: (id, patch) => set(st => ({ acquisti: st.acquisti.map(a => a.id === id ? { ...a, ...patch } : a) })),
+  annullaAcquisto: (id) => set(st => ({ acquisti: st.acquisti.filter(a => a.id !== id) })),
+}), {
+  name: 'sibylla.totem', version: 3,
+  // v3: rete Sibylla e acquisti di spazi; si conservano spot, totem e trasmissioni già salvati.
+  migrate: (stato, v) => (v < 2 || !stato ? seed() : { ...(stato as object), rete: seedRete(), acquisti: seedAcquisti() }) as unknown as TotemState,
+}))
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
 /** Trasmissioni attive su un totem in un giorno (e fascia, se indicata). */

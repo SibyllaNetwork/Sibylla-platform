@@ -9,7 +9,7 @@ import { TextareaField, ToggleSwitch } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import { CreativitaView } from '../_shared/SpotPlayer'
 import {
-  useTotemStore, FASCE, QUOTA_PROPRIETARIO, oggiT, giornoT, fmtT, giorniTra, eurT, etichettaTotem, fasciaLbl, saturazione,
+  useTotemStore, FASCE, QUOTA_PROPRIETARIO, prezzoPeriodo, prezziTotem, destinazioneDi, destinazioneLbl, oggiT, giornoT, fmtT, giorniTra, eurT, etichettaTotem, fasciaLbl, saturazione,
   type Inserzione,
 } from '../../../store/useTotemStore'
 import './SpaziPubblicitari.sass'
@@ -47,8 +47,8 @@ export default function SpaziPubblicitari({ navigate }: { navigate: (p: string) 
     if (concorre) motivi.push({ l: 'warn', t: 'Fa concorrenza al tuo spot «Cena gourmet in terrazza» sullo stesso totem' })
     const t = totem.find(y => y.id === x.totemId)
     if (t) {
-      const listino = t.prezzi[x.fascia] * giorniTra(x.dal, x.al)
-      motivi.push(x.importo >= listino ? { l: 'ok', t: `Offerta in linea con il tuo listino (${eurT(listino)})` } : { l: 'warn', t: `Offerta sotto listino di ${eurT(listino - x.importo)}` })
+      const listino = prezzoPeriodo({ citta: t.citta, destinazione: destinazioneDi(t.luogo), passaggiGiorno: t.passaggiGiorno }, [x.fascia], x.dal, x.al, x.passaggiOra)
+      motivi.push(x.importo >= listino ? { l: 'ok', t: `Offerta in linea con il prezzo Sibylla (${eurT(listino)})` } : { l: 'warn', t: `Offerta sotto il prezzo Sibylla di ${eurT(listino - x.importo)}` })
     }
     const livello = motivi.some(m => m.l === 'ko') ? 'ko' : motivi.some(m => m.l === 'warn') ? 'warn' : 'ok'
     return { livello, motivi }
@@ -218,18 +218,19 @@ export default function SpaziPubblicitari({ navigate }: { navigate: (p: string) 
             <colgroup><col className="spp__c-tt" /><col className="spp__c-on" />{FASCE.map(f => <col key={f.id} className="spp__c-pr" />)}<col className="spp__c-gg" /><col className="spp__c-cal" /></colgroup>
             <thead><tr>
               <th><ThLabel full="Totem" /></th><th className="spp__c"><ThLabel full="In vendita" /></th>
-              {FASCE.map(f => <th key={f.id} className="spp__r"><ThLabel full={f.label} short={f.label.slice(0, 4) + '.'} /></th>)}
+              {FASCE.map(f => <th key={f.id} className="spp__r"><ThLabel full={`${f.label} oggi`} short={f.label.slice(0, 4) + '.'} /></th>)}
               <th className="spp__r"><ThLabel full="Giorni liberi (30 gg)" short="Liberi 30 gg" /></th><th className="spp__c"><ThLabel full="Calendario" short="Cal." /></th>
             </tr></thead>
             <tbody>
               {totem.map(t => {
                 const fine = giornoT(30)
                 const liberi = FASCE.reduce((s, f) => s + t.calendario[f.id].filter(g => g >= oggi && g <= fine).length, 0)
+                const prezzi = prezziTotem(t, oggi)
                 return (
                   <tr key={t.id}>
-                    <td><TruncatedText text={etichettaTotem(t)} className="spp__strong" /><span className="spp__sub">{t.citta}</span></td>
+                    <td><TruncatedText text={etichettaTotem(t)} className="spp__strong" /><span className="spp__sub">{t.citta} · {destinazioneLbl(destinazioneDi(t.luogo))}</span></td>
                     <td className="spp__c"><span className="spp__toggle"><ToggleSwitch checked={t.inVendita} onChange={v => aggiornaTotem(t.id, { inVendita: v })} /></span></td>
-                    {FASCE.map(f => <td key={f.id} className={clsx('spp__r', !t.inVendita && 'spp__dim')}>{eurT(t.prezzi[f.id])}</td>)}
+                    {FASCE.map(f => <td key={f.id} className={clsx('spp__r', !t.inVendita && 'spp__dim')}>{eurT(prezzi[f.id])}</td>)}
                     <td className={clsx('spp__r', !t.inVendita && 'spp__dim')}>{t.inVendita ? liberi : '-'}</td>
                     <td className="spp__c">
                       <Tooltip text="Giorni e prezzi in vendita">
@@ -242,6 +243,13 @@ export default function SpaziPubblicitari({ navigate }: { navigate: (p: string) 
             </tbody>
           </table>
         </div>
+      )}
+      {vista === 'totem' && (
+        <p className="spp__algo">
+          <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" />
+          I prezzi li calcola l'algoritmo di Sibylla giorno per giorno: posizione del totem, orario della fascia, destinazione (aeroporto, stazione, hotel…), traffico e stagione.
+          Il dettaglio di ogni coefficiente è nella scheda del totem, sotto "Spazi in vendita".
+        </p>
       )}
 
       <Modal open={!!rifiuto} onClose={() => setRifiuto(null)} title="Rifiuta richiesta" size="sm">

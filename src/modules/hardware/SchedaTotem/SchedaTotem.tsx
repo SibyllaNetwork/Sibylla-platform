@@ -3,12 +3,13 @@ import clsx from 'clsx'
 import PageHead from '../../../core/components/PageHead'
 import Tabs from '../../../core/components/Tabs'
 import Tooltip from '../../../core/components/Tooltip'
-import { SelectField, InputField, ToggleSwitch, RangeField, RadioGroup } from '../../../core/components/form'
+import { SelectField, ToggleSwitch, RangeField, RadioGroup } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import SpotPlayer, { CreativitaView, TotemFrame } from '../_shared/SpotPlayer'
+import FattoriPrezzo from '../_shared/FattoriPrezzo'
 import {
-  useTotemStore, FASCE, QUOTA_PROPRIETARIO, fasciaOra, oggiT, giornoT, isoT, fmtT, eurT, etichettaTotem,
+  useTotemStore, FASCE, QUOTA_PROPRIETARIO, prezzoSibylla, destinazioneDi, destinazioneLbl, fasciaOra, oggiT, giornoT, isoT, fmtT, eurT, etichettaTotem,
   trasmissioniDi, inserzioniDi, saturazione, type ConfigTotem, type Fascia, type Totem,
 } from '../../../store/useTotemStore'
 import './SchedaTotem.sass'
@@ -84,7 +85,6 @@ export default function SchedaTotem({ navigate, totemId, tabIniziale }: { naviga
           {tab === 'configurazione' && <Configurazione t={t} onSave={c => { aggiornaConfig(t.id, c); toast.success('Configurazione inviata al totem: attiva entro pochi secondi.', 'Totem') }} />}
           {tab === 'palinsesto' && <Palinsesto t={t} navigate={navigate} />}
           {tab === 'spazi' && <Spazi t={t} onToggle={v => aggiornaTotem(t.id, { inVendita: v })}
-            onPrezzi={prezzi => { aggiornaTotem(t.id, { prezzi }); toast.success('Prezzi degli spazi aggiornati.', 'Spazi in vendita') }}
             onCalendario={(f, g) => setCalendario(t.id, f, g)} />}
         </div>
 
@@ -270,14 +270,14 @@ function Palinsesto({ t, navigate }: { t: Totem; navigate: (p: string) => void }
 }
 
 // ─── Spazi in vendita (calendario per fascia) ────────────────────────────────
-function Spazi({ t, onToggle, onPrezzi, onCalendario }: {
-  t: Totem; onToggle: (v: boolean) => void; onPrezzi: (p: Totem['prezzi']) => void; onCalendario: (f: Fascia, g: string[]) => void
+function Spazi({ t, onToggle, onCalendario }: {
+  t: Totem; onToggle: (v: boolean) => void; onCalendario: (f: Fascia, g: string[]) => void
 }) {
   const inserzioni = useTotemStore(s => s.inserzioni)
   const [fascia, setFascia] = useState<Fascia>('sera')
   const [modo, setModo] = useState<'seleziona' | 'deseleziona'>('seleziona')
-  const [prezzi, setPrezzi] = useState(t.prezzi)
-  useEffect(() => { setPrezzi(t.prezzi) }, [t.prezzi])
+  const luogoPrezzo = { citta: t.citta, destinazione: destinazioneDi(t.luogo), passaggiGiorno: t.passaggiGiorno }
+  const prossimi30 = useMemo(() => Array.from({ length: 30 }, (_, k) => giornoT(k)), [])
   const drag = useRef(false)
   useEffect(() => { const up = () => { drag.current = false }; window.addEventListener('mouseup', up); return () => window.removeEventListener('mouseup', up) }, [])
 
@@ -294,7 +294,7 @@ function Spazi({ t, onToggle, onPrezzi, onCalendario }: {
     if (modo === 'deseleziona' && has) onCalendario(fascia, t.calendario[fascia].filter(x => x !== g))
   }
   const giorniLiberi = t.calendario[fascia].filter(g => g >= oggi && !venduti.has(g)).length
-  const potenziale = giorniLiberi * t.prezzi[fascia] * QUOTA_PROPRIETARIO
+  const potenziale = t.calendario[fascia].filter(g => g >= oggi && !venduti.has(g)).reduce((s, g) => s + prezzoSibylla(luogoPrezzo, fascia, g).prezzo, 0) * QUOTA_PROPRIETARIO
 
   return (
     <section className="stm__card">
@@ -303,13 +303,21 @@ function Spazi({ t, onToggle, onPrezzi, onCalendario }: {
       </div>
       <div className={clsx('stm-spazi', !t.inVendita && 'stm-spazi--off')}>
         <div className="stm-spazi__prezzi">
-          {FASCE.map(f => (
-            <InputField key={f.id} name={`prezzo-${f.id}`} type="number" label={`${f.label} (${f.orario})`} value={prezzi[f.id]} min={0} iconLeft="fa-solid fa-euro-sign"
-              onChange={e => setPrezzi({ ...prezzi, [f.id]: Number(e.target.value) || 0 })} />
-          ))}
-          <button type="button" className="sib-btn sib-btn--secondary stm-spazi__save" disabled={JSON.stringify(prezzi) === JSON.stringify(t.prezzi)} onClick={() => onPrezzi(prezzi)}>Salva prezzi</button>
+          {FASCE.map(f => {
+            const oggiP = prezzoSibylla(luogoPrezzo, f.id, oggi)
+            const tutti = prossimi30.map(g => prezzoSibylla(luogoPrezzo, f.id, g).prezzo)
+            return (
+              <Tooltip key={f.id} content={<FattoriPrezzo fattori={oggiP.fattori} prezzo={oggiP.prezzo} titolo={`${f.label} · oggi`} />}>
+                <span className="stm-spazi__prezzo" tabIndex={0}>
+                  <span className="stm-spazi__prezzo-lbl">{f.label} <small>{f.orario}</small></span>
+                  <strong>{eurT(oggiP.prezzo)}</strong>
+                  <span className="stm-spazi__prezzo-range">oggi · {Math.min(...tutti) === Math.max(...tutti) ? 'stabile nei prossimi 30 gg' : `${eurT(Math.min(...tutti))}–${eurT(Math.max(...tutti))} nei prossimi 30 gg`}</span>
+                </span>
+              </Tooltip>
+            )
+          })}
         </div>
-        <p className="stm__hint">Prezzo al giorno per uno spot di 15 secondi fino a 6 passaggi l'ora. Ti spetta l'{Math.round(QUOTA_PROPRIETARIO * 100)}% di ogni vendita.</p>
+        <p className="stm__hint"><i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" /> I prezzi li calcola l'algoritmo di Sibylla giorno per giorno in base a posizione ({t.citta}), orario e destinazione ({destinazioneLbl(destinazioneDi(t.luogo)).toLowerCase()}), traffico e stagione. Prezzo al giorno per uno spot di 15 secondi fino a 6 passaggi l'ora; ti spetta l'{Math.round(QUOTA_PROPRIETARIO * 100)}% di ogni vendita.</p>
 
         <div className="stm-spazi__bar">
           <div className="stm__tabs-mini" role="tablist">

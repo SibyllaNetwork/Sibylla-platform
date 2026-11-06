@@ -289,6 +289,7 @@ const MENU_MAP: Record<string, string> = {
   'gest-advertising':           'fa-tower-broadcast',
   'totem-editor':               'fa-pen-ruler',
   'noleggia-spazi':             'fa-hand-holding-dollar',
+  'acquista-spazi':             'fa-cart-shopping',
 
   // ══ GIORNALE IMPRESA — pagine foglia senza icona dedicata ═════════════════
   // Coprono i titoli delle card "page" della vista estesa (tutti i tab),

@@ -1,0 +1,641 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+.acs
+  display: flex
+  flex-direction: column
+  gap: 14px
+  font-size: 13px
+  container-type: inline-size
+  container-name: acs
+
+.acs__tabs
+  margin-bottom: 0
+
+.acs__strong
+  display: block
+  min-width: 0
+  font-weight: 600
+  color: $text-active
+
+.acs__sub
+  display: block
+  min-width: 0
+  font-size: 11.5px
+  color: $text-inactive
+
+.acs__lbl
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.acs__link
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 12px
+  font-weight: 600
+  color: $link
+
+// ── Trova spazi ──
+.acs__filters
+  display: grid
+  grid-template-columns: minmax(220px, 1.6fr) repeat(4, minmax(0, 1fr))
+  gap: 12px
+  align-items: end
+
+.acs__dest
+  display: flex
+  align-items: center
+  flex-wrap: wrap
+  gap: 6px
+
+  .acs__lbl
+    margin-right: 4px
+
+  .acs__link
+    margin-left: 6px
+
+.acs__dest-btn
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  height: 30px
+  padding: 0 10px
+  border: 1px solid $border
+  border-radius: 8px
+  background: var(--color-surface)
+  color: $text-active
+  font-size: 12px
+  cursor: pointer
+  transition: $transition-fast
+
+  i
+    color: var(--color-primary)
+
+  &:hover
+    border-color: $primary-300
+
+  &--on
+    border-color: var(--color-primary)
+    box-shadow: inset 0 0 0 1px var(--color-primary)
+    color: var(--color-primary)
+    font-weight: 600
+
+.acs__find
+  display: grid
+  grid-template-columns: 280px minmax(0, 1fr)
+  gap: 18px
+  align-items: start
+
+.acs__map
+  position: sticky
+  top: 12px
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+  .itm__pin
+    width: 22px
+    height: 22px
+    border-width: 1.5px
+
+    > *
+      font-size: 9px
+
+  .itm__pin--sel
+    background: #a2864c
+
+.acs__map-hint
+  font-size: 11.5px
+  color: $text-inactive
+
+.acs__results
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.acs__wrap
+  overflow-x: hidden
+  container-type: inline-size
+  container-name: acstab
+
+.acs .acs__table
+  +table-fit
+  +th-labels
+
+.acs .acs__th-num .sib-colf-head
+  justify-content: flex-end
+
+.acs__c-totem
+  width: 32%
+.acs__c-citta
+  width: 17%
+.acs__c-dest
+  width: 19%
+.acs__c-pass
+  width: 13%
+.acs__c-prezzo
+  width: 13%
+.acs__c-act
+  width: 72px
+.acs__c-fasce
+  width: 18%
+.acs__c-spot
+  width: 22%
+.acs__c-per
+  width: 15%
+.acs__c-stato
+  width: 12%
+.acs__c-azioni
+  width: 92px
+
+.acs__table--acq .acs__c-totem
+  width: 22%
+.acs__table--acq .acs__c-fasce
+  width: 13%
+.acs__table--camp .acs__c-totem
+  width: 40%
+.acs__table--camp .acs__c-dest
+  width: 22%
+.acs__table--camp .acs__c-fasce
+  width: 20%
+
+.acs .acs__r
+  text-align: right
+.acs .acs__c
+  text-align: center
+
+.acs__row--on td
+  background: $primary-50
+
+.acs__dest-cell
+  display: flex
+  align-items: center
+  gap: 7px
+  min-width: 0
+
+  i
+    flex-shrink: 0
+    width: 16px
+    font-size: 14px
+    color: var(--color-primary)
+
+.acs__totem-sub
+  display: flex
+  align-items: center
+  gap: 8px
+  min-width: 0
+
+.acs__form
+  flex-shrink: 0
+  display: inline-flex
+  gap: 5px
+  color: var(--color-primary)
+  font-size: 12px
+
+.acs__price
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-weight: 600
+  color: $text-active
+  cursor: help
+
+  i
+    font-size: 11px
+    color: #a2864c
+
+.acs__amount
+  font-weight: 600
+  color: $text-active
+
+.acs__act
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  display: inline-flex
+  color: var(--color-primary)
+  font-size: 16px
+
+  &--on
+    color: $success
+
+.acs__acts
+  display: inline-flex
+  gap: 14px
+
+.acs__empty
+  padding: 22px
+  text-align: center
+  color: $text-disabled
+
+.acs__pagination
+  display: flex
+  justify-content: center
+
+.acs__note
+  margin: 0
+  display: flex
+  align-items: flex-start
+  gap: 8px
+  font-size: 12px
+  color: $text-inactive
+
+  i
+    margin-top: 2px
+    color: #a2864c
+
+.acs__bar
+  position: sticky
+  bottom: 12px
+  z-index: 2
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 14px
+  padding: 10px 14px
+  border: 1px solid var(--color-primary)
+  border-radius: $radius-xl
+  background: var(--color-surface)
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .15)
+
+  > span
+    min-width: 0
+    overflow: hidden
+    white-space: nowrap
+    text-overflow: ellipsis
+
+// ── Campagna ──
+.acs__layout
+  display: grid
+  grid-template-columns: minmax(0, 1fr) 260px
+  gap: 18px
+  align-items: start
+
+.acs__steps
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.acs__card
+  padding: 16px
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: var(--color-surface)
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.acs__step-row
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+
+.acs__step
+  margin: 0
+  display: flex
+  align-items: center
+  gap: 10px
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+  color: $primary
+
+  span
+    width: 26px
+    height: 26px
+    border-radius: 50%
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+
+.acs__empty-box
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 10px
+  padding: 22px
+  border: 1px dashed $border
+  border-radius: 10px
+  color: $text-inactive
+  text-align: center
+
+  > i
+    font-size: 26px
+    color: $primary-300
+
+.acs__fasce-cell
+  display: inline-flex
+  align-items: center
+  gap: 10px
+  color: var(--color-primary)
+  font-size: 16px
+
+  .acs__sub
+    display: inline
+
+.acs__warn
+  color: $warning
+
+.acs__when
+  display: grid
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 16px 22px
+
+.acs__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+  &--wide
+    grid-column: 1 / -1
+
+.acs__fasce
+  display: grid
+  grid-template-columns: repeat(4, minmax(0, 1fr))
+  gap: 8px
+
+.acs__fascia
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 2px
+  padding: 8px 4px
+  border: 1px solid $border
+  border-radius: 9px
+  background: var(--color-surface)
+  cursor: pointer
+  color: $text-inactive
+  font-size: 11px
+
+  i
+    font-size: 15px
+    color: $text-disabled
+
+  strong
+    font-size: 12px
+    color: $text-active
+
+  &--on
+    border-color: var(--color-primary)
+    box-shadow: inset 0 0 0 1px var(--color-primary)
+
+    i
+      color: #a2864c
+
+.acs__spots
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr))
+  gap: 10px
+
+.acs__spot
+  position: relative
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 8px 10px 8px 8px
+  border: 1px solid $border
+  border-radius: 10px
+  background: var(--color-surface)
+  transition: $transition-fast
+
+  &:hover
+    border-color: $primary-300
+
+  &--on
+    border-color: var(--color-primary)
+    box-shadow: inset 0 0 0 1px var(--color-primary)
+
+  &--new
+    justify-content: center
+    border-style: dashed
+    color: var(--color-primary)
+    font-weight: 600
+    cursor: pointer
+
+.acs__spot-pick
+  flex: 1
+  min-width: 0
+  display: flex
+  align-items: center
+  gap: 10px
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  text-align: left
+
+.acs__spot-thumb
+  flex-shrink: 0
+  width: 38px
+  border-radius: 4px
+  overflow: hidden
+
+.acs__spot-txt
+  min-width: 0
+  display: flex
+  flex-direction: column
+
+.acs__spot-edit
+  flex-shrink: 0
+
+.acs__summary
+  position: sticky
+  top: 12px
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+  .totem-frame
+    width: 190px
+    align-self: center
+
+.acs__kpi
+  margin: 0
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 8px
+
+  div
+    padding: 8px 10px
+    border-radius: 8px
+    background: $bg
+
+  dt
+    font-size: 11px
+    color: $text-inactive
+
+  dd
+    margin: 0
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 700
+    color: $text-active
+
+.acs__total
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 10px
+  padding: 10px 12px
+  border: 1px solid var(--color-primary)
+  border-radius: 10px
+
+  span
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  strong
+    font-family: $font-heading
+    font-size: 22px
+    color: $primary
+
+.acs__checks
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  flex-direction: column
+  gap: 7px
+  font-size: 12px
+  color: $text-active
+
+  li
+    display: flex
+    gap: 7px
+
+  i
+    margin-top: 2px
+
+.acs__check--ok i
+  color: $success
+.acs__check--ko i
+  color: $warning
+.acs__check--info i
+  color: #a2864c
+
+.acs__go
+  justify-content: center
+  height: 40px
+
+.acs__go-hint
+  text-align: center
+
+// ── I miei acquisti ──
+.acs__list
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.acs__cell-spot
+  display: flex
+  align-items: center
+  gap: 8px
+  min-width: 0
+
+.acs__mini
+  flex-shrink: 0
+  width: 20px
+  border-radius: 3px
+  overflow: hidden
+
+.acs__st
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-weight: 600
+
+  &::before
+    content: ''
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: currentColor
+
+  &--live
+    color: $success
+  &--plan
+    color: var(--color-primary)
+  &--wait
+    color: $warning
+  &--done
+    color: $text-disabled
+  &--ko
+    color: $error
+
+  i
+    font-size: 12px
+
+// Intestazioni abbreviate (con tooltip) solo quando la tabella stessa è stretta.
+@container acstab (max-width: 720px)
+  .acs .acs__table
+    +th-compact
+
+    th, td
+      padding-left: 6px
+      padding-right: 6px
+
+  .acs .acs__c-act
+    width: 52px
+
+  // Destinazione solo icona (il nome è nel tooltip): spazio a Totem, passaggi e prezzo.
+  .acs .acs__table--trova
+    .acs__c-dest
+      width: 48px
+    .acs__c-totem
+      width: 34%
+    .acs__c-pass
+      width: 17%
+    .acs__c-prezzo
+      width: 17%
+    .acs__dest-cell
+      justify-content: center
+
+      .sib-truncate
+        display: none
+
+    th:nth-child(3) .sib-th-short
+      display: none
+  .acs .acs__table--acq .acs__c-azioni
+    width: 76px
+
+@container acs (max-width: 1250px)
+  .acs__filters
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+
+    > :first-child
+      grid-column: 1 / -1
+
+  .acs__find
+    grid-template-columns: 220px minmax(0, 1fr)
+
+@container acs (max-width: 900px)
+  .acs__find
+    grid-template-columns: 180px minmax(0, 1fr)
+
+  .acs__map-hint
+    display: none
+
+@container acs (max-width: 980px)
+  .acs__layout
+    grid-template-columns: 1fr
+
+  .acs__summary
+    position: static
+
+  .acs__when
+    grid-template-columns: 1fr

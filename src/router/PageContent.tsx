@@ -216,6 +216,7 @@ import SchedaTotem                 from '../modules/hardware/SchedaTotem/SchedaT
 import EditorPalinsesti            from '../modules/hardware/EditorPalinsesti/EditorPalinsesti';
 import PianificaTrasmissioni       from '../modules/hardware/PianificaTrasmissioni/PianificaTrasmissioni';
 import SpaziPubblicitari           from '../modules/hardware/SpaziPubblicitari/SpaziPubblicitari';
+import AcquistaSpazi               from '../modules/hardware/AcquistaSpazi/AcquistaSpazi';
 import SysadminIndex               from '../modules/sysadmin/Index/SysadminIndex';
 import GestioneAziende             from '../modules/sysadmin/GestioneAziende/GestioneAziende';
 import GestioneUtenti              from '../modules/sysadmin/GestioneUtenti/GestioneUtenti';
@@ -556,9 +557,11 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'i-miei-totem' || page === 'totem' || page === 'totem-adv') return <IMieiTotem navigate={navigate}/>;
   if (page.startsWith('totem-scheda:')) { const [id, tab] = page.slice('totem-scheda:'.length).split(':'); return <SchedaTotem navigate={navigate} totemId={id} tabIniziale={tab} key={page}/>; }
   if (page === 'totem-editor')          return <EditorPalinsesti navigate={navigate}/>;
+  if (page.startsWith('totem-editor:')) { const [id, rit] = page.slice('totem-editor:'.length).split(':'); return <EditorPalinsesti navigate={navigate} progettoIniziale={id} ritorno={rit} key={page}/>; }
   if (page === 'gest-advertising' || page === 'pianifica-campagna' || page === 'riepilogo-campagna') return <PianificaTrasmissioni navigate={navigate}/>;
   if (page.startsWith('gest-advertising:')) return <PianificaTrasmissioni navigate={navigate} totemId={page.slice('gest-advertising:'.length)} key={page}/>;
   if (page === 'noleggia-spazi')        return <SpaziPubblicitari navigate={navigate}/>;
+  if (page === 'acquista-spazi' || page.startsWith('acquista-spazi:')) { const [vista, spot] = page.split(':').slice(1); return <AcquistaSpazi navigate={navigate} vistaIniziale={vista} spotIniziale={spot} key={page}/>; }
   // ── Food & Beverage ──
   // Tutte native: operative, configurazione e amministrazione della sezione.
   if (page === 'sala-ristorante') return <SalaRistoranteFb navigate={navigate}/>;

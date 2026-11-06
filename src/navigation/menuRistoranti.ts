@@ -292,6 +292,7 @@ const MENU_RISTORANTI:any[]=[
         {id:"totem-editor",label:"Editor palinsesti",page:"totem-editor"},
         {id:"gest-advertising",label:"Pianifica trasmissioni",page:"gest-advertising"},
         {id:"noleggia-spazi",label:"Spazi pubblicitari",page:"noleggia-spazi"},
+        {id:"acquista-spazi",label:"Acquista spazi",page:"acquista-spazi"},
       ]},
     ]},
   ]},

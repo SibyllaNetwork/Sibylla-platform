@@ -1,0 +1,36 @@
+.fpz
+  display: flex
+  flex-direction: column
+  gap: 3px
+  min-width: 260px
+  max-width: 340px
+  font-size: 11.5px
+  line-height: 1.35
+  text-align: left
+
+.fpz__title
+  margin-bottom: 2px
+  font-weight: 700
+
+.fpz__row
+  display: grid
+  grid-template-columns: 78px minmax(0, 1fr) auto
+  gap: 8px
+  align-items: baseline
+
+  &--tot
+    margin-top: 3px
+    padding-top: 4px
+    border-top: 1px solid rgba(255, 255, 255, .25)
+    font-weight: 700
+
+.fpz__lbl
+  font-weight: 600
+
+.fpz__nota
+  opacity: .75
+
+.fpz__val
+  font-variant-numeric: tabular-nums
+  text-align: right
+  white-space: nowrap

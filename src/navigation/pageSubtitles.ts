@@ -57,6 +57,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "gest-advertising": "Pianifica i tuoi spot sui totem della rete per periodo e fascia oraria",
   "totem-editor": "Crea gli spot dei tuoi totem: slide, prezzi dinamici e timeline",
   "noleggia-spazi": "Vendi gli spazi dei tuoi totem agli inserzionisti e segui i ricavi",
+  "acquista-spazi": "Acquista spazi sui totem della rete Sibylla e manda in onda i tuoi spot",
   "gest-chiamate": "Visualizza e gestisci il flusso delle chiamate da un’unica interfaccia",
   "gest-comanda": "Gestisci, monitora e aggiorna tutte le comande in tempo reale",
   "gest-documenti": "Gestisci e organizza tutti i documenti in un unico spazio",

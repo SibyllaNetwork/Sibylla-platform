@@ -49,11 +49,15 @@ const SCORCIATOIE: [string, string][] = [
 const tempoChiave = (s: Slide) => Math.min(s.durata - 0.05, Math.max(0, ...s.elementi.filter(e => !e.nascosto).map(e => (e.inizio ?? 0) + (e.ingresso && e.ingresso !== 'nessuna' ? durIngressoDi(e) : 0))))
 const inizioDi = (p: Progetto, id: string) => { let a = 0; for (const s of p.slides) { if (s.id === id) return a; a += s.durata } return 0 }
 
-export default function EditorPalinsesti({ navigate }: { navigate: (p: string) => void }) {
+/**
+ * `progettoIniziale`: spot da aprire (o 'nuovo' per partire dalla scelta del modello);
+ * `ritorno = 'acquista'`: aperto da Acquista spazi, il pulsante di uscita torna alla campagna.
+ */
+export default function EditorPalinsesti({ navigate, progettoIniziale, ritorno }: { navigate: (p: string) => void; progettoIniziale?: string; ritorno?: string }) {
   const { progetti, totem, salvaProgetto, nuovoProgetto, duplicaProgetto, eliminaProgetto, ripristinaVersione } = useTotemStore()
   const confirm = useConfirmStore(s => s.confirm)
 
-  const [progId, setProgId] = useState(() => progetti[0]?.id ?? '')
+  const [progId, setProgId] = useState(() => progetti.find(p => p.id === progettoIniziale)?.id ?? progetti[0]?.id ?? '')
   const salvato = progetti.find(p => p.id === progId) ?? null
   const [bozza, setBozzaRaw] = useState<Progetto | null>(() => salvato ? clone(salvato) : null)
   const [slideId, setSlideId] = useState(() => salvato?.slides[0]?.id ?? '')
@@ -62,7 +66,7 @@ export default function EditorPalinsesti({ navigate }: { navigate: (p: string) =
   const [tabSlide, setTabSlide] = useState<TabSlide>('slide')
   const [cerca, setCerca] = useState('')
   const [cercaIco, setCercaIco] = useState('')
-  const [modale, setModale] = useState<null | 'nuovo' | 'anteprima' | 'versioni' | 'scorciatoie'>(null)
+  const [modale, setModale] = useState<null | 'nuovo' | 'anteprima' | 'versioni' | 'scorciatoie'>(() => progettoIniziale === 'nuovo' ? 'nuovo' : null)
   const [totemAnteprima, setTotemAnteprima] = useState(() => totem[0]?.id ?? '')
   const [zoom, setZoom] = useState(1)
   const [griglia, setGriglia] = useState(false)
@@ -436,7 +440,9 @@ export default function EditorPalinsesti({ navigate }: { navigate: (p: string) =
         actions={
           <div className="edp__head-acts">
             <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModale('anteprima')} disabled={!bozza}><i className="fa-solid fa-tv" aria-hidden="true" /> Anteprima</button>
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => { if (sporco) salva(); navigate('gest-advertising') }} disabled={!bozza}><i className="fa-solid fa-calendar-plus" aria-hidden="true" /> Pianifica</button>
+            {ritorno === 'acquista'
+              ? <button type="button" className="sib-btn sib-btn--secondary" onClick={() => { if (sporco) salva(); navigate(`acquista-spazi:campagna${bozza ? `:${bozza.id}` : ''}`) }}><i className="fa-solid fa-cart-shopping" aria-hidden="true" /> Torna all'acquisto</button>
+              : <button type="button" className="sib-btn sib-btn--secondary" onClick={() => { if (sporco) salva(); navigate('gest-advertising') }} disabled={!bozza}><i className="fa-solid fa-calendar-plus" aria-hidden="true" /> Pianifica</button>}
             <button type="button" className="sib-btn sib-btn--primary" onClick={salva} disabled={!sporco}><i className="fa-solid fa-floppy-disk" aria-hidden="true" /> {sporco ? 'Salva' : 'Salvato'}</button>
           </div>
         }
@@ -736,7 +742,7 @@ export default function EditorPalinsesti({ navigate }: { navigate: (p: string) =
         </dl>
       </Modal>
 
-      <ModaleNuovoSpot open={modale === 'nuovo'} cartella={bozza?.cartella ?? 'Palinsesti'} onClose={() => setModale(null)} onCrea={creaProgetto} />
+      <ModaleNuovoSpot open={modale === 'nuovo'} cartella={ritorno === 'acquista' ? 'Campagne sulla rete' : bozza?.cartella ?? 'Palinsesti'} onClose={() => setModale(null)} onCrea={creaProgetto} />
     </div>
   )
 }

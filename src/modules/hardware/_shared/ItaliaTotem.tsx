@@ -17,7 +17,8 @@ export interface PuntoTotem {
 
 interface Props {
   punti: PuntoTotem[]
-  selezionato?: string | null
+  /** Segnaposto evidenziato (o più di uno). */
+  selezionato?: string | string[] | null
   /** Regione evidenziata (filtro). */
   regione?: string
   onPick?: (id: string) => void
@@ -46,7 +47,7 @@ export default function ItaliaTotem({ punti, selezionato, regione, onPick, onReg
             style={{ '--px': `${(x / ITALY_VIEWBOX.w) * 100}%`, '--py': `${(y / ITALY_VIEWBOX.h) * 100}%` } as React.CSSProperties}>
             <Tooltip text={p.label}>
               <button type="button" aria-label={p.label}
-                className={clsx('itm__pin', `itm__pin--${p.stato}`, selezionato === p.id && 'itm__pin--sel')}
+                className={clsx('itm__pin', `itm__pin--${p.stato}`, (Array.isArray(selezionato) ? selezionato.includes(p.id) : selezionato === p.id) && 'itm__pin--sel')}
                 onClick={() => onPick?.(p.id)}>
                 {p.n && p.n > 1 ? <span className="itm__pin-n">{p.n}</span> : <i className="fa-solid fa-display" aria-hidden="true" />}
               </button>

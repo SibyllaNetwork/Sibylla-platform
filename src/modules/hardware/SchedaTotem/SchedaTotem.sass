@@ -405,12 +405,44 @@
 
 .stm-spazi__prezzi
   display: grid
-  grid-template-columns: repeat(4, minmax(0, 1fr)) auto
+  grid-template-columns: repeat(4, minmax(0, 1fr))
   gap: 10px
-  align-items: end
 
-.stm-spazi__save
-  height: 34px
+  > *
+    min-width: 0
+
+.stm-spazi__prezzo
+  flex: 1
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 2px
+  padding: 10px 12px
+  border: 1px solid $border
+  border-radius: 10px
+  background: var(--color-surface)
+  cursor: help
+
+  strong
+    font-family: $font-heading
+    font-size: 18px
+    color: $primary
+
+.stm-spazi__prezzo-lbl
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+  small
+    font-weight: 400
+    color: $text-inactive
+
+.stm-spazi__prezzo-range
+  font-size: 11px
+  color: $text-inactive
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
 
 .stm-spazi__bar
   display: flex
