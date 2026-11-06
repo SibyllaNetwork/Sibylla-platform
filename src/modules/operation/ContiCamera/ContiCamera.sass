@@ -180,10 +180,10 @@
     width: 9%
 
   &__c-data
-    width: 13%
+    width: 11%
 
   &__c-pert
-    width: 12%
+    width: 11%
 
   &__c-prezzo
     width: 11%
@@ -192,7 +192,7 @@
     width: 8%
 
   &__c-trasf
-    width: 9%
+    width: 13%
 
   &__c-azioni
     width: 150px
@@ -571,7 +571,7 @@
     gap: 0
 
 // Colonna stretta: celle più compatte, intestazioni abbreviate
-@container ccaddebiti (max-width: 860px)
+@container ccaddebiti (max-width: 1000px)
   .conti-camera .conti-camera__table--addebiti
     +th-compact
 
@@ -584,6 +584,15 @@
 
   .conti-camera .conti-camera__c-check
     width: 32px
+
+  .conti-camera .conti-camera__c-trasf
+    width: 17%
+
+  .conti-camera .conti-camera__c-data
+    width: 10%
+
+  .conti-camera .conti-camera__c-pert
+    width: 10%
 
 // Colonne numeriche (Prezzo, IVA): intestazione allineata a destra come i
 // valori (la testata è un flex: text-align non basta)
