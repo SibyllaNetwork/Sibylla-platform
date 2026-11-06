@@ -41,7 +41,6 @@ export default function StoricoConto({ dettaglio, storico: tutto, camere, camera
       cf.matchMulti(a.tipo, 'tipo') &&
       cf.matchMulti(a.operatore, 'operatore') &&
       cf.matchText(`${a.descrizione} ${a.dettaglio ?? ''}`, 'descrizione') &&
-      cf.matchText(tsIt(a.ts), 'ts') &&
       (!ql || [tsIt(a.ts), a.tipo, a.descrizione, a.dettaglio ?? '', a.operatore].join(' ').toLowerCase().includes(ql)),
     )
     return cf.sort ? cf.sortRows(filtrate.map((a) => ({ ...a, importoN: a.importo ?? 0 }))) : [...filtrate].sort((a, b) => b.ts.localeCompare(a.ts))
@@ -120,7 +119,7 @@ export default function StoricoConto({ dettaglio, storico: tutto, camere, camera
               </colgroup>
               <thead>
                 <tr>
-                  <th><span className="sib-colf-head">Data e ora{cf.th('ts', 'Data e ora', { search: true, sort: true })}</span></th>
+                  <th><span className="sib-colf-head">Data e ora{cf.th('ts', 'Data e ora', { sort: true })}</span></th>
                   <th><span className="sib-colf-head">Azione{cf.th('tipo', 'Azione', { options: tipiPresenti })}</span></th>
                   <th><span className="sib-colf-head">Descrizione{cf.th('descrizione', 'Descrizione', { search: true })}</span></th>
                   <th className="ccst__th-num"><span className="sib-colf-head">Importo{cf.th('importoN', 'Importo', { sort: true })}</span></th>

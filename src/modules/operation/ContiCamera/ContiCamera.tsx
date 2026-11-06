@@ -109,7 +109,6 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
   const addebitiVisibili = useMemo(() => {
     const filtrati = data.addebiti.filter((a) =>
       cf.matchMulti(a.camera, 'camera') &&
-      cf.matchText(a.data, 'iso') &&
       cf.matchMulti(a.pertinenza, 'pertinenza') &&
       cf.matchMulti(a.descrizione, 'descrizione') &&
       cf.matchText(a.descrizione, 'descrizione') &&
@@ -322,7 +321,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                     />
                   </th>
                   <th><span className="sib-colf-head"><ThLabel full="Camera" short="Cam." />{cf.th('camera', 'Camera', { options: opz('camera') })}</span></th>
-                  <th><span className="sib-colf-head"><ThLabel full="Data" />{cf.th('iso', 'Data', { search: true, sort: true })}</span></th>
+                  <th><span className="sib-colf-head"><ThLabel full="Data" />{cf.th('iso', 'Data', { sort: true })}</span></th>
                   <th><span className="sib-colf-head"><ThLabel full="Pertinenza" short="Pert." />{cf.th('pertinenza', 'Pertinenza', { options: opz('pertinenza') })}</span></th>
                   <th><span className="sib-colf-head"><ThLabel full="Descrizione" short="Descr." />{cf.th('descrizione', 'Descrizione', { options: opz('descrizione'), search: true })}</span></th>
                   <th className="conti-camera__th-num"><span className="sib-colf-head"><ThLabel full="Prezzo" short="Pr." />{cf.th('prezzo', 'Prezzo', { sort: true })}</span></th>
