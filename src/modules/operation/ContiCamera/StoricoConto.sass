@@ -1,0 +1,246 @@
+// ─── STORICO CONTO CAMERA ────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.ccst
+  background: var(--color-surface)
+  border-radius: 10px
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25)
+  width: 100%
+  max-width: 1180px
+  height: min(86vh, 860px)
+  display: flex
+  flex-direction: column
+  overflow: hidden
+  // Container query: sotto questa larghezza la tabella si compatta.
+  container-type: inline-size
+  container-name: ccst
+
+  &__overlay
+    position: fixed
+    inset: 0
+    background: rgba(0, 0, 0, 0.45)
+    display: flex
+    align-items: center
+    justify-content: center
+    z-index: 100
+    padding: 24px
+
+  &__head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 16px
+    padding: 16px 20px
+    border-bottom: 1px solid $border
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-weight: 700
+      font-size: 17px
+      color: $primary
+
+  &__sub
+    margin: 2px 0 0
+    font-size: 13px
+    color: $text-inactive
+
+  &__close
+    background: transparent
+    border: none
+    color: $text-inactive
+    font-size: 18px
+    cursor: pointer
+    padding: 4px 8px
+    line-height: 1
+
+    &:hover
+      color: $primary
+
+  &__body
+    flex: 1
+    min-height: 0
+    padding: 16px 20px
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  // ── Toolbar: ricerca + scorciatoie per tipo ───────────────────────────────
+  &__toolbar
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 8px 12px
+
+  &__search
+    width: 260px
+    flex: 0 0 auto
+
+  &__tipi
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+    flex: 1
+    min-width: 0
+
+  // Scorciatoia per tipo: icona + testo, bordo sottile (niente pillola).
+  &__tipo
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 28px
+    padding: 0 10px
+    border: 1px solid $border
+    border-radius: 6px
+    background: transparent
+    color: $text-active
+    font-size: 12px
+    cursor: pointer
+    white-space: nowrap
+
+    i
+      color: $primary
+      font-size: 12px
+
+    &:hover
+      border-color: $primary
+
+    &--on
+      border-color: $primary
+      color: $primary
+      font-weight: 600
+      box-shadow: inset 0 0 0 1px $primary
+
+  &__tipo-n
+    color: $text-inactive
+    font-weight: 400
+
+  &__reset
+    margin-left: auto
+
+  // ── Tabella ───────────────────────────────────────────────────────────────
+  &__table-wrap
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    thead th
+      position: sticky
+      top: 0
+      z-index: 1
+      background: var(--color-surface)
+      white-space: nowrap
+
+    td
+      vertical-align: middle
+
+  &__c-ts
+    width: 132px
+
+  &__c-tipo
+    width: 168px
+
+  &__c-cam
+    width: 92px
+
+  &__c-imp
+    width: 116px
+
+  &__c-op
+    width: 190px
+
+  &__th-num
+    text-align: right
+
+    .sib-colf-head
+      justify-content: flex-end
+
+  &__ts
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
+
+  &__azione
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    max-width: 100%
+    color: $primary
+    font-weight: 600
+
+    i
+      font-size: 16px
+      width: 18px
+      text-align: center
+      flex: 0 0 auto
+
+    &--eliminazione
+      color: $error
+
+    &--pagamento,
+    &--tassa-di-soggiorno
+      color: $success
+
+  &__azione-txt
+    min-width: 0
+
+  &__descr
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__descr-main
+    display: block
+    color: $text-active
+
+  &__descr-det
+    display: block
+    font-size: 12px
+    color: $text-inactive
+
+  &__op
+    display: block
+
+  &__td-num
+    text-align: right
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
+
+    &--incasso
+      color: $success
+
+  &__empty
+    text-align: center
+    color: $text-inactive
+    padding: 28px 12px
+
+  &__foot
+    display: flex
+    justify-content: space-between
+    align-items: center
+    font-size: 13px
+    color: $text-active
+
+    strong
+      color: $primary
+
+  &__legenda
+    color: $text-inactive
+    font-size: 12px
+    cursor: help
+
+    i
+      color: $primary
+
+@container ccst (max-width: 900px)
+  .ccst__c-op
+    width: 130px
+
+  .ccst__c-tipo
+    width: 140px
+
+  .ccst__search
+    width: 100%

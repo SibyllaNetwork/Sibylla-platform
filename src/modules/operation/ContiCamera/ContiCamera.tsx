@@ -1,118 +1,45 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
+import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
+import { useColFilters } from '../../../core/components/ColFilters'
 import { apiFetchSibylla } from '../../../services/api'
 import { InputField, SelectField } from '../../../core/components/form'
 import { useEmissioneStore, type EmAddebito } from '../../../store/useEmissioneStore'
+import { useConfirmStore } from '../../../store/useConfirmStore'
+import { useAccessStore } from '../../../store/useAccessStore'
 import './ContiCamera.sass'
 import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
-import { pmsAttivo, inCasa, usePmsStore, ARRANGIAMENTO } from '../_data/pmsDemo'
-
-// ─── TYPES ────────────────────────────────────────────────────────────────────
-
-interface Dettaglio {
-  prenotazioneNum: string
-  nominativo: string
-  dataArrivo: string
-  dataPartenza: string
-  giorni: number
-  ospiti: number
-  agenzia: string
-  credit: string
-  struttura: string
-  arrangiamento: string
-  nCamere: number
-  totale: number
-  diCuiCamere: number
-  diCuiServizi: number
-  diCuiTasse: number
-  pagato: number
-  daPagare: number
-  note: string
-}
-
-interface Addebito {
-  id: number
-  camera: string
-  data: string
-  pertinenza: string
-  descrizione: string
-  descrizioneInfo?: boolean
-  prezzo: number
-  iva: number
-  trasf: string
-}
-
-interface Anticipo {
-  id: number
-  camera: string
-  data: string
-  tipologia: string
-  prezzo: number
-  iva: number
-  trasf: string
-}
-
-interface Documento {
-  id: number
-  documento: string
-  data: string
-  intestatario: string
-  totale: number
-  pagato: number
-  sospeso: number
-}
-
-interface Data {
-  dettaglio: Dettaglio
-  addebiti: Addebito[]
-  anticipi: Anticipo[]
-  documenti: Documento[]
-}
-
-// Dati demo: il conto del primo soggiorno in casa nel gestionale demo della
-// struttura selezionata (addebiti notte per notte fino a oggi, caparra pagata).
-function datiDemo(struttura: string): Data {
-  const d = new Date()
-  const oggi = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  const it = (iso: string) => iso.split('-').reverse().join('/')
-  const x = pmsAttivo().prenotazioni.find((p) => inCasa(p, oggi) && p.checkIn < oggi)
-  if (!x) {
-    return {
-      dettaglio: { prenotazioneNum: '', nominativo: '', dataArrivo: '', dataPartenza: '', giorni: 0, ospiti: 0, agenzia: '', credit: '', struttura, arrangiamento: '', nCamere: 0, totale: 0, diCuiCamere: 0, diCuiServizi: 0, diCuiTasse: 0, pagato: 0, daPagare: 0, note: '' },
-      addebiti: [], anticipi: [], documenti: [],
-    }
-  }
-  const notti = Math.max(1, Math.round((new Date(x.checkOut).getTime() - new Date(x.checkIn).getTime()) / 86400000))
-  const prezzo = Math.round((x.importo / notti) * 100) / 100
-  const tassa = 3.5 * x.adulti
-  const addebiti: Addebito[] = []
-  for (let n = 0; n < notti; n++) {
-    const t = new Date(x.checkIn + 'T12:00:00'); t.setDate(t.getDate() + n)
-    const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
-    addebiti.push({ id: addebiti.length + 1, camera: x.camera, data: it(iso), pertinenza: 'Ospite', descrizione: ARRANGIAMENTO[x.arrangiamento].label, prezzo, iva: 10, trasf: '' })
-    addebiti.push({ id: addebiti.length + 1, camera: x.camera, data: it(iso), pertinenza: 'Ospite', descrizione: 'Tassa di soggiorno', descrizioneInfo: true, prezzo: tassa, iva: 0, trasf: '' })
-  }
-  const camere = Math.round(prezzo * notti * 100) / 100
-  const tasse = tassa * notti
-  // Caparra a conferma: un quarto del soggiorno, arrotondata alla decina.
-  const caparra = Math.max(50, Math.round((camere * 0.25) / 10) * 10)
-  const arrivoMeno3 = (() => { const t = new Date(x.checkIn + 'T12:00:00'); t.setDate(t.getDate() - 3); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` })()
-  return {
-    dettaglio: {
-      prenotazioneNum: x.booking, nominativo: x.nominativo, dataArrivo: it(x.checkIn), dataPartenza: it(x.checkOut),
-      giorni: notti, ospiti: x.ospiti.length, agenzia: x.canale, credit: 'NC', struttura,
-      arrangiamento: ARRANGIAMENTO[x.arrangiamento].label, nCamere: 1,
-      totale: camere + tasse, diCuiCamere: camere, diCuiServizi: 0, diCuiTasse: tasse,
-      pagato: caparra, daPagare: Math.round((camere + tasse - caparra) * 100) / 100, note: x.note,
-    },
-    addebiti,
-    anticipi: [{ id: 1, camera: x.camera, data: it(x.checkIn), tipologia: 'Caparra', prezzo: -caparra, iva: 0, trasf: '' }],
-    documenti: [{ id: 1, documento: `Caparra n. ${Number(x.booking) % 90 + 10}`, data: it(arrivoMeno3), intestatario: x.ospiti[0].nome, totale: caparra, pagato: caparra, sospeso: 0 }],
-  }
-}
+import { usePmsStore } from '../_data/pmsDemo'
+import StoricoConto from './StoricoConto'
+import {
+  type Addebito, type Anticipo, type Azione, type Data, type Dettaglio, type TassaInfo,
+  datiDemo, camereStruttura, isoDaIt, itDi, isoDi, tsOra, round2, TASSA_PER_ADULTO,
+} from './contiCamera.data'
 
 function fmtCurrency(v: number): string {
   return v.toFixed(2).replace('.', ',') + ' €'
+}
+
+/** Parsing tollerante di un importo digitato ("12,50", "12.50 €"). */
+const num = (s: string) => {
+  const v = Number(s.replace(/[^\d,.-]/g, '').replace(',', '.'))
+  return Number.isFinite(v) ? v : NaN
+}
+
+// Normalizza la risposta del backend: data ISO per ordinare e storico vuoto
+// se il servizio non lo restituisce ancora.
+const normalizza = (d: Data): Data => ({
+  ...d,
+  addebiti: d.addebiti.map((a) => ({ ...a, iso: a.iso ?? isoDaIt(a.data) })),
+  storico: d.storico ?? [],
+})
+
+const tooltipTassa = (t: TassaInfo, importo: number) => {
+  const ospiti = `${t.tassati} ${t.tassati === 1 ? 'adulto' : 'adulti'} × ${fmtCurrency(TASSA_PER_ADULTO)}${t.esenti ? ` · ${t.esenti} ${t.esenti === 1 ? 'esente' : 'esenti'}` : ''}`
+  return t.stato === 'pagata'
+    ? `Pagata da ${t.pagataDa} · ${t.metodo} · ${t.il} — ${fmtCurrency(importo)} (${ospiti})`
+    : `Da pagare — ${fmtCurrency(importo)} (${ospiti})`
 }
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
@@ -124,39 +51,79 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
   const [selAddebiti, setSelAddebiti] = useState<number[]>([])
   const [selAnticipi, setSelAnticipi] = useState<number[]>([])
   const setCheckout = useEmissioneStore((s) => s.setCheckout)
+  const confirm = useConfirmStore((s) => s.confirm)
+  const operatore = useAccessStore((s) => s.profiles.find((p) => p.id === s.currentProfileId)?.nome) ?? 'Front office'
+  const cf = useColFilters()
 
   // Modali
   const [modModifica, setModModifica] = useState<Addebito | null>(null)
   const [modFrazionato, setModFrazionato] = useState<Addebito | null>(null)
   const [modPartiUguali, setModPartiUguali] = useState<Addebito | null>(null)
-  const [modTrasferisci, setModTrasferisci] = useState<Addebito | null>(null)
-  const [modElimina, setModElimina] = useState<Addebito | null>(null)
+  const [modTrasferisci, setModTrasferisci] = useState<number[] | null>(null)
   const [modAggiungi, setModAggiungi] = useState(false)
   const [modAggiungiAnticipo, setModAggiungiAnticipo] = useState(false)
+  const [modTassa, setModTassa] = useState<Addebito | null>(null)
+  const [storicoOpen, setStoricoOpen] = useState(false)
   const [estrattoOpen, setEstrattoOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     apiFetchSibylla<Data>('frontoffice/GetContiCamera', { method: 'POST', body: {} })
-      .then((d) => { if (!cancelled) setData(d) })
+      .then((d) => { if (!cancelled) setData(normalizza(d)) })
       .catch(() => { if (!cancelled) setData(datiDemo(strutturaCorrente)) })
     return () => { cancelled = true }
   }, [strutturaCorrente, versionePms])
 
+  const d = data.dettaglio
+  const storico = data.storico ?? []
+
+  // ── Storico: ogni azione sulla pagina viene registrata ─────────────────────
+  const registra = (a: Omit<Azione, 'id' | 'ts' | 'operatore' | 'camera'> & { camera?: string }) =>
+    setData((p) => {
+      const st = p.storico ?? []
+      const id = st.reduce((m, x) => Math.max(m, x.id), 0) + 1
+      return { ...p, storico: [...st, { camera: p.dettaglio.camera, ...a, id, ts: tsOra(), operatore }] }
+    })
+  const setAddebiti = (fn: (a: Addebito[]) => Addebito[]) =>
+    setData((p) => ({ ...p, addebiti: fn(p.addebiti).sort((a, b) => a.iso.localeCompare(b.iso) || a.id - b.id) }))
+  const nextId = (rows: { id: number }[]) => rows.reduce((m, x) => Math.max(m, x.id), 0) + 1
+
+  // ── Filtri di colonna (Addebiti) ──────────────────────────────────────────
+  const opz = (k: keyof Addebito) => Array.from(new Set(data.addebiti.map((a) => String(a[k] || '—')))).sort()
+  const addebitiVisibili = useMemo(() => {
+    const filtrati = data.addebiti.filter((a) =>
+      cf.matchMulti(a.camera, 'camera') &&
+      cf.matchText(a.data, 'iso') &&
+      cf.matchMulti(a.pertinenza, 'pertinenza') &&
+      cf.matchMulti(a.descrizione, 'descrizione') &&
+      cf.matchText(a.descrizione, 'descrizione') &&
+      cf.matchMulti(`${a.iva} %`, 'iva') &&
+      cf.matchMulti(a.trasf || '—', 'trasf'),
+    )
+    return cf.sortRows(filtrati)
+  }, [data.addebiti, cf])
+
+  const idsVisibili = addebitiVisibili.map((a) => a.id)
+  const tuttiSelezionati = idsVisibili.length > 0 && idsVisibili.every((id) => selAddebiti.includes(id))
   const toggleAddebito = (id: number) =>
     setSelAddebiti((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
   const toggleAllAddebiti = () =>
-    setSelAddebiti((p) => (p.length === data.addebiti.length ? [] : data.addebiti.map((a) => a.id)))
+    setSelAddebiti((p) => (tuttiSelezionati ? p.filter((id) => !idsVisibili.includes(id)) : Array.from(new Set([...p, ...idsVisibili]))))
   const toggleAnticipo = (id: number) =>
     setSelAnticipi((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
   const toggleAllAnticipi = () =>
     setSelAnticipi((p) => (p.length === data.anticipi.length ? [] : data.anticipi.map((a) => a.id)))
 
   const totAddebiti = data.addebiti.reduce((s, a) => s + a.prezzo, 0)
+  const totVisibili = addebitiVisibili.reduce((s, a) => s + a.prezzo, 0)
   const totAnticipi = data.anticipi.reduce((s, a) => s + a.prezzo, 0)
 
-  const d = data.dettaglio
+  // ── Tassa di soggiorno ────────────────────────────────────────────────────
+  const notiTassa = data.addebiti.filter((a) => a.tassa)
+  const tassaPagata = round2(notiTassa.filter((a) => a.tassa!.stato === 'pagata').reduce((s, a) => s + a.prezzo, 0))
+  const tassaDaPagare = round2(notiTassa.filter((a) => a.tassa!.stato === 'da-pagare').reduce((s, a) => s + a.prezzo, 0))
 
+  // ── Azioni ────────────────────────────────────────────────────────────────
   // Paga ora → porta gli addebiti selezionati (o tutti, se nessuno) alla pagina
   // Emissione documenti.
   const pagaOra = () => {
@@ -172,6 +139,65 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
     }))
     setCheckout({ addebiti: emAddebiti, caparra: Math.abs(totAnticipi) })
     navigate('emissione-documenti')
+  }
+
+  const salvaModifica = (a: Addebito, importo: number, motivazione: string) => {
+    setAddebiti((rows) => rows.map((r) => (r.id === a.id ? { ...r, prezzo: importo } : r)))
+    registra({ tipo: 'Modifica', camera: a.camera, descrizione: `${a.descrizione} del ${a.data}: importo da ${fmtCurrency(a.prezzo)} a ${fmtCurrency(importo)}`, importo, dettaglio: `Motivazione: ${motivazione}` })
+    setModModifica(null)
+  }
+
+  const salvaFrazioni = (a: Addebito, parti: number[], uguali: boolean) => {
+    setAddebiti((rows) => {
+      let id = nextId(rows)
+      const nuove = parti.map((v, i) => ({ ...a, id: i === 0 ? a.id : id++, prezzo: v, descrizione: `${a.descrizione} (${i + 1}/${parti.length})`, tassa: undefined }))
+      return [...rows.filter((r) => r.id !== a.id), ...nuove]
+    })
+    registra({ tipo: 'Frazionamento', camera: a.camera, descrizione: `${a.descrizione} del ${a.data} diviso in ${parti.length} parti${uguali ? ' uguali' : ''}`, importo: a.prezzo, dettaglio: parti.map(fmtCurrency).join(' + ') })
+    setModFrazionato(null); setModPartiUguali(null)
+  }
+
+  const salvaTrasferimento = (ids: number[], dest: string) => {
+    const spostati = data.addebiti.filter((a) => ids.includes(a.id))
+    setAddebiti((rows) => rows.map((r) => (ids.includes(r.id) ? { ...r, trasf: `da ${r.camera}`, camera: dest } : r)))
+    registra({ tipo: 'Trasferimento', camera: dest, descrizione: `${spostati.length} ${spostati.length === 1 ? 'addebito trasferito' : 'addebiti trasferiti'} a camera ${dest}`, importo: round2(spostati.reduce((s, a) => s + a.prezzo, 0)), dettaglio: spostati.map((a) => `${a.descrizione} ${a.data} (da ${a.camera})`).join(', ') })
+    setSelAddebiti([])
+    setModTrasferisci(null)
+  }
+
+  const eliminaAddebito = async (a: Addebito) => {
+    const ok = await confirm({ title: 'Elimina addebito', message: <>Eliminare l'addebito <strong>{a.descrizione}</strong> del {a.data} da <strong>{fmtCurrency(a.prezzo)}</strong>? L'eliminazione resta registrata nello storico.</> })
+    if (!ok) return
+    setAddebiti((rows) => rows.filter((r) => r.id !== a.id))
+    setSelAddebiti((p) => p.filter((x) => x !== a.id))
+    registra({ tipo: 'Eliminazione', camera: a.camera, descrizione: `Eliminato addebito ${a.descrizione} del ${a.data}`, importo: -a.prezzo })
+  }
+
+  const eliminaAnticipo = async (a: Anticipo) => {
+    const ok = await confirm({ title: 'Elimina anticipo', message: <>Eliminare l'anticipo <strong>{a.tipologia}</strong> da <strong>{fmtCurrency(Math.abs(a.prezzo))}</strong>?</> })
+    if (!ok) return
+    setData((p) => ({ ...p, anticipi: p.anticipi.filter((r) => r.id !== a.id) }))
+    registra({ tipo: 'Eliminazione', camera: a.camera, descrizione: `Eliminato anticipo ${a.tipologia} del ${a.data}`, importo: Math.abs(a.prezzo) })
+  }
+
+  const salvaAddebito = (n: Omit<Addebito, 'id' | 'trasf'>, ospite: string) => {
+    setAddebiti((rows) => [...rows, { ...n, id: nextId(rows), trasf: '' }])
+    registra({ tipo: 'Addebito', camera: n.camera, descrizione: `${n.descrizione} del ${n.data}`, importo: n.prezzo, dettaglio: [ospite && `Ospite: ${ospite}`, `Pertinenza: ${n.pertinenza}`, `IVA ${n.iva} %`].filter(Boolean).join(' · ') })
+    setModAggiungi(false)
+  }
+
+  const salvaAnticipo = (n: Omit<Anticipo, 'id' | 'trasf'>) => {
+    setData((p) => ({ ...p, anticipi: [...p.anticipi, { ...n, id: nextId(p.anticipi), trasf: '' }] }))
+    registra({ tipo: 'Pagamento', camera: n.camera, descrizione: `Anticipo ${n.tipologia} incassato`, importo: n.prezzo })
+    setModAggiungiAnticipo(false)
+  }
+
+  const salvaTassa = (a: Addebito, pagataDa: string, metodo: string) => {
+    const t = new Date()
+    const il = `${itDi(isoDi(t))} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`
+    setAddebiti((rows) => rows.map((r) => (r.id === a.id && r.tassa ? { ...r, tassa: { ...r.tassa, stato: 'pagata', pagataDa, metodo, il, operatore } } : r)))
+    registra({ tipo: 'Tassa di soggiorno', camera: a.camera, descrizione: `Tassa di soggiorno del ${a.data} pagata`, importo: -a.prezzo, dettaglio: `Pagata da ${pagataDa} · ${metodo}` })
+    setModTassa(null)
   }
 
   return (
@@ -218,37 +244,51 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
       <div className="conti-camera__layout">
         {/* Colonna sx: Addebiti */}
         <div className="conti-camera__col">
-          <h3 className="conti-camera__section-title">Addebiti</h3>
+          <div className="conti-camera__section-head">
+            <h3 className="conti-camera__section-title">Addebiti</h3>
+            <div className="conti-camera__section-actions">
+              {cf.hasActive && (
+                <button type="button" className="sib-btn sib-btn--secondary" onClick={cf.reset}>
+                  <i className="fa-solid fa-filter-circle-xmark" /> Azzera filtri
+                </button>
+              )}
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setStoricoOpen(true)} disabled={!d.prenotazioneNum}>
+                <i className="fa-solid fa-clock-rotate-left" /> Storico
+                {storico.length > 0 && <span className="conti-camera__storico-n">{storico.length}</span>}
+              </button>
+            </div>
+          </div>
           <div className="sib-table-wrap">
-            <table className="sib-table conti-camera__table">
+            <table className="sib-table conti-camera__table conti-camera__table--addebiti">
               <thead>
                 <tr>
                   <th className="conti-camera__th-check">
                     <input
                       type="checkbox"
                       className="sib-checkbox"
-                      checked={selAddebiti.length === data.addebiti.length && data.addebiti.length > 0}
+                      aria-label="Seleziona tutti gli addebiti visibili"
+                      checked={tuttiSelezionati}
                       onChange={toggleAllAddebiti}
                     />
-                    <i className="fa-solid fa-chevron-down conti-camera__chevron" />
                   </th>
-                  <th>Camera</th>
-                  <th>Data</th>
-                  <th>Pertinenza</th>
-                  <th>Descrizione</th>
-                  <th className="conti-camera__th-num">Prezzo</th>
-                  <th className="conti-camera__th-num">IVA</th>
-                  <th>Trasf.</th>
+                  <th><span className="sib-colf-head">Camera{cf.th('camera', 'Camera', { options: opz('camera') })}</span></th>
+                  <th><span className="sib-colf-head">Data{cf.th('iso', 'Data', { search: true, sort: true })}</span></th>
+                  <th><span className="sib-colf-head">Pertinenza{cf.th('pertinenza', 'Pertinenza', { options: opz('pertinenza') })}</span></th>
+                  <th><span className="sib-colf-head">Descrizione{cf.th('descrizione', 'Descrizione', { options: opz('descrizione'), search: true })}</span></th>
+                  <th className="conti-camera__th-num"><span className="sib-colf-head">Prezzo{cf.th('prezzo', 'Prezzo', { sort: true })}</span></th>
+                  <th className="conti-camera__th-num"><span className="sib-colf-head">IVA{cf.th('iva', 'IVA', { options: Array.from(new Set(data.addebiti.map((a) => `${a.iva} %`))).sort() })}</span></th>
+                  <th><span className="sib-colf-head">Trasf.{cf.th('trasf', 'Trasferimento', { options: opz('trasf') })}</span></th>
                   <th>Azioni</th>
                 </tr>
               </thead>
               <tbody>
-                {data.addebiti.map((a, idx) => (
+                {addebitiVisibili.map((a, idx) => (
                   <tr key={a.id} className={idx % 2 === 0 ? 'conti-camera__row--alt' : ''}>
                     <td>
                       <input
                         type="checkbox"
                         className="sib-checkbox"
+                        aria-label={`Seleziona ${a.descrizione} del ${a.data}`}
                         checked={selAddebiti.includes(a.id)}
                         onChange={() => toggleAddebito(a.id)}
                       />
@@ -257,23 +297,43 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                     <td>{a.data}</td>
                     <td>{a.pertinenza}</td>
                     <td>
-                      {a.descrizione}
-                      {a.descrizioneInfo && <i className="fa-solid fa-circle-info conti-camera__info-ico" />}
+                      <span className="conti-camera__descr">
+                        <TruncatedText text={a.descrizione} className="conti-camera__descr-txt" />
+                        {a.tassa && (
+                          <Tooltip text={tooltipTassa(a.tassa, a.prezzo)}>
+                            <i
+                              className={`fa-solid ${a.tassa.stato === 'pagata' ? 'fa-circle-check conti-camera__tassa-ico--ok' : 'fa-clock conti-camera__tassa-ico--due'} conti-camera__tassa-ico`}
+                              aria-label={a.tassa.stato === 'pagata' ? `Pagata da ${a.tassa.pagataDa}` : 'Da pagare'}
+                            />
+                          </Tooltip>
+                        )}
+                      </span>
                     </td>
                     <td className="conti-camera__td-num">{fmtCurrency(a.prezzo)}</td>
                     <td className="conti-camera__td-num">{a.iva} %</td>
-                    <td>{a.trasf}</td>
+                    <td>
+                      {a.trasf
+                        ? <Tooltip text={`Trasferito ${a.trasf.replace('da', 'dalla camera')}`}><span className="conti-camera__trasf">{a.trasf}</span></Tooltip>
+                        : ''}
+                    </td>
                     <td>
                       <div className="conti-camera__row-actions">
-                        <button type="button" className="sib-btn sib-btn--icon" title="Modifica addebito" aria-label="Modifica addebito" onClick={() => setModModifica(a)}><i className="fa-solid fa-pen" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" title="Addebito frazionato" aria-label="Addebito frazionato" onClick={() => setModFrazionato(a)}><i className="fa-solid fa-arrows-split-up-and-left" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" title="Addebito in parti uguali" aria-label="Addebito in parti uguali" onClick={() => setModPartiUguali(a)}><i className="fa-solid fa-equals" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" title="Trasferisci addebito" aria-label="Trasferisci addebito" onClick={() => setModTrasferisci(a)}><i className="fa-solid fa-right-left" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" title="Elimina" aria-label="Elimina" onClick={() => setModElimina(a)}><i className="fa-solid fa-trash" /></button>
+                        <Tooltip text="Modifica addebito"><button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica addebito" onClick={() => setModModifica(a)}><i className="fa-solid fa-pen" /></button></Tooltip>
+                        <Tooltip text="Addebito frazionato"><button type="button" className="sib-btn sib-btn--icon" aria-label="Addebito frazionato" onClick={() => setModFrazionato(a)}><i className="fa-solid fa-arrows-split-up-and-left" /></button></Tooltip>
+                        <Tooltip text="Addebito in parti uguali"><button type="button" className="sib-btn sib-btn--icon" aria-label="Addebito in parti uguali" onClick={() => setModPartiUguali(a)}><i className="fa-solid fa-equals" /></button></Tooltip>
+                        <Tooltip text="Trasferisci addebito"><button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferisci addebito" onClick={() => setModTrasferisci([a.id])}><i className="fa-solid fa-right-left" /></button></Tooltip>
+                        <Tooltip text="Elimina"><button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => eliminaAddebito(a)}><i className="fa-solid fa-trash" /></button></Tooltip>
                       </div>
                     </td>
                   </tr>
                 ))}
+                {addebitiVisibili.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="conti-camera__empty">
+                      {data.addebiti.length ? 'Nessun addebito corrisponde ai filtri.' : 'Nessun addebito sul conto.'}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -282,7 +342,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
             <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungi(true)}><i className="fa-regular fa-circle-plus" /> Aggiungi addebito</button>
             {!embedded && (
               <>
-                <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-regular fa-right-left" /> Trasferisci addebiti</button>
+                <button type="button" className="sib-btn sib-btn--secondary" disabled={!data.addebiti.length} onClick={() => setModTrasferisci(selAddebiti)}><i className="fa-regular fa-right-left" /> Trasferisci addebiti</button>
                 <div className="conti-camera__estratto">
                   <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setEstrattoOpen((v) => !v)}>
                     <i className="fa-regular fa-file-lines" /> Estratto conto <i className="fa-regular fa-chevron-down" />
@@ -301,12 +361,85 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
               </>
             )}
             <button type="button" className="sib-btn sib-btn--primary" onClick={pagaOra}>Paga ora</button>
-            <span className="conti-camera__total">Totale: <strong>{fmtCurrency(totAddebiti)}</strong></span>
+            <span className="conti-camera__total">
+              {cf.hasActive && addebitiVisibili.length !== data.addebiti.length
+                ? <>Filtrati: <strong>{fmtCurrency(totVisibili)}</strong> · Totale: <strong>{fmtCurrency(totAddebiti)}</strong></>
+                : <>Totale: <strong>{fmtCurrency(totAddebiti)}</strong></>}
+            </span>
           </div>
         </div>
 
-        {/* Colonna dx: Anticipi + Documenti */}
+        {/* Colonna dx: Tassa di soggiorno + Anticipi + Documenti */}
         <div className="conti-camera__col">
+          {notiTassa.length > 0 && (
+            <>
+              <div className="conti-camera__section-head">
+                <h3 className="conti-camera__section-title">Tassa di soggiorno</h3>
+                <span className="conti-camera__tassa-sum">
+                  <span className="conti-camera__tassa-sum--ok"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Pagata {fmtCurrency(tassaPagata)}</span>
+                  <span className={tassaDaPagare ? 'conti-camera__tassa-sum--due' : 'conti-camera__tassa-sum--zero'}><i className="fa-solid fa-clock" aria-hidden="true" /> Da pagare {fmtCurrency(tassaDaPagare)}</span>
+                </span>
+              </div>
+              <div className="sib-table-wrap">
+                <table className="sib-table conti-camera__table conti-camera__table--tassa">
+                  <colgroup>
+                    <col className="conti-camera__c-notte" />
+                    <col className="conti-camera__c-ospiti" />
+                    <col className="conti-camera__c-imp" />
+                    <col className="conti-camera__c-stato" />
+                    <col />
+                    <col className="conti-camera__c-az" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>Notte</th>
+                      <th>Ospiti</th>
+                      <th className="conti-camera__th-num">Importo</th>
+                      <th>Stato</th>
+                      <th>Pagata da</th>
+                      <th>Azioni</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {notiTassa.map((a) => {
+                      const t = a.tassa!
+                      return (
+                        <tr key={a.id}>
+                          <td>{a.data}</td>
+                          <td>
+                            <Tooltip text={`${t.tassati} ${t.tassati === 1 ? 'adulto soggetto' : 'adulti soggetti'} all'imposta (${fmtCurrency(TASSA_PER_ADULTO)} a notte)${t.esenti ? `, ${t.esenti} ${t.esenti === 1 ? 'minore esente' : 'minori esenti'}` : ''}`}>
+                              <span>{t.tassati} ad.{t.esenti ? ` + ${t.esenti} es.` : ''}</span>
+                            </Tooltip>
+                          </td>
+                          <td className="conti-camera__td-num">{fmtCurrency(a.prezzo)}</td>
+                          <td>
+                            {t.stato === 'pagata'
+                              ? <span className="conti-camera__stato conti-camera__stato--ok"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Pagata</span>
+                              : <span className="conti-camera__stato conti-camera__stato--due"><i className="fa-solid fa-clock" aria-hidden="true" /> Da pagare</span>}
+                          </td>
+                          <td>
+                            {t.stato === 'pagata'
+                              ? <TruncatedText text={t.pagataDa ?? ''} full={`${t.pagataDa} · ${t.metodo} · ${t.il}${t.operatore ? ` · registrata da ${t.operatore}` : ''}`} className="conti-camera__pagata-da" />
+                              : <span className="sib-cell--muted">—</span>}
+                          </td>
+                          <td>
+                            {t.stato === 'da-pagare' && (
+                              <Tooltip text="Registra pagamento">
+                                <button type="button" className="sib-btn sib-btn--icon" aria-label={`Registra pagamento tassa del ${a.data}`} onClick={() => setModTassa(a)}>
+                                  <i className="fa-solid fa-hand-holding-dollar" />
+                                </button>
+                              </Tooltip>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
           <div className="conti-camera__section-head">
             <h3 className="conti-camera__section-title">Anticipi</h3>
             <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungiAnticipo(true)}>
@@ -321,6 +454,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                     <input
                       type="checkbox"
                       className="sib-checkbox"
+                      aria-label="Seleziona tutti gli anticipi"
                       checked={selAnticipi.length === data.anticipi.length && data.anticipi.length > 0}
                       onChange={toggleAllAnticipi}
                     />
@@ -341,6 +475,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                       <input
                         type="checkbox"
                         className="sib-checkbox"
+                        aria-label={`Seleziona anticipo ${a.tipologia}`}
                         checked={selAnticipi.includes(a.id)}
                         onChange={() => toggleAnticipo(a.id)}
                       />
@@ -353,9 +488,9 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                     <td>{a.trasf}</td>
                     <td>
                       <div className="conti-camera__row-actions">
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferisci"><i className="fa-solid fa-right-left" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Documento"><i className="fa-solid fa-file-lines" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina"><i className="fa-solid fa-trash" /></button>
+                        <Tooltip text="Trasferisci"><button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferisci"><i className="fa-solid fa-right-left" /></button></Tooltip>
+                        <Tooltip text="Documento"><button type="button" className="sib-btn sib-btn--icon" aria-label="Documento"><i className="fa-solid fa-file-lines" /></button></Tooltip>
+                        <Tooltip text="Elimina"><button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => eliminaAnticipo(a)}><i className="fa-solid fa-trash" /></button></Tooltip>
                       </div>
                     </td>
                   </tr>
@@ -394,8 +529,8 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                         <td className="conti-camera__td-num">{doc.sospeso.toFixed(2).replace('.', ',')}</td>
                         <td>
                           <div className="conti-camera__row-actions">
-                            <button type="button" className="sib-btn sib-btn--icon" aria-label="Stampa"><i className="fa-solid fa-print" /></button>
-                            <button type="button" className="sib-btn sib-btn--icon conti-camera__icon-danger" aria-label="Visualizza"><i className="fa-solid fa-eye" /></button>
+                            <Tooltip text="Stampa"><button type="button" className="sib-btn sib-btn--icon" aria-label="Stampa"><i className="fa-solid fa-print" /></button></Tooltip>
+                            <Tooltip text="Visualizza"><button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza"><i className="fa-solid fa-eye" /></button></Tooltip>
                           </div>
                         </td>
                       </tr>
@@ -408,13 +543,14 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
         </div>
       </div>
 
-      {modModifica && <ModificaAddebitoModal addebito={modModifica} onClose={() => setModModifica(null)} />}
-      {modFrazionato && <FrazionatoModal addebito={modFrazionato} onClose={() => setModFrazionato(null)} />}
-      {modPartiUguali && <PartiUgualiModal addebito={modPartiUguali} onClose={() => setModPartiUguali(null)} />}
-      {modTrasferisci && <TrasferisciModal addebito={modTrasferisci} addebiti={data.addebiti} onClose={() => setModTrasferisci(null)} />}
-      {modElimina && <EliminaModal addebito={modElimina} onClose={() => setModElimina(null)} onConfirm={() => setModElimina(null)} />}
-      {modAggiungi && <AggiungiAddebitoModal dettaglio={d} onClose={() => setModAggiungi(false)} />}
-      {modAggiungiAnticipo && <AggiungiAnticipoModal dettaglio={d} onClose={() => setModAggiungiAnticipo(false)} />}
+      {modModifica && <ModificaAddebitoModal addebito={modModifica} onClose={() => setModModifica(null)} onSave={salvaModifica} />}
+      {modFrazionato && <FrazionatoModal addebito={modFrazionato} onClose={() => setModFrazionato(null)} onSave={(p) => salvaFrazioni(modFrazionato, p, false)} />}
+      {modPartiUguali && <PartiUgualiModal addebito={modPartiUguali} onClose={() => setModPartiUguali(null)} onSave={(p) => salvaFrazioni(modPartiUguali, p, true)} />}
+      {modTrasferisci && <TrasferisciModal iniziali={modTrasferisci} addebiti={data.addebiti} onClose={() => setModTrasferisci(null)} onSave={salvaTrasferimento} />}
+      {modAggiungi && <AggiungiAddebitoModal dettaglio={d} onClose={() => setModAggiungi(false)} onSave={salvaAddebito} />}
+      {modAggiungiAnticipo && <AggiungiAnticipoModal dettaglio={d} onClose={() => setModAggiungiAnticipo(false)} onSave={salvaAnticipo} />}
+      {modTassa && <PagaTassaModal addebito={modTassa} dettaglio={d} onClose={() => setModTassa(null)} onSave={salvaTassa} />}
+      {storicoOpen && <StoricoConto dettaglio={d} storico={storico} onClose={() => setStoricoOpen(false)} />}
     </div>
   )
 }
@@ -428,10 +564,19 @@ function DetailField({ label, value }: { label: string; value: string }) {
   )
 }
 
+const OPZIONI_IVA = [
+  { value: '', label: 'Seleziona' },
+  { value: '0', label: '0%' },
+  { value: '4', label: '4%' },
+  { value: '10', label: '10%' },
+  { value: '22', label: '22%' },
+]
+
 // ─── MODAL: Modifica addebito ────────────────────────────────────────────────
-function ModificaAddebitoModal({ addebito, onClose }: { addebito: Addebito; onClose: () => void }) {
+function ModificaAddebitoModal({ addebito, onClose, onSave }: { addebito: Addebito; onClose: () => void; onSave: (a: Addebito, importo: number, motivazione: string) => void }) {
   const [importo, setImporto] = useState('')
   const [motivazione, setMotivazione] = useState('')
+  const v = num(importo)
 
   return (
     <ModalShell title="Modifica addebito" onClose={onClose} maxWidth={520}>
@@ -455,14 +600,14 @@ function ModificaAddebitoModal({ addebito, onClose }: { addebito: Addebito; onCl
         />
       </div>
       <div className="cc-modal__foot">
-        <button type="button" className="sib-btn sib-btn--primary" disabled={!importo || !motivazione} onClick={onClose}>Salva</button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!Number.isFinite(v) || !motivazione.trim()} onClick={() => onSave(addebito, round2(v), motivazione.trim())}>Salva</button>
       </div>
     </ModalShell>
   )
 }
 
 // ─── MODAL: Addebito frazionato ──────────────────────────────────────────────
-function FrazionatoModal({ addebito, onClose }: { addebito: Addebito; onClose: () => void }) {
+function FrazionatoModal({ addebito, onClose, onSave }: { addebito: Addebito; onClose: () => void; onSave: (parti: number[]) => void }) {
   const [parti, setParti] = useState(2)
   const [valori, setValori] = useState<string[]>(['', ''])
 
@@ -476,6 +621,11 @@ function FrazionatoModal({ addebito, onClose }: { addebito: Addebito; onClose: (
   }
   const setValore = (i: number, v: string) =>
     setValori((p) => p.map((x, idx) => (idx === i ? v : x)))
+
+  const numeri = valori.map(num)
+  const somma = round2(numeri.reduce((s, v) => s + (Number.isFinite(v) ? v : 0), 0))
+  const differenza = round2(addebito.prezzo - somma)
+  const valido = numeri.every((v) => Number.isFinite(v) && v > 0) && Math.abs(differenza) < 0.005
 
   return (
     <ModalShell title="Addebito frazionato" onClose={onClose} maxWidth={620}>
@@ -499,17 +649,24 @@ function FrazionatoModal({ addebito, onClose }: { addebito: Addebito; onClose: (
           </div>
         ))}
       </div>
+      {valori.some((v) => v) && Math.abs(differenza) >= 0.005 && (
+        <p className="cc-modal__avviso">
+          <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /> La somma delle parti ({fmtCurrency(somma)}) deve essere uguale al totale: {differenza > 0 ? 'mancano' : 'eccedono'} {fmtCurrency(Math.abs(differenza))}
+        </p>
+      )}
       <div className="cc-modal__foot">
-        <button type="button" className="sib-btn sib-btn--primary" disabled={valori.some((v) => !v)} onClick={onClose}>Salva</button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!valido} onClick={() => onSave(numeri.map(round2))}>Salva</button>
       </div>
     </ModalShell>
   )
 }
 
 // ─── MODAL: Addebito in parti uguali ─────────────────────────────────────────
-function PartiUgualiModal({ addebito, onClose }: { addebito: Addebito; onClose: () => void }) {
+function PartiUgualiModal({ addebito, onClose, onSave }: { addebito: Addebito; onClose: () => void; onSave: (parti: number[]) => void }) {
   const [parti, setParti] = useState(2)
-  const valore = addebito.prezzo / parti
+  // Le parti sono arrotondate al centesimo: l'eventuale resto va sull'ultima.
+  const base = Math.floor((addebito.prezzo / parti) * 100) / 100
+  const valori = Array.from({ length: parti }, (_, i) => (i === parti - 1 ? round2(addebito.prezzo - base * (parti - 1)) : base))
 
   return (
     <ModalShell title="Addebito in parti uguali" onClose={onClose} maxWidth={620}>
@@ -523,28 +680,28 @@ function PartiUgualiModal({ addebito, onClose }: { addebito: Addebito; onClose: 
           onChange={(e) => setParti(Number(e.target.value))}
           options={[2, 3, 4, 5, 6].map((n) => ({ value: n, label: String(n) }))}
         />
-        {Array.from({ length: parti }, (_, i) => (
+        {valori.map((v, i) => (
           <div key={i} className="cc-modal__field-raw cc-modal__field--narrow">
             <label>Parte {i + 1}</label>
             <div className="cc-modal__amount">
-              <input className="sib-input" type="text" value={valore.toFixed(2).replace('.', ',')} readOnly />
+              <input className="sib-input" type="text" value={v.toFixed(2).replace('.', ',')} readOnly />
               <span>€</span>
             </div>
           </div>
         ))}
       </div>
       <div className="cc-modal__foot">
-        <button type="button" className="sib-btn sib-btn--primary" onClick={onClose}>Salva</button>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={() => onSave(valori)}>Salva</button>
       </div>
     </ModalShell>
   )
 }
 
 // ─── MODAL: Trasferisci addebito ─────────────────────────────────────────────
-function TrasferisciModal({ addebito, addebiti, onClose }: { addebito: Addebito; addebiti: Addebito[]; onClose: () => void }) {
-  const [selected, setSelected] = useState<number[]>([addebito.id])
+function TrasferisciModal({ iniziali, addebiti, onClose, onSave }: { iniziali: number[]; addebiti: Addebito[]; onClose: () => void; onSave: (ids: number[], dest: string) => void }) {
+  const [selected, setSelected] = useState<number[]>(iniziali)
   const [destCamera, setDestCamera] = useState('')
-  const camereDisponibili = ['101', '102', '103', '105', '201', '301', '305', '306', '307']
+  const camereDisponibili = camereStruttura()
 
   const toggle = (id: number) =>
     setSelected((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
@@ -552,6 +709,8 @@ function TrasferisciModal({ addebito, addebiti, onClose }: { addebito: Addebito;
     setSelected((p) => (p.length === addebiti.length ? [] : addebiti.map((a) => a.id)))
 
   const totale = addebiti.filter((a) => selected.includes(a.id)).reduce((s, a) => s + a.prezzo, 0)
+  // Non si trasferisce un addebito nella camera dove già si trova.
+  const giaLi = addebiti.filter((a) => selected.includes(a.id)).every((a) => a.camera === destCamera)
 
   return (
     <ModalShell title="Trasferisci addebito" onClose={onClose} maxWidth={760}>
@@ -564,6 +723,7 @@ function TrasferisciModal({ addebito, addebiti, onClose }: { addebito: Addebito;
                 <input
                   type="checkbox"
                   className="sib-checkbox"
+                  aria-label="Seleziona tutti"
                   checked={selected.length === addebiti.length && addebiti.length > 0}
                   onChange={toggleAll}
                 />
@@ -580,7 +740,7 @@ function TrasferisciModal({ addebito, addebiti, onClose }: { addebito: Addebito;
             {addebiti.map((a) => (
               <tr key={a.id}>
                 <td className="cc-modal__td-center">
-                  <input type="checkbox" className="sib-checkbox" checked={selected.includes(a.id)} onChange={() => toggle(a.id)} />
+                  <input type="checkbox" className="sib-checkbox" aria-label={`Seleziona ${a.descrizione} del ${a.data}`} checked={selected.includes(a.id)} onChange={() => toggle(a.id)} />
                 </td>
                 <td>{a.camera}</td>
                 <td>{a.data}</td>
@@ -606,29 +766,23 @@ function TrasferisciModal({ addebito, addebiti, onClose }: { addebito: Addebito;
         ]}
       />
       <div className="cc-modal__foot">
-        <button type="button" className="sib-btn sib-btn--primary" disabled={!destCamera || selected.length === 0} onClick={onClose}>Trasferisci</button>
-      </div>
-    </ModalShell>
-  )
-}
-
-// ─── MODAL: Elimina ──────────────────────────────────────────────────────────
-function EliminaModal({ addebito, onClose, onConfirm }: { addebito: Addebito; onClose: () => void; onConfirm: () => void }) {
-  return (
-    <ModalShell title="Elimina addebito" onClose={onClose} maxWidth={460}>
-      <p className="cc-modal__subtitle">
-        Sei sicuro di voler eliminare l'addebito <strong>{addebito.descrizione}</strong> da <strong>{fmtCurrency(addebito.prezzo)}</strong>?
-      </p>
-      <div className="cc-modal__foot">
-        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
-        <button type="button" className="sib-btn sib-btn--danger" onClick={onConfirm}>Elimina</button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!destCamera || selected.length === 0 || giaLi} onClick={() => onSave(selected, destCamera)}>Trasferisci</button>
       </div>
     </ModalShell>
   )
 }
 
 // ─── MODAL: Aggiungi addebito ────────────────────────────────────────────────
-function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; onClose: () => void }) {
+const SERVIZI = [
+  { value: 'Room Only', label: 'Room Only' },
+  { value: 'Frigo bar', label: 'Frigo Bar' },
+  { value: 'Lavanderia', label: 'Lavanderia' },
+  { value: 'Parcheggio', label: 'Parcheggio' },
+  { value: 'Ristorante', label: 'Ristorante' },
+  { value: 'Late check-out', label: 'Late check-out' },
+]
+
+function AggiungiAddebitoModal({ dettaglio, onClose, onSave }: { dettaglio: Dettaglio; onClose: () => void; onSave: (a: Omit<Addebito, 'id' | 'trasf'>, ospite: string) => void }) {
   const [nomeServizio, setNomeServizio] = useState('')
   const [descrizione, setDescrizione] = useState('')
   const [ospite, setOspite] = useState('')
@@ -636,14 +790,24 @@ function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
   const [quantita, setQuantita] = useState('1')
   const [prezzo, setPrezzo] = useState('')
   const [iva, setIva] = useState('')
-  const today = new Date().toLocaleDateString('it-IT')
+  const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })
   const [del, setDel] = useState(today)
+  const p = num(prezzo)
+
+  const salva = () => {
+    const iso = isoDaIt(del)
+    onSave({
+      camera: dettaglio.camera, data: itDi(iso), iso, pertinenza,
+      descrizione: (descrizione.trim() || nomeServizio) + (Number(quantita) > 1 ? ` × ${quantita}` : ''),
+      prezzo: round2(p * Number(quantita)), iva: Number(iva),
+    }, ospite)
+  }
 
   return (
     <ModalShell title="Aggiungi addebito" onClose={onClose} maxWidth={1100}>
       <div className="cc-modal__detail-row">
         <DetailField label="N. Prenotazione" value={dettaglio.prenotazioneNum} />
-        <DetailField label="N. Camera" value="403" />
+        <DetailField label="N. Camera" value={dettaglio.camera} />
         <DetailField label="Nominativo" value={dettaglio.nominativo} />
         <DetailField label="Data di arrivo" value={dettaglio.dataArrivo} />
         <DetailField label="Data di partenza" value={dettaglio.dataPartenza} />
@@ -657,13 +821,7 @@ function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
           label="Nome servizio"
           value={nomeServizio}
           onChange={(e) => setNomeServizio(e.target.value)}
-          options={[
-            { value: '', label: 'Seleziona' },
-            { value: 'room-only', label: 'Room Only' },
-            { value: 'frigo-bar', label: 'Frigo Bar' },
-            { value: 'lavanderia', label: 'Lavanderia' },
-            { value: 'parcheggio', label: 'Parcheggio' },
-          ]}
+          options={[{ value: '', label: 'Seleziona' }, ...SERVIZI]}
         />
         <InputField
           className="cc-modal__field cc-modal__field--medium"
@@ -680,7 +838,7 @@ function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
           onChange={(e) => setOspite(e.target.value)}
           options={[
             { value: '', label: 'Seleziona' },
-            { value: 'novi', label: 'Novi Ruggero' },
+            ...(dettaglio.nomiOspiti ?? [dettaglio.nominativo]).map((n) => ({ value: n, label: n })),
           ]}
         />
         <SelectField
@@ -716,13 +874,7 @@ function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
           label="IVA"
           value={iva}
           onChange={(e) => setIva(e.target.value)}
-          options={[
-            { value: '', label: 'Seleziona' },
-            { value: '0', label: '0%' },
-            { value: '4', label: '4%' },
-            { value: '10', label: '10%' },
-            { value: '22', label: '22%' },
-          ]}
+          options={OPZIONI_IVA}
         />
         <InputField
           className="cc-modal__field cc-modal__field--narrow"
@@ -733,20 +885,29 @@ function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
         />
       </div>
       <div className="cc-modal__foot">
-        <button type="button" className="sib-btn sib-btn--primary" disabled={!nomeServizio || !prezzo || !iva} onClick={onClose}>Salva</button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!nomeServizio || !Number.isFinite(p) || !prezzo || !iva} onClick={salva}>Salva</button>
       </div>
     </ModalShell>
   )
 }
 
 // ─── MODAL: Aggiungi anticipo ────────────────────────────────────────────────
-function AggiungiAnticipoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; onClose: () => void }) {
-  const [camera, setCamera] = useState('')
+const TIPOLOGIE_ANTICIPO = [
+  { value: 'Bonifico', label: 'Bonifico' },
+  { value: 'Carta di credito', label: 'Carta di credito' },
+  { value: 'Contanti', label: 'Contanti' },
+  { value: 'Caparra confirmatoria', label: 'Caparra confirmatoria' },
+]
+
+function AggiungiAnticipoModal({ dettaglio, onClose, onSave }: { dettaglio: Dettaglio; onClose: () => void; onSave: (a: Omit<Anticipo, 'id' | 'trasf'>) => void }) {
+  const [camera, setCamera] = useState(dettaglio.camera)
   const [tipologia, setTipologia] = useState('')
   const [prezzo, setPrezzo] = useState('')
   const [iva, setIva] = useState('')
-  const today = new Date().toLocaleDateString('it-IT')
+  const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })
   const [data, setData] = useState(today)
+  const p = num(prezzo)
+  const camere = camereStruttura()
 
   return (
     <ModalShell title="Aggiungi anticipo" onClose={onClose} maxWidth={860}>
@@ -763,12 +924,7 @@ function AggiungiAnticipoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
           label="Camera"
           value={camera}
           onChange={(e) => setCamera(e.target.value)}
-          options={[
-            { value: '', label: 'Seleziona' },
-            { value: '401', label: '401' },
-            { value: '402', label: '402' },
-            { value: '403', label: '403' },
-          ]}
+          options={[{ value: '', label: 'Seleziona' }, ...camere.map((c) => ({ value: c, label: c }))]}
         />
         <SelectField
           className="cc-modal__field cc-modal__field--medium"
@@ -776,13 +932,7 @@ function AggiungiAnticipoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
           label="Tipologia"
           value={tipologia}
           onChange={(e) => setTipologia(e.target.value)}
-          options={[
-            { value: '', label: 'Seleziona' },
-            { value: 'bonifico', label: 'Bonifico' },
-            { value: 'carta', label: 'Carta di credito' },
-            { value: 'contanti', label: 'Contanti' },
-            { value: 'caparra', label: 'Caparra confirmatoria' },
-          ]}
+          options={[{ value: '', label: 'Seleziona' }, ...TIPOLOGIE_ANTICIPO]}
         />
         <div className="cc-modal__field-raw cc-modal__field--xs">
           <label>Prezzo</label>
@@ -797,13 +947,7 @@ function AggiungiAnticipoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
           label="IVA"
           value={iva}
           onChange={(e) => setIva(e.target.value)}
-          options={[
-            { value: '', label: 'Seleziona' },
-            { value: '0', label: '0%' },
-            { value: '4', label: '4%' },
-            { value: '10', label: '10%' },
-            { value: '22', label: '22%' },
-          ]}
+          options={OPZIONI_IVA}
         />
         <InputField
           className="cc-modal__field cc-modal__field--narrow"
@@ -814,7 +958,57 @@ function AggiungiAnticipoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
         />
       </div>
       <div className="cc-modal__foot">
-        <button type="button" className="sib-btn sib-btn--primary" disabled={!tipologia || !prezzo} onClick={onClose}>Salva</button>
+        <button
+          type="button"
+          className="sib-btn sib-btn--primary"
+          disabled={!camera || !tipologia || !prezzo || !Number.isFinite(p)}
+          onClick={() => onSave({ camera, data: itDi(isoDaIt(data)), tipologia, prezzo: -Math.abs(round2(p)), iva: Number(iva) || 0 })}
+        >
+          Salva
+        </button>
+      </div>
+    </ModalShell>
+  )
+}
+
+// ─── MODAL: Registra pagamento tassa di soggiorno ────────────────────────────
+const METODI_PAGAMENTO = ['Contanti', 'Carta di credito', 'Bancomat', 'Bonifico', 'Addebito in fattura']
+
+function PagaTassaModal({ addebito, dettaglio, onClose, onSave }: { addebito: Addebito; dettaglio: Dettaglio; onClose: () => void; onSave: (a: Addebito, pagataDa: string, metodo: string) => void }) {
+  const pagatori = [
+    ...(dettaglio.nomiOspiti ?? [dettaglio.nominativo]),
+    ...(dettaglio.agenzia && !['Diretto', 'Sito web'].includes(dettaglio.agenzia) ? [`${dettaglio.agenzia} (agenzia)`] : []),
+  ]
+  const [pagataDa, setPagataDa] = useState(pagatori[0] ?? '')
+  const [metodo, setMetodo] = useState('Contanti')
+  const t = addebito.tassa!
+
+  return (
+    <ModalShell title="Registra pagamento tassa di soggiorno" onClose={onClose} maxWidth={560}>
+      <p className="cc-modal__totale">
+        Notte del {addebito.data} · {t.tassati} {t.tassati === 1 ? 'adulto' : 'adulti'}{t.esenti ? ` + ${t.esenti} ${t.esenti === 1 ? 'esente' : 'esenti'}` : ''} · <strong>{fmtCurrency(addebito.prezzo)}</strong>
+      </p>
+      <div className="cc-modal__grid cc-modal__grid--2">
+        <SelectField
+          className="cc-modal__field"
+          name="pagataDa"
+          label="Pagata da"
+          value={pagataDa}
+          onChange={(e) => setPagataDa(e.target.value)}
+          options={pagatori.map((n) => ({ value: n, label: n }))}
+        />
+        <SelectField
+          className="cc-modal__field"
+          name="metodo"
+          label="Metodo"
+          value={metodo}
+          onChange={(e) => setMetodo(e.target.value)}
+          options={METODI_PAGAMENTO.map((m) => ({ value: m, label: m }))}
+        />
+      </div>
+      <div className="cc-modal__foot">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!pagataDa} onClick={() => onSave(addebito, pagataDa, metodo)}>Registra</button>
       </div>
     </ModalShell>
   )

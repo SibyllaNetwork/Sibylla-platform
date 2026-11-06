@@ -127,6 +127,112 @@
     display: inline-flex
     gap: 2px
 
+    // Standard icone in tabella: blu Platform, 16px (sib-btn--icon forza grigio 12px)
+    .sib-btn--icon i
+      color: $primary
+      font-size: 16px
+
+  &__section-actions
+    display: flex
+    align-items: center
+    gap: 8px
+
+  // Numero di azioni nello storico accanto all'etichetta del bottone
+  &__storico-n
+    margin-left: 2px
+    font-weight: 700
+    color: $primary
+
+  &__empty
+    text-align: center
+    color: $text-inactive
+    padding: 20px 12px
+
+  // ── Addebiti: descrizione + stato tassa ──────────────────────────────────
+  &__table--addebiti
+    thead th
+      white-space: nowrap
+
+  &__descr
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    max-width: 100%
+
+  &__descr-txt
+    display: block
+    min-width: 0
+    max-width: 220px
+
+  &__tassa-ico
+    font-size: 16px
+    cursor: help
+
+    &--ok
+      color: $success
+
+    &--due
+      color: $warning
+
+  &__trasf
+    color: $primary
+    font-weight: 600
+    white-space: nowrap
+    cursor: help
+
+  // ── Tassa di soggiorno ───────────────────────────────────────────────────
+  &__tassa-sum
+    display: inline-flex
+    gap: 14px
+    font-size: 13px
+    font-weight: 600
+
+    &--ok
+      color: $success
+
+    &--due
+      color: $warning
+
+    &--zero
+      color: $text-inactive
+
+  &__table--tassa
+    table-layout: fixed
+    width: 100%
+
+    th, td
+      white-space: nowrap
+
+  &__c-notte
+    width: 96px
+
+  &__c-ospiti
+    width: 104px
+
+  &__c-imp
+    width: 92px
+
+  &__c-stato
+    width: 112px
+
+  &__c-az
+    width: 72px
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-weight: 600
+
+    &--ok
+      color: $success
+
+    &--due
+      color: $warning
+
+  &__pagata-da
+    display: block
+
   &__icon-danger
     color: $error
 
@@ -378,6 +484,14 @@
 
     .cc-modal__td-center
       text-align: center
+
+  &__avviso
+    margin: 0
+    font-size: 12px
+    color: $error
+
+    i
+      margin-right: 4px
 
   &__totale-row
     text-align: right
