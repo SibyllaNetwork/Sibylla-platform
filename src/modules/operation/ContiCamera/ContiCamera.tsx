@@ -4,6 +4,7 @@ import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import Tabs from '../../../core/components/Tabs'
+import Pagination from '../../../core/components/Pagination'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { apiFetchSibylla } from '../../../services/api'
 import { InputField, SelectField } from '../../../core/components/form'
@@ -45,6 +46,16 @@ const tooltipTassa = (t: TassaInfo, importo: number) => {
 }
 
 type Scheda = 'addebiti' | 'anticipi' | 'documenti'
+
+/** Righe per pagina in ogni scheda. */
+const PER_PAGINA = 10
+
+/** Righe della pagina corrente (pagina già riportata nei limiti). */
+function pagina<T>(rows: T[], p: number) {
+  const totali = Math.max(1, Math.ceil(rows.length / PER_PAGINA))
+  const corrente = Math.min(Math.max(1, p), totali)
+  return { righe: rows.slice((corrente - 1) * PER_PAGINA, corrente * PER_PAGINA), corrente, totali }
+}
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
@@ -107,6 +118,15 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
     )
     return cf.sortRows(filtrati)
   }, [data.addebiti, cf])
+
+  // Paginazione (10 righe) per scheda; i filtri riportano gli Addebiti a pagina 1.
+  const [pagAdd, setPagAdd] = useState(1)
+  const [pagAnt, setPagAnt] = useState(1)
+  const [pagDoc, setPagDoc] = useState(1)
+  useEffect(() => { setPagAdd(1) }, [cf.text, cf.multi, cf.sort])
+  const pAdd = pagina(addebitiVisibili, pagAdd)
+  const pAnt = pagina(data.anticipi, pagAnt)
+  const pDoc = pagina(data.documenti, pagDoc)
 
   const idsVisibili = addebitiVisibili.map((a) => a.id)
   const tuttiSelezionati = idsVisibili.length > 0 && idsVisibili.every((id) => selAddebiti.includes(id))
@@ -308,7 +328,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                 </tr>
               </thead>
               <tbody>
-                {addebitiVisibili.map((a, idx) => (
+                {pAdd.righe.map((a, idx) => (
                   <tr key={a.id} className={idx % 2 === 0 ? 'conti-camera__row--alt' : ''}>
                     <td>
                       <input
@@ -374,6 +394,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
             </table>
           </div>
           </div>
+          <Pagination className="conti-camera__pagination" page={pAdd.corrente} totalPages={pAdd.totali} onPageChange={setPagAdd} />
 
           <div className="conti-camera__bar">
             <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungi(true)}><i className="fa-regular fa-circle-plus" /> Aggiungi addebito</button>
@@ -432,7 +453,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                 </tr>
               </thead>
               <tbody>
-                {data.anticipi.map((a) => (
+                {pAnt.righe.map((a) => (
                   <tr key={a.id}>
                     <td>
                       <input
@@ -461,6 +482,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
               </tbody>
             </table>
           </div>
+          <Pagination className="conti-camera__pagination" page={pAnt.corrente} totalPages={pAnt.totali} onPageChange={setPagAnt} />
           <div className="conti-camera__total-row">
             Totale: <strong>{fmtCurrency(totAnticipi)}</strong>
           </div>
@@ -483,7 +505,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                     </tr>
                   </thead>
                   <tbody>
-                    {data.documenti.map((doc) => (
+                    {pDoc.righe.map((doc) => (
                       <tr key={doc.id}>
                         <td>{doc.documento}</td>
                         <td>{doc.data}</td>
@@ -502,6 +524,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                   </tbody>
                 </table>
               </div>
+          <Pagination className="conti-camera__pagination" page={pDoc.corrente} totalPages={pDoc.totali} onPageChange={setPagDoc} />
         </div>
       )}
 
