@@ -326,7 +326,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                   <th><span className="sib-colf-head"><ThLabel full="Descrizione" short="Descr." />{cf.th('descrizione', 'Descrizione', { options: opz('descrizione'), search: true })}</span></th>
                   <th className="conti-camera__th-num"><span className="sib-colf-head"><ThLabel full="Prezzo" short="Pr." />{cf.th('prezzo', 'Prezzo', { sort: true })}</span></th>
                   <th className="conti-camera__th-num"><span className="sib-colf-head"><ThLabel full="IVA" />{cf.th('iva', 'IVA', { options: Array.from(new Set(data.addebiti.map((a) => `${a.iva} %`))).sort() })}</span></th>
-                  <th><span className="sib-colf-head"><ThLabel full="Trasferimento" />{cf.th('trasf', 'Trasferimento', { options: opz('trasf') })}</span></th>
+                  <th><span className="sib-colf-head"><ThLabel full="Trasferimento" short="Trasf." />{cf.th('trasf', 'Trasferimento', { options: opz('trasf') })}</span></th>
                   <th><ThLabel full="Azioni" /></th>
                 </tr>
               </thead>
