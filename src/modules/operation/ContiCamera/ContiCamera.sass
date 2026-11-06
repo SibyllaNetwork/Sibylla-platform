@@ -522,3 +522,26 @@
 @container conticamera (max-width: 1500px)
   .conti-camera__layout
     grid-template-columns: minmax(0, 1fr)
+
+// Numero di camera negli addebiti: apre lo storico di quella camera
+.conti-camera__cam-link
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 0
+  border: none
+  background: transparent
+  color: $primary
+  font: inherit
+  font-weight: 600
+  cursor: pointer
+
+  i
+    font-size: 12px
+    opacity: 0.55
+
+  &:hover
+    text-decoration: underline
+
+    i
+      opacity: 1

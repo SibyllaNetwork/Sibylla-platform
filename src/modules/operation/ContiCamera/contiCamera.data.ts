@@ -130,6 +130,9 @@ export interface Azione {
   ts: string
   tipo: TipoAzione
   camera: string
+  /** Camera di provenienza (cambio camera, trasferimenti): l'azione compare
+   *  nello storico di entrambe le camere. */
+  cameraDa?: string
   descrizione: string
   /** Importo coinvolto (positivo = addebito, negativo = incasso/storno). */
   importo?: number
@@ -255,9 +258,9 @@ export function datiDemo(struttura: string): Data {
   if (conCambio) {
     const g2 = piuGiorni(x.checkIn, 1)
     log({ ts: `${g2}T08:25`, tipo: 'Richiesta ospite', camera: camPrima, descrizione: 'Cambio camera richiesto', operatore: op(0), dettaglio: `${titolare}: rumore dall'ascensore, chiede una camera più tranquilla` })
-    log({ ts: `${g2}T11:05`, tipo: 'Cambio camera', camera: x.camera, descrizione: `Spostamento da camera ${camPrima} a camera ${x.camera}`, operatore: op(0), dettaglio: 'Stessa categoria, nessun supplemento' })
+    log({ ts: `${g2}T11:05`, tipo: 'Cambio camera', camera: x.camera, cameraDa: camPrima, descrizione: `Spostamento da camera ${camPrima} a camera ${x.camera}`, operatore: op(0), dettaglio: 'Stessa categoria, nessun supplemento' })
     const daTrasferire = addebiti.filter((a) => a.trasf === `da ${camPrima}`)
-    log({ ts: `${g2}T11:07`, tipo: 'Trasferimento', camera: x.camera, descrizione: `${daTrasferire.length} addebiti trasferiti da camera ${camPrima}`, importo: round2(daTrasferire.reduce((s, a) => s + a.prezzo, 0)), operatore: op(0), dettaglio: daTrasferire.map((a) => `${a.descrizione} ${a.data}`).join(', ') })
+    log({ ts: `${g2}T11:07`, tipo: 'Trasferimento', camera: x.camera, cameraDa: camPrima, descrizione: `${daTrasferire.length} addebiti trasferiti da camera ${camPrima}`, importo: round2(daTrasferire.reduce((s, a) => s + a.prezzo, 0)), operatore: op(0), dettaglio: daTrasferire.map((a) => `${a.descrizione} ${a.data}`).join(', ') })
 
     // Lavanderia, poi parcheggio corretto con motivazione
     const lav = add({ camera: x.camera, data: itDi(g2), iso: g2, pertinenza: 'Ospite', descrizione: 'Lavanderia', prezzo: 18, iva: 22, trasf: '' })
@@ -302,6 +305,17 @@ export function datiDemo(struttura: string): Data {
     documenti: [{ id: 1, documento: `Caparra n. ${Number(x.booking) % 90 + 10}`, data: itDi(arrivoMeno3), intestatario: titolare, totale: caparra, pagato: caparra, sospeso: 0 }],
     storico,
   }
+}
+
+/** L'azione riguarda la camera (come camera dell'azione o di provenienza). */
+export const riguardaCamera = (a: Azione, camera: string) => a.camera === camera || a.cameraDa === camera
+
+/** Camere toccate dal conto (addebiti e storico), quella del conto per prima. */
+export const camereDelConto = (d: Data) => {
+  const set = new Set<string>([d.dettaglio.camera])
+  d.addebiti.forEach((a) => set.add(a.camera))
+  ;(d.storico ?? []).forEach((a) => { set.add(a.camera); if (a.cameraDa) set.add(a.cameraDa) })
+  return Array.from(set).filter(Boolean)
 }
 
 /** Camere della struttura (per trasferimenti e anticipi). */

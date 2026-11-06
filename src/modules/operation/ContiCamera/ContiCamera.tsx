@@ -14,7 +14,7 @@ import { usePmsStore } from '../_data/pmsDemo'
 import StoricoConto from './StoricoConto'
 import {
   type Addebito, type Anticipo, type Azione, type Data, type Dettaglio, type TassaInfo,
-  datiDemo, camereStruttura, isoDaIt, itDi, isoDi, tsOra, round2, TASSA_PER_ADULTO,
+  datiDemo, camereStruttura, camereDelConto, riguardaCamera, isoDaIt, itDi, isoDi, tsOra, round2, TASSA_PER_ADULTO,
 } from './contiCamera.data'
 
 function fmtCurrency(v: number): string {
@@ -63,7 +63,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
   const [modAggiungi, setModAggiungi] = useState(false)
   const [modAggiungiAnticipo, setModAggiungiAnticipo] = useState(false)
   const [modTassa, setModTassa] = useState<Addebito | null>(null)
-  const [storicoOpen, setStoricoOpen] = useState(false)
+  const [storicoCamera, setStoricoCamera] = useState<string | null>(null)
   const [estrattoOpen, setEstrattoOpen] = useState(false)
 
   useEffect(() => {
@@ -76,6 +76,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
 
   const d = data.dettaglio
   const storico = data.storico ?? []
+  const azioniCameraConto = storico.filter((a) => riguardaCamera(a, d.camera)).length
 
   // ── Storico: ogni azione sulla pagina viene registrata ─────────────────────
   const registra = (a: Omit<Azione, 'id' | 'ts' | 'operatore' | 'camera'> & { camera?: string }) =>
@@ -158,9 +159,13 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
   }
 
   const salvaTrasferimento = (ids: number[], dest: string) => {
-    const spostati = data.addebiti.filter((a) => ids.includes(a.id))
-    setAddebiti((rows) => rows.map((r) => (ids.includes(r.id) ? { ...r, trasf: `da ${r.camera}`, camera: dest } : r)))
-    registra({ tipo: 'Trasferimento', camera: dest, descrizione: `${spostati.length} ${spostati.length === 1 ? 'addebito trasferito' : 'addebiti trasferiti'} a camera ${dest}`, importo: round2(spostati.reduce((s, a) => s + a.prezzo, 0)), dettaglio: spostati.map((a) => `${a.descrizione} ${a.data} (da ${a.camera})`).join(', ') })
+    const spostati = data.addebiti.filter((a) => ids.includes(a.id) && a.camera !== dest)
+    setAddebiti((rows) => rows.map((r) => (ids.includes(r.id) && r.camera !== dest ? { ...r, trasf: `da ${r.camera}`, camera: dest } : r)))
+    // Un'azione per camera di provenienza: compare nello storico di entrambe.
+    Array.from(new Set(spostati.map((a) => a.camera))).forEach((da) => {
+      const gruppo = spostati.filter((a) => a.camera === da)
+      registra({ tipo: 'Trasferimento', camera: dest, cameraDa: da, descrizione: `${gruppo.length} ${gruppo.length === 1 ? 'addebito trasferito' : 'addebiti trasferiti'} da camera ${da} a camera ${dest}`, importo: round2(gruppo.reduce((s, a) => s + a.prezzo, 0)), dettaglio: gruppo.map((a) => `${a.descrizione} ${a.data}`).join(', ') })
+    })
     setSelAddebiti([])
     setModTrasferisci(null)
   }
@@ -252,9 +257,9 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                   <i className="fa-solid fa-filter-circle-xmark" /> Azzera filtri
                 </button>
               )}
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setStoricoOpen(true)} disabled={!d.prenotazioneNum}>
-                <i className="fa-solid fa-clock-rotate-left" /> Storico
-                {storico.length > 0 && <span className="conti-camera__storico-n">{storico.length}</span>}
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setStoricoCamera(d.camera)} disabled={!d.camera}>
+                <i className="fa-solid fa-clock-rotate-left" /> Storico camera {d.camera}
+                {azioniCameraConto > 0 && <span className="conti-camera__storico-n">{azioniCameraConto}</span>}
               </button>
             </div>
           </div>
@@ -293,7 +298,13 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                         onChange={() => toggleAddebito(a.id)}
                       />
                     </td>
-                    <td>{a.camera}</td>
+                    <td>
+                      <Tooltip text={`Storico camera ${a.camera}`}>
+                        <button type="button" className="conti-camera__cam-link" onClick={() => setStoricoCamera(a.camera)}>
+                          {a.camera} <i className="fa-solid fa-clock-rotate-left" aria-hidden="true" />
+                        </button>
+                      </Tooltip>
+                    </td>
                     <td>{a.data}</td>
                     <td>{a.pertinenza}</td>
                     <td>
@@ -550,7 +561,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
       {modAggiungi && <AggiungiAddebitoModal dettaglio={d} onClose={() => setModAggiungi(false)} onSave={salvaAddebito} />}
       {modAggiungiAnticipo && <AggiungiAnticipoModal dettaglio={d} onClose={() => setModAggiungiAnticipo(false)} onSave={salvaAnticipo} />}
       {modTassa && <PagaTassaModal addebito={modTassa} dettaglio={d} onClose={() => setModTassa(null)} onSave={salvaTassa} />}
-      {storicoOpen && <StoricoConto dettaglio={d} storico={storico} onClose={() => setStoricoOpen(false)} />}
+      {storicoCamera && <StoricoConto dettaglio={d} storico={storico} camere={camereDelConto(data)} camera={storicoCamera} onClose={() => setStoricoCamera(null)} />}
     </div>
   )
 }
