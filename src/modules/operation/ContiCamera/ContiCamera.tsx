@@ -15,7 +15,7 @@ import { usePmsStore } from '../_data/pmsDemo'
 import StoricoConto from './StoricoConto'
 import {
   type Addebito, type Anticipo, type Azione, type Data, type Dettaglio, type TassaInfo,
-  datiDemo, camereStruttura, camereDelConto, riguardaCamera, isoDaIt, itDi, isoDi, tsOra, round2, TASSA_PER_ADULTO,
+  datiDemo, camereStruttura, camereDelConto, isoDaIt, itDi, isoDi, tsOra, round2, TASSA_PER_ADULTO,
 } from './contiCamera.data'
 
 function fmtCurrency(v: number): string {
@@ -77,7 +77,6 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
 
   const d = data.dettaglio
   const storico = data.storico ?? []
-  const azioniCameraConto = storico.filter((a) => riguardaCamera(a, d.camera)).length
 
   // ── Storico: ogni azione sulla pagina viene registrata ─────────────────────
   const registra = (a: Omit<Azione, 'id' | 'ts' | 'operatore' | 'camera'> & { camera?: string }) =>
@@ -253,10 +252,6 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                   <i className="fa-solid fa-filter-circle-xmark" /> Azzera filtri
                 </button>
               )}
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setStoricoCamera(d.camera)} disabled={!d.camera}>
-                <i className="fa-solid fa-clock-rotate-left" /> Storico camera {d.camera}
-                {azioniCameraConto > 0 && <span className="conti-camera__storico-n">{azioniCameraConto}</span>}
-              </button>
             </div>
           </div>
           <div className="conti-camera__addebiti">
