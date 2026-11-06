@@ -1,5 +1,6 @@
 // ─── CONTI CAMERA ─────────────────────────────────────────────────────────────
 @use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
 
 .conti-camera
   display: flex
@@ -148,24 +149,58 @@
     color: $text-inactive
     padding: 20px 12px
 
-  // ── Addebiti: descrizione + stato tassa ──────────────────────────────────
-  &__table--addebiti
-    thead th
-      white-space: nowrap
+  // ── Addebiti: tabella a larghezza fissa, mai scroll orizzontale ─────────
+  // Le colonne prendono le larghezze del <colgroup>, i testi ellissano con
+  // tooltip (TruncatedText) e sotto soglia le intestazioni si abbreviano
+  // (ThLabel) e le celle si stringono. Container query sulla larghezza reale
+  // della colonna Addebiti (affiancata o a tutta riga).
+  &__addebiti
+    container-type: inline-size
+    container-name: ccaddebiti
+    min-width: 0
+
+    // Niente margine sotto: la barra bottoni segue con il gap della colonna
+    .sib-table-wrap
+      margin-bottom: 0
+
+  &__c-check
+    width: 44px
+
+  &__c-camera
+    width: 9%
+
+  &__c-data
+    width: 13%
+
+  &__c-pert
+    width: 12%
+
+  &__c-prezzo
+    width: 11%
+
+  &__c-iva
+    width: 8%
+
+  &__c-trasf
+    width: 9%
+
+  &__c-azioni
+    width: 150px
 
   &__descr
-    display: inline-flex
+    display: flex
     align-items: center
     gap: 6px
-    max-width: 100%
+    min-width: 0
 
   &__descr-txt
     display: block
     min-width: 0
-    max-width: 220px
+    flex: 0 1 auto
 
   &__tassa-ico
     font-size: 16px
+    flex: 0 0 auto
     cursor: help
 
     &--ok
@@ -174,64 +209,41 @@
     &--due
       color: $warning
 
-  &__trasf
-    color: $primary
-    font-weight: 600
-    white-space: nowrap
-    cursor: help
-
-  // ── Tassa di soggiorno ───────────────────────────────────────────────────
-  &__tassa-sum
+  // Tassa da pagare: l'icona apre "Registra pagamento"
+  &__tassa-btn
     display: inline-flex
-    gap: 14px
-    font-size: 13px
-    font-weight: 600
+    flex: 0 0 auto
+    padding: 0
+    border: none
+    background: transparent
+    cursor: pointer
 
-    &--ok
-      color: $success
+    .conti-camera__tassa-ico
+      cursor: pointer
 
-    &--due
-      color: $warning
-
-    &--zero
-      color: $text-inactive
-
-  &__table--tassa
-    table-layout: fixed
-    width: 100%
-
-    th, td
-      white-space: nowrap
-
-  &__c-notte
-    width: 96px
-
-  &__c-ospiti
-    width: 104px
-
-  &__c-imp
-    width: 92px
-
-  &__c-stato
-    width: 112px
-
-  &__c-az
-    width: 72px
-
-  &__stato
+  // Azioni di riga: icone blu Platform 16px, senza bordo né box
+  &__act
     display: inline-flex
     align-items: center
-    gap: 6px
+    justify-content: center
+    width: 24px
+    height: 28px
+    padding: 0
+    border: none
+    background: transparent
+    color: $primary
+    font-size: 16px
+    cursor: pointer
+    border-radius: 4px
+
+    &:hover
+      background: $primary-50
+
+  &__trasf
+    display: block
+    color: $primary
     font-weight: 600
 
-    &--ok
-      color: $success
-
-    &--due
-      color: $warning
-
-  &__pagata-da
-    display: block
 
   &__icon-danger
     color: $error
@@ -545,3 +557,26 @@
 
     i
       opacity: 1
+
+// Tabella addebiti a larghezza fissa (due classi: batte .sib-table)
+.conti-camera .conti-camera__table--addebiti
+  +table-fit
+  +th-labels
+
+  .conti-camera__row-actions
+    gap: 0
+
+// Colonna stretta: celle più compatte, intestazioni abbreviate
+@container ccaddebiti (max-width: 860px)
+  .conti-camera .conti-camera__table--addebiti
+    +th-compact
+
+    th, td
+      padding-left: 6px
+      padding-right: 6px
+
+  .conti-camera .conti-camera__c-azioni
+    width: 134px
+
+  .conti-camera .conti-camera__c-check
+    width: 32px

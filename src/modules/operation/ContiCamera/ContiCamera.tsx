@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
+import ThLabel from '../../../core/components/ThLabel'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { apiFetchSibylla } from '../../../services/api'
 import { InputField, SelectField } from '../../../core/components/form'
@@ -118,11 +119,6 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
   const totAddebiti = data.addebiti.reduce((s, a) => s + a.prezzo, 0)
   const totVisibili = addebitiVisibili.reduce((s, a) => s + a.prezzo, 0)
   const totAnticipi = data.anticipi.reduce((s, a) => s + a.prezzo, 0)
-
-  // ── Tassa di soggiorno ────────────────────────────────────────────────────
-  const notiTassa = data.addebiti.filter((a) => a.tassa)
-  const tassaPagata = round2(notiTassa.filter((a) => a.tassa!.stato === 'pagata').reduce((s, a) => s + a.prezzo, 0))
-  const tassaDaPagare = round2(notiTassa.filter((a) => a.tassa!.stato === 'da-pagare').reduce((s, a) => s + a.prezzo, 0))
 
   // ── Azioni ────────────────────────────────────────────────────────────────
   // Paga ora → porta gli addebiti selezionati (o tutti, se nessuno) alla pagina
@@ -263,8 +259,20 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
               </button>
             </div>
           </div>
+          <div className="conti-camera__addebiti">
           <div className="sib-table-wrap">
             <table className="sib-table conti-camera__table conti-camera__table--addebiti">
+              <colgroup>
+                <col className="conti-camera__c-check" />
+                <col className="conti-camera__c-camera" />
+                <col className="conti-camera__c-data" />
+                <col className="conti-camera__c-pert" />
+                <col />
+                <col className="conti-camera__c-prezzo" />
+                <col className="conti-camera__c-iva" />
+                <col className="conti-camera__c-trasf" />
+                <col className="conti-camera__c-azioni" />
+              </colgroup>
               <thead>
                 <tr>
                   <th className="conti-camera__th-check">
@@ -276,14 +284,14 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                       onChange={toggleAllAddebiti}
                     />
                   </th>
-                  <th><span className="sib-colf-head">Camera{cf.th('camera', 'Camera', { options: opz('camera') })}</span></th>
-                  <th><span className="sib-colf-head">Data{cf.th('iso', 'Data', { search: true, sort: true })}</span></th>
-                  <th><span className="sib-colf-head">Pertinenza{cf.th('pertinenza', 'Pertinenza', { options: opz('pertinenza') })}</span></th>
-                  <th><span className="sib-colf-head">Descrizione{cf.th('descrizione', 'Descrizione', { options: opz('descrizione'), search: true })}</span></th>
-                  <th className="conti-camera__th-num"><span className="sib-colf-head">Prezzo{cf.th('prezzo', 'Prezzo', { sort: true })}</span></th>
-                  <th className="conti-camera__th-num"><span className="sib-colf-head">IVA{cf.th('iva', 'IVA', { options: Array.from(new Set(data.addebiti.map((a) => `${a.iva} %`))).sort() })}</span></th>
-                  <th><span className="sib-colf-head">Trasf.{cf.th('trasf', 'Trasferimento', { options: opz('trasf') })}</span></th>
-                  <th>Azioni</th>
+                  <th><span className="sib-colf-head"><ThLabel full="Camera" short="Cam." />{cf.th('camera', 'Camera', { options: opz('camera') })}</span></th>
+                  <th><span className="sib-colf-head"><ThLabel full="Data" />{cf.th('iso', 'Data', { search: true, sort: true })}</span></th>
+                  <th><span className="sib-colf-head"><ThLabel full="Pertinenza" short="Pert." />{cf.th('pertinenza', 'Pertinenza', { options: opz('pertinenza') })}</span></th>
+                  <th><span className="sib-colf-head"><ThLabel full="Descrizione" short="Descr." />{cf.th('descrizione', 'Descrizione', { options: opz('descrizione'), search: true })}</span></th>
+                  <th className="conti-camera__th-num"><span className="sib-colf-head"><ThLabel full="Prezzo" short="Pr." />{cf.th('prezzo', 'Prezzo', { sort: true })}</span></th>
+                  <th className="conti-camera__th-num"><span className="sib-colf-head"><ThLabel full="IVA" />{cf.th('iva', 'IVA', { options: Array.from(new Set(data.addebiti.map((a) => `${a.iva} %`))).sort() })}</span></th>
+                  <th><span className="sib-colf-head"><ThLabel full="Trasf." />{cf.th('trasf', 'Trasferimento', { options: opz('trasf') })}</span></th>
+                  <th><ThLabel full="Azioni" /></th>
                 </tr>
               </thead>
               <tbody>
@@ -305,35 +313,39 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                         </button>
                       </Tooltip>
                     </td>
-                    <td>{a.data}</td>
-                    <td>{a.pertinenza}</td>
+                    <td><TruncatedText text={a.data} /></td>
+                    <td><TruncatedText text={a.pertinenza} /></td>
                     <td>
                       <span className="conti-camera__descr">
                         <TruncatedText text={a.descrizione} className="conti-camera__descr-txt" />
-                        {a.tassa && (
-                          <Tooltip text={tooltipTassa(a.tassa, a.prezzo)}>
-                            <i
-                              className={`fa-solid ${a.tassa.stato === 'pagata' ? 'fa-circle-check conti-camera__tassa-ico--ok' : 'fa-clock conti-camera__tassa-ico--due'} conti-camera__tassa-ico`}
-                              aria-label={a.tassa.stato === 'pagata' ? `Pagata da ${a.tassa.pagataDa}` : 'Da pagare'}
-                            />
-                          </Tooltip>
-                        )}
+                        {a.tassa && (a.tassa.stato === 'pagata'
+                          ? (
+                            <Tooltip text={tooltipTassa(a.tassa, a.prezzo)}>
+                              <i className="fa-solid fa-circle-check conti-camera__tassa-ico conti-camera__tassa-ico--ok" aria-label={`Pagata da ${a.tassa.pagataDa}`} />
+                            </Tooltip>
+                          ) : (
+                            <Tooltip text={`${tooltipTassa(a.tassa, a.prezzo)} · clicca per registrare il pagamento`}>
+                              <button type="button" className="conti-camera__tassa-btn" aria-label={`Registra pagamento tassa del ${a.data}`} onClick={() => setModTassa(a)}>
+                                <i className="fa-solid fa-clock conti-camera__tassa-ico conti-camera__tassa-ico--due" />
+                              </button>
+                            </Tooltip>
+                          ))}
                       </span>
                     </td>
-                    <td className="conti-camera__td-num">{fmtCurrency(a.prezzo)}</td>
+                    <td className="conti-camera__td-num"><TruncatedText text={fmtCurrency(a.prezzo)} /></td>
                     <td className="conti-camera__td-num">{a.iva} %</td>
                     <td>
                       {a.trasf
-                        ? <Tooltip text={`Trasferito ${a.trasf.replace('da', 'dalla camera')}`}><span className="conti-camera__trasf">{a.trasf}</span></Tooltip>
+                        ? <TruncatedText text={a.trasf} full={`Trasferito ${a.trasf.replace('da', 'dalla camera')}`} className="conti-camera__trasf" />
                         : ''}
                     </td>
                     <td>
                       <div className="conti-camera__row-actions">
-                        <Tooltip text="Modifica addebito"><button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica addebito" onClick={() => setModModifica(a)}><i className="fa-solid fa-pen" /></button></Tooltip>
-                        <Tooltip text="Addebito frazionato"><button type="button" className="sib-btn sib-btn--icon" aria-label="Addebito frazionato" onClick={() => setModFrazionato(a)}><i className="fa-solid fa-arrows-split-up-and-left" /></button></Tooltip>
-                        <Tooltip text="Addebito in parti uguali"><button type="button" className="sib-btn sib-btn--icon" aria-label="Addebito in parti uguali" onClick={() => setModPartiUguali(a)}><i className="fa-solid fa-equals" /></button></Tooltip>
-                        <Tooltip text="Trasferisci addebito"><button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferisci addebito" onClick={() => setModTrasferisci([a.id])}><i className="fa-solid fa-right-left" /></button></Tooltip>
-                        <Tooltip text="Elimina"><button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => eliminaAddebito(a)}><i className="fa-solid fa-trash" /></button></Tooltip>
+                        <Tooltip text="Modifica addebito"><button type="button" className="conti-camera__act" aria-label="Modifica addebito" onClick={() => setModModifica(a)}><i className="fa-solid fa-pen" /></button></Tooltip>
+                        <Tooltip text="Addebito frazionato"><button type="button" className="conti-camera__act" aria-label="Addebito frazionato" onClick={() => setModFrazionato(a)}><i className="fa-solid fa-arrows-split-up-and-left" /></button></Tooltip>
+                        <Tooltip text="Addebito in parti uguali"><button type="button" className="conti-camera__act" aria-label="Addebito in parti uguali" onClick={() => setModPartiUguali(a)}><i className="fa-solid fa-equals" /></button></Tooltip>
+                        <Tooltip text="Trasferisci addebito"><button type="button" className="conti-camera__act" aria-label="Trasferisci addebito" onClick={() => setModTrasferisci([a.id])}><i className="fa-solid fa-right-left" /></button></Tooltip>
+                        <Tooltip text="Elimina"><button type="button" className="conti-camera__act" aria-label="Elimina" onClick={() => eliminaAddebito(a)}><i className="fa-solid fa-trash" /></button></Tooltip>
                       </div>
                     </td>
                   </tr>
@@ -347,6 +359,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
                 )}
               </tbody>
             </table>
+          </div>
           </div>
 
           <div className="conti-camera__bar">
@@ -380,77 +393,8 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
           </div>
         </div>
 
-        {/* Colonna dx: Tassa di soggiorno + Anticipi + Documenti */}
+        {/* Colonna dx: Anticipi + Documenti */}
         <div className="conti-camera__col">
-          {notiTassa.length > 0 && (
-            <>
-              <div className="conti-camera__section-head">
-                <h3 className="conti-camera__section-title">Tassa di soggiorno</h3>
-                <span className="conti-camera__tassa-sum">
-                  <span className="conti-camera__tassa-sum--ok"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Pagata {fmtCurrency(tassaPagata)}</span>
-                  <span className={tassaDaPagare ? 'conti-camera__tassa-sum--due' : 'conti-camera__tassa-sum--zero'}><i className="fa-solid fa-clock" aria-hidden="true" /> Da pagare {fmtCurrency(tassaDaPagare)}</span>
-                </span>
-              </div>
-              <div className="sib-table-wrap">
-                <table className="sib-table conti-camera__table conti-camera__table--tassa">
-                  <colgroup>
-                    <col className="conti-camera__c-notte" />
-                    <col className="conti-camera__c-ospiti" />
-                    <col className="conti-camera__c-imp" />
-                    <col className="conti-camera__c-stato" />
-                    <col />
-                    <col className="conti-camera__c-az" />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>Notte</th>
-                      <th>Ospiti</th>
-                      <th className="conti-camera__th-num">Importo</th>
-                      <th>Stato</th>
-                      <th>Pagata da</th>
-                      <th>Azioni</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {notiTassa.map((a) => {
-                      const t = a.tassa!
-                      return (
-                        <tr key={a.id}>
-                          <td>{a.data}</td>
-                          <td>
-                            <Tooltip text={`${t.tassati} ${t.tassati === 1 ? 'adulto soggetto' : 'adulti soggetti'} all'imposta (${fmtCurrency(TASSA_PER_ADULTO)} a notte)${t.esenti ? `, ${t.esenti} ${t.esenti === 1 ? 'minore esente' : 'minori esenti'}` : ''}`}>
-                              <span>{t.tassati} ad.{t.esenti ? ` + ${t.esenti} es.` : ''}</span>
-                            </Tooltip>
-                          </td>
-                          <td className="conti-camera__td-num">{fmtCurrency(a.prezzo)}</td>
-                          <td>
-                            {t.stato === 'pagata'
-                              ? <span className="conti-camera__stato conti-camera__stato--ok"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Pagata</span>
-                              : <span className="conti-camera__stato conti-camera__stato--due"><i className="fa-solid fa-clock" aria-hidden="true" /> Da pagare</span>}
-                          </td>
-                          <td>
-                            {t.stato === 'pagata'
-                              ? <TruncatedText text={t.pagataDa ?? ''} full={`${t.pagataDa} · ${t.metodo} · ${t.il}${t.operatore ? ` · registrata da ${t.operatore}` : ''}`} className="conti-camera__pagata-da" />
-                              : <span className="sib-cell--muted">—</span>}
-                          </td>
-                          <td>
-                            {t.stato === 'da-pagare' && (
-                              <Tooltip text="Registra pagamento">
-                                <button type="button" className="sib-btn sib-btn--icon" aria-label={`Registra pagamento tassa del ${a.data}`} onClick={() => setModTassa(a)}>
-                                  <i className="fa-solid fa-hand-holding-dollar" />
-                                </button>
-                              </Tooltip>
-                            )}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
           <div className="conti-camera__section-head">
             <h3 className="conti-camera__section-title">Anticipi</h3>
             <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungiAnticipo(true)}>
