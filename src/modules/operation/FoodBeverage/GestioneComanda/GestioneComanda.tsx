@@ -8,6 +8,7 @@
 //  Sala; se manca, la pagina chiede di sceglierlo fra i tavoli aperti. Sullo
 //  stesso tavolo possono convivere più comande (conti separati).
 import React, { useMemo, useState } from 'react'
+import { useFbSenzaHotel, metodoAmmesso } from '../useFbSenzaHotel'
 import PageHead from '../../../../core/components/PageHead'
 import Modal from '../../../../core/components/Modal'
 import TouchKeyboard from '../../../../core/components/TouchKeyboard/TouchKeyboard'
@@ -43,6 +44,9 @@ const PAGAMENTI: Array<{ id: NonNullable<Comanda['pagamento']>; label: string; i
 ]
 
 export default function GestioneComanda({ navigate }: { navigate?: (p: string) => void }) {
+  // Ristorante senza hotel: niente addebito camera né wallet Sibylla.
+  const senzaHotel = useFbSenzaHotel()
+  const pagamenti = PAGAMENTI.filter(p => metodoAmmesso(p.id, senzaHotel))
   const TURNI   = useFbStore(s => s.turni)
   const contesto    = useFbStore(s => s.contesto)
   const setContesto = useFbStore(s => s.setContesto)
@@ -879,7 +883,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
           )}
 
           <div className="fbcom-dividi__pag">
-            {PAGAMENTI.filter(p => p.id !== 'camera').map(p => (
+            {pagamenti.filter(p => p.id !== 'camera').map(p => (
               <button
                 key={p.id} type="button"
                 className={`fbcom-dividi__pag-btn ${pagamento === p.id ? 'is-on' : ''}`}
@@ -951,7 +955,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
           <div className="fbcom-conto__blk">
             <span className="fbcom-conto__lab">Pagamento</span>
             <div className="fbcom-conto__pag">
-              {PAGAMENTI.map(p => (
+              {pagamenti.map(p => (
                 <button
                   key={p.id} type="button"
                   className={`fbcom-conto__pag-btn ${pagamento === p.id ? 'is-on' : ''}`}

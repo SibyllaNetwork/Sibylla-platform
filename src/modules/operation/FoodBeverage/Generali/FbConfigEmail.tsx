@@ -4,6 +4,7 @@
 //  destra la prova d'invio e cosa parte davvero — perché una configurazione SMTP
 //  si verifica mandando una mail, non rileggendo i campi.
 import React, { useState } from 'react'
+import { useFbSenzaHotel } from '../useFbSenzaHotel'
 import PageHead from '../../../../core/components/PageHead'
 import { InputField, ToggleSwitch, NumCell } from '../../../../core/components/form'
 import { toast } from '../../../../core/components/Toast/useToast'
@@ -12,6 +13,8 @@ import { PROVIDER_EMAIL, type ConfigEmail } from '../fb.model'
 import './FbConfigEmail.sass'
 
 export default function FbConfigEmail({ navigate }: { navigate?: (p: string) => void }) {
+  // Ristorante senza hotel: niente wallet Sibylla negli invii.
+  const senzaHotel = useFbSenzaHotel()
   const salvata = useFbStore(s => s.configEmail)
   const salva   = useFbStore(s => s.salvaConfigEmail)
 
@@ -87,7 +90,7 @@ export default function FbConfigEmail({ navigate }: { navigate?: (p: string) => 
             <div className="fbmail__row">
               <InputField
                 name="host" label="Server SMTP" className="fbmail__grow" value={cfg.host}
-                placeholder="smtp.miohotel.com"
+                placeholder={senzaHotel ? 'smtp.mioristorante.it' : 'smtp.miohotel.com'}
                 onChange={e => setCfg(c => ({ ...c, host: e.target.value }))}
               />
               <div className="fbmail__porta">
@@ -145,7 +148,7 @@ export default function FbConfigEmail({ navigate }: { navigate?: (p: string) => 
             <div className="fbmail__row">
               <InputField
                 name="mittente" label="Indirizzo mittente" className="fbmail__grow" value={cfg.mittente}
-                placeholder="no-reply@miohotel.com"
+                placeholder={senzaHotel ? 'no-reply@mioristorante.it' : 'no-reply@miohotel.com'}
                 onChange={e => setCfg(c => ({ ...c, mittente: e.target.value }))}
               />
               <InputField
@@ -189,11 +192,16 @@ export default function FbConfigEmail({ navigate }: { navigate?: (p: string) => 
               <h3><i className="fa-solid fa-inbox" aria-hidden="true" /> Cosa viene inviato</h3>
             </header>
             <ul className="fbmail__lista">
-              <li>QR code del wallet con il saldo aggiornato</li>
-              <li>Data di scadenza del credito, se impostata</li>
-              <li>Nome del cliente e del wallet</li>
-              <li>Istruzioni d’uso al momento del pagamento</li>
+              {!senzaHotel && (
+                <>
+                  <li>QR code del wallet con il saldo aggiornato</li>
+                  <li>Data di scadenza del credito, se impostata</li>
+                  <li>Nome del cliente e del wallet</li>
+                  <li>Istruzioni d’uso al momento del pagamento</li>
+                </>
+              )}
               <li>Conferme di prenotazione dal libro</li>
+              {senzaHotel && <li>Ricevute e promemoria della prenotazione</li>}
             </ul>
           </section>
 

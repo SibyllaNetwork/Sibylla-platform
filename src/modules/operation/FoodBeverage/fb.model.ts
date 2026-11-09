@@ -1341,7 +1341,7 @@ export interface ConfigWallet {
   }
 }
 
-export const CATEGORIE_CLIENTE: CategoriaCliente[] = [
+export let CATEGORIE_CLIENTE: CategoriaCliente[] = [
   { id: 0, nome: 'Standard',      scontoPerc: 0,   descrizione: 'Ospiti esterni e walk-in' },
   { id: 3, nome: 'Cliente hotel', scontoPerc: 10,  descrizione: 'Ospiti in casa: conto su camera o al tavolo' },
   { id: 2, nome: 'All inclusive', scontoPerc: 100, descrizione: 'Pacchetti con pasti inclusi nel soggiorno' },
@@ -1956,7 +1956,7 @@ const chiuseDelGiorno = (startId: number): Comanda[] => {
       righe.push(riga(v, qta, portata, 'servita', '', [], [], min + 20))
     })
     const pagamento: Comanda['pagamento'] =
-      !PROFILO.alloggio ? (rnd() < 0.62 ? 'carta' : rnd() < 0.8 ? 'contanti' : 'wallet')
+      !PROFILO.alloggio ? (rnd() < 0.62 ? 'carta' : rnd() < 0.8 || !PROFILO.wallet ? 'contanti' : 'wallet')
       : cat === 3 ? (rnd() < 0.7 ? 'camera' : 'carta') : cat === 2 ? 'camera'
         : rnd() < 0.55 ? 'carta' : rnd() < 0.7 ? 'contanti' : 'wallet'
     out.push({
@@ -2006,7 +2006,7 @@ export const chiusureIniziali = (): TurnoCassa[] => {
     const r2 = (n: number) => Math.round(n * 100) / 100
     const incassi = {
       contanti: r2(620 * k), carta: r2((PROFILO.alloggio ? 2350 : 3500) * k),
-      camera: r2((PROFILO.alloggio ? 1480 : 0) * k), wallet: r2(260 * k),
+      camera: r2((PROFILO.alloggio ? 1480 : 0) * k), wallet: r2((PROFILO.wallet ? 260 : 0) * k),
     }
     // Quasi sempre in pari; ogni tanto qualche euro di differenza nel cassetto.
     const scarto = rnd() < 0.2 ? r2((rnd() - 0.5) * 24) : 0
@@ -2070,6 +2070,8 @@ export interface DescrizioneStruttura {
   classificazione?: string
   citta?: string
   email?: string
+  /** Utenza di sola ristorazione: ristorante separato dall'hotel (niente camere né wallet Sibylla). */
+  senzaHotel?: boolean
 }
 
 export type TipoStruttura = 'hotel' | 'resort' | 'bnb' | 'ristorante' | 'bar' | 'residence' | 'studentato'
@@ -2089,6 +2091,8 @@ export interface ProfiloStruttura {
   alloggio: boolean
   /** Classificazione della scheda (per i ristoranti: Trattoria, Pizzeria, Etnico, Fine Dining). */
   classificazione?: string
+  /** Pagamenti e credito col wallet Sibylla (non per i ristoranti separati dall'hotel). */
+  wallet: boolean
 }
 
 const BASE = {
@@ -2097,6 +2101,7 @@ const BASE = {
   email: CONFIG_EMAIL, walletCfg: CONFIG_WALLET,
   categorie: CATEGORIE_MENU, ricette: RICETTE, camerieri: CAMERIERI,
 }
+const CATEGORIE_CLIENTE_BASE = CATEGORIE_CLIENTE
 
 const PROVINCE: Record<string, string> = {
   Noto: 'SR', Siracusa: 'SR', Catania: 'CT', Taormina: 'ME', Palermo: 'PA', Roma: 'RM',
@@ -2143,8 +2148,9 @@ export const profiloDa = (d: DescrizioneStruttura): ProfiloStruttura => {
     listino: listino[tipo],
     seme: hashNome(d.nome),
     classico: tipo === 'hotel' || tipo === 'resort',
-    alloggio: tipo !== 'ristorante' && tipo !== 'bar',
+    alloggio: !d.senzaHotel && tipo !== 'ristorante' && tipo !== 'bar',
     classificazione: d.classificazione,
+    wallet: !d.senzaHotel,
   }
 }
 
@@ -2303,6 +2309,8 @@ export const applicaStruttura = (d: DescrizioneStruttura) => {
     })))
   }
 
+  // Ristorante separato dall'hotel: niente categorie cliente hotel / all inclusive.
+  CATEGORIE_CLIENTE = d.senzaHotel ? CATEGORIE_CLIENTE_BASE.filter(c => c.id !== 2 && c.id !== 3) : CATEGORIE_CLIENTE_BASE
   // Ristoranti: carta, schede tecniche e brigata propri del locale; le altre strutture usano la carta base.
   const stile = p.tipo === 'ristorante' ? STILI[stileDa(p.classificazione)] : null
   const brigata = stile ? brigataDi(p.nome, p.classificazione) : null

@@ -67,6 +67,28 @@ const trova = (items: any[], id: string): any | undefined => {
 
 export const isFbStandalone = (moduli?: string[]) => !!moduli && moduli.length === 1 && moduli[0] === 'food-beverage'
 
+/** Moduli di sola ristorazione: chi ha solo questi è un ristorante separato dall'hotel. */
+export const MODULI_RISTORAZIONE = ['food-beverage', 'ristorazione']
+
+/**
+ * Utenza di sola ristorazione (es. Elena Russo, Marco Bruno): niente addebiti in camera, numeri di camera, clienti
+ * hotel né wallet Sibylla. Con anche una Struttura ricettiva (o Full) i riferimenti tornano.
+ */
+export const isSoloRistorazione = (moduli?: string[]) =>
+  !!moduli && moduli.length > 0 && moduli.every(m => MODULI_RISTORAZIONE.includes(m))
+
+/** Pagine legate all'hotel o al wallet, nascoste alle utenze di sola ristorazione. */
+export const PAGINE_HOTEL_WALLET = ['fb-mobile-wallet', 'fb-wallet-clienti']
+
+/** Toglie dal menu le pagine wallet per le utenze di sola ristorazione. */
+export function applySoloRistorazione(items: any[], moduli?: string[]): any[] {
+  if (!isSoloRistorazione(moduli)) return items
+  return filterMenu(items, new Set(raccogliPagine(items).filter(p => !PAGINE_HOTEL_WALLET.includes(p))))
+}
+
+const raccogliPagine = (items: any[]): string[] =>
+  items.flatMap(n => [...(n.page ? [n.page] : []), ...(n.children ? raccogliPagine(n.children) : [])])
+
 export function applyStandalone(items: any[], moduli?: string[]): any[] {
   if (!isFbStandalone(moduli)) return items
   const fb = trova(items, 'food-beverage')

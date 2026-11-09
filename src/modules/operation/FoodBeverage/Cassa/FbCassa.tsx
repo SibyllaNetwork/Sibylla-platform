@@ -9,6 +9,7 @@
 //  Lo scostamento fra contato e teorico non è un errore da nascondere: si
 //  scrive grande, con il segno, perché è la ragione per cui si conta.
 import React, { useMemo, useState } from 'react'
+import { useFbSenzaHotel, metodoAmmesso } from '../useFbSenzaHotel'
 import PageHead from '../../../../core/components/PageHead'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
@@ -25,6 +26,7 @@ import './FbCassa.sass'
 const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
 
 export default function FbCassa({ navigate }: { navigate?: (p: string) => void }) {
+  const senzaHotel = useFbSenzaHotel()
   const cassa     = useFbStore(s => s.cassa)
   const chiusure  = useFbStore(s => s.chiusure)
   const storni    = useFbStore(s => s.storni)
@@ -159,7 +161,7 @@ export default function FbCassa({ navigate }: { navigate?: (p: string) => void }
                 </tr>
               </thead>
               <tbody>
-                {METODI_PAGAMENTO.map(m => (
+                {METODI_PAGAMENTO.filter(m => metodoAmmesso(m.id, senzaHotel)).map(m => (
                   <tr key={m.id}>
                     <td>
                       <span className="fbcassa__met">

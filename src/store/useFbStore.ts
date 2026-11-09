@@ -882,7 +882,7 @@ export const useFbStore = create<FbState>()(
 
       attivaStruttura: d => {
         const s = get() as unknown as Record<string, unknown> & FbState
-        if (d.nome === s.strutturaDemo) return
+        if (d.nome === s.strutturaDemo && !!d.senzaHotel === !!s.descrizioneDemo?.senzaHotel) return
         const archivio = { ...s.archivio, [s.strutturaDemo]: prendi(s, [...CHIAVI_CONFIG, ...CHIAVI_SERVIZIO]) }
         applicaStruttura(d)
         const salvato = archivio[d.nome] as Record<string, unknown> | undefined
@@ -900,7 +900,8 @@ export const useFbStore = create<FbState>()(
     {
       name: 'sibylla.fb',
       // v13: ogni ristorante ha carta, sale, turni e brigata propri (stiliRistorante).
-      version: 13,
+      // v14: utenze di sola ristorazione senza camere, clienti hotel né wallet Sibylla.
+      version: 14,
       // Demo sempre "viva": al primo accesso di una nuova giornata il servizio
       // (tavoli, comande, prenotazioni, cassa, menu del giorno) riparte dalla
       // fotografia di oggi; configurazione e catalogo restano quelli salvati.

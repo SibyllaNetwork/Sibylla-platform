@@ -7,6 +7,7 @@
 //  Divisione dei compiti con "Ospiti del giorno": qui si pianifica (si prende,
 //  si sposta, si conferma), là si lavora il servizio della giornata.
 import React, { useMemo, useState } from 'react'
+import { useFbSenzaHotel } from '../useFbSenzaHotel'
 import PageHead from '../../../../core/components/PageHead'
 import FilterToolbar from '../../../../core/components/FilterToolbar'
 import Modal from '../../../../core/components/Modal'
@@ -53,6 +54,8 @@ const nuova = (
 })
 
 export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string) => void }) {
+  // Ristorante senza hotel: niente numero di camera.
+  const senzaHotel = useFbSenzaHotel()
   const OUTLETS = useFbStore(s => s.outlets)
   const TURNI   = useFbStore(s => s.turni)
   const contesto     = useFbStore(s => s.contesto)
@@ -256,7 +259,7 @@ export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string)
                               <td className="fbpren__ora">{p.ora}</td>
                               <td>
                                 <TruncatedText text={p.ospite} />
-                                {!!p.camera && <span className="fbpren__camera">cam. {p.camera}</span>}
+                                {!senzaHotel && !!p.camera && <span className="fbpren__camera">cam. {p.camera}</span>}
                               </td>
                               <td className="fbpren__pax">{p.pax}</td>
                               <td>
@@ -447,10 +450,12 @@ export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string)
                 name="email" label="E-mail" type="email" className="fbpren-form__grow" value={form.email}
                 onChange={e => setForm(f => f && ({ ...f, email: e.target.value }))}
               />
-              <InputField
-                name="camera" label="Camera" value={form.camera}
-                onChange={e => setForm(f => f && ({ ...f, camera: e.target.value }))}
-              />
+              {!senzaHotel && (
+                <InputField
+                  name="camera" label="Camera" value={form.camera}
+                  onChange={e => setForm(f => f && ({ ...f, camera: e.target.value }))}
+                />
+              )}
             </div>
 
             <div className="fbpren-form__row">

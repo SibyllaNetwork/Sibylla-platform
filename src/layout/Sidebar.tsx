@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import Ico from '../core/icons/Ico'
 import NavItem from './NavItem'
 import MENU_FULL from '../navigation/menuFull'
-import { filterMenu, applyModuleLabels, applyStandalone, isFbStandalone } from '../navigation/filterMenu'
+import { filterMenu, applyModuleLabels, applyStandalone, applySoloRistorazione, isFbStandalone } from '../navigation/filterMenu'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 import PlatformAdminNav from './PlatformAdminNav'
 import { useOrgStore } from '../store/useOrgStore'
@@ -67,12 +67,12 @@ export default function Sidebar({
       const pagine = assist.struttureIds.length === 1
         ? paginePerStruttura(assist.struttureIds[0], assist.moduli, modules)
         : enabledPagesForModuli(assist.moduli, modules)
-      return applyStandalone(applyModuleLabels(filterMenu(MENU_FULL as any[], pagine), assist.moduli), assist.moduli)
+      return applySoloRistorazione(applyStandalone(applyModuleLabels(filterMenu(MENU_FULL as any[], pagine), assist.moduli), assist.moduli), assist.moduli)
     }
     if (!currentProfileId) return MENU_FULL
     const profile = profiles.find(p => p.id === currentProfileId)
     if (!profile) return MENU_FULL
-    return applyStandalone(applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules)), profile.moduli), profile.moduli)
+    return applySoloRistorazione(applyStandalone(applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules)), profile.moduli), profile.moduli), profile.moduli)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onConsole, assist, currentProfileId, profiles, modules, pagineStruttura])
 

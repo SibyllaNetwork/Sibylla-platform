@@ -5,6 +5,7 @@ import { strutturaRevenue } from '../core/demo/struttureDemo'
 import { useFbStore } from '../store/useFbStore'
 import { useSaleStore } from '../store/useSaleStore'
 import { applicaStrutturaPms } from '../modules/operation/_data/pmsDemo'
+import { useFbSenzaHotel } from '../modules/operation/FoodBeverage/useFbSenzaHotel'
 
 /**
  * Tiene i dati demo agganciati alla struttura selezionata in alto: cambiando
@@ -16,6 +17,8 @@ import { applicaStrutturaPms } from '../modules/operation/_data/pmsDemo'
  */
 export function useFbStrutturaSync() {
   const { struttura } = useStrutturaCorrente()
+  // Utenza di sola ristorazione: ristorante separato dall'hotel (dati senza camere né wallet).
+  const senzaHotel = useFbSenzaHotel()
   const schede = useStruttureCliente()
   // Ciclo revenue (sales, finance, purchasing): le strutture con camere del
   // cliente. Assegnato durante il render (idempotente) così le pagine che lo
@@ -31,6 +34,7 @@ export function useFbStrutturaSync() {
       classificazione: scheda?.classificazione,
       citta: scheda?.citta,
       email: scheda?.email,
+      senzaHotel,
     })
     // Dopo l'F&B: le sale si costruiscono sull'anagrafica appena attivata.
     useSaleStore.getState().caricaStruttura(struttura)
@@ -40,5 +44,5 @@ export function useFbStrutturaSync() {
       classificazione: scheda?.classificazione,
       camere: scheda ? Number(scheda.camere) : undefined,
     })
-  }, [struttura])
+  }, [struttura, senzaHotel])
 }

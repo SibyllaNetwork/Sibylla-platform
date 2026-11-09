@@ -7,6 +7,7 @@
 //  • Servizio — il capo sala gestisce: assegna/sposta/prenota tavoli, imposta lo
 //    stato e annota allergie/intolleranze.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useFbSenzaHotel } from '../FoodBeverage/useFbSenzaHotel';
 import PageHead from '../../../core/components/PageHead';
 import { InputField, SelectField, TextareaField } from '../../../core/components/form';
 import Modal from '../../../core/components/Modal';
@@ -107,6 +108,8 @@ interface Props {
 }
 
 const SaleTavoli: React.FC<Props> = ({ navigate, embedded = false, editable = false }) => {
+  // Ristorante senza hotel: niente addebito in camera sui tavoli.
+  const senzaHotel = useFbSenzaHotel();
   const sale = useSaleStore(s => s.sale);
   const addTavolo = useSaleStore(s => s.addTavolo);
   const addElemento = useSaleStore(s => s.addElemento);
@@ -614,7 +617,7 @@ const SaleTavoli: React.FC<Props> = ({ navigate, embedded = false, editable = fa
                 <span className="sale__tav-num" style={{ '--irot': `${-rot}deg` } as React.CSSProperties}>{t.numero}</span>
                 <span className="sale__tav-cap" style={{ '--irot': `${-rot}deg` } as React.CSSProperties}><i className="fa-solid fa-chair" /> {t.capienza}</span>
                 {t.nominativo && <span className="sale__tav-nom">{t.nominativo}</span>}
-                {t.camera && <span className="sale__tav-room" title={`Addebito camera ${t.camera}`}><i className="fa-solid fa-bed" /> {t.camera}</span>}
+                {t.camera && !senzaHotel && <span className="sale__tav-room" title={`Addebito camera ${t.camera}`}><i className="fa-solid fa-bed" /> {t.camera}</span>}
                 {t.gruppo && <span className="sale__tav-link" title="Tavolo unito"><i className="fa-solid fa-link" /></span>}
               </div>
               );
@@ -1255,6 +1258,8 @@ const ServicePanel: React.FC<{
   unisci: (ids: string[]) => void;
   separa: (gruppo: string) => void;
 }> = ({ sala, selTavolo, updateTavolo, unisci, separa, componibile = false }) => {
+  // Ristorante senza hotel: niente addebito in camera.
+  const senzaHotel = useFbSenzaHotel();
   const clienti = useClientiStore(s => s.clienti);
   const addCliente = useClientiStore(s => s.addCliente);
   const updateCliente = useClientiStore(s => s.updateCliente);
@@ -1387,7 +1392,7 @@ const ServicePanel: React.FC<{
         </>
       ),
     });
-    cards.push({
+    if (!senzaHotel) cards.push({
       id: 'camera', title: 'Addebito camera', icon: 'fa-solid fa-bed', body: (
         <>
           <SelectField name="tav-camera" label="Collega camera / soggiorno" value={p.camera ?? ''}

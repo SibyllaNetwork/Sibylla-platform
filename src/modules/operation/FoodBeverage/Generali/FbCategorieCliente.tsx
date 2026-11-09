@@ -3,6 +3,7 @@
 //  personale, direzione. Qui si definiscono le categorie e lo sconto che
 //  applicano, e si vede quanto valgono sul servizio in corso.
 import React, { useMemo, useState } from 'react'
+import { useFbSenzaHotel } from '../useFbSenzaHotel'
 import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
 import TruncatedText from '../../../../core/components/TruncatedText'
@@ -19,6 +20,7 @@ const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', curre
 const vuota = (): CategoriaCliente => ({ id: 0, nome: '', scontoPerc: 0, descrizione: '' })
 
 export default function FbCategorieCliente({ navigate }: { navigate?: (p: string) => void }) {
+  const senzaHotel = useFbSenzaHotel()
   const categorie = useFbStore(s => s.categorieCliente)
   const comande   = useFbStore(s => s.comande)
   const voci      = useFbStore(s => s.voci)
@@ -149,7 +151,7 @@ export default function FbCategorieCliente({ navigate }: { navigate?: (p: string
             <div className="fbcc-form__row">
               <InputField
                 name="nome" label="Nome" className="fbcc-form__grow" value={form.nome}
-                placeholder="es. Cliente hotel"
+                placeholder={senzaHotel ? 'es. Cliente abituale' : 'es. Cliente hotel'}
                 onChange={e => setForm(f => f && ({ ...f, nome: e.target.value }))}
               />
               <div className="fbcc-form__sconto">

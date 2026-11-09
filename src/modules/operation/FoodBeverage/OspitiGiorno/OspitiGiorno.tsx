@@ -6,6 +6,7 @@
 //
 //  Il Libro prenotazioni è la pianificazione; questa è la lista di lavoro.
 import React, { useMemo, useState } from 'react'
+import { useFbSenzaHotel } from '../useFbSenzaHotel'
 import PageHead from '../../../../core/components/PageHead'
 import FilterToolbar from '../../../../core/components/FilterToolbar'
 import Tooltip from '../../../../core/components/Tooltip'
@@ -23,6 +24,8 @@ const ORIGINE_ICO: Record<string, string> = {
 }
 
 export default function OspitiGiorno({ navigate }: { navigate?: (p: string) => void }) {
+  // Ristorante senza hotel: niente numero di camera.
+  const senzaHotel = useFbSenzaHotel()
   const OUTLETS = useFbStore(s => s.outlets)
   const TURNI   = useFbStore(s => s.turni)
   const contesto     = useFbStore(s => s.contesto)
@@ -154,7 +157,7 @@ export default function OspitiGiorno({ navigate }: { navigate?: (p: string) => v
         <div className="fbosp__f fbosp__f--lg fbosp__cerca">
           <span className="fbosp__cerca-lab">Cerca ospite</span>
           <SearchField
-            name="cerca" value={cerca} placeholder="Nome, telefono o camera…"
+            name="cerca" value={cerca} placeholder={senzaHotel ? 'Nome o telefono…' : 'Nome, telefono o camera…'}
             onChange={e => setCerca(e.target.value)} onClear={() => setCerca('')}
           />
         </div>
@@ -202,7 +205,7 @@ export default function OspitiGiorno({ navigate }: { navigate?: (p: string) => v
                           <i className={`fa-solid ${ORIGINE_ICO[p.origine]} fbosp__org`} aria-hidden="true" />
                         </Tooltip>
                         <TruncatedText text={p.ospite} />
-                        {!!p.camera && <span className="fbosp__camera">cam. {p.camera}</span>}
+                        {!senzaHotel && !!p.camera && <span className="fbosp__camera">cam. {p.camera}</span>}
                       </span>
                     </td>
                     <td className="fbosp__pax">{p.pax}</td>

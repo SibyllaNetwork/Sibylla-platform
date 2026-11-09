@@ -3,6 +3,7 @@
 //  cambia con un tocco che li fa ruotare (nascosta → sola lettura → completa):
 //  su venti pagine, tre select per riga sarebbero venti menu da aprire.
 import React, { useMemo, useState } from 'react'
+import { useFbSenzaHotel, PAGINE_HOTEL_WALLET } from '../useFbSenzaHotel'
 import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
 import TruncatedText from '../../../../core/components/TruncatedText'
@@ -26,6 +27,11 @@ const vuoto = (): RuoloFb => ({
 })
 
 export default function FbRuoli({ navigate }: { navigate?: (p: string) => void }) {
+  // Ristorante senza hotel: niente pagine dei wallet nei permessi.
+  const senzaHotel = useFbSenzaHotel()
+  const gruppiPermessi = PAGINE_PERMESSI
+    .map(g => ({ ...g, pagine: g.pagine.filter(p => !senzaHotel || !PAGINE_HOTEL_WALLET.includes(p.id)) }))
+    .filter(g => g.pagine.length > 0)
   const ruoli   = useFbStore(s => s.ruoli)
   const utenti  = useFbStore(s => s.utenti)
   const salva   = useFbStore(s => s.salvaRuolo)
@@ -199,7 +205,7 @@ export default function FbRuoli({ navigate }: { navigate?: (p: string) => void }
               )}
 
               <div className="fbruoli__gruppi">
-                {PAGINE_PERMESSI.map(g => (
+                {gruppiPermessi.map(g => (
                   <section key={g.gruppo} className="fbruoli__gruppo">
                     <header>
                       <h4>{g.gruppo}</h4>
