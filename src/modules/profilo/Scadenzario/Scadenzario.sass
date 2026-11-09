@@ -220,7 +220,7 @@
 
   &__weekdays
     display: grid
-    grid-template-columns: repeat(7, 1fr)
+    grid-template-columns: repeat(7, minmax(0, 1fr))
 
   &__weekday
     padding: 11px 12px 10px
@@ -234,7 +234,7 @@
 
   &__cells
     display: grid
-    grid-template-columns: repeat(7, 1fr)
+    grid-template-columns: repeat(7, minmax(0, 1fr))
 
   &__cell
     min-height: 95px
@@ -531,7 +531,7 @@
 
   &__head
     display: grid
-    grid-template-columns: 56px repeat(var(--cols), 1fr)
+    grid-template-columns: 56px repeat(var(--cols), minmax(0, 1fr))
     border-bottom: 1px solid $border
 
   &__gutter-head
@@ -590,7 +590,7 @@
 
   &__cols
     display: grid
-    grid-template-columns: repeat(var(--cols), 1fr)
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr))
 
   &__col
     position: relative
@@ -709,7 +709,7 @@
 .scadenzario__mini-weekdays,
 .scadenzario__mini-days
   display: grid
-  grid-template-columns: repeat(7, 1fr)
+  grid-template-columns: repeat(7, minmax(0, 1fr))
   gap: 2px
 
 .scadenzario__mini-weekdays

@@ -2,8 +2,11 @@ import React, { useState, useRef, useEffect } from 'react'
 import T from '../../../core/tokens'
 import Modal from '../../../core/components/Modal'
 import PageHead from '../../../core/components/PageHead'
+import TruncatedText from '../../../core/components/TruncatedText'
 import './Scadenzario.sass'
 import { InputField, SelectField, DatePickerField, RadioGroup } from '../../../core/components/form'
+import { useFbSenzaHotel } from '../../operation/FoodBeverage/useFbSenzaHotel'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
 type CalEvent = {
   day: number; month: number; year: number; title: string; color: string;
@@ -23,6 +26,10 @@ const eventMinutes = (ora?: string): number => {
 
 export default function Scadenzario({ navigate }: { navigate: (p:string) => void }) {
   const today = new Date()
+  // Utenza stand alone (sola ristorazione): eventi, reparti e autore sono quelli del ristorante.
+  const ristorante = useFbSenzaHotel()
+  const { profilo } = useStrutturaCorrente()
+  const autore = ristorante && profilo ? `${profilo.nome.split(' ')[0]} ${profilo.nome.split(' ').slice(-1)[0][0]}.` : 'Luca H.'
   const [filter,        setFilter]        = useState<'personale'|'reparto'|'tutti'>('tutti')
   const [view,          setView]          = useState<'giorno'|'settimana'|'mese'|'anno'>('mese')
   const [curDate,       setCurDate]       = useState(new Date(today.getFullYear(), today.getMonth(), today.getDate()))
@@ -47,7 +54,10 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
   const isToday = (d:number,t:string) => t==='current'&&d===today.getDate()&&mo===today.getMonth()&&yr===today.getFullYear()
   const isPast  = (d:number,t:string) => { if(t==='prev')return true; if(t==='next')return false; return new Date(yr,mo,d)<new Date(today.getFullYear(),today.getMonth(),today.getDate()) }
 
-  const repartoColors:  Record<string,string> = { 'Executive':'#5C9CD4','Sales & Marketing':'#E07B39','Operation':'#5A8A3C','Purchasing':'#C4A820','Human Resources':'#9B59B6','Finance':'#5C9CD4' }
+  const repartoColors:  Record<string,string> = ristorante
+    ? { 'Direzione':'#204769','Sala':'#E07B39','Cucina':'#5A8A3C','Bar':'#5C9CD4','Economato':'#C4A820','Cassa':'#9B59B6' }
+    : { 'Executive':'#5C9CD4','Sales & Marketing':'#E07B39','Operation':'#5A8A3C','Purchasing':'#C4A820','Human Resources':'#9B59B6','Finance':'#5C9CD4' }
+  const REPARTI = Object.keys(repartoColors)
   const tipologiaColors:Record<string,string> = { 'Evento':T.blue,'Scadenza':T.error,'Promemoria':T.warning,'Riunione':'#9B59B6','Appuntamento':'#5A8A3C' }
 
   const defaultEvents: CalEvent[] = [
@@ -69,7 +79,30 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
     {day:3, month:10,year:yr, title:'Budget anno prossimo',     color:T.warning, tipo:'reparto',   tipologia:'Riunione', reparto:'Finance',           ora:'14:00', creatoDa:'Luca H.'},
     {day:27,month:11,year:yr, title:'Chiusura bilancio',        color:T.error,   tipo:'personale', tipologia:'Scadenza', reparto:'Finance',           ora:'17:00', creatoDa:'Luca H.'},
   ]
-  const allEvents    = [...defaultEvents,...spreadEvents,...extraEvents]
+  // Ristorante: brigata, fornitori, HACCP, eventi privati, cantina e cassa al posto degli eventi d'hotel.
+  const ev = (day:number, month:number, title:string, tipologia:string, reparto:string, ora:string, tipo='reparto'): CalEvent =>
+    ({ day, month, year: yr, title, color: tipologiaColors[tipologia] ?? T.blue, tipo, tipologia, reparto, ora, creatoDa: autore })
+  const eventiRistorante: CalEvent[] = [
+    ev(3,  mo, 'Briefing di brigata pre-servizio',     'Riunione',     'Cucina',    '10:30'),
+    ev(6,  mo, 'Consegna pesce fresco',                'Appuntamento', 'Economato', '07:30'),
+    ev(9,  mo, 'Degustazione nuovo menu stagionale',   'Evento',       'Cucina',    '16:00', 'personale'),
+    ev(12, mo, 'HACCP: verifica registro temperature', 'Scadenza',     'Cucina',    '09:00'),
+    ev(14, mo, 'Cena aziendale privata · 40 coperti',  'Evento',       'Sala',      '20:00'),
+    ev(17, mo, 'Manutenzione forno e cappa',           'Appuntamento', 'Cucina',    '08:00'),
+    ev(20, mo, 'Inventario cantina',                   'Promemoria',   'Economato', '15:00'),
+    ev(22, mo, 'Pagamento fornitori',                  'Scadenza',     'Direzione', '12:00', 'personale'),
+    ev(25, mo, 'Formazione allergeni personale di sala','Riunione',    'Sala',      '15:30'),
+    ev(28, mo, 'Chiusura di cassa mensile',            'Scadenza',     'Cassa',     '23:30', 'personale'),
+    ev(10, 0,  'Rinnovo licenza SIAE musica in sala',  'Scadenza',     'Direzione', '09:00', 'personale'),
+    ev(14, 1,  'Menu di San Valentino',                'Evento',       'Sala',      '19:30'),
+    ev(18, 2,  'Controllo ASL',                        'Appuntamento', 'Direzione', '10:00', 'personale'),
+    ev(1,  3,  'Apertura del dehors (suolo pubblico)', 'Scadenza',     'Sala',      '09:00'),
+    ev(12, 5,  'Disinfestazione periodica',            'Appuntamento', 'Economato', '07:00'),
+    ev(24, 8,  'Serata di degustazione vini',          'Evento',       'Bar',       '20:30'),
+    ev(15, 10, 'Menu delle feste: chiusura prenotazioni gruppi', 'Scadenza', 'Sala', '18:00'),
+    ev(31, 11, 'Cenone di Capodanno',                  'Evento',       'Sala',      '20:00'),
+  ]
+  const allEvents    = ristorante ? [...eventiRistorante,...extraEvents] : [...defaultEvents,...spreadEvents,...extraEvents]
   const filtered     = allEvents.filter(e => filter==='tutti'||e.tipo===filter)
   const eventsForDay = (d:number,t:string) => t!=='current'?[]:filtered.filter(e=>e.day===d&&e.month===mo&&e.year===yr)
 
@@ -197,7 +230,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
                     style={{ '--ev-color':ev.color, '--ev-top':`${eventMinutes(ev.ora)/60*HOUR_H}px`, '--ev-h':`${EVENT_H}px` } as React.CSSProperties}
                     onClick={e=>{ e.stopPropagation(); setSelectedEvent(ev) }}>
                     <span className="scad-tl__event-time">{ev.ora||'—'}</span>
-                    <span className="scad-tl__event-title">{ev.title}</span>
+                    <span className="scad-tl__event-title"><TruncatedText text={ev.title} /></span>
                   </div>
                 ))}
               </div>
@@ -212,7 +245,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
     if (!newEv.titolo||!newEv.dataInizio) return
     const dt    = new Date(newEv.dataInizio)
     const color = newEv.reparto?(repartoColors[newEv.reparto]||T.blue):(tipologiaColors[newEv.tipologia]||T.blue)
-    setExtraEvents(p=>[...p,{day:dt.getDate(),month:dt.getMonth(),year:dt.getFullYear(),title:newEv.titolo,color,tipo:'personale',tipologia:newEv.tipologia||'Evento',reparto:newEv.reparto,ora:newEv.oraInizio,creatoDa:'Luca H.'}])
+    setExtraEvents(p=>[...p,{day:dt.getDate(),month:dt.getMonth(),year:dt.getFullYear(),title:newEv.titolo,color,tipo:'personale',tipologia:newEv.tipologia||'Evento',reparto:newEv.reparto,ora:newEv.oraInizio,creatoDa:autore}])
     setShowModal(false)
     setNewEv({titolo:'',tipologia:'',reparto:'',giornate:'singola',visibilita:'pubblico',dataInizio:'',oraInizio:'00:00',promemoria:'',insiemeA:'Mario'})
   }
@@ -285,7 +318,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
                     className="scadenzario__event"
                     style={{'--ev-color':ev.color} as React.CSSProperties}
                     onClick={e=>{e.stopPropagation();setSelectedEvent(ev)}}>
-                    {ev.title}
+                    <TruncatedText text={ev.title} />
                   </div>
                 ))}
                 {dayEvs.length>3 && <div className="scadenzario__more">+{dayEvs.length-3} altri</div>}
@@ -383,7 +416,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
             placeholder="Seleziona reparto"
             value={newEv.reparto}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewEv(v => ({ ...v, reparto: e.target.value }))}
-            options={['Executive','Sales & Marketing','Operation','Purchasing','Human Resources','Finance'].map(r => ({ value: r, label: r }))}
+            options={REPARTI.map(r => ({ value: r, label: r }))}
           />
 
           <div>
