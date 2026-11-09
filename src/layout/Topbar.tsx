@@ -79,13 +79,14 @@ export default function Topbar({
   const tipologia       = useOrgStore(s => s.tipologia)
   const strutture       = useOrgStore(s => s.strutture)
   const setActiveStrutt = useOrgStore(s => s.setActiveStruttura)
-  // Con un profilo caricato la struttura è la sua (nella sidenav): niente selettore delle strutture dell'organizzazione.
-  const showStruttSel   = !sideOpen && !adminMode && !currentProfileId && tipologia === 'Multistruttura' && strutture.length > 0
-  const [struttOpen, setStruttOpen] = useState(false)
-  const struttRef = useRef<HTMLDivElement>(null)
   // In assistenza la sidenav mostra "Admin Console": la struttura del cliente
   // (una o più) si sceglie qui, sulla barra oro.
-  const { struttura: strutturaCorrente, assistStrutture } = useStrutturaCorrente()
+  const { struttura: strutturaCorrente, assistStrutture, elenco: elencoStrutture } = useStrutturaCorrente()
+  // Con un profilo caricato si sceglie solo fra le sue strutture (se ne ha più di una).
+  const struttureSel    = currentProfileId ? elencoStrutture : strutture
+  const showStruttSel   = !sideOpen && !adminMode && (currentProfileId ? elencoStrutture.length > 1 : tipologia === 'Multistruttura' && strutture.length > 0)
+  const [struttOpen, setStruttOpen] = useState(false)
+  const struttRef = useRef<HTMLDivElement>(null)
   const [assistOpen, setAssistOpen] = useState(false)
   const assistRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -271,7 +272,7 @@ export default function Topbar({
           {struttOpen && (
             <div className="absolute left-0 top-full mt-1 z-50 w-56 max-h-60 overflow-y-auto rounded-lg bg-white border border-black/10 shadow-[0_12px_32px_rgba(0,0,0,0.18)]" role="listbox">
               <div className="pt-2 pb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.5px] text-black/45">Cambia struttura</div>
-              {strutture.map(s => {
+              {struttureSel.map(s => {
                 const active = s === strutturaCorrente
                 return (
                   <button

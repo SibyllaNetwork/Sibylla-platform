@@ -22,6 +22,8 @@ export interface AccessProfile {
   moduli: string[]
   /** Pagina mostrata come Home (al posto del timone); assente = Home standard. */
   home?: string
+  /** Strutture gestite (id di CLIENTS_INIT), scelte dalla select in alto; assente = solo `cliente`. */
+  struttureIds?: number[]
 }
 
 /**
@@ -94,6 +96,7 @@ const SEED_PROFILES: AccessProfile[] = CLIENTS_INIT.map(c => {
     ruolo: 'Amministratore',
     moduli: a?.moduli ?? ['struttura-ricettiva'],
     ...(a?.home ? { home: a.home } : {}),
+    ...(a?.struttureIds ? { struttureIds: [...a.struttureIds] } : {}),
   }
 })
 
@@ -160,7 +163,8 @@ export const useAccessStore = create<AccessState>()(
       // v6: Elena Russo associata a un solo Ristorante (Osteria della Mole, modulo Ristorazione).
       // v7: Home dell'utenza configurabile (Elena Russo → Dashboard F&B).
       // v8: Elena Russo sul modulo Food & Beverage stand alone.
-      version: 8,
+      // v9: Elena Russo gestisce 4 ristoranti (select struttura in alto).
+      version: 9,
       migrate: () => ({ profiles: SEED_PROFILES, currentProfileId: null, assist: null, pagineStruttura: {}, datiStruttura: {} }) as Partial<AccessState> as AccessState,
       // Non persistiamo `modules` (riallineati dal seed) né `accessOpen` (transitorio).
       partialize: (s) => ({

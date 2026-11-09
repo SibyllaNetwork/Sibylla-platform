@@ -30,6 +30,10 @@ export const CLIENTS_INIT: Cliente[] = [
   { id: 7, nome: 'Residence Aurora',    categoria: 'appartamenti', classificazione: '',           citta: 'Firenze (FI)',     camere: 24,  valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@residenceaurora.it',  tel: '+39 055 000007'  },
   { id: 8, nome: 'Campus Living Torino',categoria: 'studentato',   classificazione: '',           citta: 'Torino (TO)',      camere: 150, valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@campuslivingto.it',   tel: '+39 011 000008'  },
   { id: 9, nome: 'Osteria della Mole',  categoria: 'ristorante',   classificazione: 'Trattoria',  citta: 'Torino (TO)',      camere: 0,   valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@osteriadellamole.it', tel: '+39 011 000009'  },
+  // Altri ristoranti del gruppo di Osteria della Mole (Food & Beverage stand alone, Elena Russo).
+  { id: 10, nome: 'Pizzeria Vesuvio',    categoria: 'ristorante',   classificazione: 'Pizzeria',   citta: 'Napoli (NA)',      camere: 0,   valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@pizzeriavesuvio.it',  tel: '+39 081 000010'  },
+  { id: 11, nome: 'Sakura Fusion',       categoria: 'ristorante',   classificazione: 'Etnico',     citta: 'Milano (MI)',      camere: 0,   valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@sakurafusion.it',     tel: '+39 02 000011'   },
+  { id: 12, nome: 'La Corte dei Sapori', categoria: 'ristorante',   classificazione: 'Fine Dining', citta: 'Alba (CN)',       camere: 0,   valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@cortedeisapori.it',   tel: '+39 0173 000012' },
 ]
 
 // ─── Intestatari del contratto (clienti) → strutture possedute ────────────────
@@ -42,7 +46,7 @@ export const INTESTATARI_INIT: Intestatario[] = [
   { id: 'int-rsud',    nome: 'Ristorazione Sud',   email: 'contratti@ristorazionesud.it',  moduli: ['ristorazione'],        struttureIds: [4, 5] },
   { id: 'int-riviera', nome: 'Riviera Group',      email: 'admin@rivieragroup.it',         moduli: ['struttura-ricettiva'], struttureIds: [6, 7] },
   { id: 'int-campus',  nome: 'Campus Italia',      email: 'direzione@campusitalia.it',     moduli: ['struttura-ricettiva', 'ristorazione'], struttureIds: [8] },
-  { id: 'int-mole',    nome: 'Osteria della Mole S.r.l.', email: 'amministrazione@osteriadellamole.it', moduli: ['food-beverage'], struttureIds: [9] },
+  { id: 'int-mole',    nome: 'Gruppo Mole Ristorazione', email: 'amministrazione@osteriadellamole.it', moduli: ['food-beverage'], struttureIds: [9, 10, 11, 12] },
 ]
 
 export interface CategoriaStruttura {
@@ -118,6 +122,8 @@ export interface ClientAdminSeed {
   moduli: string[]
   /** Pagina mostrata come Home dell'utenza (al posto del timone). */
   home?: string
+  /** Strutture gestite dall'utenza (id di CLIENTS_INIT), oltre alla propria: si scelgono dalla select in alto. */
+  struttureIds?: number[]
 }
 
 export const CLIENT_ADMINS: Record<number, ClientAdminSeed> = {
@@ -130,12 +136,16 @@ export const CLIENT_ADMINS: Record<number, ClientAdminSeed> = {
   7: { nome: 'Paolo Ferri',  email: 'paolo@residenceaurora.it',    moduli: ['struttura-ricettiva'] },
   8: { nome: 'Luca Moretti', email: 'luca@campuslivingto.it',      moduli: ['struttura-ricettiva', 'ristorazione'] },
   // Elena Russo: un solo Ristorante, Food & Beverage stand alone (Home = Dashboard F&B).
-  9: { nome: 'Elena Russo',  email: 'elena@osteriadellamole.it',   moduli: ['food-beverage'], home: 'fb-dashboard' },
+  9: { nome: 'Elena Russo',  email: 'elena@osteriadellamole.it',   moduli: ['food-beverage'], home: 'fb-dashboard', struttureIds: [9, 10, 11, 12] },
 }
+
+/** Amministratore della struttura: il suo o quello che la gestisce fra le proprie (struttureIds). */
+export const adminDellaStruttura = (id: number): ClientAdminSeed | undefined =>
+  CLIENT_ADMINS[id] ?? Object.values(CLIENT_ADMINS).find(a => a.struttureIds?.includes(id))
 
 // Moduli assegnati per cliente (id → id moduli).
 export const ASSIGNED_MODULI_INIT: Record<number, string[]> = Object.fromEntries(
-  Object.entries(CLIENT_ADMINS).map(([id, a]) => [Number(id), a.moduli]),
+  CLIENTS_INIT.map(c => [c.id, adminDellaStruttura(c.id)?.moduli]).filter(([, m]) => m),
 ) as Record<number, string[]>
 
 /** Unione delle pagine dei moduli indicati (da PACCHETTI_INIT). */
@@ -148,7 +158,7 @@ export function pagesForModuli(ids: string[]): string[] {
 // Ogni cliente ha come utente il proprio amministratore (= profilo di login).
 export const USERS_INIT: Record<number, UserRow[]> = Object.fromEntries(
   CLIENTS_INIT.map(c => {
-    const a = CLIENT_ADMINS[c.id]
+    const a = adminDellaStruttura(c.id)
     return [c.id, a ? [{ id: c.id, nome: a.nome, email: a.email, ruolo: 'Amministratore', attivo: true }] : []]
   }),
 ) as Record<number, UserRow[]>

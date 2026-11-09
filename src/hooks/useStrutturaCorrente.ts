@@ -32,15 +32,25 @@ export function useStrutturaCorrente() {
     [assist],
   )
 
+  // Strutture del profilo caricato: le sue (struttureIds, es. un gruppo di ristoranti) o la sola di appartenenza.
+  const profiloStrutture = useMemo(() => {
+    if (!profilo) return []
+    const ids = profilo.struttureIds
+    return ids?.length ? CLIENTS_INIT.filter(c => ids.includes(c.id)).map(c => c.nome) : profilo.cliente ? [profilo.cliente] : []
+  }, [profilo])
+
   const struttura = assist
     ? (assistStrutture.includes(activeStruttura) ? activeStruttura : assistStrutture[0])
-    // Fuori dall'assistenza la struttura deve essere dell'organizzazione (quella
-    // ricordata potrebbe essere di un cliente assistito in precedenza).
-    : profilo?.cliente ?? (struttureOrg.includes(activeStruttura) ? activeStruttura : struttureOrg[0] ?? activeStruttura)
+    // Profilo con più strutture: quella scelta dalla select, se è fra le sue.
+    : profiloStrutture.length > 1
+      ? (profiloStrutture.includes(activeStruttura) ? activeStruttura : profilo?.cliente ?? profiloStrutture[0])
+      // Fuori dall'assistenza la struttura deve essere dell'organizzazione (quella
+      // ricordata potrebbe essere di un cliente assistito in precedenza).
+      : profilo?.cliente ?? (struttureOrg.includes(activeStruttura) ? activeStruttura : struttureOrg[0] ?? activeStruttura)
 
-  // Strutture tra cui si può scegliere: quelle del cliente assistito, quella del
+  // Strutture tra cui si può scegliere: quelle del cliente assistito, quelle del
   // profilo caricato, altrimenti quelle dell'organizzazione.
-  const elenco = assist ? assistStrutture : profilo?.cliente ? [profilo.cliente] : struttureOrg
+  const elenco = assist ? assistStrutture : profiloStrutture.length ? profiloStrutture : struttureOrg
 
   return { struttura, profilo, assistStrutture, elenco }
 }

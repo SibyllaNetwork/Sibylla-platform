@@ -78,7 +78,7 @@ export default function Sidebar({
 
   // Profilo caricato da "Accesso profili" (o amministratore della struttura assistita): struttura in alto a sinistra e
   // utente nella riga del saluto. La regola vive in useStrutturaCorrente, condivisa con la sezione F&B.
-  const { struttura: activeStrutt, profilo, assistStrutture } = useStrutturaCorrente()
+  const { struttura: activeStrutt, profilo, assistStrutture, elenco } = useStrutturaCorrente()
   // Food & Beverage stand alone: niente launcher S.S.P.I. in fondo alla sidenav.
   const fbStandalone = isFbStandalone(assist ? assist.moduli : profiles.find(p => p.id === currentProfileId)?.moduli)
   const nomeUtente = profilo?.nome ?? 'Luca H.'
@@ -86,9 +86,9 @@ export default function Sidebar({
 
   // Durante l'assistenza lo switcher elenca le strutture del cliente (le stesse
   // dell'Admin Panel); altrimenti le strutture dell'organizzazione.
-  const switcherList = assist ? assistStrutture : strutture
-  // Con un profilo caricato la struttura è la sua: niente switcher delle strutture dell'organizzazione.
-  const showSwitcher = assist ? assistStrutture.length > 0 : (!profilo && isMultistruttura && strutture.length > 0)
+  const switcherList = assist ? assistStrutture : profilo ? elenco : strutture
+  // Con un profilo caricato si sceglie solo fra le sue strutture (se ne ha più di una).
+  const showSwitcher = assist ? assistStrutture.length > 0 : profilo ? elenco.length > 1 : (isMultistruttura && strutture.length > 0)
 
   const [structOpen, setStructOpen] = useState(false)
   const structRef = useRef<HTMLDivElement>(null)

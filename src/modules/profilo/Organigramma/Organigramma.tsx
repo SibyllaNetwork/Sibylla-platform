@@ -5,6 +5,10 @@ import Modal from '../../../core/components/Modal'
 import { useRuoliStore } from '../../../store/useRuoliStore'
 import { useNavGuard } from '../../../store/useNavGuard'
 import { avatarUrl } from '../../../core/avatar'
+import { useAccessStore } from '../../../store/useAccessStore'
+import { fotoProfilo } from '../../../store/fotoProfili'
+import { isFbStandalone } from '../../../navigation/filterMenu'
+import { RUOLI_RISTORANTE, PROFILI_RISTORANTE, ALBERO_RISTORANTE } from './organigrammaRistorante'
 import './Organigramma.sass'
 
 // ── Modello dati ──────────────────────────────────────────────────────────────
@@ -26,15 +30,36 @@ type DragPayload = { kind: 'ruolo' | 'profilo' | 'nodo'; id: string }
 
 export default function Organigramma({ navigate }: { navigate: (p: string) => void }) {
   // Ruoli e profili importati dalla pagina "Ruoli & funzioni" (store condiviso)
-  const ruoliCfg   = useRuoliStore(s => s.ruoli)
-  const profiliCfg = useRuoliStore(s => s.profili)
+  // Food & Beverage stand alone (ristorante): ruoli, persone e albero tipici di un ristorante.
+  const assist           = useAccessStore(s => s.assist)
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const profiles         = useAccessStore(s => s.profiles)
+  const profiloAttivo    = assist ? undefined : profiles.find(p => p.id === currentProfileId)
+  const ristorante       = isFbStandalone(assist ? assist.moduli : profiloAttivo?.moduli)
+  const ruoliStore   = useRuoliStore(s => s.ruoli)
+  const profiliStore = useRuoliStore(s => s.profili)
+  const ruoliCfg   = ristorante ? RUOLI_RISTORANTE : ruoliStore
+  const profiliCfg = ristorante ? PROFILI_RISTORANTE : profiliStore
   const RUOLI: Ruolo[]   = ruoliCfg.map((r, i)   => ({ id: `r-${i}`, nome: r.nome, sigla: siglaDa(r.nome), colore: ROLE_PALETTE[i % ROLE_PALETTE.length] }))
   const PROFILI: Profilo[] = profiliCfg.map((p, i) => ({ id: `p-${i}`, nome: p.nome, initials: p.initials, colore: p.color, seed: p.seed }))
 
-  // Si parte dal ruolo Amministratore (radice non eliminabile)
-  const [nodi, setNodi] = useState<Nodo[]>([
-    { id: 'admin', parentId: null, ruolo: ADMIN, profili: [] },
-  ])
+  // Si parte dal ruolo Amministratore (radice non eliminabile); per il ristorante l'albero è già costruito.
+  const [nodi, setNodi] = useState<Nodo[]>(() => {
+    if (!ristorante) return [{ id: 'admin', parentId: null, ruolo: ADMIN, profili: [] }]
+    const admin: Profilo[] = profiloAttivo
+      ? [{ id: 'p-admin', nome: profiloAttivo.nome, initials: profiloAttivo.nome.split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase(), colore: ADMIN.colore, seed: fotoProfilo(profiloAttivo) }]
+      : []
+    const idNodo = (ruolo: string) => `n-${RUOLI.findIndex(r => r.nome === ruolo)}`
+    return [
+      { id: 'admin', parentId: null, ruolo: ADMIN, profili: admin },
+      ...ALBERO_RISTORANTE.map(({ ruolo, padre }) => ({
+        id: idNodo(ruolo),
+        parentId: padre ? idNodo(padre) : 'admin',
+        ruolo: RUOLI.find(r => r.nome === ruolo)!,
+        profili: PROFILI.filter((_, i) => profiliCfg[i].ruolo === ruolo),
+      })),
+    ]
+  })
   const seq = useRef(1)
   const newId = () => `n${seq.current++}`
 
@@ -46,9 +71,15 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
   const [logo,    setLogo]    = useState<string | null>(null)
   const [pdfBusy, setPdfBusy] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)   // area esportata nel PDF
+  const canvasRef = useRef<HTMLDivElement>(null)
+  // Albero più largo dell'area visibile (es. organigramma del ristorante): si parte centrati sul vertice.
+  useEffect(() => {
+    const c = canvasRef.current
+    if (c && c.scrollWidth > c.clientWidth) c.scrollLeft = (c.scrollWidth - c.clientWidth) / 2
+  }, [])
 
   // ── Modalità modifica: i pulsanti "+ livello" si vedono solo qui (nascosti dopo il salvataggio) ──
-  const [editMode, setEditMode] = useState(true)
+  const [editMode, setEditMode] = useState(!ristorante)
   // Nodo selezionato: bersaglio del doppio-click su ruolo/profilo
   const [selId, setSelId] = useState<string | null>(null)
   // ── Modifiche non salvate: blocca il cambio pagina con conferma ──
@@ -383,7 +414,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
               <span className="org__company">Organigramma</span>
             </div>
 
-            <div className="org__canvas" onDragOver={allowDrop} onDrop={onCanvasDrop} onClick={() => { setAddMenu(null); setSelId(null) }}>
+            <div className="org__canvas" ref={canvasRef} onDragOver={allowDrop} onDrop={onCanvasDrop} onClick={() => { setAddMenu(null); setSelId(null) }}>
               {radici.length === 0
                 ? <div className="org__hint">Trascina un <strong>ruolo</strong> qui per creare il primo blocco</div>
                 : <ul className="org__tree">{radici.map(renderNodo)}</ul>}

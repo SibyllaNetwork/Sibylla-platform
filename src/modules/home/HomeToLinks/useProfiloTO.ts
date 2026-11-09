@@ -26,6 +26,6 @@ export function useHomeProfilo(): string | undefined {
   const assist           = useAccessStore(s => s.assist)
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
-  if (assist) return assist.struttureIds.length === 1 ? profiloDellaStruttura(assist.struttureIds[0], profiles)?.home : undefined
+  if (assist) return assist.struttureIds.map(id => profiloDellaStruttura(id, profiles)).find(Boolean)?.home
   return profiles.find(p => p.id === currentProfileId)?.home
 }
