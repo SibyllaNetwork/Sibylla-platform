@@ -6,6 +6,7 @@ import FavoritesPanel from './FavoritesPanel'
 import Tooltip from '../core/components/Tooltip'
 import MENU_FULL from '../navigation/menuFull'
 import { filterMenu, applyModuleLabels } from '../navigation/filterMenu'
+import { useFbSenzaHotel } from '../modules/operation/FoodBeverage/useFbSenzaHotel'
 import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
 import { useChatStore } from '../store/useChatStore'
 import { useCartStore } from '../store/useCartStore'
@@ -45,6 +46,8 @@ export default function Topbar({
   // ai moduli dell'utente). Così la ricerca trova le pagine dei moduli Tour
   // Operator / Ristorazione, non solo quelle del menu Struttura ricettiva.
   const currentProfileId = useAccessStore(s => s.currentProfileId)
+  // Utenza stand alone (sola ristorazione): niente distribuzione di rete, portafoglio, chat né carrello.
+  const standalone = useFbSenzaHotel()
   const profiles         = useAccessStore(s => s.profiles)
   const modules          = useModuliStore(s => s.moduli)
   const pagineStruttura  = useAccessStore(s => s.pagineStruttura)
@@ -334,7 +337,7 @@ export default function Topbar({
       {!isMobile && <div className="topbar__divider" />}
 
       {/* ── Icon buttons ── */}
-      {!isMobile && !adminMode && (
+      {!isMobile && !adminMode && !standalone && (
         <button className="topbar__icon-btn" onClick={() => navigate('tariffe-disp')} title="Distribuzione di rete">
           <Ico n="org" s={18} c={C.normal} />
         </button>
@@ -346,6 +349,8 @@ export default function Topbar({
       <button className="topbar__icon-btn" title="Assistenza">
         <Ico n="headset" s={18} c={C.normal} />
       </button>
+      {!standalone && (
+      <>
       <button className="topbar__icon-btn" onClick={() => navigate('portafoglio-aziendale')} title="Portafoglio aziendale">
         <Ico n="database" s={18} c={C.normal} />
       </button>
@@ -373,6 +378,8 @@ export default function Topbar({
           </span>
         )}
       </button>
+      </>
+      )}
 
       {/* ── Search ── */}
       <div className="topbar__search-wrap" ref={wrapRef}>
