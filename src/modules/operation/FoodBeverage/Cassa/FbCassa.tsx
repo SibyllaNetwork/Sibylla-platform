@@ -22,10 +22,20 @@ import {
   ALIQUOTE_IVA, CAMERIERI, METODI_PAGAMENTO, type MetodoPagamento,
 } from '../fb.model'
 import './FbCassa.sass'
+import TabletShell from '../tablet/TabletShell'
+import { useIsTablet } from '../GestioneComanda/useIsTablet'
 
 const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
 
+/** Su tablet la pagina va a tutto schermo nella cornice tablet; su desktop resta com'è. */
 export default function FbCassa({ navigate }: { navigate?: (p: string) => void }) {
+  const tablet = useIsTablet()
+  return tablet
+    ? <TabletShell pagina="fb-cassa" titolo="Cassa e chiusure" navigate={navigate}><FbCassaDesktop navigate={navigate} /></TabletShell>
+    : <FbCassaDesktop navigate={navigate} />
+}
+
+function FbCassaDesktop({ navigate }: { navigate?: (p: string) => void }) {
   const senzaHotel = useFbSenzaHotel()
   const cassa     = useFbStore(s => s.cassa)
   const chiusure  = useFbStore(s => s.chiusure)

@@ -12,6 +12,7 @@ import { createPortal } from 'react-dom'
 import { toast } from '../../../../core/components/Toast/useToast'
 import { useFbStore, SALE } from '../../../../store/useFbStore'
 import { PORTATE, type RigaComanda, type StatoRiga } from '../fb.model'
+import { TabletMenu } from '../tablet/TabletShell'
 import '../GestioneComanda/GestioneComandaTablet.sass'
 import './FbKdsTablet.sass'
 
@@ -108,9 +109,12 @@ export default function FbKdsTablet({ navigate }: { navigate?: (p: string) => vo
   const schermo = (
     <div className="gctab kdtab" role="application" aria-label="Monitor di cucina">
       <header className="gctab__head">
-        <button type="button" className="gctab__head-btn" onClick={() => navigate?.('home')}>
-          <i className="fa-solid fa-arrow-right-from-bracket fa-flip-horizontal" aria-hidden="true" /> Esci
-        </button>
+        <div className="gctab__head-sx">
+          <TabletMenu pagina="fb-kds" navigate={navigate} />
+          <button type="button" className="gctab__head-btn" onClick={() => navigate?.('home')}>
+            <i className="fa-solid fa-arrow-right-from-bracket fa-flip-horizontal" aria-hidden="true" /> Esci
+          </button>
+        </div>
         <div className="gctab__head-centro">
           <span className="gctab__head-tavolo">Monitor di cucina</span>
           <span className="gctab__head-sep" />

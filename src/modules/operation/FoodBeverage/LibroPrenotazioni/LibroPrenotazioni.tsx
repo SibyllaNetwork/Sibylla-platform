@@ -25,6 +25,8 @@ import {
   type OriginePrenotazione, type Prenotazione, type StatoPrenotazione,
 } from '../fb.model'
 import './LibroPrenotazioni.sass'
+import TabletShell from '../tablet/TabletShell'
+import { useIsTablet } from '../GestioneComanda/useIsTablet'
 
 const GIORNI = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
@@ -53,7 +55,15 @@ const nuova = (
   stato: 'confermata', origine: 'telefono', tavoloId: null, categoriaClienteId: 0,
 })
 
+/** Su tablet la pagina va a tutto schermo nella cornice tablet; su desktop resta com'è. */
 export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string) => void }) {
+  const tablet = useIsTablet()
+  return tablet
+    ? <TabletShell pagina="libro-prenotazioni" titolo="Libro prenotazioni" navigate={navigate}><LibroPrenotazioniDesktop navigate={navigate} /></TabletShell>
+    : <LibroPrenotazioniDesktop navigate={navigate} />
+}
+
+function LibroPrenotazioniDesktop({ navigate }: { navigate?: (p: string) => void }) {
   // Ristorante senza hotel: niente numero di camera.
   const senzaHotel = useFbSenzaHotel()
   const OUTLETS = useFbStore(s => s.outlets)

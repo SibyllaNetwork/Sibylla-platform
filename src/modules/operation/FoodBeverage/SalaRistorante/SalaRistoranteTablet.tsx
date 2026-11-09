@@ -20,6 +20,7 @@ import {
   CAMERIERI, PORTATE, STATI_TAVOLO, STATO_TAVOLO,
   type Servizio, type StatoTavolo, type Tavolo,
 } from '../fb.model'
+import { TabletMenu } from '../tablet/TabletShell'
 import '../GestioneComanda/GestioneComandaTablet.sass'
 import './SalaRistoranteTablet.sass'
 
@@ -263,9 +264,12 @@ export default function SalaRistoranteTablet({ navigate }: { navigate?: (p: stri
   const schermo = (
     <div className="gctab gstab" role="application" aria-label="Sala ristorante">
       <header className="gctab__head">
-        <button type="button" className="gctab__head-btn" onClick={() => navigate?.('home')}>
-          <i className="fa-solid fa-arrow-right-from-bracket fa-flip-horizontal" aria-hidden="true" /> Esci
-        </button>
+        <div className="gctab__head-sx">
+          <TabletMenu pagina="sala-ristorante" navigate={navigate} />
+          <button type="button" className="gctab__head-btn" onClick={() => navigate?.('home')}>
+            <i className="fa-solid fa-arrow-right-from-bracket fa-flip-horizontal" aria-hidden="true" /> Esci
+          </button>
+        </div>
         <div className="gctab__head-centro">
           <button type="button" className="gstab__outlet" onClick={() => setSceltaOutlet(true)}>
             {outlet?.nome ?? 'Sala'} {outlets.length > 1 && <i className="fa-solid fa-chevron-down" aria-hidden="true" />}

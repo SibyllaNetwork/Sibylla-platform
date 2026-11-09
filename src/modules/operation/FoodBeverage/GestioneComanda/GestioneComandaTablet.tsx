@@ -25,6 +25,7 @@ import {
   ricettaDi, type Comanda, type GruppoIngrediente, type MotivoStorno, type RigaComanda, type Tavolo, type VoceMenu,
 } from '../fb.model'
 import { useFbSenzaHotel, metodoAmmesso } from '../useFbSenzaHotel'
+import { TabletMenu } from '../tablet/TabletShell'
 import './GestioneComandaTablet.sass'
 
 const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
@@ -333,6 +334,8 @@ export default function GestioneComandaTablet({ navigate }: { navigate?: (p: str
     <div className="gctab" role="application" aria-label="Comanda al tavolo">
       {/* ── Testata ─────────────────────────────────────────────────────── */}
       <header className="gctab__head">
+        <div className="gctab__head-sx">
+        <TabletMenu pagina="gest-comanda" navigate={navigate} />
         {vista === 'comanda' ? (
           <button type="button" className="gctab__head-btn" onClick={() => setVista('tavoli')} aria-label="Torna ai tavoli">
             <i className="fa-solid fa-chevron-left" aria-hidden="true" /> Tavoli
@@ -342,6 +345,7 @@ export default function GestioneComandaTablet({ navigate }: { navigate?: (p: str
             <i className="fa-solid fa-arrow-right-from-bracket fa-flip-horizontal" aria-hidden="true" /> Esci
           </button>
         )}
+        </div>
 
         <div className="gctab__head-centro">
           {vista === 'comanda' && tavolo && comanda ? (

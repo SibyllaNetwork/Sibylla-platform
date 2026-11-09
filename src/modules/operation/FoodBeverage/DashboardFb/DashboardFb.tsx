@@ -27,6 +27,8 @@ import {
 import { useFbStore, totaleConto, totaleRiga, SALE } from '../../../../store/useFbStore'
 import { CATEGORIE_MENU, VOCI_MENU, type Comanda } from '../fb.model'
 import './DashboardFb.sass'
+import TabletShell from '../tablet/TabletShell'
+import { useIsTablet } from '../GestioneComanda/useIsTablet'
 
 const ORE = ['07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '00']
 
@@ -47,7 +49,15 @@ interface MargineTavolo {
   piattoTop: string
 }
 
+/** Su tablet la pagina va a tutto schermo nella cornice tablet; su desktop resta com'è. */
 export default function DashboardFb({ navigate }: { navigate?: (p: string) => void }) {
+  const tablet = useIsTablet()
+  return tablet
+    ? <TabletShell pagina="fb-dashboard" titolo="Dashboard F&B" navigate={navigate}><DashboardFbDesktop navigate={navigate} /></TabletShell>
+    : <DashboardFbDesktop navigate={navigate} />
+}
+
+function DashboardFbDesktop({ navigate }: { navigate?: (p: string) => void }) {
   const OUTLETS = useFbStore(s => s.outlets)
   const TURNI   = useFbStore(s => s.turni)
   const contesto     = useFbStore(s => s.contesto)
@@ -147,7 +157,7 @@ export default function DashboardFb({ navigate }: { navigate?: (p: string) => vo
       v.qta += r.qta
       m.set(r.voceId, v)
     }))
-    return Array.from(m.values()).sort((a, b) => b.margine - a.margine).slice(0, 6)
+    return Array.from(m.values()).sort((a, b) => b.margine - a.margine).slice(0, 5)
   }, [delGiorno, foodCostDi])
 
   const datiClassifica = useMemo(

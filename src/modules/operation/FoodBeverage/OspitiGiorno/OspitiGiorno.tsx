@@ -17,13 +17,23 @@ import { toast } from '../../../../core/components/Toast/useToast'
 import { useFbStore, SALE } from '../../../../store/useFbStore'
 import { CAMERIERI, STATO_PRENOTAZIONE, type Prenotazione, type StatoPrenotazione } from '../fb.model'
 import './OspitiGiorno.sass'
+import TabletShell from '../tablet/TabletShell'
+import { useIsTablet } from '../GestioneComanda/useIsTablet'
 
 const ORIGINE_ICO: Record<string, string> = {
   telefono: 'fa-phone', web: 'fa-globe', reception: 'fa-bell-concierge',
   'walk-in': 'fa-person-walking', 'tour-operator': 'fa-suitcase-rolling',
 }
 
+/** Su tablet la pagina va a tutto schermo nella cornice tablet; su desktop resta com'è. */
 export default function OspitiGiorno({ navigate }: { navigate?: (p: string) => void }) {
+  const tablet = useIsTablet()
+  return tablet
+    ? <TabletShell pagina="ospiti-giorno" titolo="Ospiti del giorno" navigate={navigate}><OspitiGiornoDesktop navigate={navigate} /></TabletShell>
+    : <OspitiGiornoDesktop navigate={navigate} />
+}
+
+function OspitiGiornoDesktop({ navigate }: { navigate?: (p: string) => void }) {
   // Ristorante senza hotel: niente numero di camera.
   const senzaHotel = useFbSenzaHotel()
   const OUTLETS = useFbStore(s => s.outlets)

@@ -1,0 +1,86 @@
+// ─── Cornice tablet ───────────────────────────────────────────────────────────
+//  Testata con le pagine operative a schede e il contenuto della pagina desktop
+//  ingrandito per il tocco (campi e pulsanti oltre i 40px).
+
+.tshell
+  &__nav
+    display: flex
+    justify-content: center
+    gap: 4px
+    min-width: 0
+    overflow-x: auto
+
+  &__tab
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    flex: none
+    height: 46px
+    padding: 0 14px
+    border-radius: 12px
+    color: color-mix(in oklab, white 78%, transparent)
+    font-size: 15px
+    font-weight: 700
+
+    &.is-on
+      background: white
+      color: var(--color-primary-900)
+
+  &__corpo
+    min-height: 0
+    overflow: auto
+    padding: 14px 18px 18px
+
+  &__titolo
+    margin: 0 0 8px
+    font-family: var(--font-heading, Poppins), sans-serif
+    font-size: 24px
+    font-weight: 800
+    color: var(--color-primary)
+
+  // La pagina desktop dentro la cornice: titolo e "Indietro" li dà la testata,
+  // il resto si ingrandisce per il dito.
+  &__pagina
+    zoom: 1.12
+    min-height: 0
+
+    .page-head, .bi-page__head
+      display: none
+
+  // Le pagine BI (Dashboard) si leggono più che toccarsi: niente ingrandimento,
+  // tutta l'altezza disponibile (regola BI: una schermata, nessuno scroll)
+  &__pagina:has(.bi-page)
+    zoom: 1
+    height: calc(100vh - 64px - 32px - 44px)
+
+  // Foglio "Pagine del servizio"
+  &__menu
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
+    gap: 10px
+
+  &__menu-btn
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 8px
+    height: 100px
+    border-radius: 16px
+    background: var(--color-bg)
+    border: 2px solid var(--color-border)
+    font-size: 16px
+    font-weight: 700
+    color: var(--color-primary)
+
+    i
+      font-size: 26px
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary-50)
+
+// In verticale le schede mostrano solo l'icona
+@media (orientation: portrait)
+  .tshell__tab span
+    display: none
