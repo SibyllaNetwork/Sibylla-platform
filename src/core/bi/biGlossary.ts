@@ -323,6 +323,16 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     description: 'Quota di posti a sedere effettivamente occupati',
     formula: 'Coperti serviti diviso i coperti disponibili nel turno',
   },
+  margineLordo: {
+    term: 'Margine lordo',
+    description: 'Quanto resta dei conti dopo la materia prima',
+    formula: 'Incasso dei conti meno il food cost dei piatti serviti (schede tecniche)',
+  },
+  marginePerCoperto: {
+    term: 'Margine per coperto',
+    description: 'Valore che ogni ospite lascia al ristorante, al netto della materia prima',
+    formula: 'Margine lordo diviso il numero di coperti serviti',
+  },
 }
 
 /** Voci del glossario per una pagina, nell'ordine dichiarato (ignora le chiavi sconosciute). */

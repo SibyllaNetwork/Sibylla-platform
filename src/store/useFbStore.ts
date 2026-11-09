@@ -901,7 +901,8 @@ export const useFbStore = create<FbState>()(
       name: 'sibylla.fb',
       // v13: ogni ristorante ha carta, sale, turni e brigata propri (stiliRistorante).
       // v14: utenze di sola ristorazione senza camere, clienti hotel né wallet Sibylla.
-      version: 14,
+      // v15: schede tecniche simulate e tarate per tutte le voci (Food cost e margini).
+      version: 15,
       // Demo sempre "viva": al primo accesso di una nuova giornata il servizio
       // (tavoli, comande, prenotazioni, cassa, menu del giorno) riparte dalla
       // fotografia di oggi; configurazione e catalogo restano quelli salvati.

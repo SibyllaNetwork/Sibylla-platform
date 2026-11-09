@@ -1,13 +1,15 @@
 // ─── Dashboard F&B ────────────────────────────────────────────────────────────
 //  Griglia a schermo fisso (regola BI: tutto in una schermata, nessuno scroll):
-//  fascia indicatori, andamento del servizio con il riempimento dei turni a
-//  fianco, e sotto l'incasso per sala accanto alle voci che pesano di più.
+//  fascia indicatori; Tavolo d'oro accanto alla mappa dei margini; sotto la
+//  classifica dei tavoli, l'andamento cumulato e i piatti che marginano di più.
+//  Effetti d'ingresso (scintille, luce, anello, tavoli in cascata) spenti con
+//  "riduci animazioni".
 
 .fbdash
   &__grid
-    grid-template-columns: repeat(3, minmax(0, 1fr))
-    grid-template-rows: auto minmax(0, 1.25fr) minmax(0, 1fr)
-    grid-template-areas: 'kpi kpi kpi' 'main main turni' 'sale top top'
+    grid-template-columns: repeat(12, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.2fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi kpi kpi kpi kpi kpi kpi kpi kpi kpi kpi kpi' 'oro oro oro oro map map map map map map map map' 'cls cls cls cls and and and and pia pia pia pia'
 
   &__kpis
     grid-area: kpi
@@ -16,17 +18,17 @@
     gap: 10px
     min-width: 0
 
-  &__main
-    grid-area: main
+  &__mappa
+    grid-area: map
 
-  &__turni
-    grid-area: turni
+  &__classifica
+    grid-area: cls
 
-  &__sale
-    grid-area: sale
+  &__andamento
+    grid-area: and
 
-  &__top
-    grid-area: top
+  &__piatti
+    grid-area: pia
 
   // ── Toolbar ────────────────────────────────────────────────────────────────
   &__filter
@@ -51,60 +53,321 @@
     white-space: nowrap
     cursor: pointer
 
-  // ── Riempimento dei turni ──────────────────────────────────────────────────
-  &__turni-list
+  // ── Tavolo d'oro ───────────────────────────────────────────────────────────
+  &__oro
+    grid-area: oro
+    position: relative
     display: flex
     flex-direction: column
-    justify-content: center
-    gap: 10px
-    height: 100%
-    margin: 0
-    padding: 0
-    list-style: none
-
-    li
-      display: grid
-      grid-template-columns: minmax(0, 1fr) 90px 62px
-      align-items: center
-      gap: 10px
-
-  &__turni-nome
+    gap: 12px
     min-width: 0
-    font-size: 12px
-    color: var(--color-text-active)
-
-  &__turni-barra
-    display: block
-    height: 8px
-    border-radius: 4px
-    background: var(--color-primary-100)
+    min-height: 0
+    padding: 16px 18px
+    border-radius: 16px
     overflow: hidden
+    color: var(--color-white, #fff)
+    background: radial-gradient(120% 90% at 85% 0%, color-mix(in oklab, var(--color-accent) 34%, transparent) 0%, transparent 55%), linear-gradient(140deg, color-mix(in oklab, var(--color-primary-900) 88%, white) 0%, var(--color-primary-900) 45%, color-mix(in oklab, var(--color-primary-900) 70%, black) 100%)
+    box-shadow: 0 18px 40px -18px color-mix(in oklab, var(--color-primary-900) 70%, transparent), inset 0 0 0 1px color-mix(in oklab, var(--color-accent) 35%, transparent)
+    animation: fbdash-oro-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both
 
-    > span
-      display: block
-      width: calc(var(--pct) * 1%)
-      height: 100%
-      border-radius: 4px
-      background: var(--chart-s1, var(--color-primary))
+    &--vuoto
+      align-items: center
+      justify-content: center
+      text-align: center
+      font-size: 13px
 
-  &__turni-n
-    font-size: 12.5px
+      i
+        font-size: 28px
+        color: var(--color-accent)
+
+  // Luce che attraversa la card all'apertura
+  &__oro-luce
+    position: absolute
+    inset: -40% auto -40% -60%
+    width: 45%
+    background: linear-gradient(100deg, transparent 0%, color-mix(in oklab, white 22%, transparent) 50%, transparent 100%)
+    transform: skewX(-18deg)
+    animation: fbdash-luce 1.6s 0.5s ease-out both
+    pointer-events: none
+
+  // Scintille dorate che salgono dall'anello
+  &__oro-scintille
+    position: absolute
+    left: 22%
+    top: 58%
+    pointer-events: none
+
+    i
+      position: absolute
+      width: 6px
+      height: 6px
+      border-radius: 50%
+      background: var(--color-accent)
+      box-shadow: 0 0 10px 2px color-mix(in oklab, var(--color-accent) 70%, transparent)
+      opacity: 0
+      animation: fbdash-scintilla 1.5s calc(0.6s + var(--i) * 0.07s) ease-out both
+      --ang: calc(var(--i) * 40deg)
+
+  &__oro-head
+    position: relative
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+
+  &__oro-badge
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-family: var(--font-heading, Poppins), sans-serif
+    font-size: 13px
     font-weight: 700
-    color: var(--color-primary)
-    text-align: right
-    font-variant-numeric: tabular-nums
+    letter-spacing: 0.3px
+    color: var(--color-accent)
+
+    i
+      animation: fbdash-corona 2.4s 1.2s ease-in-out infinite
+
+  &__oro-quota
+    font-size: 11.5px
+    color: color-mix(in oklab, white 72%, transparent)
+    white-space: nowrap
+
+  &__oro-corpo
+    position: relative
+    flex: 1
+    min-height: 0
+    display: flex
+    align-items: center
+    gap: 18px
+
+  &__oro-anello
+    position: relative
+    flex: none
+    width: clamp(96px, 10vw, 150px)
+    aspect-ratio: 1
+
+    svg
+      width: 100%
+      height: 100%
+      transform: rotate(-90deg)
+
+  &__oro-anello-fondo
+    fill: none
+    stroke: color-mix(in oklab, white 14%, transparent)
+    stroke-width: 9
+
+  &__oro-anello-arco
+    fill: none
+    stroke: var(--color-accent)
+    stroke-width: 9
+    stroke-linecap: round
+    filter: drop-shadow(0 0 6px color-mix(in oklab, var(--color-accent) 60%, transparent))
+    transition: stroke-dashoffset 1.6s cubic-bezier(0.2, 0.8, 0.2, 1)
+
+  &__oro-numero
+    position: absolute
+    inset: 0
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    font-family: var(--font-heading, Poppins), sans-serif
+    font-size: clamp(26px, 2.6vw, 36px)
+    font-weight: 800
+    line-height: 1
 
     em
       font-style: normal
-      font-weight: 500
+      font-size: 10px
+      font-weight: 600
+      letter-spacing: 1px
+      text-transform: uppercase
+      color: color-mix(in oklab, white 70%, transparent)
+      margin-bottom: 3px
+
+  &__oro-valori
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__oro-lab
+    font-size: 11.5px
+    color: color-mix(in oklab, white 72%, transparent)
+
+  &__oro-valore
+    font-family: var(--font-heading, Poppins), sans-serif
+    font-size: clamp(26px, 2.5vw, 38px)
+    font-weight: 800
+    line-height: 1.1
+    font-variant-numeric: tabular-nums
+    background: linear-gradient(90deg, white 0%, color-mix(in oklab, var(--color-accent) 60%, white) 100%)
+    -webkit-background-clip: text
+    background-clip: text
+    color: transparent
+
+  &__oro-perc
+    margin-top: 4px
+    font-size: 12px
+    color: color-mix(in oklab, white 82%, transparent)
+
+  &__oro-dett
+    position: relative
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 8px 14px
+    margin: 0
+    padding-top: 12px
+    border-top: 1px solid color-mix(in oklab, white 14%, transparent)
+
+    div
+      min-width: 0
+
+    dt
+      font-size: 10.5px
+      color: color-mix(in oklab, white 62%, transparent)
+
+    dd
+      margin: 1px 0 0
+      font-size: 12.5px
+      font-weight: 600
+      min-width: 0
+
+  // ── Mappa dei margini ──────────────────────────────────────────────────────
+  &__sale
+    display: flex
+    gap: 18px
+    height: 100%
+    min-height: 0
+
+  &__sala
+    flex: 1
+    min-width: 0
+    min-height: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin: 0
+
+    figcaption
+      font-size: 11.5px
+      font-weight: 600
       color: var(--color-text-inactive)
 
-  // ── Voci che pesano di più ─────────────────────────────────────────────────
-  &__top-list
+  &__sala-pianta
+    position: relative
+    flex: 1
+    min-height: 0
+    max-width: 100%
+    aspect-ratio: var(--ar)
+    margin: 0 auto
+    border-radius: 12px
+    background: radial-gradient(circle, var(--chart-grid) 1px, transparent 1.2px) 0 0 / 14px 14px, var(--color-surface-alt, var(--color-surface))
+    border: 1px solid var(--color-border)
+
+  &__tav
+    position: absolute
+    left: calc(var(--x) * 100%)
+    top: calc(var(--y) * 100%)
+    width: calc(var(--w) * 100% - 4px)
+    height: calc(var(--h) * 100% - 4px)
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    border-radius: 8px
+    background: color-mix(in oklab, var(--chart-seq-from), var(--chart-seq-to) calc(var(--k) * 100%))
+    color: var(--color-primary-900)
+    box-shadow: 0 2px 6px -2px color-mix(in oklab, var(--chart-seq-to) 45%, transparent)
+    cursor: default
+    animation: fbdash-tav 0.55s calc(0.25s + var(--r) * 0.06s) cubic-bezier(0.3, 1.4, 0.5, 1) both
+    transition: transform 0.15s
+
+    &:hover
+      transform: scale(1.08)
+      z-index: 2
+
+    // Tavolo piccolo sulla pianta: solo il numero (il margine resta nel tooltip).
+    container-type: size
+
+    @container (max-width: 46px)
+      em
+        display: none
+
+    &--rotondo
+      border-radius: 50%
+
+    &.is-scuro
+      color: var(--chart-surface)
+
+    &.is-vuoto
+      background: var(--chart-surface)
+      border: 1.5px dashed var(--chart-axis)
+      box-shadow: none
+      color: var(--chart-ink-muted)
+
+    &.is-oro
+      outline: 2.5px solid var(--color-accent)
+      outline-offset: 2px
+      z-index: 1
+      animation: fbdash-tav 0.55s calc(0.25s + var(--r) * 0.06s) cubic-bezier(0.3, 1.4, 0.5, 1) both, fbdash-oro-glow 2.2s 1.4s ease-in-out infinite
+
+    b
+      font-size: 11px
+      font-weight: 800
+      line-height: 1
+
+    em
+      font-style: normal
+      font-size: 9.5px
+      font-weight: 600
+      line-height: 1.2
+      font-variant-numeric: tabular-nums
+
+  &__tav-corona
+    position: absolute
+    top: -11px
+    font-size: 12px
+    color: var(--color-accent)
+    filter: drop-shadow(0 1px 2px color-mix(in oklab, black 30%, transparent))
+
+  &__tip
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__scala
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 11px
+    color: var(--color-text-inactive)
+    font-variant-numeric: tabular-nums
+
+  &__scala-barra
+    width: 140px
+    height: 8px
+    border-radius: 4px
+    background: linear-gradient(90deg, var(--chart-seq-from), var(--chart-seq-to))
+
+  &__scala-vuoto
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: 12px
+
+    i
+      width: 12px
+      height: 12px
+      border-radius: 3px
+      border: 1.5px dashed var(--chart-axis)
+
+  // ── Piatti che marginano di più ────────────────────────────────────────────
+  &__piatti-list
     display: flex
     flex-direction: column
     justify-content: center
-    gap: 6px
+    gap: 7px
     height: 100%
     margin: 0
     padding: 0
@@ -112,12 +375,12 @@
 
     li
       display: grid
-      grid-template-columns: 22px minmax(0, 1fr) 46px 80px
+      grid-template-columns: 22px minmax(0, 1fr) 44px 76px
       align-items: center
       gap: 10px
-      min-height: 28px
+      animation: fbdash-riga 0.5s calc(0.5s + var(--i) * 0.08s) ease-out both
 
-  &__top-pos
+  &__piatti-pos
     display: grid
     place-items: center
     width: 22px
@@ -128,26 +391,41 @@
     font-weight: 700
     color: var(--color-primary)
 
-  &__top-nome
+  li:first-child &__piatti-pos
+    background: var(--color-accent)
+    color: var(--chart-surface)
+
+  &__piatti-nome
     display: flex
-    align-items: baseline
-    gap: 8px
+    flex-direction: column
+    gap: 4px
     min-width: 0
     font-size: 12.5px
     color: var(--color-text-active)
 
-    em
-      font-style: normal
-      font-size: 11px
-      color: var(--color-text-inactive)
-      white-space: nowrap
+  &__piatti-barra
+    display: block
+    height: 4px
+    border-radius: 2px
+    background: var(--chart-grid)
+    overflow: hidden
 
-  &__top-qta
-    font-size: 12px
+    span
+      display: block
+      height: 100%
+      width: calc(var(--w) * 100%)
+      border-radius: 2px
+      background: var(--chart-1)
+      transform-origin: left
+      animation: fbdash-barra 0.9s calc(0.6s + var(--i) * 0.08s) cubic-bezier(0.2, 0.8, 0.2, 1) both
+
+  &__piatti-perc
+    font-size: 11.5px
     color: var(--color-text-inactive)
     text-align: right
+    font-variant-numeric: tabular-nums
 
-  &__top-val
+  &__piatti-val
     font-size: 13px
     font-weight: 700
     color: var(--color-primary)
@@ -158,6 +436,61 @@
     color: var(--color-text-inactive)
     font-size: 12.5px
     text-align: center
+
+// ─── Animazioni ───────────────────────────────────────────────────────────────
+@keyframes fbdash-oro-in
+  from
+    opacity: 0
+    transform: translateY(14px) scale(0.97)
+
+@keyframes fbdash-luce
+  from
+    left: -60%
+  to
+    left: 130%
+
+@keyframes fbdash-scintilla
+  0%
+    opacity: 0
+    transform: rotate(var(--ang)) translateX(0) scale(0.4)
+  25%
+    opacity: 1
+  100%
+    opacity: 0
+    transform: rotate(var(--ang)) translateX(90px) scale(1)
+
+@keyframes fbdash-corona
+  0%, 100%
+    transform: translateY(0) rotate(0)
+  50%
+    transform: translateY(-2px) rotate(-8deg)
+
+@keyframes fbdash-tav
+  from
+    opacity: 0
+    transform: scale(0.3)
+
+@keyframes fbdash-oro-glow
+  0%, 100%
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 0%, transparent)
+  50%
+    box-shadow: 0 0 16px 4px color-mix(in oklab, var(--color-accent) 55%, transparent)
+
+@keyframes fbdash-riga
+  from
+    opacity: 0
+    transform: translateX(-8px)
+
+@keyframes fbdash-barra
+  from
+    transform: scaleX(0)
+
+@media (prefers-reduced-motion: reduce)
+  .fbdash__oro, .fbdash__oro-luce, .fbdash__oro-scintille i, .fbdash__oro-badge i, .fbdash__tav, .fbdash__piatti-list li, .fbdash__piatti-barra span
+    animation: none !important
+
+  .fbdash__oro-luce, .fbdash__oro-scintille
+    display: none
 
 // ─── Laptop e monitor stretti ─────────────────────────────────────────────────
 //  Si comprimono SOLO le dimensioni: nessun blocco sparisce.
@@ -171,5 +504,13 @@
     &--wide
       width: 180px
 
-  .fbdash__top-list li
-    grid-template-columns: 20px minmax(0, 1fr) 40px 72px
+  .fbdash__oro
+    padding: 12px 14px
+    gap: 8px
+
+  .fbdash__oro-dett
+    padding-top: 8px
+    gap: 5px 10px
+
+  .fbdash__piatti-list li
+    grid-template-columns: 20px minmax(0, 1fr) 40px 70px

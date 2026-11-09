@@ -984,6 +984,11 @@ const ing = (
   ...extra,
 })
 
+/** Etichette della cantina della carta base: id voce, nome, prezzo a bottiglia. */
+const CANTINA_BASE: Array<[number, string, number]> = VOCI_MENU
+  .filter(v => v.reparto === 'cantina')
+  .map(v => [v.id, `Bottiglia ${v.nome}`, v.prezzo])
+
 export const INGREDIENTI: Ingrediente[] = [
   // Verdure
   ing(1,  'Pomodoro',            'Verdure', 1),
@@ -1106,6 +1111,19 @@ export const INGREDIENTI: Ingrediente[] = [
   ing(219,'Vermouth rosso',      'Bar', 0, ['L'], { soloRicetta: true }),
   ing(220,'Prosecco',            'Bar', 0, ['L'], { soloRicetta: true }),
   ing(221,'Bitter',              'Bar', 0, [], { soloRicetta: true }),
+  // Bevande vendute così come si comprano: il food cost è il prezzo d'acquisto del pezzo o della dose.
+  ing(222,'Coca Cola lattina',   'Bar', 0, [], { soloRicetta: true, unita: 'pz', costo: 0.55, porzione: 1, giacenza: 96, scorta: 48, fornitoreId: 4 }),
+  ing(223,'Acqua minerale 0,75 l', 'Bar', 0, [], { soloRicetta: true, unita: 'pz', costo: 0.38, porzione: 1, giacenza: 120, scorta: 60, fornitoreId: 4 }),
+  ing(224,'Birra alla spina',    'Bar', 0, ['A'], { soloRicetta: true, unita: 'l', costo: 2.9, porzione: 0.4, giacenza: 60, scorta: 30, fornitoreId: 4, agora: 2.45 }),
+  ing(225,'Vino rosso della casa', 'Bar', 0, ['L'], { soloRicetta: true, unita: 'l', costo: 7.2, porzione: 0.15, giacenza: 30, scorta: 12, fornitoreId: 4 }),
+  ing(226,'Vino bianco della casa', 'Bar', 0, ['L'], { soloRicetta: true, unita: 'l', costo: 6.8, porzione: 0.15, giacenza: 30, scorta: 12, fornitoreId: 4 }),
+  ing(227,'Whisky single malt',  'Bar', 0, ['A'], { soloRicetta: true, unita: 'l', costo: 52, porzione: 0.04, giacenza: 4, scorta: 2, fornitoreId: 4 }),
+  // Cantina: una bottiglia per etichetta, a un costo d'acquisto plausibile sul prezzo di carta.
+  ...CANTINA_BASE.map(([id, nome, prezzo], i) => ing(300 + i, nome, 'Bar', 0, ['L'], {
+    soloRicetta: true, unita: 'pz', costo: Math.round(prezzo * (0.24 + ((id * 7) % 11) / 100) * 100) / 100,
+    porzione: 1, giacenza: 6 + ((id * 5) % 18), scorta: 6, fornitoreId: 4,
+    ...(id % 3 === 0 ? { agora: Math.round(prezzo * 0.27 * 100) / 100 } : {}),
+  })),
 ]
 
 const idIngrediente = (nome: string) => INGREDIENTI.find(i => i.nome === nome)?.id
@@ -1120,14 +1138,22 @@ export interface RigaRicetta {
 /** Composizione dei piatti: nome e quantità per porzione, risolti in id all'avvio.
  *  Le quantità sono quelle della scheda tecnica: da lì escono food cost e scarico. */
 const RICETTE_NOMI: Record<number, Array<[string, number]>> = {
+  // Bevande e cantina: la "ricetta" è il pezzo o la dose che si serve.
+  9:   [['Coca Cola lattina', 1], ['Ghiaccio', .05]],
+  10:  [['Acqua minerale 0,75 l', 1]],
+  11:  [['Birra alla spina', .4]],
+  12:  [['Vino rosso della casa', .15]],
+  18:  [['Vino bianco della casa', .15]],
+  15:  [['Whisky single malt', .04], ['Ghiaccio', .05]],
+  ...Object.fromEntries(CANTINA_BASE.map(([id, nome]) => [id, [[nome, 1]]])),
   1:   [['Pane tostato', .08], ['Pomodoro', .12], ['Basilico', .004], ['Aglio', .004], ['Olio EVO', .012]],
   2:   [['Manzo crudo', .12], ['Parmigiano', .02], ['Rucola', .02], ['Olio EVO', .012], ['Limone', .02]],
   16:  [['Burrata', .12], ['Alici del Cantabrico', .03], ['Olio EVO', .01], ['Pepe nero', .002]],
   3:   [['Spaghetti', .11], ['Tuorlo', 2], ['Guanciale', .06], ['Pecorino romano', .03], ['Pepe nero', .002]],
   4:   [['Riso Carnaroli', .09], ['Funghi porcini', .07], ['Burro', .02], ['Parmigiano', .025], ['Prezzemolo', .004]],
   17:  [['Tonnarelli', .12], ['Pecorino romano', .045], ['Pepe nero', .003]],
-  5:   [['Rosmarino', .003], ['Sale grosso', .005], ['Olio EVO', .01]],
-  6:   [['Lime', .02], ['Finocchietto', .008], ['Olio EVO', .012]],
+  5:   [['Manzo crudo', .3], ['Rosmarino', .003], ['Sale grosso', .005], ['Olio EVO', .01]],
+  6:   [['Salmone affumicato', .18], ['Lime', .02], ['Finocchietto', .008], ['Olio EVO', .012]],
   114: [['Broccoletti', .18], ['Aglio', .004], ['Olio EVO', .015], ['Peperoncino', .002]],
   115: [['Patate al forno', .22], ['Rosmarino', .003], ['Sale grosso', .004]],
   7:   [['Mascarpone', .09], ['Savoiardi', .05], ['Caffè', .008], ['Cacao amaro', .004], ['Tuorlo', 1]],
@@ -2234,6 +2260,30 @@ const UTENTI_PER_TIPO: Partial<Record<TipoStruttura, number[]>> = {
   studentato: [1, 2, 9, 3, 4, 6, 5, 15],
 }
 
+/**
+ * Incidenza del food cost simulata per un piatto, stabile per nome: in cucina fra il 22% e il 40% (circa un piatto su
+ * quattro oltre la soglia del 35%), in pasticceria fra il 16% e il 28%.
+ */
+const incidenzaSimulata = (nome: string, reparto: VoceMenu['reparto']) => {
+  const h = hashNome(nome)
+  return reparto === 'pasticceria' ? 0.16 + (h % 13) / 100 : 0.22 + (h % 19) / 100
+}
+
+/**
+ * Porta la scheda tecnica all'incidenza voluta scalando le grammature (kg/l); i pezzi (tuorli, bottiglie) restano
+ * interi e contano come costo fisso della porzione.
+ */
+const calibraRicetta = (righe: RigaRicetta[], prezzo: number, incidenza: number): RigaRicetta[] => {
+  const costoDi = (r: RigaRicetta) => (INGREDIENTI.find(i => i.id === r.ingredienteId)?.costo ?? 0) * r.qta
+  const aPezzo = (r: RigaRicetta) => INGREDIENTI.find(i => i.id === r.ingredienteId)?.unita === 'pz'
+  const fisso = righe.filter(aPezzo).reduce((a, r) => a + costoDi(r), 0)
+  const variabile = righe.filter(r => !aPezzo(r)).reduce((a, r) => a + costoDi(r), 0)
+  const obiettivo = prezzo * incidenza
+  if (variabile <= 0 || obiettivo <= fisso) return righe
+  const k = (obiettivo - fisso) / variabile
+  return righe.map(r => aPezzo(r) ? r : { ...r, qta: Math.round(r.qta * k * 1000) / 1000 })
+}
+
 /** Rende attiva la struttura: da qui in poi anagrafica e seed sono i suoi. */
 export const applicaStruttura = (d: DescrizioneStruttura) => {
   const p = profiloDa(d)
@@ -2330,14 +2380,22 @@ export const applicaStruttura = (d: DescrizioneStruttura) => {
   RICETTE = stile
     ? {
         ...BASE.ricette,
-        ...Object.fromEntries(Object.entries(stile.piatti).map(([id, pt]) => [
-          Number(id),
-          pt.ricetta
+        ...Object.fromEntries(Object.entries(stile.piatti).map(([id, pt]) => {
+          const righe = pt.ricetta
             .map(([nome, qta]) => ({ ingredienteId: idIngrediente(nome), qta }))
-            .filter((r): r is RigaRicetta => r.ingredienteId != null),
-        ])),
+            .filter((r): r is RigaRicetta => r.ingredienteId != null)
+          const voce = VOCI_MENU.find(v => v.id === Number(id))
+          return [Number(id), voce ? calibraRicetta(righe, voce.prezzo, incidenzaSimulata(voce.nome, voce.reparto)) : righe]
+        })),
       }
     : BASE.ricette
+  // Simulazione completa di Food cost e margini: ogni piatto di cucina e pasticceria ha una scheda tarata su
+  // un'incidenza realistica e diversa da piatto a piatto (qualcuno oltre la soglia, da ripensare).
+  RICETTE = Object.fromEntries(Object.entries(RICETTE).map(([id, righe]) => {
+    const voce = VOCI_MENU.find(v => v.id === Number(id))
+    if (!voce || (voce.reparto !== 'cucina' && voce.reparto !== 'pasticceria')) return [id, righe]
+    return [id, calibraRicetta(righe, voce.prezzo, incidenzaSimulata(voce.nome, voce.reparto))]
+  }))
   // Sala: maître, chef de rang, commis, sommelier, hostess e barman della brigata.
   CAMERIERI = brigata
     ? brigata.filter(m => /maître|chef de rang|commis di sala|sommelier|hostess|barman/i.test(m.ruolo)).map(m => breve(m.nome))
