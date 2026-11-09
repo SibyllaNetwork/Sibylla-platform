@@ -20,7 +20,7 @@ const PER_STRUTTURA: Record<number, string> = {
   5: marcoBruno,
   6: saraGreco,
   7: paoloFerri,
-  8: elenaRusso,
+  9: elenaRusso,
 }
 
 export const fotoProfilo = (p: AccessProfile | null | undefined): string | undefined => {

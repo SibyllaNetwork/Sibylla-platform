@@ -154,7 +154,8 @@ export const useAccessStore = create<AccessState>()(
       // sostituendo eventuali profili persistiti in localStorage.
       // v4: Giulia Neri passa al modulo "Menu Tour Operator".
       // v5: catalogo moduli a 4 (Struttura ricettiva / Tour Operator / Ristorazione / Full).
-      version: 5,
+      // v6: Elena Russo associata a un solo Ristorante (Osteria della Mole, modulo Ristorazione).
+      version: 6,
       migrate: () => ({ profiles: SEED_PROFILES, currentProfileId: null, assist: null, pagineStruttura: {}, datiStruttura: {} }) as Partial<AccessState> as AccessState,
       // Non persistiamo `modules` (riallineati dal seed) né `accessOpen` (transitorio).
       partialize: (s) => ({

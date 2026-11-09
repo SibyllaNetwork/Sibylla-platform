@@ -29,6 +29,7 @@ export const CLIENTS_INIT: Cliente[] = [
   { id: 6, nome: 'Case Vacanze Riviera',categoria: 'case-vacanze', classificazione: '',           citta: 'Rimini (RN)',      camere: 12,  valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@casevacanzeriviera.it', tel: '+39 0541 000006' },
   { id: 7, nome: 'Residence Aurora',    categoria: 'appartamenti', classificazione: '',           citta: 'Firenze (FI)',     camere: 24,  valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@residenceaurora.it',  tel: '+39 055 000007'  },
   { id: 8, nome: 'Campus Living Torino',categoria: 'studentato',   classificazione: '',           citta: 'Torino (TO)',      camere: 150, valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@campuslivingto.it',   tel: '+39 011 000008'  },
+  { id: 9, nome: 'Osteria della Mole',  categoria: 'ristorante',   classificazione: 'Trattoria',  citta: 'Torino (TO)',      camere: 0,   valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@osteriadellamole.it', tel: '+39 011 000009'  },
 ]
 
 // ─── Intestatari del contratto (clienti) → strutture possedute ────────────────
@@ -41,6 +42,7 @@ export const INTESTATARI_INIT: Intestatario[] = [
   { id: 'int-rsud',    nome: 'Ristorazione Sud',   email: 'contratti@ristorazionesud.it',  moduli: ['ristorazione'],        struttureIds: [4, 5] },
   { id: 'int-riviera', nome: 'Riviera Group',      email: 'admin@rivieragroup.it',         moduli: ['struttura-ricettiva'], struttureIds: [6, 7] },
   { id: 'int-campus',  nome: 'Campus Italia',      email: 'direzione@campusitalia.it',     moduli: ['struttura-ricettiva', 'ristorazione'], struttureIds: [8] },
+  { id: 'int-mole',    nome: 'Osteria della Mole S.r.l.', email: 'amministrazione@osteriadellamole.it', moduli: ['ristorazione'], struttureIds: [9] },
 ]
 
 export interface CategoriaStruttura {
@@ -106,7 +108,9 @@ export const CLIENT_ADMINS: Record<number, ClientAdminSeed> = {
   5: { nome: 'Marco Bruno',  email: 'marco@skyloungebar.it',       moduli: ['ristorazione'] },
   6: { nome: 'Sara Greco',   email: 'sara@casevacanzeriviera.it',  moduli: ['struttura-ricettiva'] },
   7: { nome: 'Paolo Ferri',  email: 'paolo@residenceaurora.it',    moduli: ['struttura-ricettiva'] },
-  8: { nome: 'Elena Russo',  email: 'elena@campuslivingto.it',     moduli: ['struttura-ricettiva', 'ristorazione'] },
+  8: { nome: 'Luca Moretti', email: 'luca@campuslivingto.it',      moduli: ['struttura-ricettiva', 'ristorazione'] },
+  // Elena Russo: utenza associata a un solo Ristorante (modulo Ristorazione).
+  9: { nome: 'Elena Russo',  email: 'elena@osteriadellamole.it',   moduli: ['ristorazione'] },
 }
 
 // Moduli assegnati per cliente (id → id moduli).
