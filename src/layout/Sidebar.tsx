@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import Ico from '../core/icons/Ico'
 import NavItem from './NavItem'
 import MENU_FULL from '../navigation/menuFull'
-import { filterMenu, applyModuleLabels, applyStandalone } from '../navigation/filterMenu'
+import { filterMenu, applyModuleLabels, applyStandalone, isFbStandalone } from '../navigation/filterMenu'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 import PlatformAdminNav from './PlatformAdminNav'
 import { useOrgStore } from '../store/useOrgStore'
@@ -79,6 +79,8 @@ export default function Sidebar({
   // Profilo caricato da "Accesso profili" (o amministratore della struttura assistita): struttura in alto a sinistra e
   // utente nella riga del saluto. La regola vive in useStrutturaCorrente, condivisa con la sezione F&B.
   const { struttura: activeStrutt, profilo, assistStrutture } = useStrutturaCorrente()
+  // Food & Beverage stand alone: niente launcher S.S.P.I. in fondo alla sidenav.
+  const fbStandalone = isFbStandalone(assist ? assist.moduli : profiles.find(p => p.id === currentProfileId)?.moduli)
   const nomeUtente = profilo?.nome ?? 'Luca H.'
   const iniziali = nomeUtente.split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase()
 
@@ -321,7 +323,7 @@ export default function Sidebar({
       {/* ── Launcher S.S.P.I (nascosto nelle viste admin) ───────────────────
           In fondo alla sidebar. Quando la pagina è aperta, il link diventa il
           ritorno alla home della piattaforma ("Gestisci impresa"). */}
-      {!adminMode && (() => {
+      {!adminMode && !fbStandalone && (() => {
         const onSspi = currentPage === 'sspi'
         const label  = onSspi ? 'Gestisci impresa (Sibylla platform)' : 'S.S.P.I. (Social Sustainable Profitable Index)'
         return (

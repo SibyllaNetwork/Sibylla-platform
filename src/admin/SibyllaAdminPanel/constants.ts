@@ -86,8 +86,11 @@ function nodoMenu(items: any[], id: string): any | undefined {
   return undefined
 }
 
-// Food & Beverage stand alone: Profilo + la sola sezione Food & Beverage.
-const FB_STANDALONE_PAGES = ['profilo', 'food-beverage'].flatMap(id => getAllPages([nodoMenu(MENU_RISTORANTI as any, id)].filter(Boolean)))
+// Food & Beverage stand alone: Profilo + la sola sezione Food & Beverage (senza Wallet clienti).
+const FB_STANDALONE_ESCLUSE = ['fb-wallet-clienti']
+const FB_STANDALONE_PAGES = ['profilo', 'food-beverage']
+  .flatMap(id => getAllPages([nodoMenu(MENU_RISTORANTI as any, id)].filter(Boolean)))
+  .filter(p => !FB_STANDALONE_ESCLUSE.includes(p))
 
 // ─── Catalogo moduli della piattaforma ────────────────────────────────────────
 // Ogni modulo definisce un INSIEME DI PAGINE. La struttura comune mostrata è

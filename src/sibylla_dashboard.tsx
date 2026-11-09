@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import PageContent from './router/PageContent'
 import ConfirmDialog from './core/components/ConfirmDialog'
 import Sidebar from './layout/Sidebar'
@@ -11,6 +11,7 @@ import { isPlatformAdminPage } from './navigation/platformAdminMenu'
 import { useAuth } from './hooks/useAuth'
 import { buildCrumbs, findByPage, resolveActivePage } from './navigation/menuHelpers'
 import MENU from './navigation/menuFull'
+import { applyStandalone, isFbStandalone } from './navigation/filterMenu'
 import { useViewModeStore } from './store/useViewModeStore'
 import { useSectionThemeStore, sectionForPage, SECTION_COLORS } from './store/useSectionThemeStore'
 import { useNavGuard } from './store/useNavGuard'
@@ -157,7 +158,14 @@ export default function App() {
   useFbStrutturaSync()
 
   // Pagine interne (dettagli, pagine parametriche): breadcrumb della pagina madre
-  const crumbs = buildCrumbs(MENU, currentPage) || buildCrumbs(MENU, resolveActivePage(currentPage)) || []
+  // Food & Beverage stand alone: la breadcrumb segue la sidenav (Operativo › Sala ristorante…). Radice fittizia perché
+  // la Topbar salta il primo livello (Impresa nel menu completo).
+  const menuCrumbs = useMemo(
+    () => (isFbStandalone(effectiveModuli) ? [{ id: 'fb-standalone', label: 'Food & Beverage', children: applyStandalone(MENU, effectiveModuli) }] : MENU),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [effectiveModuli?.join('|')],
+  )
+  const crumbs = buildCrumbs(menuCrumbs, currentPage) || buildCrumbs(menuCrumbs, resolveActivePage(currentPage)) || []
 
   // Titoli per pagine raggiunte fuori dal menu (es. da notifica): senza questo
   // la tab/breadcrumb ripiegherebbe sul pageId grezzo.

@@ -38,9 +38,10 @@ export const useModuliStore = create<State>()(
     // v5: Human Resources riorganizzato (Gestione delle presenze: Nota spese, Cedolini, Richieste, Piano ferie).
     // v6: Dispositivi › Totem rifatto (Editor palinsesti, Pianifica trasmissioni, Spazi pubblicitari).
     // v7: nuovo modulo Food & Beverage stand alone.
+    // v8: Food & Beverage stand alone senza Wallet clienti.
     {
       name: 'sibylla.moduli',
-      version: 7,
+      version: 8,
       migrate: (salvato) => {
         const creati = ((salvato as { moduli?: Modulo[] } | undefined)?.moduli ?? []).filter(m => !PACCHETTI_INIT.some(p => p.id === m.id))
         return { moduli: [...PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })), ...creati] } as State

@@ -65,8 +65,10 @@ const trova = (items: any[], id: string): any | undefined => {
   return undefined
 }
 
+export const isFbStandalone = (moduli?: string[]) => !!moduli && moduli.length === 1 && moduli[0] === 'food-beverage'
+
 export function applyStandalone(items: any[], moduli?: string[]): any[] {
-  if (!moduli || moduli.length !== 1 || moduli[0] !== 'food-beverage') return items
+  if (!isFbStandalone(moduli)) return items
   const fb = trova(items, 'food-beverage')
   const gruppi = (fb?.children ?? [])
     .filter((n: any) => n.children?.length)
