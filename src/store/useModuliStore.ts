@@ -40,9 +40,10 @@ export const useModuliStore = create<State>()(
     // v7: nuovo modulo Food & Beverage stand alone.
     // v8: Food & Beverage stand alone senza Wallet clienti.
     // v9: Food & Beverage stand alone senza Portafoglio.
+    // v10: Food & Beverage stand alone senza Ruoli & funzioni.
     {
       name: 'sibylla.moduli',
-      version: 9,
+      version: 10,
       migrate: (salvato) => {
         const creati = ((salvato as { moduli?: Modulo[] } | undefined)?.moduli ?? []).filter(m => !PACCHETTI_INIT.some(p => p.id === m.id))
         return { moduli: [...PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })), ...creati] } as State
