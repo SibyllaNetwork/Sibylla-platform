@@ -254,7 +254,7 @@
 
   &__tipo
     height: 40px
-    padding: 0 12px
+    padding: 0 6px
     white-space: nowrap
     border-radius: 10px
     background: var(--color-bg)
@@ -1222,6 +1222,21 @@
 
   .gctab__comanda.is-scontrino .gctab__scontrino
     height: 62vh
+
+// ── Schermi ad alta risoluzione (es. Lenovo Tab M11 a 1920×1200) ─────────────
+//  L'interfaccia è disegnata su ~1200×800: sugli schermi più larghi si ingrandisce
+//  tutta insieme, così testi e bersagli restano a misura di dito.
+@media (min-width: 1500px) and (min-height: 860px)
+  .gctab
+    zoom: 1.25
+
+@media (min-width: 1800px) and (min-height: 1100px)
+  .gctab
+    zoom: 1.5
+
+@media (orientation: portrait) and (min-width: 1100px) and (min-height: 1500px)
+  .gctab
+    zoom: 1.4
 
 // ── Animazioni ───────────────────────────────────────────────────────────────
 @keyframes gctab-lampo

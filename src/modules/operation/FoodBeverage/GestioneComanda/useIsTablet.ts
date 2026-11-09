@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 
 // ─── useIsTablet ──────────────────────────────────────────────────────────────
-//  Vero su un tablet: schermo touch (puntatore "grossolano") largo almeno 600px
-//  e non più di 1400px. Su un tablet la Gestione comanda passa alla versione a
-//  tutto schermo per il cameriere; su desktop resta la pagina classica.
+//  Vero su un tablet: il puntatore principale è il dito (coarse, senza hover) e lo
+//  schermo è largo almeno 600px. Nessun limite massimo: i tablet Android ad alta
+//  risoluzione (es. Lenovo Tab M11, 1920×1200) espongono viewport molto larghe.
+//  I portatili touch hanno mouse/trackpad come puntatore principale: restano desktop.
+//  Su un tablet la Gestione comanda passa alla versione a tutto schermo per il
+//  cameriere; su desktop resta la pagina classica.
 //  Per provarla da desktop (demo, QA): localStorage `sibylla.comanda.tablet` = '1'.
 
-const QUERY = '(pointer: coarse) and (min-width: 600px) and (max-width: 1400px)'
+const QUERY = '(pointer: coarse) and (hover: none) and (min-width: 600px)'
 
 const forzato = () => {
   try { return localStorage.getItem('sibylla.comanda.tablet') === '1' } catch { return false }
