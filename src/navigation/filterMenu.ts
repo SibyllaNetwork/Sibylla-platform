@@ -65,10 +65,18 @@ const trova = (items: any[], id: string): any | undefined => {
   return undefined
 }
 
-export const isFbStandalone = (moduli?: string[]) => !!moduli && moduli.length === 1 && moduli[0] === 'food-beverage'
+/**
+ * Ristorazione stand alone: l'azienda ha solo il modulo Ristorazione (es. Elena Russo, Marco Bruno) e vede Home, Profilo
+ * e la sola sezione Food & Beverage. Con anche un'altra tipologia di attività (Struttura ricettiva, Full…) la
+ * Ristorazione è integrata in Platform, nel menu completo.
+ */
+export const isFbStandalone = (moduli?: string[]) => !!moduli && moduli.length === 1 && moduli[0] === 'ristorazione'
+
+/** Pagine del Profilo nascoste nella Ristorazione stand alone (il Wallet clienti lo toglie applySoloRistorazione). */
+export const FB_STANDALONE_ESCLUSE = ['portafoglio-personale', 'portafoglio-aziendale', 'reset-profili', 'ruoli-funzioni', 'fb-wallet-clienti']
 
 /** Moduli di sola ristorazione: chi ha solo questi è un ristorante separato dall'hotel. */
-export const MODULI_RISTORAZIONE = ['food-beverage', 'ristorazione']
+export const MODULI_RISTORAZIONE = ['ristorazione']
 
 /**
  * Utenza di sola ristorazione (es. Elena Russo, Marco Bruno): niente addebiti in camera, numeri di camera, clienti
@@ -101,9 +109,17 @@ export function applyStandalone(items: any[], moduli?: string[]): any[] {
     ...profilo,
     children: (profilo.children ?? []).flatMap((c: any) => (c.id === 'gestisci-org' ? c.children ?? [] : [c])),
   }
-  return [
+  // Executive: la sintesi di tutti i ristoranti dell'utenza (I miei ristoranti), subito sotto il Profilo
+  const mieiRistoranti = trova(items, 'i-miei-ristoranti')
+  const executive = mieiRistoranti && {
+    id: 'executive-rist', label: 'Executive', icon: 'gauge',
+    children: [{ ...mieiRistoranti, children: undefined }],
+  }
+  const menu = [
     ...items.filter(n => n.id === 'home'),
     ...(profiloPiatto ? [profiloPiatto] : []),
+    ...(executive ? [executive] : []),
     ...gruppi,
   ]
+  return filterMenu(menu, new Set(raccogliPagine(menu).filter(p => !FB_STANDALONE_ESCLUSE.includes(p))))
 }

@@ -30,7 +30,7 @@ export const CLIENTS_INIT: Cliente[] = [
   { id: 7, nome: 'Residence Aurora',    categoria: 'appartamenti', classificazione: '',           citta: 'Firenze (FI)',     camere: 24,  valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@residenceaurora.it',  tel: '+39 055 000007'  },
   { id: 8, nome: 'Campus Living Torino',categoria: 'studentato',   classificazione: '',           citta: 'Torino (TO)',      camere: 150, valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@campuslivingto.it',   tel: '+39 011 000008'  },
   { id: 9, nome: 'Osteria della Mole',  categoria: 'ristorante',   classificazione: 'Trattoria',  citta: 'Torino (TO)',      camere: 0,   valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@osteriadellamole.it', tel: '+39 011 000009'  },
-  // Altri ristoranti del gruppo di Osteria della Mole (Food & Beverage stand alone, Elena Russo).
+  // Altri ristoranti del gruppo di Osteria della Mole (Ristorazione stand alone, Elena Russo).
   { id: 10, nome: 'Pizzeria Vesuvio',    categoria: 'ristorante',   classificazione: 'Pizzeria',   citta: 'Napoli (NA)',      camere: 0,   valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@pizzeriavesuvio.it',  tel: '+39 081 000010'  },
   { id: 11, nome: 'Sakura Fusion',       categoria: 'ristorante',   classificazione: 'Etnico',     citta: 'Milano (MI)',      camere: 0,   valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@sakurafusion.it',     tel: '+39 02 000011'   },
   { id: 12, nome: 'La Corte dei Sapori', categoria: 'ristorante',   classificazione: 'Fine Dining', citta: 'Alba (CN)',       camere: 0,   valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@cortedeisapori.it',   tel: '+39 0173 000012' },
@@ -46,7 +46,7 @@ export const INTESTATARI_INIT: Intestatario[] = [
   { id: 'int-rsud',    nome: 'Ristorazione Sud',   email: 'contratti@ristorazionesud.it',  moduli: ['ristorazione'],        struttureIds: [4, 5] },
   { id: 'int-riviera', nome: 'Riviera Group',      email: 'admin@rivieragroup.it',         moduli: ['struttura-ricettiva'], struttureIds: [6, 7] },
   { id: 'int-campus',  nome: 'Campus Italia',      email: 'direzione@campusitalia.it',     moduli: ['struttura-ricettiva', 'ristorazione'], struttureIds: [8] },
-  { id: 'int-mole',    nome: 'Gruppo Mole Ristorazione', email: 'amministrazione@osteriadellamole.it', moduli: ['food-beverage'], struttureIds: [9, 10, 11, 12] },
+  { id: 'int-mole',    nome: 'Gruppo Mole Ristorazione', email: 'amministrazione@osteriadellamole.it', moduli: ['ristorazione'], struttureIds: [9, 10, 11, 12] },
 ]
 
 export interface CategoriaStruttura {
@@ -80,23 +80,6 @@ export function tipologiaLabel(c: Cliente): string {
 // Voci F&B del Configuratore — il modulo Ristorazione vede del Configuratore solo queste.
 const FNB_CONFIG_IDS = FNB_ITEMS.map(i => i.id)
 
-/** Nodo del menu per id (ricerca in profondità). */
-function nodoMenu(items: any[], id: string): any | undefined {
-  for (const n of items) {
-    if (n.id === id) return n
-    const hit = n.children ? nodoMenu(n.children, id) : undefined
-    if (hit) return hit
-  }
-  return undefined
-}
-
-// Food & Beverage stand alone: Profilo + la sola sezione Food & Beverage (senza Portafoglio, Reset profili,
-// Ruoli & funzioni né Wallet clienti).
-const FB_STANDALONE_ESCLUSE = ['portafoglio-personale', 'portafoglio-aziendale', 'reset-profili', 'ruoli-funzioni', 'fb-wallet-clienti']
-const FB_STANDALONE_PAGES = ['profilo', 'food-beverage']
-  .flatMap(id => getAllPages([nodoMenu(MENU_RISTORANTI as any, id)].filter(Boolean)))
-  .filter(p => !FB_STANDALONE_ESCLUSE.includes(p))
-
 // ─── Catalogo moduli della piattaforma ────────────────────────────────────────
 // Ogni modulo definisce un INSIEME DI PAGINE. La struttura comune mostrata è
 // sempre MENU_FULL, filtrata all'UNIONE delle pagine dei moduli sottoscritti
@@ -104,8 +87,9 @@ const FB_STANDALONE_PAGES = ['profilo', 'food-beverage']
 export const PACCHETTI_INIT: Modulo[] = [
   { id: 'struttura-ricettiva', label: 'Struttura ricettiva', desc: 'Hotel, B&B, case vacanze, residence, ostelli, studentati', pages: getAllPages(MENU as any) },
   { id: 'tour-operator',       label: 'Tour Operator',       desc: 'Programmazione, pratiche, preventivi, distribuzione',      pages: getAllPages(MENU_TO as any) },
-  { id: 'ristorazione',        label: 'Ristorazione',        desc: 'Ristoranti, bar — sala, tavoli e Food & Beverage',         pages: getAllPages(MENU_RISTORANTI as any), configuratoreItems: FNB_CONFIG_IDS },
-  { id: 'food-beverage',       label: 'Food & Beverage',     desc: 'Stand alone: Home, Profilo e la sola sezione Food & Beverage', pages: FB_STANDALONE_PAGES, configuratoreItems: FNB_CONFIG_IDS },
+  // Ristorazione (= Food & Beverage): da sola è stand alone (Home, Profilo e la sola sezione Food & Beverage, vedi
+  // isFbStandalone); con un'altra tipologia di attività è integrata in Platform.
+  { id: 'ristorazione',        label: 'Ristorazione',        desc: 'Ristoranti, bar — sala, tavoli e Food & Beverage. Da sola è stand alone, con altre attività è integrata', pages: getAllPages(MENU_RISTORANTI as any), configuratoreItems: FNB_CONFIG_IDS },
   { id: 'app-op',              label: 'App Op!',             desc: 'App per i dipendenti: reparti, turni, chat, Flash Message, F&B e HR', pages: getAllPages((MENU as any[]).find(n => n.id === 'impresa')?.children?.find((n: any) => n.id === 'operation')?.children?.filter((n: any) => n.id === 'appop') ?? []), configuratoreItems: ['app-op'] },
   { id: 'sibylla-hr',          label: 'Sibylla HR',          desc: 'Ferie, piano ferie, presenze, note spese, cedolini, chat e anagrafica del personale',     pages: ['hr-sibylla-home', 'hr-sib-assenze', 'hr-sib-calendario', 'hr-sib-piano-ferie', 'hr-sib-presenze', 'hr-sib-note-spese', 'hr-sib-documenti', 'hr-sib-news', 'hr-sib-chat', 'hr-sib-comunicazioni', 'hr-sib-rubrica', 'hr-sib-approvazioni', 'hr-sib-richieste', 'hr-sib-presenze-oggi', 'hr-sib-report', 'hr-sib-presenze-hr', 'hr-sib-saldi', 'hr-sib-cedolini', 'hr-sib-documenti-aziendali', 'hr-sib-comunicazioni-hr', 'hr-dipendenti', 'hr-reparti', 'hr-importa', 'hr-sib-registro'] },
   { id: 'full',                label: 'Full',                desc: 'Tutti i moduli (unione completa delle pagine)',            pages: getAllPages(MENU_FULL as any) },
@@ -135,8 +119,8 @@ export const CLIENT_ADMINS: Record<number, ClientAdminSeed> = {
   6: { nome: 'Sara Greco',   email: 'sara@casevacanzeriviera.it',  moduli: ['struttura-ricettiva'] },
   7: { nome: 'Paolo Ferri',  email: 'paolo@residenceaurora.it',    moduli: ['struttura-ricettiva'] },
   8: { nome: 'Luca Moretti', email: 'luca@campuslivingto.it',      moduli: ['struttura-ricettiva', 'ristorazione'] },
-  // Elena Russo: un solo Ristorante, Food & Beverage stand alone (Home = Dashboard F&B).
-  9: { nome: 'Elena Russo',  email: 'elena@osteriadellamole.it',   moduli: ['food-beverage'], home: 'fb-dashboard', struttureIds: [9, 10, 11, 12] },
+  // Elena Russo: solo Ristorazione, quindi stand alone (Home = Dashboard F&B).
+  9: { nome: 'Elena Russo',  email: 'elena@osteriadellamole.it',   moduli: ['ristorazione'], home: 'fb-dashboard', struttureIds: [9, 10, 11, 12] },
 }
 
 /** Amministratore della struttura: il suo o quello che la gestisce fra le proprie (struttureIds). */

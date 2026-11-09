@@ -253,10 +253,17 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // Cambio profilo → torna alla Home (pagina sempre consentita), evitando di
-  // restare su una pagina non più presente nel menu del nuovo contratto.
+  // Cambio profilo → pagina d'arrivo del profilo, evitando di restare su una pagina non più presente nel menu del nuovo
+  // contratto: la Dashboard F&B per la Ristorazione stand alone, la Home per gli altri. Al primo caricamento resta
+  // l'ultima pagina aperta (ricarica del browser).
+  const primoProfilo = useRef(true)
   useEffect(() => {
-    setCurrentPage(localStorage.getItem('qa.page') || 'home')
+    if (primoProfilo.current) {
+      primoProfilo.current = false
+      return
+    }
+    const moduli = profiles.find(p => p.id === currentProfileId)?.moduli
+    setCurrentPage(isFbStandalone(moduli) ? 'fb-dashboard' : 'home')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProfileId])
 

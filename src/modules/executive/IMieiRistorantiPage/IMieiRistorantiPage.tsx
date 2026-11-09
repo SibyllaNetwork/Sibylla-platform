@@ -6,7 +6,25 @@ import MenuIco from '../../../core/icons/MenuIco';
 import PageHead from '../../../core/components/PageHead';
 import Tooltip from '../../../core/components/Tooltip';
 import BiStrutturaModal from '../BiStrutturaModal/BiStrutturaModal';
+import { useStrutturaCorrente, schedaStruttura } from '../../../hooks/useStrutturaCorrente';
 import './IMieiRistorantiPage.sass'
+
+// Ristoranti dell'utenza (es. un gruppo di ristoranti stand alone): numeri di
+// giornata plausibili per tipo di locale, sempre gli stessi per lo stesso nome.
+const PROFILO_TIPO: Record<string, { tipo: string; coperti: number; scontrino: number; costi: number }> = {
+  Trattoria:     { tipo: 'Trattoria',             coperti: 110, scontrino: 38,  costi: 0.56 },
+  Pizzeria:      { tipo: 'Pizzeria napoletana',   coperti: 220, scontrino: 22,  costi: 0.50 },
+  Etnico:        { tipo: 'Ristorante giapponese', coperti: 105, scontrino: 52,  costi: 0.54 },
+  'Fine Dining': { tipo: 'Fine Dining',           coperti: 46,  scontrino: 165, costi: 0.58 },
+};
+const hashNome = (t: string) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619) >>> 0; return h };
+const ristoranteDa = (nome: string) => {
+  const sc = schedaStruttura(nome);
+  const p = PROFILO_TIPO[sc?.classificazione ?? ''] ?? PROFILO_TIPO.Trattoria;
+  const coperti = Math.round(p.coperti * (0.85 + (hashNome(nome) % 30) / 100));
+  const ricavi = Math.round(coperti * p.scontrino * (0.95 + (hashNome(`${nome}r`) % 10) / 100));
+  return { name: nome, type: p.tipo, coperti, ricavi, costi: Math.round(ricavi * p.costi) };
+};
 
 // Servizio della giornata: scala coperti / ricavi / costi rispetto al dato pieno.
 // Pranzo → più coperti ma scontrino più basso; Cena → meno coperti, scontrino più alto.
@@ -58,7 +76,10 @@ export default function IMieiRistorantiPage({navigate}:{navigate:(p:string)=>voi
   const isSel   = (d:number,t:string) => t==='current'&&d===selDay&&mo===curDate.getMonth()&&yr===curDate.getFullYear();
 
   // Dato pieno giornaliero per ristorante (coperti / ricavi / costi)
-  const base = [
+  // L'utenza con più ristoranti propri (es. un gruppo stand alone) vede i suoi; le altre l'elenco dimostrativo
+  const { elenco } = useStrutturaCorrente();
+  const propri = elenco.filter(n => schedaStruttura(n)?.categoria === 'ristorante');
+  const demo = [
     {name:"Tullio al Centro",    type:"Ristorante Gourmet",     coperti:120, ricavi:8400,  costi:4620 },
     {name:"La Pergola",          type:"Fine Dining 1★",         coperti:64,  ricavi:11500, costi:6210 },
     {name:"Trattoria del Porto", type:"Trattoria di pesce",     coperti:95,  ricavi:5320,  costi:2980 },
@@ -70,6 +91,7 @@ export default function IMieiRistorantiPage({navigate}:{navigate:(p:string)=>voi
     {name:"Braceria Sud",        type:"Steakhouse",             coperti:134, ricavi:7370,  costi:4054 },
     {name:"Caffè Letterario",    type:"Caffetteria & Brunch",   coperti:165, ricavi:2970,  costi:1604 },
   ];
+  const base = propri.length > 1 ? propri.map(ristoranteDa) : demo;
 
   // Applica il fattore del servizio e, se attivo, la previsione (forecast).
   const f = SERVICE_FACTOR[servizio];

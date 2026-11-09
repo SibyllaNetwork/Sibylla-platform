@@ -110,6 +110,7 @@
 
   &__oro-head
     position: relative
+    z-index: 1
     display: flex
     align-items: center
     justify-content: space-between
@@ -141,11 +142,15 @@
     align-items: center
     gap: 18px
 
+  // L'anello sta nell'altezza disponibile (la griglia è a schermo fisso): con la card bassa si rimpicciolisce invece di
+  // sforare sopra il titolo "Tavolo d'oro". Il numero al centro scala con l'anello (unità cqw).
   &__oro-anello
     position: relative
     flex: none
-    width: clamp(96px, 10vw, 150px)
+    height: min(100%, clamp(96px, 10vw, 150px))
+    width: auto
     aspect-ratio: 1
+    container-type: inline-size
 
     svg
       width: 100%
@@ -173,13 +178,13 @@
     align-items: center
     justify-content: center
     font-family: var(--font-heading, Poppins), sans-serif
-    font-size: clamp(26px, 2.6vw, 36px)
+    font-size: clamp(16px, 25cqw, 36px)
     font-weight: 800
     line-height: 1
 
     em
       font-style: normal
-      font-size: 10px
+      font-size: clamp(8px, 7.5cqw, 10px)
       font-weight: 600
       letter-spacing: 1px
       text-transform: uppercase

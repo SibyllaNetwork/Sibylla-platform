@@ -1,4 +1,5 @@
 import { useAccessStore, profiloDellaStruttura } from '../../../store/useAccessStore'
+import { isFbStandalone } from '../../../navigation/filterMenu'
 
 // ─── HOME TOUR OPERATOR · profilo attivo ──────────────────────────────────────
 
@@ -26,6 +27,9 @@ export function useHomeProfilo(): string | undefined {
   const assist           = useAccessStore(s => s.assist)
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
-  if (assist) return assist.struttureIds.map(id => profiloDellaStruttura(id, profiles)).find(Boolean)?.home
-  return profiles.find(p => p.id === currentProfileId)?.home
+  // Ristorazione stand alone (solo il modulo Ristorazione): senza una Home scelta si apre la Dashboard F&B.
+  const standalone = (home: string | undefined, moduli?: string[]) => home ?? (isFbStandalone(moduli) ? 'fb-dashboard' : undefined)
+  if (assist) return standalone(assist.struttureIds.map(id => profiloDellaStruttura(id, profiles)).find(Boolean)?.home, assist.moduli)
+  const p = profiles.find(x => x.id === currentProfileId)
+  return standalone(p?.home, p?.moduli)
 }

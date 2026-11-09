@@ -164,7 +164,8 @@ export const useAccessStore = create<AccessState>()(
       // v7: Home dell'utenza configurabile (Elena Russo → Dashboard F&B).
       // v8: Elena Russo sul modulo Food & Beverage stand alone.
       // v9: Elena Russo gestisce 4 ristoranti (select struttura in alto).
-      version: 9,
+      // v10: Food & Beverage unito a Ristorazione (solo Ristorazione = stand alone): Elena Russo su Ristorazione.
+      version: 10,
       migrate: () => ({ profiles: SEED_PROFILES, currentProfileId: null, assist: null, pagineStruttura: {}, datiStruttura: {} }) as Partial<AccessState> as AccessState,
       // Non persistiamo `modules` (riallineati dal seed) né `accessOpen` (transitorio).
       partialize: (s) => ({
