@@ -26,6 +26,8 @@ import {
   CAMERIERI, CATEGORIE_CLIENTE, PORTATE, STATI_TAVOLO, STATO_TAVOLO,
   type Servizio, type StatoTavolo, type Tavolo,
 } from '../fb.model'
+import SalaRistoranteTablet from './SalaRistoranteTablet'
+import { useIsTablet } from '../GestioneComanda/useIsTablet'
 import './SalaRistorante.sass'
 
 const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
@@ -72,7 +74,13 @@ const daQuanto = (ora: string | null) => {
 const durata = (min: number | null) =>
   min === null ? '' : min < 60 ? `${min}′` : `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}′`
 
+/** Su tablet la sala va a tutto schermo per il capo sala; su desktop resta la pagina classica. */
 export default function SalaRistorante({ navigate }: { navigate?: (p: string) => void }) {
+  const tablet = useIsTablet()
+  return tablet ? <SalaRistoranteTablet navigate={navigate} /> : <SalaRistoranteDesktop navigate={navigate} />
+}
+
+function SalaRistoranteDesktop({ navigate }: { navigate?: (p: string) => void }) {
   const OUTLETS = useFbStore(s => s.outlets)
   const TURNI   = useFbStore(s => s.turni)
   const contesto     = useFbStore(s => s.contesto)

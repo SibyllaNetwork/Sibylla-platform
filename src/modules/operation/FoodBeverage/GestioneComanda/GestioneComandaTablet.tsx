@@ -894,7 +894,7 @@ export default function GestioneComandaTablet({ navigate }: { navigate?: (p: str
 }
 
 // ─── Foglio dal basso (bottom sheet) ──────────────────────────────────────────
-function Foglio({ titolo, sotto, onChiudi, children }: { titolo: string; sotto?: string; onChiudi: () => void; children: React.ReactNode }) {
+export function Foglio({ titolo, sotto, onChiudi, children }: { titolo: string; sotto?: string; onChiudi: () => void; children: React.ReactNode }) {
   // Il "click" che il browser genera dopo il tocco che ha aperto il foglio cade sul velo: non deve chiuderlo.
   const aperto = useRef(Date.now())
   return (
