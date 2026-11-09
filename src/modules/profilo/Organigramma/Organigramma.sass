@@ -49,16 +49,21 @@
       font-size: 16px
 
   // ── Layout generale ─────────────────────────────────────────────────────────
+  // Altezza vincolata alla finestra: l'albero (anche largo/alto, es. ristorante) scorre dentro il canvas e le colonne
+  // Ruolo/Profilo dentro la loro lista, senza allungare la pagina.
   &__layout
     display: flex
     gap: 16px
     align-items: stretch
+    height: calc(100vh - 300px)
+    min-height: 420px
 
   // ── Sidebar sinistra ────────────────────────────────────────────────────────
   &__sidebar
     display: flex
     gap: 12px
     flex: none
+    min-height: 0
 
     &--collapsed
       width: 40px
@@ -231,12 +236,28 @@
   &__main
     flex: 1
     min-width: 0
+    min-height: 0
+    display: flex
+    flex-direction: column
 
   &__print-area
+    flex: 1
+    min-height: 0
+    display: flex
+    flex-direction: column
     background: $white
     border: 1px solid $border
     border-radius: $radius-xl
     overflow: hidden
+
+    // Export PDF: l'area si apre all'intero albero (niente scroll) per lo snapshot.
+    &--export
+      width: max-content
+      min-width: 100%
+
+      .org__canvas
+        flex: none
+        overflow: visible
 
   &__logo-bar
     display: flex
@@ -272,7 +293,8 @@
     color: $primary
 
   &__canvas
-    min-height: 460px
+    flex: 1
+    min-height: 0
     padding: 28px 20px 40px
     overflow: auto
 

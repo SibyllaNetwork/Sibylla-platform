@@ -217,7 +217,9 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
     try {
       const [{ toPng }, { jsPDF }] = await Promise.all([import('html-to-image'), import('jspdf')])
       const skip = ['org__node-actions', 'org__node-add', 'org__role-menu', 'org__node-person-x', 'org__node-empty']
-      const w = node.offsetWidth, h = node.offsetHeight
+      // L'area a schermo scorre: per il PDF si apre all'intero albero.
+      node.classList.add('org__print-area--export')
+      const w = node.scrollWidth, h = node.scrollHeight
       const dataUrl = await toPng(node, {
         pixelRatio: 2,
         backgroundColor: '#ffffff',
@@ -231,6 +233,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
     } catch (err) {
       console.error('Errore nella generazione del PDF', err)
     } finally {
+      node.classList.remove('org__print-area--export')
       setPdfBusy(false)
     }
   }
