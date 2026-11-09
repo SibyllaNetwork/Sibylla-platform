@@ -86,9 +86,9 @@ function nodoMenu(items: any[], id: string): any | undefined {
   return undefined
 }
 
-// Food & Beverage stand alone: Profilo + la sola sezione Food & Beverage (senza Portafoglio, Ruoli & funzioni né
-// Wallet clienti).
-const FB_STANDALONE_ESCLUSE = ['portafoglio-personale', 'portafoglio-aziendale', 'ruoli-funzioni', 'fb-wallet-clienti']
+// Food & Beverage stand alone: Profilo + la sola sezione Food & Beverage (senza Portafoglio, Reset profili,
+// Ruoli & funzioni né Wallet clienti).
+const FB_STANDALONE_ESCLUSE = ['portafoglio-personale', 'portafoglio-aziendale', 'reset-profili', 'ruoli-funzioni', 'fb-wallet-clienti']
 const FB_STANDALONE_PAGES = ['profilo', 'food-beverage']
   .flatMap(id => getAllPages([nodoMenu(MENU_RISTORANTI as any, id)].filter(Boolean)))
   .filter(p => !FB_STANDALONE_ESCLUSE.includes(p))
