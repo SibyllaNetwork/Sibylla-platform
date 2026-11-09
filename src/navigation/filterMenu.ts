@@ -95,8 +95,15 @@ export function applyStandalone(items: any[], moduli?: string[]): any[] {
   const gruppi = (fb?.children ?? [])
     .filter((n: any) => n.children?.length)
     .map((n: any) => ({ ...n, icon: ICONE_FB_STANDALONE[n.id] ?? 'utensils' }))
+  // Profilo senza il gruppo "Gestisci organizzazione": le sue voci (l'Organigramma) salgono direttamente sotto Profilo.
+  const profilo = items.find(n => n.id === 'profilo')
+  const profiloPiatto = profilo && {
+    ...profilo,
+    children: (profilo.children ?? []).flatMap((c: any) => (c.id === 'gestisci-org' ? c.children ?? [] : [c])),
+  }
   return [
-    ...items.filter(n => n.id === 'home' || n.id === 'profilo'),
+    ...items.filter(n => n.id === 'home'),
+    ...(profiloPiatto ? [profiloPiatto] : []),
     ...gruppi,
   ]
 }
