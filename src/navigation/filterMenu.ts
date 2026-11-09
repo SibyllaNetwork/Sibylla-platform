@@ -40,3 +40,39 @@ export function applyModuleLabels(items: any[], moduli?: string[]): any[] {
   }
   return items.filter(visibile).map(relabel)
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Food & Beverage stand alone: chi ha solo il modulo `food-beverage` vede Home,
+//  Profilo e, al primo livello, i gruppi interni della sezione Food & Beverage
+//  (Operativo, Economato, Struttura, Menu, Generali, Amministrazione) con le
+//  loro voci. La Dashboard F&B è la Home, quindi non si ripete nel menu.
+// ─────────────────────────────────────────────────────────────────────────────
+const ICONE_FB_STANDALONE: Record<string, string> = {
+  'fb-operativo': 'concierge-bell',
+  'fb-economato': 'warehouse',
+  'fb-struttura': 'building',
+  'fb-menu': 'book',
+  'fb-generali': 'sliders',
+  'fb-amministrazione': 'user-shield',
+}
+
+const trova = (items: any[], id: string): any | undefined => {
+  for (const n of items) {
+    if (n.id === id) return n
+    const hit = n.children ? trova(n.children, id) : undefined
+    if (hit) return hit
+  }
+  return undefined
+}
+
+export function applyStandalone(items: any[], moduli?: string[]): any[] {
+  if (!moduli || moduli.length !== 1 || moduli[0] !== 'food-beverage') return items
+  const fb = trova(items, 'food-beverage')
+  const gruppi = (fb?.children ?? [])
+    .filter((n: any) => n.children?.length)
+    .map((n: any) => ({ ...n, icon: ICONE_FB_STANDALONE[n.id] ?? 'utensils' }))
+  return [
+    ...items.filter(n => n.id === 'home' || n.id === 'profilo'),
+    ...gruppi,
+  ]
+}

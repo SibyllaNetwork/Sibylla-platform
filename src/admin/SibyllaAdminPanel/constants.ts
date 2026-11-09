@@ -42,7 +42,7 @@ export const INTESTATARI_INIT: Intestatario[] = [
   { id: 'int-rsud',    nome: 'Ristorazione Sud',   email: 'contratti@ristorazionesud.it',  moduli: ['ristorazione'],        struttureIds: [4, 5] },
   { id: 'int-riviera', nome: 'Riviera Group',      email: 'admin@rivieragroup.it',         moduli: ['struttura-ricettiva'], struttureIds: [6, 7] },
   { id: 'int-campus',  nome: 'Campus Italia',      email: 'direzione@campusitalia.it',     moduli: ['struttura-ricettiva', 'ristorazione'], struttureIds: [8] },
-  { id: 'int-mole',    nome: 'Osteria della Mole S.r.l.', email: 'amministrazione@osteriadellamole.it', moduli: ['ristorazione'], struttureIds: [9] },
+  { id: 'int-mole',    nome: 'Osteria della Mole S.r.l.', email: 'amministrazione@osteriadellamole.it', moduli: ['food-beverage'], struttureIds: [9] },
 ]
 
 export interface CategoriaStruttura {
@@ -76,6 +76,19 @@ export function tipologiaLabel(c: Cliente): string {
 // Voci F&B del Configuratore — il modulo Ristorazione vede del Configuratore solo queste.
 const FNB_CONFIG_IDS = FNB_ITEMS.map(i => i.id)
 
+/** Nodo del menu per id (ricerca in profondità). */
+function nodoMenu(items: any[], id: string): any | undefined {
+  for (const n of items) {
+    if (n.id === id) return n
+    const hit = n.children ? nodoMenu(n.children, id) : undefined
+    if (hit) return hit
+  }
+  return undefined
+}
+
+// Food & Beverage stand alone: Profilo + la sola sezione Food & Beverage.
+const FB_STANDALONE_PAGES = ['profilo', 'food-beverage'].flatMap(id => getAllPages([nodoMenu(MENU_RISTORANTI as any, id)].filter(Boolean)))
+
 // ─── Catalogo moduli della piattaforma ────────────────────────────────────────
 // Ogni modulo definisce un INSIEME DI PAGINE. La struttura comune mostrata è
 // sempre MENU_FULL, filtrata all'UNIONE delle pagine dei moduli sottoscritti
@@ -84,6 +97,7 @@ export const PACCHETTI_INIT: Modulo[] = [
   { id: 'struttura-ricettiva', label: 'Struttura ricettiva', desc: 'Hotel, B&B, case vacanze, residence, ostelli, studentati', pages: getAllPages(MENU as any) },
   { id: 'tour-operator',       label: 'Tour Operator',       desc: 'Programmazione, pratiche, preventivi, distribuzione',      pages: getAllPages(MENU_TO as any) },
   { id: 'ristorazione',        label: 'Ristorazione',        desc: 'Ristoranti, bar — sala, tavoli e Food & Beverage',         pages: getAllPages(MENU_RISTORANTI as any), configuratoreItems: FNB_CONFIG_IDS },
+  { id: 'food-beverage',       label: 'Food & Beverage',     desc: 'Stand alone: Home, Profilo e la sola sezione Food & Beverage', pages: FB_STANDALONE_PAGES, configuratoreItems: FNB_CONFIG_IDS },
   { id: 'app-op',              label: 'App Op!',             desc: 'App per i dipendenti: reparti, turni, chat, Flash Message, F&B e HR', pages: getAllPages((MENU as any[]).find(n => n.id === 'impresa')?.children?.find((n: any) => n.id === 'operation')?.children?.filter((n: any) => n.id === 'appop') ?? []), configuratoreItems: ['app-op'] },
   { id: 'sibylla-hr',          label: 'Sibylla HR',          desc: 'Ferie, piano ferie, presenze, note spese, cedolini, chat e anagrafica del personale',     pages: ['hr-sibylla-home', 'hr-sib-assenze', 'hr-sib-calendario', 'hr-sib-piano-ferie', 'hr-sib-presenze', 'hr-sib-note-spese', 'hr-sib-documenti', 'hr-sib-news', 'hr-sib-chat', 'hr-sib-comunicazioni', 'hr-sib-rubrica', 'hr-sib-approvazioni', 'hr-sib-richieste', 'hr-sib-presenze-oggi', 'hr-sib-report', 'hr-sib-presenze-hr', 'hr-sib-saldi', 'hr-sib-cedolini', 'hr-sib-documenti-aziendali', 'hr-sib-comunicazioni-hr', 'hr-dipendenti', 'hr-reparti', 'hr-importa', 'hr-sib-registro'] },
   { id: 'full',                label: 'Full',                desc: 'Tutti i moduli (unione completa delle pagine)',            pages: getAllPages(MENU_FULL as any) },
@@ -111,8 +125,8 @@ export const CLIENT_ADMINS: Record<number, ClientAdminSeed> = {
   6: { nome: 'Sara Greco',   email: 'sara@casevacanzeriviera.it',  moduli: ['struttura-ricettiva'] },
   7: { nome: 'Paolo Ferri',  email: 'paolo@residenceaurora.it',    moduli: ['struttura-ricettiva'] },
   8: { nome: 'Luca Moretti', email: 'luca@campuslivingto.it',      moduli: ['struttura-ricettiva', 'ristorazione'] },
-  // Elena Russo: utenza associata a un solo Ristorante (modulo Ristorazione).
-  9: { nome: 'Elena Russo',  email: 'elena@osteriadellamole.it',   moduli: ['ristorazione'], home: 'fb-dashboard' },
+  // Elena Russo: un solo Ristorante, Food & Beverage stand alone (Home = Dashboard F&B).
+  9: { nome: 'Elena Russo',  email: 'elena@osteriadellamole.it',   moduli: ['food-beverage'], home: 'fb-dashboard' },
 }
 
 // Moduli assegnati per cliente (id → id moduli).

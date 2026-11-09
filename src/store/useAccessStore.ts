@@ -159,7 +159,8 @@ export const useAccessStore = create<AccessState>()(
       // v5: catalogo moduli a 4 (Struttura ricettiva / Tour Operator / Ristorazione / Full).
       // v6: Elena Russo associata a un solo Ristorante (Osteria della Mole, modulo Ristorazione).
       // v7: Home dell'utenza configurabile (Elena Russo → Dashboard F&B).
-      version: 7,
+      // v8: Elena Russo sul modulo Food & Beverage stand alone.
+      version: 8,
       migrate: () => ({ profiles: SEED_PROFILES, currentProfileId: null, assist: null, pagineStruttura: {}, datiStruttura: {} }) as Partial<AccessState> as AccessState,
       // Non persistiamo `modules` (riallineati dal seed) né `accessOpen` (transitorio).
       partialize: (s) => ({

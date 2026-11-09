@@ -122,6 +122,8 @@ const FA_MAP: Record<string, string> = {
   'building':    'fa-building',
   'store':       'fa-store',
   'utensils':    'fa-utensils',
+  'warehouse':   'fa-warehouse',
+  'user-shield': 'fa-user-shield',
   'apartment':   'fa-building-user',
   'qrcode':      'fa-qrcode',
   'sliders-alt': 'fa-sliders',
