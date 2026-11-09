@@ -899,7 +899,8 @@ export const useFbStore = create<FbState>()(
     }),
     {
       name: 'sibylla.fb',
-      version: 12,
+      // v13: ogni ristorante ha carta, sale, turni e brigata propri (stiliRistorante).
+      version: 13,
       // Demo sempre "viva": al primo accesso di una nuova giornata il servizio
       // (tavoli, comande, prenotazioni, cassa, menu del giorno) riparte dalla
       // fotografia di oggi; configurazione e catalogo restano quelli salvati.

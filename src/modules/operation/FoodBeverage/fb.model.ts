@@ -4,6 +4,7 @@
 //  reali dell'installazione Sibylla (outlet, sale, turni, categorie e voci di
 //  menu, allergeni UE, categorie cliente), così le pagine mostrano da subito
 //  numeri e nomi credibili senza dipendere dal backend.
+import { STILI, stileDa, brigataDi, breve } from './stiliRistorante'
 
 export type TipoOutlet = 'ristorante' | 'bar' | 'lounge' | 'roof'
 export type Servizio   = 'Colazione' | 'Pranzo' | 'Cena'
@@ -312,7 +313,7 @@ export const ALIQUOTE_IVA: Array<{ aliquota: number; label: string; reparti: str
 
 // ─── Costanti operative ──────────────────────────────────────────────────────
 
-export const CAMERIERI = ['Marco R.', 'Giulia P.', 'Luca V.', 'Sara T.', 'Paolo N.', 'Elena F.', 'Davide R.', 'Martina G.']
+export let CAMERIERI = ['Marco R.', 'Giulia P.', 'Luca V.', 'Sara T.', 'Paolo N.', 'Elena F.', 'Davide R.', 'Martina G.']
 
 export const PORTATE: Array<{ id: number; label: string; ico: string }> = [
   { id: 0, label: 'Subito',    ico: 'fa-bolt' },
@@ -712,7 +713,7 @@ export const TIPI_MENU: TipoMenu[] = [
   { id: 4, nome: 'Cantina',    colore: '#8E44AD', ordine: 4 },
 ]
 
-export const CATEGORIE_MENU: CategoriaMenu[] = [
+export let CATEGORIE_MENU: CategoriaMenu[] = [
   { id: 15, tipoId: 1, nome: 'Colazione',        emoji: '🥐', colore: '#C98B2E', ordine: 0 },
   { id: 16, tipoId: 2, nome: 'Caffetteria',      emoji: '☕', colore: '#6E4B33', ordine: 5 },
   { id: 1,  tipoId: 1, nome: 'Antipasti',        emoji: '🥗', colore: '#D9822B', ordine: 1 },
@@ -1147,7 +1148,7 @@ const RICETTE_NOMI: Record<number, Array<[string, number]>> = {
   129: [['Limone', .02], ['Miele', .015]],
 }
 
-export const RICETTE: Record<number, RigaRicetta[]> = Object.fromEntries(
+export let RICETTE: Record<number, RigaRicetta[]> = Object.fromEntries(
   Object.entries(RICETTE_NOMI).map(([voceId, righe]) => [
     Number(voceId),
     righe
@@ -2086,12 +2087,15 @@ export interface ProfiloStruttura {
   classico: boolean
   /** Ha camere: colazione inclusa, conti su camera, clienti hotel. */
   alloggio: boolean
+  /** Classificazione della scheda (per i ristoranti: Trattoria, Pizzeria, Etnico, Fine Dining). */
+  classificazione?: string
 }
 
 const BASE = {
   outlets: OUTLETS, sale: SALE, turni: TURNI, tavoli: TAVOLI, voci: VOCI_MENU,
   stampanti: STAMPANTI, monitor: MONITOR_KDS, utenti: UTENTI_FB, wallet: WALLET_CLIENTI,
   email: CONFIG_EMAIL, walletCfg: CONFIG_WALLET,
+  categorie: CATEGORIE_MENU, ricette: RICETTE, camerieri: CAMERIERI,
 }
 
 const PROVINCE: Record<string, string> = {
@@ -2140,6 +2144,7 @@ export const profiloDa = (d: DescrizioneStruttura): ProfiloStruttura => {
     seme: hashNome(d.nome),
     classico: tipo === 'hotel' || tipo === 'resort',
     alloggio: tipo !== 'ristorante' && tipo !== 'bar',
+    classificazione: d.classificazione,
   }
 }
 
@@ -2165,10 +2170,11 @@ const specDi = (p: ProfiloStruttura): SpecOutlet[] => {
       { nome: 'Sala colazioni', tipo: 'ristorante', sale: [['Sala colazioni', 18]],
         turni: [['Colazione', 'Colazione', '07:30', '10:30']] },
     ]
-    case 'ristorante': return [
-      { nome: p.nome, tipo: 'ristorante', sale: [['Sala interna', 56], ['Dehors', 32]],
-        turni: [['Pranzo', 'Pranzo', '12:00', '15:00'], ['Turno 1', 'Cena', '19:00', '21:00'], ['Turno 2', 'Cena', '21:00', '23:30']] },
-    ]
+    case 'ristorante': {
+      // Sale e turni secondo lo stile del locale (trattoria, pizzeria, etnico, fine dining).
+      const stile = STILI[stileDa(p.classificazione)]
+      return [{ nome: p.nome, tipo: 'ristorante', sale: stile.sale, turni: stile.turni }]
+    }
     case 'bar': return [
       { nome: p.nome, tipo: 'lounge', sale: [['Sala', 40], ['Terrazza panoramica', 30]],
         turni: [['Aperitivo', 'Cena', '18:00', '21:00'], ['Serale', 'Cena', '21:00', '02:00']] },
@@ -2297,11 +2303,52 @@ export const applicaStruttura = (d: DescrizioneStruttura) => {
     })))
   }
 
-  VOCI_MENU = BASE.voci.map(v => ({ ...v, prezzo: prezzoListino(v.prezzo, p.listino) }))
+  // Ristoranti: carta, schede tecniche e brigata propri del locale; le altre strutture usano la carta base.
+  const stile = p.tipo === 'ristorante' ? STILI[stileDa(p.classificazione)] : null
+  const brigata = stile ? brigataDi(p.nome, p.classificazione) : null
+  // Un ristorante non serve la colazione d'albergo: niente categoria Colazione né le sue voci.
+  const COLAZIONE = 15
+  VOCI_MENU = BASE.voci.filter(v => !stile || v.categoriaId !== COLAZIONE).map(v => {
+    const piatto = stile?.piatti[v.id]
+    const base = piatto
+      ? { ...v, nome: piatto.nome, descrizione: piatto.descrizione, prezzo: piatto.prezzo, allergeni: piatto.allergeni, traduzioni: { en: piatto.en } }
+      : v
+    return { ...base, prezzo: prezzoListino(base.prezzo, p.listino) }
+  })
+  CATEGORIE_MENU = BASE.categorie.filter(c => !stile || c.id !== COLAZIONE).map(c => {
+    const nuova = stile?.categorie[c.id]
+    return nuova ? { ...c, nome: nuova[0], emoji: nuova[1] } : c
+  })
+  RICETTE = stile
+    ? {
+        ...BASE.ricette,
+        ...Object.fromEntries(Object.entries(stile.piatti).map(([id, pt]) => [
+          Number(id),
+          pt.ricetta
+            .map(([nome, qta]) => ({ ingredienteId: idIngrediente(nome), qta }))
+            .filter((r): r is RigaRicetta => r.ingredienteId != null),
+        ])),
+      }
+    : BASE.ricette
+  // Sala: maître, chef de rang, commis, sommelier, hostess e barman della brigata.
+  CAMERIERI = brigata
+    ? brigata.filter(m => /maître|chef de rang|commis di sala|sommelier|hostess|barman/i.test(m.ruolo)).map(m => breve(m.nome))
+    : BASE.camerieri
   const scelti = UTENTI_PER_TIPO[p.tipo]
+  // Utenti della sezione = persone della brigata (indice nella brigata per utente demo).
+  const PERSONA_UTENTE: Record<number, number> = { 2: 0, 3: 2, 4: 1, 6: 3, 9: 8, 5: 16, 14: 4 }
+  const slug = (nome: string) => {
+    const [n, ...c] = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z ]/g, '').split(/\s+/)
+    return { username: `${n}.${(c[c.length - 1] ?? '')[0] ?? ''}`, email: `${n[0]}.${c.join('')}@${p.dominio}` }
+  }
   UTENTI_FB = BASE.utenti
     .filter(u => !scelti || scelti.includes(u.id))
-    .map(u => ({ ...u, email: u.email.replace('@hotelnoto.it', `@${p.dominio}`) }))
+    .map(u => {
+      const m = brigata && PERSONA_UTENTE[u.id] != null ? brigata[PERSONA_UTENTE[u.id]] : null
+      return m
+        ? { ...u, nome: m.nome, ...slug(m.nome) }
+        : { ...u, email: u.email.replace('@hotelnoto.it', `@${p.dominio}`) }
+    })
   const casella = `${OUTLETS[0].tipo === 'ristorante' ? 'ristorante' : 'info'}@${p.dominio}`
   CONFIG_EMAIL = { ...BASE.email, username: casella, mittente: casella, nomeMittente: `${OUTLETS[0].nome} — ${p.nome}` }
   CONFIG_WALLET = {

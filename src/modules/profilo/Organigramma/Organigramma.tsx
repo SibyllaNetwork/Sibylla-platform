@@ -8,7 +8,8 @@ import { avatarUrl } from '../../../core/avatar'
 import { useAccessStore } from '../../../store/useAccessStore'
 import { fotoProfilo } from '../../../store/fotoProfili'
 import { isFbStandalone } from '../../../navigation/filterMenu'
-import { RUOLI_RISTORANTE, PROFILI_RISTORANTE, ALBERO_RISTORANTE } from './organigrammaRistorante'
+import { organigrammaDi } from './organigrammaRistorante'
+import { useStrutturaCorrente, schedaStruttura } from '../../../hooks/useStrutturaCorrente'
 import './Organigramma.sass'
 
 // ── Modello dati ──────────────────────────────────────────────────────────────
@@ -38,33 +39,51 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
   const ristorante       = isFbStandalone(assist ? assist.moduli : profiloAttivo?.moduli)
   const ruoliStore   = useRuoliStore(s => s.ruoli)
   const profiliStore = useRuoliStore(s => s.profili)
-  const ruoliCfg   = ristorante ? RUOLI_RISTORANTE : ruoliStore
-  const profiliCfg = ristorante ? PROFILI_RISTORANTE : profiliStore
+  // Ogni ristorante del gruppo ha la sua brigata: l'organigramma segue la struttura selezionata in alto.
+  const { struttura } = useStrutturaCorrente()
+  const orgRist = React.useMemo(
+    () => (ristorante ? organigrammaDi(struttura, schedaStruttura(struttura)?.classificazione) : null),
+    [ristorante, struttura],
+  )
+  const ruoliCfg   = orgRist ? orgRist.ruoli : ruoliStore
+  const profiliCfg = orgRist ? orgRist.profili : profiliStore
   const RUOLI: Ruolo[]   = ruoliCfg.map((r, i)   => ({ id: `r-${i}`, nome: r.nome, sigla: siglaDa(r.nome), colore: ROLE_PALETTE[i % ROLE_PALETTE.length] }))
   const PROFILI: Profilo[] = profiliCfg.map((p, i) => ({ id: `p-${i}`, nome: p.nome, initials: p.initials, colore: p.color, seed: p.seed }))
 
   // Si parte dal ruolo Amministratore (radice non eliminabile); per il ristorante l'albero è già costruito.
-  const [nodi, setNodi] = useState<Nodo[]>(() => {
-    if (!ristorante) return [{ id: 'admin', parentId: null, ruolo: ADMIN, profili: [] }]
+  const alberoIniziale = (): Nodo[] => {
+    if (!orgRist) return [{ id: 'admin', parentId: null, ruolo: ADMIN, profili: [] }]
     const admin: Profilo[] = profiloAttivo
       ? [{ id: 'p-admin', nome: profiloAttivo.nome, initials: profiloAttivo.nome.split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase(), colore: ADMIN.colore, seed: fotoProfilo(profiloAttivo) }]
       : []
     const idNodo = (ruolo: string) => `n-${RUOLI.findIndex(r => r.nome === ruolo)}`
     return [
       { id: 'admin', parentId: null, ruolo: ADMIN, profili: admin },
-      ...ALBERO_RISTORANTE.map(({ ruolo, padre }) => ({
+      ...orgRist.albero.map(({ ruolo, padre }) => ({
         id: idNodo(ruolo),
         parentId: padre ? idNodo(padre) : 'admin',
         ruolo: RUOLI.find(r => r.nome === ruolo)!,
         profili: PROFILI.filter((_, i) => profiliCfg[i].ruolo === ruolo),
       })),
     ]
-  })
+  }
+  const [nodi, setNodi] = useState<Nodo[]>(alberoIniziale)
+  // Cambio di ristorante: si riparte dal suo organigramma.
+  const primaStruttura = useRef(struttura)
+  useEffect(() => {
+    if (primaStruttura.current === struttura) return
+    primaStruttura.current = struttura
+    setNodi(alberoIniziale())
+    setDirty(false)
+    setEditMode(!orgRist)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [struttura])
   const seq = useRef(1)
   const newId = () => `n${seq.current++}`
 
   const [ruoloCollapsed,   setRuoloCollapsed]   = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  // Ristorante: organigramma già pronto, le colonne Ruolo/Profilo (strumenti di modifica) partono chiuse.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(!!orgRist)
   const [editId,  setEditId]  = useState<string | null>(null)
   const [editVal, setEditVal] = useState('')
   const [saved,   setSaved]   = useState(false)
@@ -72,11 +91,25 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
   const [pdfBusy, setPdfBusy] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)   // area esportata nel PDF
   const canvasRef = useRef<HTMLDivElement>(null)
-  // Albero più largo dell'area visibile (es. organigramma del ristorante): si parte centrati sul vertice.
+  const treeRef   = useRef<HTMLDivElement>(null)
+  // Adatta l'albero all'area visibile: nessun ruolo esce dalla pagina (si riduce, non si scorre).
+  const [fit, setFit] = useState({ k: 1, w: 0, h: 0 })
   useEffect(() => {
-    const c = canvasRef.current
-    if (c && c.scrollWidth > c.clientWidth) c.scrollLeft = (c.scrollWidth - c.clientWidth) / 2
-  }, [])
+    const c = canvasRef.current, t = treeRef.current
+    if (!c || !t) return
+    const misura = () => {
+      const st = getComputedStyle(c)
+      const aw = c.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
+      const ah = c.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom)
+      const w = t.offsetWidth, h = t.offsetHeight
+      const k = w && h ? Math.min(1, aw / w, ah / h) : 1
+      setFit(f => (Math.abs(f.k - k) < 0.005 && f.w === w && f.h === h ? f : { k, w, h }))
+    }
+    misura()
+    const ro = new ResizeObserver(misura)
+    ro.observe(c); ro.observe(t)
+    return () => ro.disconnect()
+  })
 
   // ── Modalità modifica: i pulsanti "+ livello" si vedono solo qui (nascosti dopo il salvataggio) ──
   const [editMode, setEditMode] = useState(!ristorante)
@@ -239,12 +272,34 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
   }
 
   // ── Render ricorsivo nodo ──
+  // Figli: i ruoli senza sottoposti (foglie) si impilano in una colonna, così l'albero resta stretto.
+  const renderFigli = (sub: Nodo[]) => {
+    const foglie = sub.filter(c => figli(c.id).length === 0)
+    if (foglie.length < 2) return <ul>{sub.map(renderNodo)}</ul>
+    return (
+      <ul>
+        {sub.filter(c => !foglie.includes(c)).map(renderNodo)}
+        <li className="org__stack">
+          {foglie.map(f => <div key={f.id} className="org__stack-item">{renderBox(f)}</div>)}
+        </li>
+      </ul>
+    )
+  }
+
   const renderNodo = (n: Nodo) => {
     const sub = figli(n.id)
+    return (
+      <li key={n.id}>
+        {renderBox(n)}
+        {sub.length > 0 && renderFigli(sub)}
+      </li>
+    )
+  }
+
+  const renderBox = (n: Nodo) => {
     const editing = editId === n.id
     const isAdmin = n.id === 'admin'
     return (
-      <li key={n.id}>
         <div
           className={`org__node ${isAdmin ? 'org__node--admin' : ''}`}
           style={{ '--node-color': n.ruolo.colore } as React.CSSProperties}
@@ -322,8 +377,6 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
             </div>
           )}
         </div>
-        {sub.length > 0 && <ul>{sub.map(renderNodo)}</ul>}
-      </li>
     )
   }
 
@@ -420,7 +473,13 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
             <div className="org__canvas" ref={canvasRef} onDragOver={allowDrop} onDrop={onCanvasDrop} onClick={() => { setAddMenu(null); setSelId(null) }}>
               {radici.length === 0
                 ? <div className="org__hint">Trascina un <strong>ruolo</strong> qui per creare il primo blocco</div>
-                : <ul className="org__tree">{radici.map(renderNodo)}</ul>}
+                : (
+                  <div className="org__fit" style={{ '--fit-k': fit.k, '--fit-w': `${fit.w * fit.k}px`, '--fit-h': `${fit.h * fit.k}px` } as React.CSSProperties}>
+                    <div className="org__fit-inner" ref={treeRef}>
+                      <ul className="org__tree">{radici.map(renderNodo)}</ul>
+                    </div>
+                  </div>
+                )}
             </div>
           </div>
         </div>

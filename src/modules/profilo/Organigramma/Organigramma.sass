@@ -259,6 +259,14 @@
         flex: none
         overflow: visible
 
+      .org__fit
+        width: auto
+        height: auto
+
+      .org__fit-inner
+        position: static
+        transform: none
+
   &__logo-bar
     display: flex
     align-items: center
@@ -295,8 +303,38 @@
   &__canvas
     flex: 1
     min-height: 0
-    padding: 28px 20px 40px
-    overflow: auto
+    padding: 20px
+    overflow: hidden
+
+  // Adattamento alla pagina: l'albero si riduce (scala) fino a stare tutto nel canvas.
+  &__fit
+    position: relative
+    width: var(--fit-w)
+    height: var(--fit-h)
+    margin: 0 auto
+
+  &__fit-inner
+    position: absolute
+    top: 0
+    left: 0
+    width: max-content
+    transform: scale(var(--fit-k))
+    transform-origin: 0 0
+
+  // Ruoli senza sottoposti impilati in colonna sotto il padre, uniti da una linea verticale.
+  &__tree li.org__stack
+    gap: 14px
+
+  &__stack-item
+    position: relative
+
+    & + &::before
+      content: ''
+      position: absolute
+      top: -14px
+      left: 50%
+      height: 14px
+      border-left: 2px solid $border
 
   &__hint
     height: 400px
