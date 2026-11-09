@@ -78,30 +78,36 @@
       background: var(--color-warning-light)
 
   &__c-nome
-    width: 26%
+    width: 24%
   &__c-prezzo
     width: 12%
   &__c-costo
     width: 12%
   &__c-inc
-    width: 13%
+    width: 12%
   &__c-marg
     width: 12%
   &__c-vend
-    width: 9%
+    width: 11%
   &__c-gen
     width: 12%
   &__c-act
-    width: 6%
+    width: 5%
 
   &__amt
     text-align: right
     font-variant-numeric: tabular-nums
 
+  // Intestazioni numeriche allineate a destra come i valori: servono due classi per battere `.sib-table th`.
+  .fbfc__table th.fbfc__amt,
+  .fbfc__table td.fbfc__amt
+    text-align: right
+
   // Due classi: con una sola pareggerebbe con `.sib-input` e vincerebbe il DS
   .fbfc__table .fbfc__num,
   .fbfc-sch__table .fbfc__num
-    width: 76px
+    width: 100%
+    max-width: 76px
     text-align: right
 
   &__unita
@@ -109,17 +115,22 @@
     color: var(--color-text-inactive)
 
   // Incidenza: il numero che si controlla in cucina, rosso quando scappa
+  // Incidenza: pallino + testo colorato (niente sfondi a pillola), allineata a destra come gli altri numeri.
   &__inc
-    display: inline-block
-    min-width: 46px
-    padding: 2px 8px
-    border-radius: 9px
-    background: var(--color-success-light)
+    display: inline-flex
+    align-items: center
+    gap: 6px
     color: var(--color-success)
     font-weight: 700
 
+    &::before
+      content: ''
+      width: 7px
+      height: 7px
+      border-radius: 50%
+      background: currentColor
+
     &.is-alta
-      background: var(--color-error-light)
       color: var(--color-error-dark)
 
   &__manca
