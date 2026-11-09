@@ -6,6 +6,8 @@ import { useNotifPrefsStore } from '../store/useNotifPrefsStore'
 import { useTurniPersonaleStore, etichettaSettimana, suggerimentiPerCadenza } from '../store/useTurniPersonaleStore'
 import { useVccEmesseStore, useVccRows, vccScadute } from '../store/useVccEmesseStore'
 import { usePreventiviSoggiornoStore } from '../store/usePreventiviSoggiornoStore'
+import { useFbSenzaHotel } from '../modules/operation/FoodBeverage/useFbSenzaHotel'
+import { useNotificheRistorazione } from './notificheRistorazione'
 import './notif.sass'
 
 // ── Tipi ─────────────────────────────────────────────────────────────────────
@@ -136,7 +138,15 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
       read: turniLetti.has(6001), reportPage: 'centro-notifiche', reportLabel: 'Apri nel Centro notifiche',
     }] : []),
   ]
-  const tutte = [...turniNotifs, ...pagamenti, ...visibili]
+  // Utenza stand alone (sola ristorazione): la campanella parla del ristorante, non dell'hotel.
+  const standalone = useFbSenzaHotel()
+  const ristorazione = useNotificheRistorazione(standalone)
+  const [ristLette, setRistLette] = useState<Set<number>>(new Set())
+  const ristNotifs: Notif[] = ristorazione.map(n => ({
+    id: n.id, sev: n.sev, origin: 'platform', title: n.title, text: n.text, ref: n.ref, date: n.date,
+    read: ristLette.has(n.id), reportPage: n.page, reportLabel: n.label,
+  }))
+  const tutte = standalone ? ristNotifs : [...turniNotifs, ...pagamenti, ...visibili]
 
   const unreadCount = tutte.filter(n => !n.read).length
 
@@ -150,12 +160,13 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   }, [])
 
   const markAllRead = () => {
-    setVccLetta(true); setTurniLetti(new Set([6000, 6001])); setNotifs(prev => prev.map(n => ({ ...n, read: true })))
+    setVccLetta(true); setTurniLetti(new Set([6000, 6001])); setRistLette(new Set(ristNotifs.map(n => n.id))); setNotifs(prev => prev.map(n => ({ ...n, read: true })))
     pagamenti.forEach(n => n.pagamento && segnaPagamentoLetto(n.pagamento.preventivo, n.pagamento.tentativo))
   }
   const markRead    = (id: number) => {
     if (id === VCC_ID) setVccLetta(true)
     if (id === 6000 || id === 6001) setTurniLetti(prev => new Set(prev).add(id))
+    if (ristNotifs.some(n => n.id === id)) setRistLette(prev => new Set(prev).add(id))
     const pg = pagamenti.find(n => n.id === id)?.pagamento
     if (pg) segnaPagamentoLetto(pg.preventivo, pg.tentativo)
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
@@ -258,7 +269,7 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
                       <div className="notif-item__meta">
                         <span className="notif-item__date">{n.date}</span>
                         <span className="notif-item__id">ID #{n.id}</span>
-                        <button
+                        {!standalone && <button
                           type="button"
                           className="notif-item__chat-btn"
                           title={`Apri chat (${cfg.label})`}
@@ -272,7 +283,7 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
                           }}
                         >
                           <i className="fa-light fa-comments" aria-hidden="true" />
-                        </button>
+                        </button>}
                       </div>
                     </div>
                     {n.ref && <div className="notif-item__ref">{n.ref}</div>}
@@ -288,7 +299,7 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
                           setOpen(false)
                         }}
                       >
-                        <i className={`fa-light ${n.pagamento ? 'fa-file-invoice' : 'fa-chart-column'}`} aria-hidden="true" /> {n.reportLabel ?? 'Visualizza report'}
+                        <i className={`fa-light ${n.pagamento ? 'fa-file-invoice' : standalone ? 'fa-arrow-right' : 'fa-chart-column'}`} aria-hidden="true" /> {n.reportLabel ?? 'Visualizza report'}
                       </button>
                     )}
                     <div className="notif-item__badges">
