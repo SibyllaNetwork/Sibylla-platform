@@ -24,6 +24,8 @@ import {
   MOTIVI_STORNO, PORTATE, STATO_RIGA, TIPI_MENU, VOCI_MENU, normalizzaRicerca, ricettaDi,
   type Comanda, type GruppoIngrediente, type Ingrediente, type MotivoStorno, type RigaComanda,
 } from '../fb.model'
+import GestioneComandaTablet from './GestioneComandaTablet'
+import { useIsTablet } from './useIsTablet'
 import './GestioneComanda.sass'
 
 const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
@@ -43,7 +45,13 @@ const PAGAMENTI: Array<{ id: NonNullable<Comanda['pagamento']>; label: string; i
   { id: 'wallet',   label: 'Wallet Sibylla',  ico: 'fa-wallet' },
 ]
 
+/** Su tablet la comanda va a tutto schermo per il cameriere; su desktop resta la pagina classica. */
 export default function GestioneComanda({ navigate }: { navigate?: (p: string) => void }) {
+  const tablet = useIsTablet()
+  return tablet ? <GestioneComandaTablet navigate={navigate} /> : <GestioneComandaDesktop navigate={navigate} />
+}
+
+function GestioneComandaDesktop({ navigate }: { navigate?: (p: string) => void }) {
   // Ristorante senza hotel: niente addebito camera né wallet Sibylla.
   const senzaHotel = useFbSenzaHotel()
   const pagamenti = PAGAMENTI.filter(p => metodoAmmesso(p.id, senzaHotel))

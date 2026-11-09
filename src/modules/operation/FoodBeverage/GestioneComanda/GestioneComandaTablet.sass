@@ -1,0 +1,1247 @@
+// ─── Gestione comanda · tablet ────────────────────────────────────────────────
+//  Schermo intero sopra l'app (sotto le modali di conferma, z 100, e i toast).
+//  Bersagli ≥ 56px, testi grandi, colori di categoria come segnale veloce.
+//  Orizzontale: categorie | piatti | scontrino. Verticale: categorie in fila in
+//  alto e scontrino a cassetto in basso.
+
+.gctab
+  position: fixed
+  inset: 0
+  z-index: 95
+  display: grid
+  grid-template-rows: 64px minmax(0, 1fr)
+  background: var(--color-bg)
+  color: var(--color-text-active)
+  font-family: var(--font-body, 'Open Sans'), sans-serif
+  -webkit-tap-highlight-color: transparent
+  user-select: none
+  touch-action: manipulation
+
+
+  // ── Testata ────────────────────────────────────────────────────────────────
+  &__head
+    display: grid
+    grid-template-columns: auto minmax(0, 1fr) auto
+    align-items: center
+    gap: 16px
+    padding: 0 16px
+    background: var(--color-primary-900)
+    color: var(--color-white, #fff)
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    height: 44px
+    padding: 0 16px
+    border-radius: 12px
+    background: color-mix(in oklab, white 12%, transparent)
+    color: white
+    font-size: 16px
+    font-weight: 600
+
+  &__head-centro
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 16px
+    min-width: 0
+
+  &__head-tavolo
+    font-family: var(--font-heading, Poppins), sans-serif
+    font-size: 22px
+    font-weight: 800
+    white-space: nowrap
+
+  &__head-sep
+    width: 1px
+    height: 26px
+    background: color-mix(in oklab, white 25%, transparent)
+
+  &__head-info
+    font-size: 16px
+    font-weight: 600
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
+
+  &__coperti
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 17px
+    font-weight: 700
+
+    button
+      display: grid
+      place-items: center
+      width: 40px
+      height: 40px
+      border-radius: 10px
+      background: color-mix(in oklab, white 12%, transparent)
+      color: white
+
+    span
+      min-width: 54px
+      text-align: center
+
+  &__head-dx
+    display: flex
+    align-items: center
+    gap: 14px
+
+  &__head-ora
+    font-size: 18px
+    font-weight: 700
+    font-variant-numeric: tabular-nums
+
+  &__cameriere
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 44px
+    padding: 0 12px 0 6px
+    border-radius: 22px
+    background: color-mix(in oklab, white 12%, transparent)
+    color: white
+    font-size: 15px
+    font-weight: 600
+
+  &__cameriere-av
+    display: grid
+    place-items: center
+    width: 34px
+    height: 34px
+    border-radius: 50%
+    background: var(--color-accent)
+    color: var(--color-primary-900)
+    font-size: 13px
+    font-weight: 800
+
+  // ── Mappa dei tavoli ───────────────────────────────────────────────────────
+  &__tavoli
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr)
+    gap: 16px
+    min-height: 0
+    padding: 16px 20px 20px
+
+  &__sale
+    display: flex
+    gap: 10px
+    overflow-x: auto
+
+  &__sala
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    height: 52px
+    padding: 0 22px
+    border-radius: 14px
+    background: var(--color-surface)
+    border: 2px solid var(--color-border)
+    font-size: 17px
+    font-weight: 700
+    white-space: nowrap
+
+    em
+      font-style: normal
+      font-size: 13px
+      font-weight: 600
+      color: var(--color-text-inactive)
+
+    &.is-on
+      border-color: var(--color-primary)
+      color: var(--color-primary)
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 15%, transparent)
+
+  &__griglia-tavoli
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr))
+    grid-auto-rows: 150px
+    gap: 14px
+    overflow-y: auto
+    padding-bottom: 8px
+
+  &__tav
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 6px
+    padding: 14px 16px
+    border-radius: 18px
+    background: var(--color-surface)
+    border: 2px dashed var(--color-border)
+    text-align: left
+    transition: transform 0.12s
+
+    &:active
+      transform: scale(0.97)
+
+    &.is-aperto
+      border: 0
+      border-top: 6px solid var(--st)
+      background: color-mix(in oklab, var(--st) 9%, var(--color-surface))
+      box-shadow: 0 6px 16px -10px color-mix(in oklab, var(--st) 80%, transparent)
+
+    &.is-mio
+      outline: 3px solid var(--color-accent)
+      outline-offset: 2px
+
+  &__tav-num
+    font-family: var(--font-heading, Poppins), sans-serif
+    font-size: 32px
+    font-weight: 800
+    line-height: 1
+
+  &__tav-stato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 13px
+    font-weight: 700
+    color: var(--st)
+
+    i
+      width: 8px
+      height: 8px
+      border-radius: 50%
+      background: currentColor
+
+  &__tav-dett
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 4px 12px
+    margin-top: auto
+    font-size: 14px
+    color: var(--color-text-inactive)
+
+    strong
+      margin-left: auto
+      font-size: 16px
+      color: var(--color-text-active)
+      font-variant-numeric: tabular-nums
+
+  &__tav-cam
+    position: absolute
+    top: 14px
+    right: 14px
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  // ── Comanda ────────────────────────────────────────────────────────────────
+  &__comanda
+    display: grid
+    grid-template-columns: 196px minmax(0, 1fr) minmax(320px, 29%)
+    min-height: 0
+
+  // Colonna categorie
+  &__cat
+    display: flex
+    flex-direction: column
+    gap: 10px
+    min-height: 0
+    padding: 12px
+    background: var(--color-surface)
+    border-right: 1px solid var(--color-border)
+
+  &__tipi
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 6px
+
+  &__tipo
+    height: 40px
+    padding: 0 12px
+    white-space: nowrap
+    border-radius: 10px
+    background: var(--color-bg)
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-text-inactive)
+
+    &.is-on
+      background: var(--color-primary-900)
+      color: white
+
+  &__cat-lista
+    display: flex
+    flex-direction: column
+    gap: 8px
+    overflow-y: auto
+    min-height: 0
+
+  &__cat-btn
+    display: flex
+    align-items: center
+    gap: 10px
+    min-height: 62px
+    padding: 0 14px
+    border-radius: 14px
+    background: color-mix(in oklab, var(--cc) 10%, var(--color-surface))
+    border-left: 6px solid var(--cc)
+    font-size: 16px
+    font-weight: 700
+    text-align: left
+
+    &.is-on
+      background: var(--cc)
+      color: white
+      box-shadow: 0 8px 18px -10px var(--cc)
+
+  &__cat-emoji
+    font-size: 24px
+
+  // Colonna piatti
+  &__piatti
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr) auto
+    min-height: 0
+    padding: 12px 14px 8px
+
+  &__piatti-bar
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 10px
+    margin-bottom: 12px
+
+  &__uscite
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    flex: 1
+    gap: 6px
+    min-width: 0
+
+  &__uscita
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 7px
+    min-width: 0
+    height: 50px
+    padding: 0 8px
+    overflow: hidden
+    border-radius: 12px
+    background: var(--color-surface)
+    border: 2px solid var(--color-border)
+    font-size: 14px
+    font-weight: 700
+    white-space: nowrap
+
+    span
+      min-width: 0
+      overflow: hidden
+      text-overflow: ellipsis
+
+    // Numero dell'uscita in un cerchio: l'ordine si legge a colpo d'occhio
+    .gctab__uscita-n
+      flex: none
+      display: grid
+      place-items: center
+      width: 22px
+      height: 22px
+      border-radius: 50%
+      background: var(--color-bg)
+      color: var(--color-primary)
+      font-size: 12px
+      font-weight: 800
+
+    &.is-on .gctab__uscita-n
+      background: color-mix(in oklab, white 22%, transparent)
+      color: white
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary)
+      color: white
+
+  // Ricerca (SearchField condiviso) a misura di dito
+  &__cerca, &__extra-cerca
+    flex: none
+
+    input
+      height: 46px
+      font-size: 16px
+      border-radius: 12px
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(178px, 1fr))
+    grid-auto-rows: minmax(124px, auto)
+    align-content: start
+    gap: 12px
+    overflow-y: auto
+    padding: 4px 4px 12px
+
+  &__piatto
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 4px
+    padding: 14px 14px 12px
+    border-radius: 16px
+    background: var(--color-surface)
+    border-top: 6px solid var(--cc)
+    box-shadow: 0 2px 8px -4px color-mix(in oklab, black 25%, transparent)
+    text-align: left
+    transition: transform 0.1s
+
+    &:active
+      transform: scale(0.96)
+
+    &.has-qta
+      box-shadow: 0 0 0 3px var(--cc), 0 8px 18px -10px var(--cc)
+
+    &.is-lampo
+      animation: gctab-lampo 0.45s ease-out
+
+  &__piatto-nome
+    font-size: 17px
+    font-weight: 700
+    line-height: 1.2
+
+  &__piatto-desc
+    display: -webkit-box
+    -webkit-line-clamp: 2
+    -webkit-box-orient: vertical
+    overflow: hidden
+    font-size: 12.5px
+    line-height: 1.35
+    color: var(--color-text-inactive)
+
+  &__piatto-piede
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    width: 100%
+    margin-top: auto
+
+    strong
+      font-size: 17px
+      font-variant-numeric: tabular-nums
+
+  &__piatto-opz
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11.5px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__obblig
+    font-style: normal
+    color: var(--color-warning)
+
+  &__chip--extra em
+    font-style: normal
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-success)
+
+  &__piatto-all
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: 1px
+    color: var(--color-warning)
+
+  &__piatto-qta
+    position: absolute
+    top: -10px
+    right: -8px
+    display: grid
+    place-items: center
+    min-width: 34px
+    height: 34px
+    padding: 0 8px
+    border-radius: 17px
+    background: var(--cc)
+    color: white
+    font-size: 16px
+    font-weight: 800
+    box-shadow: 0 4px 10px -4px var(--cc)
+    animation: gctab-pop 0.3s cubic-bezier(0.3, 1.6, 0.5, 1)
+
+  &__nessuno, &__suggerimento
+    color: var(--color-text-inactive)
+    font-size: 13px
+
+  &__suggerimento
+    margin: 0
+    padding-top: 6px
+    text-align: center
+
+  // Colonna scontrino
+  &__scontrino
+    display: flex
+    flex-direction: column
+    min-height: 0
+    background: var(--color-surface)
+    border-left: 1px solid var(--color-border)
+
+  &__scontrino-maniglia
+    display: none
+
+  &__righe
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+    padding: 8px 14px 12px
+
+  &__righe-vuote
+    display: grid
+    place-items: center
+    gap: 10px
+    height: 100%
+    text-align: center
+    color: var(--color-text-inactive)
+    font-size: 15px
+
+    i
+      font-size: 34px
+      color: var(--color-border)
+
+  &__gruppo
+    margin-bottom: 14px
+
+    h4
+      display: flex
+      align-items: center
+      gap: 8px
+      margin: 0 0 6px
+      padding-bottom: 6px
+      border-bottom: 1px solid var(--color-border)
+      font-size: 13px
+      font-weight: 700
+      color: var(--color-primary)
+
+  &__riga
+    display: grid
+    grid-template-columns: auto minmax(0, 1fr) auto
+    align-items: center
+    gap: 10px
+    padding: 8px 0
+    border-bottom: 1px dashed var(--color-border)
+
+    &.is-nuova
+      .gctab__riga-nome
+        color: var(--color-primary)
+
+  &__step
+    display: inline-flex
+    align-items: center
+    gap: 4px
+
+    button
+      display: grid
+      place-items: center
+      width: 40px
+      height: 40px
+      border-radius: 10px
+      background: var(--color-bg)
+      font-size: 14px
+
+    span
+      min-width: 26px
+      text-align: center
+      font-size: 17px
+      font-weight: 800
+
+  &__qta-fissa
+    min-width: 40px
+    font-size: 16px
+    font-weight: 700
+    color: var(--color-text-inactive)
+    text-align: center
+
+  &__riga-corpo
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 2px
+    min-width: 0
+    min-height: 44px
+    justify-content: center
+    text-align: left
+
+  &__riga-nome
+    font-size: 15.5px
+    font-weight: 700
+
+  &__riga-note
+    font-size: 12.5px
+    color: var(--color-warning)
+    font-weight: 600
+
+  &__riga-stato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    font-weight: 700
+    color: var(--st)
+
+    i
+      width: 7px
+      height: 7px
+      border-radius: 50%
+      background: currentColor
+
+  &__riga-prezzo
+    font-size: 15px
+    font-weight: 700
+    font-variant-numeric: tabular-nums
+
+  &__azioni
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 12px 14px 14px
+    border-top: 1px solid var(--color-border)
+    background: var(--color-surface)
+
+  &__totale
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    font-size: 15px
+    color: var(--color-text-inactive)
+
+    strong
+      font-family: var(--font-heading, Poppins), sans-serif
+      font-size: 28px
+      color: var(--color-text-active)
+      font-variant-numeric: tabular-nums
+
+  &__azioni-btn
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr)
+    gap: 10px
+
+  &__conto, &__invia, &__cta
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 10px
+    min-height: 60px
+    padding: 0 16px
+    border-radius: 14px
+    font-size: 17px
+    font-weight: 800
+
+    &:disabled
+      opacity: 0.45
+      cursor: default
+
+  &__conto
+    background: var(--color-surface)
+    border: 2px solid var(--color-primary)
+    color: var(--color-primary)
+
+  &__invia
+    white-space: nowrap
+    background: var(--color-success)
+    color: white
+    box-shadow: 0 10px 22px -12px var(--color-success)
+
+    em
+      display: grid
+      place-items: center
+      min-width: 28px
+      height: 28px
+      border-radius: 14px
+      background: color-mix(in oklab, white 25%, transparent)
+      font-style: normal
+      font-size: 14px
+
+  &__cta
+    background: var(--color-primary)
+    color: white
+
+  &__vuoto
+    display: grid
+    place-content: center
+    justify-items: center
+    gap: 14px
+    font-size: 18px
+    color: var(--color-text-inactive)
+
+    i
+      font-size: 48px
+
+  // Conti separati sullo stesso tavolo
+  &__conti-tav
+    display: flex
+    gap: 6px
+    padding: 10px 14px 0
+    overflow-x: auto
+
+  &__conto-chip
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    flex: none
+    height: 40px
+    padding: 0 12px
+    border-radius: 10px
+    background: var(--color-bg)
+    border: 2px solid var(--color-border)
+    font-size: 13.5px
+    font-weight: 700
+    white-space: nowrap
+
+    em
+      font-style: normal
+      font-weight: 600
+      color: var(--color-text-inactive)
+
+    &.is-on
+      border-color: var(--color-primary)
+      color: var(--color-primary)
+
+    &--add
+      border-style: dashed
+      color: var(--color-primary)
+
+  &__ospite
+    display: flex
+    align-items: center
+    gap: 10px
+    margin: 8px 14px 0
+    min-height: 46px
+    padding: 0 12px
+    border-radius: 12px
+    background: var(--color-bg)
+    font-size: 14px
+    font-weight: 700
+    text-align: left
+
+    span
+      flex: 1
+      min-width: 0
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    em
+      font-style: normal
+      font-size: 12.5px
+      color: var(--color-primary)
+      white-space: nowrap
+
+  &__nota-tav
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 8px 14px 0
+    padding: 10px 12px
+    border-radius: 12px
+    background: var(--color-warning-light)
+    color: var(--color-warning-dark, var(--color-warning))
+    font-size: 13px
+    font-weight: 600
+    text-align: left
+
+  &__subtot
+    display: flex
+    justify-content: space-between
+    gap: 10px
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+    span:last-child
+      color: var(--color-success)
+      font-weight: 700
+
+  &__secondarie
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 6px
+
+    button
+      position: relative
+      display: flex
+      flex-direction: column
+      align-items: center
+      justify-content: center
+      gap: 4px
+      height: 56px
+      border-radius: 12px
+      background: var(--color-bg)
+      font-size: 12.5px
+      font-weight: 700
+      color: var(--color-primary)
+
+      i
+        font-size: 17px
+
+      em
+        position: absolute
+        top: 4px
+        right: 8px
+        font-style: normal
+        font-size: 11px
+        color: var(--color-text-inactive)
+
+      &:disabled
+        opacity: 0.4
+
+  // Aggiunte già scelte sulla riga
+  &__extra-scelti
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin: 0 0 10px
+    padding: 0
+    list-style: none
+
+    li
+      display: grid
+      grid-template-columns: minmax(0, 1fr) auto auto
+      align-items: center
+      gap: 12px
+      padding: 6px 10px
+      border-radius: 12px
+      background: var(--color-success-light)
+      font-size: 15px
+      font-weight: 700
+
+    em
+      font-style: normal
+      color: var(--color-success)
+
+  &__extra-filtri
+    display: flex
+    flex-direction: column
+    gap: 8px
+    margin-bottom: 10px
+
+
+  &__chip-all
+    font-style: normal
+    font-size: 11px
+    font-weight: 800
+    color: var(--color-warning)
+
+  &__chip-sconto
+    font-style: normal
+    color: var(--color-success)
+    font-weight: 800
+
+  // Dividi il conto
+  &__seg
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 8px
+    margin-bottom: 14px
+
+    button
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      gap: 8px
+      height: 52px
+      border-radius: 12px
+      background: var(--color-bg)
+      border: 2px solid var(--color-border)
+      font-size: 15px
+      font-weight: 700
+
+      &.is-on
+        border-color: var(--color-primary)
+        color: var(--color-primary)
+        background: var(--color-primary-50)
+
+  &__parti
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 28px
+
+  &__step--big
+    button
+      width: 60px
+      height: 60px
+      font-size: 18px
+
+    span
+      min-width: 54px
+      font-size: 30px
+
+  &__sel-righe
+    display: flex
+    flex-direction: column
+    gap: 6px
+    max-height: 34vh
+    overflow-y: auto
+
+  &__sel-riga
+    display: grid
+    grid-template-columns: 26px minmax(0, 1fr) auto
+    align-items: center
+    gap: 10px
+    min-height: 52px
+    padding: 0 12px
+    border-radius: 12px
+    background: var(--color-bg)
+    border: 2px solid transparent
+    font-size: 15px
+    text-align: left
+
+    i
+      font-size: 20px
+      color: var(--color-text-inactive)
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary-50)
+
+      i
+        color: var(--color-primary)
+
+  // Archivio
+  &__arch
+    margin-bottom: 10px
+    padding: 12px 14px
+    border-radius: 14px
+    background: var(--color-bg)
+
+    header
+      display: grid
+      grid-template-columns: auto 1fr auto auto
+      gap: 12px
+      align-items: center
+      font-size: 14px
+      color: var(--color-text-inactive)
+
+      strong
+        color: var(--color-text-active)
+
+    ul
+      margin: 8px 0 0
+      padding: 0
+      list-style: none
+
+    li
+      display: flex
+      justify-content: space-between
+      padding: 4px 0
+      font-size: 14px
+      border-top: 1px dashed var(--color-border)
+
+  // ── Fogli dal basso ────────────────────────────────────────────────────────
+  &__velo
+    position: fixed
+    inset: 0
+    z-index: 96
+    display: flex
+    align-items: flex-end
+    justify-content: center
+    background: color-mix(in oklab, black 45%, transparent)
+    animation: gctab-velo 0.2s ease-out
+
+  &__foglio
+    width: min(760px, 100%)
+    max-height: 86vh
+    display: flex
+    flex-direction: column
+    border-radius: 24px 24px 0 0
+    background: var(--color-surface)
+    box-shadow: 0 -12px 40px -12px color-mix(in oklab, black 40%, transparent)
+    animation: gctab-foglio 0.28s cubic-bezier(0.2, 0.9, 0.3, 1)
+
+  &__foglio-maniglia
+    align-self: center
+    width: 54px
+    height: 5px
+    margin-top: 10px
+    border-radius: 3px
+    background: var(--color-border)
+
+  &__foglio-head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 16px
+    padding: 14px 22px 8px
+
+    h3
+      margin: 0
+      font-family: var(--font-heading, Poppins), sans-serif
+      font-size: 21px
+      font-weight: 800
+      color: var(--color-primary)
+
+    p
+      margin: 4px 0 0
+      font-size: 14px
+      color: var(--color-text-inactive)
+
+    button
+      display: grid
+      place-items: center
+      width: 46px
+      height: 46px
+      border-radius: 12px
+      background: var(--color-bg)
+      font-size: 18px
+
+  &__foglio-corpo
+    overflow-y: auto
+    padding: 6px 22px 22px
+
+  &__foglio-lab
+    margin: 14px 0 8px
+    font-size: 14px
+    font-weight: 700
+    color: var(--color-text-inactive)
+
+  &__foglio-info
+    display: flex
+    gap: 10px
+    padding: 12px 14px
+    border-radius: 12px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 14px
+
+    &--warn
+      background: var(--color-warning-light)
+      color: var(--color-warning-dark, var(--color-warning))
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 48px
+    padding: 0 16px
+    border-radius: 12px
+    background: var(--color-bg)
+    border: 2px solid var(--color-border)
+    font-size: 15px
+    font-weight: 600
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary-50)
+      color: var(--color-primary)
+
+    &--senza.is-on
+      border-color: var(--color-error)
+      background: var(--color-error-light)
+      color: var(--color-error-dark, var(--color-error))
+
+  // Azioni del foglio sempre visibili, anche con molte opzioni
+  &__foglio-azioni
+    position: sticky
+    bottom: -22px
+    display: flex
+    justify-content: space-between
+    gap: 12px
+    margin: 22px -22px -22px
+    padding: 14px 22px 22px
+    background: var(--color-surface)
+    border-top: 1px solid var(--color-border)
+
+    > *
+      flex: 1
+
+  &__foglio-elimina, &__foglio-annulla
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 10px
+    min-height: 56px
+    border-radius: 14px
+    font-size: 16px
+    font-weight: 700
+
+  &__foglio-elimina
+    border: 2px solid var(--color-error)
+    color: var(--color-error)
+
+    &--pieno
+      background: var(--color-error)
+      color: white
+
+  &__foglio-annulla
+    border: 2px solid var(--color-border)
+
+  &__numeri, &__camerieri
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(86px, 1fr))
+    gap: 10px
+
+  &__numero
+    height: 76px
+    border-radius: 16px
+    background: var(--color-bg)
+    border: 2px solid var(--color-border)
+    font-family: var(--font-heading, Poppins), sans-serif
+    font-size: 28px
+    font-weight: 800
+
+    &.is-sugg
+      border-color: var(--color-primary)
+      color: var(--color-primary)
+
+  &__camerieri
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))
+
+  &__cam-btn
+    display: flex
+    align-items: center
+    gap: 12px
+    min-height: 60px
+    padding: 0 14px
+    border-radius: 14px
+    background: var(--color-bg)
+    border: 2px solid var(--color-border)
+    font-size: 16px
+    font-weight: 700
+
+    &.is-on
+      border-color: var(--color-primary)
+
+  &__conto-tot
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 2px
+    margin: 6px 0 14px
+    color: var(--color-text-inactive)
+
+    strong
+      font-family: var(--font-heading, Poppins), sans-serif
+      font-size: 44px
+      color: var(--color-text-active)
+      font-variant-numeric: tabular-nums
+
+  &__metodi
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))
+    gap: 10px
+    margin-top: 14px
+
+  &__metodo
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 8px
+    height: 96px
+    border-radius: 16px
+    background: var(--color-bg)
+    border: 2px solid var(--color-border)
+    font-size: 16px
+    font-weight: 700
+
+    i
+      font-size: 26px
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary-50)
+      color: var(--color-primary)
+
+.gctab__chips.gctab__chips--scroll
+  flex-wrap: nowrap
+  overflow-x: auto
+
+  .gctab__chip
+    flex: none
+
+:where(.gctab) button
+  font: inherit
+  color: inherit
+  cursor: pointer
+  border: 0
+  background: none
+
+// ── Tablet in verticale: categorie in fila, scontrino a cassetto ─────────────
+@media (orientation: portrait)
+  .gctab__comanda
+    grid-template-columns: minmax(0, 1fr)
+    grid-template-rows: auto minmax(0, 1fr) auto
+
+  .gctab__cat
+    flex-direction: row
+    align-items: center
+    border-right: 0
+    border-bottom: 1px solid var(--color-border)
+    overflow-x: auto
+
+  .gctab__tipi
+    flex: none
+    grid-template-columns: repeat(4, auto)
+
+  // Due classi: battono la `w-full` del SearchField
+  .gctab__cat .gctab__cerca
+    width: 180px
+
+  .gctab__uscita b
+    display: block
+
+  .gctab__cat-lista
+    flex-direction: row
+
+  .gctab__cat-btn
+    flex: none
+    min-height: 52px
+
+  .gctab__scontrino
+    border-left: 0
+    border-top: 1px solid var(--color-border)
+    box-shadow: 0 -8px 24px -16px color-mix(in oklab, black 40%, transparent)
+
+  .gctab__scontrino-maniglia
+    display: flex
+    align-items: center
+    gap: 12px
+    height: 52px
+    padding: 0 16px
+    font-size: 15px
+    font-weight: 700
+
+    strong
+      margin-left: auto
+
+  // Cassetto chiuso: solo maniglia, totale e azioni; aperto: anche conti e righe
+  .gctab__comanda:not(.is-scontrino)
+    .gctab__conti-tav, .gctab__ospite, .gctab__nota-tav, .gctab__righe
+      display: none
+
+  .gctab__comanda.is-scontrino .gctab__scontrino
+    height: 62vh
+
+// ── Animazioni ───────────────────────────────────────────────────────────────
+@keyframes gctab-lampo
+  0%
+    background: color-mix(in oklab, var(--cc) 35%, var(--color-surface))
+  100%
+    background: var(--color-surface)
+
+@keyframes gctab-pop
+  from
+    transform: scale(0.4)
+
+@keyframes gctab-velo
+  from
+    opacity: 0
+
+@keyframes gctab-foglio
+  from
+    transform: translateY(100%)
+
+@media (prefers-reduced-motion: reduce)
+  .gctab__piatto, .gctab__piatto-qta, .gctab__velo, .gctab__foglio
+    animation: none !important
