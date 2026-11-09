@@ -1,4 +1,4 @@
-import { useAccessStore } from '../../../store/useAccessStore'
+import { useAccessStore, profiloDellaStruttura } from '../../../store/useAccessStore'
 
 // ─── HOME TOUR OPERATOR · profilo attivo ──────────────────────────────────────
 
@@ -19,4 +19,13 @@ export function useNomeProfilo(): string | null {
   if (assist) return null
   const nome = profiles.find(p => p.id === currentProfileId)?.nome
   return nome ? nome.split(' ')[0] : null
+}
+
+/** Pagina Home propria del profilo attivo (es. Dashboard F&B), se configurata. */
+export function useHomeProfilo(): string | undefined {
+  const assist           = useAccessStore(s => s.assist)
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const profiles         = useAccessStore(s => s.profiles)
+  if (assist) return assist.struttureIds.length === 1 ? profiloDellaStruttura(assist.struttureIds[0], profiles)?.home : undefined
+  return profiles.find(p => p.id === currentProfileId)?.home
 }

@@ -98,6 +98,8 @@ export interface ClientAdminSeed {
   nome: string
   email: string
   moduli: string[]
+  /** Pagina mostrata come Home dell'utenza (al posto del timone). */
+  home?: string
 }
 
 export const CLIENT_ADMINS: Record<number, ClientAdminSeed> = {
@@ -110,7 +112,7 @@ export const CLIENT_ADMINS: Record<number, ClientAdminSeed> = {
   7: { nome: 'Paolo Ferri',  email: 'paolo@residenceaurora.it',    moduli: ['struttura-ricettiva'] },
   8: { nome: 'Luca Moretti', email: 'luca@campuslivingto.it',      moduli: ['struttura-ricettiva', 'ristorazione'] },
   // Elena Russo: utenza associata a un solo Ristorante (modulo Ristorazione).
-  9: { nome: 'Elena Russo',  email: 'elena@osteriadellamole.it',   moduli: ['ristorazione'] },
+  9: { nome: 'Elena Russo',  email: 'elena@osteriadellamole.it',   moduli: ['ristorazione'], home: 'fb-dashboard' },
 }
 
 // Moduli assegnati per cliente (id → id moduli).

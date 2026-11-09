@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import GiornaleImpresaPeek from '../GiornaleImpresaPeek/GiornaleImpresaPeek'
 import Timone from '../Timone/Timone'
 import HomeDashboardTO from '../HomeDashboardTO/HomeDashboardTO'
-import { useIsTourOperator } from '../HomeToLinks/useProfiloTO'
+import DashboardFb from '../../operation/FoodBeverage/DashboardFb/DashboardFb'
+import { useIsTourOperator, useHomeProfilo } from '../HomeToLinks/useProfiloTO'
 import './HomePage.sass'
 
 // Onda di sfondo: pattern "gentle wave" — un unico path riusato 4 volte via
@@ -17,6 +18,9 @@ import './HomePage.sass'
 // I Tour Operator hanno una Home propria (dashboard); gli altri profili il timone.
 export default function HomePage({ navigate }: { navigate: (p: string) => void }) {
   const isTO = useIsTourOperator()
+  const home = useHomeProfilo()
+  // Utenze con una Home propria (es. Elena Russo, ristorante → Dashboard F&B).
+  if (home === 'fb-dashboard') return <DashboardFb navigate={navigate} />
   if (isTO) return <HomeDashboardTO navigate={navigate} />
   return <HomeTimone navigate={navigate} />
 }
