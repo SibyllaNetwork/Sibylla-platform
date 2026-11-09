@@ -39,9 +39,10 @@ export const useModuliStore = create<State>()(
     // v6: Dispositivi › Totem rifatto (Editor palinsesti, Pianifica trasmissioni, Spazi pubblicitari).
     // v7: nuovo modulo Food & Beverage stand alone.
     // v8: Food & Beverage stand alone senza Wallet clienti.
+    // v9: Food & Beverage stand alone senza Portafoglio.
     {
       name: 'sibylla.moduli',
-      version: 8,
+      version: 9,
       migrate: (salvato) => {
         const creati = ((salvato as { moduli?: Modulo[] } | undefined)?.moduli ?? []).filter(m => !PACCHETTI_INIT.some(p => p.id === m.id))
         return { moduli: [...PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })), ...creati] } as State
