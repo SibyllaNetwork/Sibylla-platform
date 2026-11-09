@@ -66,35 +66,6 @@
     align-items: center
     gap: 12px
 
-  // badge LIVE (nell'header pagina)
-  &__live
-    display: inline-flex
-    align-items: center
-    gap: 9px
-    border: 1px solid $border
-    background: var(--color-surface)
-    color: $text-inactive
-    font-size: 12px
-    font-weight: 700
-    padding: 7px 14px
-    border-radius: $radius-md
-    cursor: pointer
-    white-space: nowrap
-
-    &.is-live
-      border-color: $success
-      color: $success
-
-  &__live-dot
-    width: 9px
-    height: 9px
-    border-radius: 50%
-    background: $text-inactive
-
-  &__live.is-live &__live-dot
-    background: $success
-    animation: mon-perf-pulse 1.4s ease-in-out infinite
-
   // intestazione in case normale (standard tabella), una riga con ellipsis
   &__row--head
     padding: 8px 0 6px
@@ -578,10 +549,3 @@
 
     &__kpi-prize
       font-size: 13px
-
-// ─── ANIMAZIONI ─────────────────────────────────────────────────────────────
-@keyframes mon-perf-pulse
-  0%, 100%
-    box-shadow: 0 0 0 0 rgba(0, 207, 134, .5)
-  70%
-    box-shadow: 0 0 0 6px rgba(0, 207, 134, 0)

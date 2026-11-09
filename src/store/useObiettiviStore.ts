@@ -8,8 +8,7 @@ import { persist } from 'zustand/middleware'
 //  - budget lordo + margine % (M.U.) come fonte del target
 //  - frammentazione in PERIODI → SOTTOPERIODI definiti dall'utente
 //  - premio a VALORE ASSOLUTO (€) per ogni sottoperiodo
-//  Lo store è condiviso con la vista "Obiettivi in corso" (illustrazioni
-//  real-time): `avanzaProgresso()` fa evolvere il venduto degli obiettivi attivi.
+//  Lo store è condiviso con Monitoraggio performance e HR Overview.
 
 export type Segmento = 'prodotti' | 'servizi' | 'esperienze'
 export type TipologiaObiettivo = 'reparto' | 'individuale'
@@ -130,9 +129,6 @@ interface ObiettiviState {
   addObiettivo: (patch: Omit<Obiettivo, 'id' | 'createdAt'>) => string
   updateObiettivo: (id: string, patch: Partial<Obiettivo>) => void
   removeObiettivo: (id: string) => void
-  /** Fa evolvere in real-time il venduto: avanza il primo sottoperiodo non
-   *  ancora completato di ogni obiettivo in corso (effetto "onda" di progresso). */
-  avanzaProgresso: () => void
 }
 
 export const useObiettiviStore = create<ObiettiviState>()(
@@ -148,36 +144,15 @@ export const useObiettiviStore = create<ObiettiviState>()(
         set((s) => ({ obiettivi: s.obiettivi.map((o) => (o.id === id ? { ...o, ...patch } : o)) })),
       removeObiettivo: (id) =>
         set((s) => ({ obiettivi: s.obiettivi.filter((o) => o.id !== id) })),
-      avanzaProgresso: () =>
-        set((s) => ({
-          obiettivi: s.obiettivi.map((o) => {
-            if (o.stato !== 'in-corso') return o
-            let mosso = false
-            const periodi = o.periodi.map((p) => ({
-              ...p,
-              sottoperiodi: p.sottoperiodi.map((sp) => {
-                if (mosso || sp.venduto >= sp.target) return sp
-                mosso = true
-                // avanza di una frazione variabile del target (8–22%)
-                const delta = Math.max(1, Math.round(sp.target * (0.08 + Math.random() * 0.14)))
-                return { ...sp, venduto: Math.min(sp.target, sp.venduto + delta) }
-              }),
-            }))
-            return { ...o, periodi }
-          }),
-        })),
     }),
     {
       name: 'sibylla.obiettivi',
-      version: 3,
-      // v2 → v3: i due obiettivi di esempio passano ai reparti reali dell'HR.
+      version: 4,
+      // v4: reset degli obiettivi al seed — l'avanzamento simulato (rimosso)
+      // aveva portato tutti gli obiettivi in corso al 100%.
       migrate: (persisted, version) => {
         const st = persisted as { obiettivi?: Obiettivo[] } | undefined
-        if (!st?.obiettivi) return { obiettivi: SEED } as ObiettiviState
-        if (version < 3) {
-          const nuovo: Record<string, string> = { 'ob-commerciale-q2': 'F&B', 'ob-esperienze-inverno': 'Front office' }
-          st.obiettivi = st.obiettivi.map((o) => (nuovo[o.id] && (o.reparto === 'Commerciale' || o.reparto === 'Marketing') ? { ...o, reparto: nuovo[o.id] } : o))
-        }
+        if (!st?.obiettivi || version < 4) return { obiettivi: SEED } as ObiettiviState
         return st as ObiettiviState
       },
     },

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
@@ -18,7 +18,7 @@ import './MonitoraggioPerformance.sass'
  * Premio performance. Legge lo stesso `useObiettiviStore` della pagina
  * "Assegna obiettivo": ogni obiettivo è una "pista" i cui traguardi sono i
  * sottoperiodi reali (premio a valore assoluto in €), con avanzamento e
- * sblocco premi aggiornati in real-time.
+ * sblocco premi letti dallo store (nessun avanzamento simulato).
  */
 
 const STATO_ICON: Record<StatoAvanzamento, string> = { 'raggiunto': 'fa-circle-check', 'in-linea': 'fa-circle-half-stroke', 'a-rischio': 'fa-triangle-exclamation' }
@@ -63,20 +63,12 @@ function pistaNodi(o: Obiettivo) {
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function MonitoraggioPerformance(_props: { navigate?: (p: string) => void } = {}) {
   const obiettivi = useObiettiviStore((s) => s.obiettivi)
-  const avanza = useObiettiviStore((s) => s.avanzaProgresso)
 
   const [stato, setStato] = useState<'in-corso' | 'concluso' | 'tutti'>('in-corso')
   const [reparto, setReparto] = useState<'Tutti' | string>('Tutti')
   const [tipologia, setTipologia] = useState<'tutte' | 'reparto' | 'individuale'>('tutte')
   const [search, setSearch] = useState('')
-  const [live, setLive] = useState(true)
   const [detail, setDetail] = useState<Obiettivo | null>(null)
-
-  useEffect(() => {
-    if (!live) return
-    const id = setInterval(() => avanza(), 1800)
-    return () => clearInterval(id)
-  }, [live, avanza])
 
   const repartoOpts = useMemo(
     () => Array.from(new Set(obiettivi.map((o) => o.reparto).filter(Boolean))).sort() as string[],
@@ -100,14 +92,7 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
     <div className="mon-perf">
       <PageHead
         title="Monitoraggio performance"
-        subtitle="Controllo e analisi dei risultati e delle performance del personale, con premi maturati in tempo reale"
-        actions={
-          <button type="button" className={'mon-perf__live' + (live ? ' is-live' : '')} onClick={() => setLive((v) => !v)}>
-            <span className="mon-perf__live-dot" />
-            {live ? 'Live · in aggiornamento' : 'In pausa'}
-            <i className={`fa-solid ${live ? 'fa-pause' : 'fa-play'}`} />
-          </button>
-        }
+        subtitle="Controllo e analisi dei risultati e delle performance del personale, con i premi maturati"
       />
 
       {/* Toolbar */}
