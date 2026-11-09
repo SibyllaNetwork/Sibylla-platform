@@ -1,0 +1,281 @@
+// ─── Monitor di cucina · tablet ───────────────────────────────────────────────
+//  Sullo schermo della comanda tablet (.gctab): testata, pulsanti, zoom sugli
+//  schermi larghi. Qui le tre colonne a ticket, leggibili da due metri.
+
+.kdtab
+  &__conta
+    font-size: 15px
+    white-space: nowrap
+
+    strong
+      font-size: 19px
+
+  &__ritardo
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 15px
+    font-weight: 700
+    color: var(--color-warning)
+    white-space: nowrap
+
+  &__main
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr)
+    min-height: 0
+
+  &__barra
+    display: flex
+    flex-wrap: wrap
+    gap: 10px 18px
+    padding: 12px 16px
+    background: var(--color-surface)
+    border-bottom: 1px solid var(--color-border)
+
+  &__gruppo
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__n
+    font-style: normal
+    min-width: 24px
+    padding: 1px 6px
+    border-radius: 8px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 800
+    text-align: center
+
+  &__colonne
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 12px
+    min-height: 0
+    padding: 12px
+
+  &__col
+    --col: var(--color-primary)
+    display: flex
+    flex-direction: column
+    min-height: 0
+    border-radius: 18px
+    background: color-mix(in oklab, var(--col) 6%, var(--color-bg))
+    border: 2px solid color-mix(in oklab, var(--col) 22%, transparent)
+    overflow: hidden
+
+    &--inviata
+      --col: var(--color-primary)
+
+    &--in-preparazione
+      --col: var(--color-warning)
+
+    &--pronta
+      --col: var(--color-success)
+
+  &__col-head
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 12px 16px
+    background: var(--col)
+    color: white
+    font-family: var(--font-heading, Poppins), sans-serif
+    font-size: 18px
+    font-weight: 800
+
+    strong
+      margin-left: auto
+      min-width: 38px
+      padding: 2px 10px
+      border-radius: 12px
+      background: color-mix(in oklab, white 25%, transparent)
+      text-align: center
+
+  &__lista
+    flex: 1
+    min-height: 0
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 10px
+    overflow-y: auto
+
+  &__ticket
+    --liv: var(--color-success)
+    display: flex
+    flex-direction: column
+    border-radius: 14px
+    background: var(--color-surface)
+    border-top: 6px solid var(--liv)
+    box-shadow: 0 4px 12px -8px color-mix(in oklab, black 40%, transparent)
+    animation: kdtab-in 0.3s ease-out
+
+    &.is-ambra
+      --liv: var(--color-warning)
+
+    &.is-rosso
+      --liv: var(--color-error)
+      box-shadow: 0 0 0 2px var(--color-error), 0 6px 16px -8px var(--color-error)
+      animation: kdtab-in 0.3s ease-out, kdtab-allarme 1.6s ease-in-out infinite
+
+  &__ticket-head
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 10px 12px 6px
+
+  &__tav
+    font-family: var(--font-heading, Poppins), sans-serif
+    font-size: 22px
+    font-weight: 800
+
+  &__portata
+    font-size: 13.5px
+    font-weight: 700
+    color: var(--color-text-inactive)
+
+  &__tempo
+    margin-left: auto
+    font-size: 18px
+    font-weight: 800
+    color: var(--liv)
+    font-variant-numeric: tabular-nums
+
+  &__righe
+    margin: 0
+    padding: 0 6px
+    list-style: none
+
+  &__riga
+    display: grid
+    grid-template-columns: 40px minmax(0, 1fr) 32px
+    align-items: center
+    gap: 10px
+    width: 100%
+    min-height: 54px
+    padding: 6px
+    border-radius: 10px
+    border-top: 1px dashed var(--color-border)
+    text-align: left
+
+    &:active
+      background: var(--color-bg)
+
+  &__qta
+    display: grid
+    place-items: center
+    width: 38px
+    height: 38px
+    border-radius: 10px
+    background: var(--color-bg)
+    font-size: 19px
+    font-weight: 800
+
+  &__nome
+    display: flex
+    flex-direction: column
+    gap: 4px
+    font-size: 18px
+    font-weight: 700
+    line-height: 1.2
+
+  &__var
+    display: flex
+    flex-wrap: wrap
+    gap: 4px 10px
+
+    em
+      display: inline-flex
+      align-items: center
+      gap: 5px
+      font-style: normal
+      font-size: 14px
+      font-weight: 700
+
+      &.is-senza
+        color: var(--color-error)
+
+      &.is-extra
+        color: var(--color-success)
+
+      &.is-nota
+        color: var(--color-warning)
+
+  &__riga-az
+    font-size: 18px
+    color: var(--color-text-inactive)
+
+  &__ticket-foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+    padding: 8px 10px 10px
+
+    span
+      min-width: 0
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+      font-size: 13px
+      color: var(--color-text-inactive)
+
+  &__bump
+    display: inline-flex
+    flex: none
+    align-items: center
+    gap: 8px
+    min-height: 52px
+    padding: 0 18px
+    border-radius: 12px
+    background: var(--col)
+    color: white
+    font-size: 16px
+    font-weight: 800
+
+  &__vuoto
+    display: grid
+    place-items: center
+    gap: 10px
+    padding: 40px 0
+    font-size: 15px
+    color: var(--color-text-inactive)
+
+    i
+      font-size: 28px
+
+@keyframes kdtab-in
+  from
+    opacity: 0
+    transform: translateY(8px)
+
+@keyframes kdtab-allarme
+  0%, 100%
+    box-shadow: 0 0 0 2px var(--color-error), 0 0 0 0 color-mix(in oklab, var(--color-error) 40%, transparent)
+  50%
+    box-shadow: 0 0 0 2px var(--color-error), 0 0 0 8px color-mix(in oklab, var(--color-error) 0%, transparent)
+
+// Tablet in verticale: le colonne diventano righe scorrevoli in orizzontale
+@media (orientation: portrait)
+  .kdtab__colonne
+    grid-template-columns: minmax(0, 1fr)
+    grid-template-rows: repeat(3, minmax(0, 1fr))
+
+  .kdtab__lista
+    flex-direction: row
+    overflow-x: auto
+    overflow-y: hidden
+
+  .kdtab__ticket
+    flex: none
+    width: 320px
+    overflow-y: auto
+
+  .kdtab__vuoto
+    width: 100%
+
+@media (prefers-reduced-motion: reduce)
+  .kdtab__ticket
+    animation: none !important

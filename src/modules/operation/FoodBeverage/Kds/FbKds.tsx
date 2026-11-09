@@ -16,6 +16,8 @@ import { SelectField } from '../../../../core/components/form'
 import { toast } from '../../../../core/components/Toast/useToast'
 import { useFbStore, SALE } from '../../../../store/useFbStore'
 import { PORTATE, type RigaComanda, type StatoRiga } from '../fb.model'
+import FbKdsTablet from './FbKdsTablet'
+import { useIsTablet } from '../GestioneComanda/useIsTablet'
 import './FbKds.sass'
 
 /** Reparti che hanno un monitor: sono quelli che preparano. */
@@ -44,7 +46,13 @@ const minutiDa = (ora: string, adesso: Date) => {
   return Math.max(0, Math.round((adesso.getTime() - t.getTime()) / 60000))
 }
 
+/** Su tablet il monitor va a tutto schermo per la brigata; su desktop resta la pagina classica. */
 export default function FbKds({ navigate }: { navigate?: (p: string) => void }) {
+  const tablet = useIsTablet()
+  return tablet ? <FbKdsTablet navigate={navigate} /> : <FbKdsDesktop navigate={navigate} />
+}
+
+function FbKdsDesktop({ navigate }: { navigate?: (p: string) => void }) {
   const comande   = useFbStore(s => s.comande)
   const tavoli    = useFbStore(s => s.tavoli)
   const voci      = useFbStore(s => s.voci)
