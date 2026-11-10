@@ -109,11 +109,10 @@ function Elenco({ ctx, giro, onCambiato }: { ctx: MagCtx; giro: number; onCambia
     costo: a.costo_medio ?? -1,
   })), [dati])
   const scelte = (k: 'categoriaNome' | 'unita') => Array.from(new Set(tutte.map(r => r[k]))).sort()
-  const fornitori = useMemo(() => Array.from(new Set((dati ?? []).flatMap(a => a.fornitori.map(f => f.nome)))).sort(), [dati])
   const righeFiltrate = useMemo(() => cf.sortRows(tutte.filter(r =>
     cf.matchText(r.codice, 'codice') && cf.matchText(r.nome, 'nome') && cf.matchText(r.ean, 'ean') &&
     cf.matchMulti(r.categoriaNome, 'categoriaNome') && cf.matchMulti(r.unita, 'unita') && cf.matchMulti(r.scortaNome, 'scortaNome') &&
-    (!(cf.multi.fornitoriNomi?.length) || r.fornitori.some(f => cf.multi.fornitoriNomi.includes(f.nome))),
+    cf.matchText(r.fornitoriNomi, 'fornitoriNomi'),
   )),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [tutte, cf.text, cf.multi, cf.sort])
@@ -153,11 +152,11 @@ function Elenco({ ctx, giro, onCambiato }: { ctx: MagCtx; giro: number; onCambia
             <thead>
               <tr>
                 <th><span className="sib-colf-head">Codice{cf.th('codice', 'codice', { search: true, sort: true })}</span></th>
-                <th><span className="sib-colf-head">Nome{cf.th('nome', 'nome', { search: true, sort: true })}</span></th>
-                <th><span className="sib-colf-head"><TruncatedText text="Categoria" />{cf.th('categoriaNome', 'categoria', { options: scelte('categoriaNome'), sort: true })}</span></th>
+                <th><span className="sib-colf-head">Nome{cf.th('nome', 'nome', { search: true })}</span></th>
+                <th><span className="sib-colf-head"><TruncatedText text="Categoria" />{cf.th('categoriaNome', 'categoria', { options: scelte('categoriaNome') })}</span></th>
                 <th><span className="sib-colf-head"><TruncatedText text="Unità" />{cf.th('unita', 'unità', { options: scelte('unita') })}</span></th>
                 <th><span className="sib-colf-head"><TruncatedText text="Codici a barre" />{cf.th('ean', 'codice a barre', { search: true })}</span></th>
-                <th><span className="sib-colf-head"><TruncatedText text="Fornitori" />{cf.th('fornitoriNomi', 'fornitore', { options: fornitori, sort: true })}</span></th>
+                <th><span className="sib-colf-head"><TruncatedText text="Fornitori" />{cf.th('fornitoriNomi', 'fornitore', { search: true })}</span></th>
                 <th className="magpag__num"><span className="sib-colf-head"><TruncatedText text="Scorta min." full="Scorta minima" />{cf.th('scorta_minima', 'scorta minima', { sort: true })}</span></th>
                 <th className="magpag__num"><span className="sib-colf-head">Giacenza{cf.th('scortaNome', 'scorta', { options: SCORTA })}{cf.th('giacenza_totale', 'giacenza', { sort: true })}</span></th>
                 <th className="magpag__num"><span className="sib-colf-head"><TruncatedText text="Costo medio" />{cf.th('costo', 'costo medio', { sort: true })}</span></th>

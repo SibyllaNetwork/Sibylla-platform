@@ -101,8 +101,8 @@ function Elenco({ ctx }: { ctx: MagCtx }) {
             </colgroup>
             <thead>
               <tr>
-                <th><span className="sib-colf-head"><TruncatedText text="Voce del menu" />{cf.th('nome', 'voce del menu', { search: true, sort: true })}</span></th>
-                <th><span className="sib-colf-head"><TruncatedText text="Categoria" />{cf.th('categoria', 'categoria del menu', { options: categorie, sort: true })}</span></th>
+                <th><span className="sib-colf-head"><TruncatedText text="Voce del menu" />{cf.th('nome', 'voce del menu', { search: true })}</span></th>
+                <th><span className="sib-colf-head"><TruncatedText text="Categoria" />{cf.th('categoria', 'categoria del menu', { options: categorie })}</span></th>
                 <th><span className="sib-colf-head">Ricetta{cf.th('statoNome', 'ricetta', { options: STATO_RICETTA })}</span></th>
                 <th><span className="sib-colf-head">Reparto{cf.th('repartoNome', 'reparto', { options: REPARTI })}</span></th>
                 <th className="magpag__num"><span className="sib-colf-head"><TruncatedText text="Ingr." full="Ingredienti" />{cf.th('ingredienti', 'ingredienti', { sort: true })}</span></th>

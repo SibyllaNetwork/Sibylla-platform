@@ -161,8 +161,8 @@ function Contenuto({ ctx, azioni }: { ctx: MagCtx; azioni: React.ReactNode }) {
             </colgroup>
             <thead>
               <tr>
-                <th><span className="sib-colf-head">Articolo{cf.th('nome', 'articolo', { search: true, sort: true })}</span></th>
-                <th><span className="sib-colf-head"><TruncatedText text="Categoria" />{cf.th('categoriaNome', 'categoria', { options: categorie, sort: true })}</span></th>
+                <th><span className="sib-colf-head">Articolo{cf.th('nome', 'articolo', { search: true })}</span></th>
+                <th><span className="sib-colf-head"><TruncatedText text="Categoria" />{cf.th('categoriaNome', 'categoria', { options: categorie })}</span></th>
                 {colonnePunti.map(p => (
                   <th key={p.id} className="magpag__num"><span className="sib-colf-head"><TruncatedText text={p.nome} />{cf.th(`p_${p.id}`, p.nome, { sort: true })}</span></th>
                 ))}
