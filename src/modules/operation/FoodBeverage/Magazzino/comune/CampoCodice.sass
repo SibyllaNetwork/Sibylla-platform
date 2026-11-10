@@ -1,0 +1,45 @@
+// ─── Magazzino ristorazione: campo codice a barre + fotocamera ──────────────
+.magcod
+  display: flex
+  align-items: center
+  gap: 6px
+  min-width: 0
+
+  &__campo
+    flex: 1
+    min-width: 0
+
+  // Fuori tabella: icona regular, box mantenuto, blu Platform 16px (regole UI § 9)
+  .magcod__cam i
+    color: var(--color-primary)
+    font-size: 16px
+
+.magcod-cam
+  display: flex
+  flex-direction: column
+  gap: 10px
+  padding: 16px 20px 20px
+
+  &__video
+    width: 100%
+    max-height: 340px
+    border-radius: 8px
+    background: var(--color-text-active)
+    object-fit: cover
+
+  &__nota
+    margin: 0
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  &__errore
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    color: var(--color-error)
+    font-size: 13px
+
+  &__foot
+    display: flex
+    justify-content: flex-end

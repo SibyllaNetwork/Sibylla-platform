@@ -1,0 +1,71 @@
+// ─── Magazzino ristorazione › Articoli ──────────────────────────────────────
+.magart-pag
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 1
+    min-width: 240px
+    max-width: 380px
+
+  &__c-cod
+    width: 10%
+  &__c-nome
+    width: 17%
+  &__c-cat
+    width: 11%
+  &__c-u
+    width: 8%
+  &__c-ean
+    width: 11%
+  &__c-forn
+    width: 12%
+  &__c-q
+    width: 9%
+  &__c-giac
+    width: 12%
+  &__c-costo
+    width: 10%
+
+  &__riga
+    cursor: pointer
+
+  &__cod
+    color: var(--color-text-inactive)
+    font-variant-numeric: tabular-nums
+
+  &__nome
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+  &__sotto
+    flex: none
+    color: var(--color-warning)
+    font-size: 14px
+
+  &__q-sotto
+    color: var(--color-warning)
+    font-weight: 600
+
+.magart-cat
+  &__nuova
+    display: flex
+    align-items: flex-end
+    gap: 8px
+
+    > :first-child
+      flex: 1
+
+  &__c-nome
+    width: 80%
+  &__c-act
+    width: 20%
+
+  &__acts
+    text-align: right
+
+  &__piede
+    display: flex
+    justify-content: flex-end

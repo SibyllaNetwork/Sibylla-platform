@@ -1,0 +1,52 @@
+// ─── Movimenti › Nuovo movimento ────────────────────────────────────────────
+.magnmov
+  &__codice
+    max-width: 520px
+
+  &__c-art
+    width: 52%
+  &__c-q
+    width: 22%
+  &__c-disp
+    width: 18%
+  &__c-act
+    width: 8%
+
+  .magnmov__table td
+    overflow: visible
+
+  &__q
+    display: flex
+    align-items: center
+    gap: 4px
+
+    > :first-child
+      flex: 1
+      min-width: 0
+
+  &__u
+    flex: none
+    min-width: 34px
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  &__manca
+    color: var(--color-error)
+    font-weight: 600
+
+  &__acts
+    text-align: right
+
+  &__aggiungi
+    display: flex
+    align-items: center
+    gap: 6px
+    width: 100%
+    padding: 10px 12px
+    border: 0
+    border-top: 1px dashed var(--color-border)
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer

@@ -1,0 +1,115 @@
+// ─── Magazzino ristorazione › Movimenti ─────────────────────────────────────
+.magmov
+  &__periodo
+    min-width: 230px
+
+  &__f-art
+    min-width: 200px
+
+  .magmov__xls i
+    color: var(--color-primary)
+    font-size: 16px
+
+  &__c-data
+    width: 13%
+  &__c-tipo
+    width: 11%
+  &__c-det
+    width: 24%
+  &__c-punto
+    width: 13%
+  &__c-chi
+    width: 13%
+  &__c-aut
+    width: 10%
+  &__c-val
+    width: 8%
+  &__c-act
+    width: 8%
+
+  &__tipo
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+    i
+      flex: none
+      color: var(--color-primary)
+      font-size: 14px
+
+  .magmov__table tr.magmov__annullato td
+    color: var(--color-text-disabled)
+    text-decoration: line-through
+
+  .magmov__table tr.magmov__annullato td:last-child
+    text-decoration: none
+
+  &__acts
+    text-align: right
+
+.magmov-det
+  &__dati
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 12px
+    margin: 0
+
+    dt
+      font-size: 12px
+      font-weight: 600
+      color: var(--color-primary)
+
+    dd
+      margin: 2px 0 0
+      font-size: 13px
+
+  &__comanda
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 6px
+    margin: 0
+    padding: 10px 12px
+    border: 1px solid var(--color-primary-200)
+    border-radius: 6px
+    background: var(--color-primary-50)
+    font-size: 13px
+
+    i
+      color: var(--color-primary)
+
+    &--off
+      border-color: var(--color-border)
+      background: var(--color-surface)
+      color: var(--color-text-inactive)
+
+  &__link
+    margin-left: auto
+    border: 0
+    background: transparent
+    color: var(--color-link)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  &__c-art
+    width: 26%
+  &__c-punto
+    width: 14%
+  &__c-q
+    width: 14%
+  &__c-pr
+    width: 13%
+  &__c-lot
+    width: 19%
+
+  &__out
+    color: var(--color-error)
+
+  &__in
+    color: var(--color-success)
+
+  &__piede
+    display: flex
+    justify-content: flex-end

@@ -1,0 +1,138 @@
+// ─── Magazzino ristorazione › Ricette ───────────────────────────────────────
+.magrice
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 1
+    min-width: 240px
+    max-width: 380px
+
+  &__c-voce
+    width: 20%
+  &__c-cat
+    width: 11%
+  &__c-stato
+    width: 13%
+  &__c-rep
+    width: 9%
+  &__c-n
+    width: 7%
+  &__c-eur
+    width: 10%
+  &__c-fc
+    width: 10%
+  &__c-manc
+    width: 10%
+
+  .magrice__table tr.magrice__gruppo td
+    padding-top: 12px
+    color: var(--color-primary)
+    font-size: 12px
+    font-weight: 600
+
+  &__riga
+    cursor: pointer
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+    &--si
+      color: var(--color-success)
+
+    &--no
+      color: var(--color-text-inactive)
+
+  &__dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: currentColor
+
+  .magrice__table td.magrice__alto
+    color: var(--color-error)
+    font-weight: 600
+
+  &__manca
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    color: var(--color-warning)
+    font-weight: 600
+
+.magrice-ed
+  &__kpi
+    display: flex
+    flex-direction: column
+    gap: 2px
+    min-width: 0
+
+    span
+      font-size: 12px
+      font-weight: 600
+      color: var(--color-primary)
+
+    strong
+      font-size: 16px
+      color: var(--color-text-active)
+
+    &--alto strong
+      color: var(--color-error)
+
+  .magrice-ed__agg
+    font-size: 12.5px
+    font-weight: 500
+
+  &__c-art
+    width: 56%
+  &__c-q
+    width: 22%
+  &__c-costo
+    width: 14%
+  &__c-act
+    width: 8%
+
+  .magrice-ed__table td
+    overflow: visible
+
+  &__q
+    display: flex
+    align-items: center
+    gap: 4px
+
+    > :first-child
+      flex: 1
+      min-width: 0
+
+  &__u
+    flex: none
+    min-width: 22px
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  &__acts
+    text-align: right
+
+  &__aggiungi
+    display: flex
+    align-items: center
+    gap: 6px
+    width: 100%
+    padding: 10px 12px
+    border: 0
+    border-top: 1px dashed var(--color-border)
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  &__piede
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__spazio
+    flex: 1

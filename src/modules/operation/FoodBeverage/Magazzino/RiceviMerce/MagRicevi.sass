@@ -1,0 +1,140 @@
+// ─── Magazzino ristorazione › Ricevi merce ──────────────────────────────────
+.magric
+  &__tabs
+    flex: none
+
+  &__carico
+    display: flex
+    flex-direction: column
+    gap: 12px
+    flex: 1
+    min-height: 0
+
+  &__testa
+    display: grid
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, .9fr)
+    gap: 12px
+    align-items: start
+
+    @container (max-width: 900px)
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+
+  &__forn
+    display: flex
+    align-items: flex-end
+    gap: 6px
+
+    > :first-child
+      flex: 1
+      min-width: 0
+
+  .magric__icon-btn i
+    color: var(--color-primary)
+    font-size: 16px
+
+  &__lettore
+    display: flex
+    align-items: center
+    gap: 12px
+    max-width: 760px
+
+    > :first-child
+      flex: 1
+
+  &__ultima
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: var(--color-success)
+    font-size: 12.5px
+    font-weight: 600
+    white-space: nowrap
+
+  &__c-art
+    width: 32%
+  &__c-q
+    width: 15%
+  &__c-pr
+    width: 15%
+  &__c-lot
+    width: 13%
+  &__c-sca
+    width: 19%
+  &__c-act
+    width: 6%
+
+  // I campi in cella non devono sforare la colonna
+  .magric__table td
+    overflow: visible
+
+  &__q
+    display: flex
+    align-items: center
+    gap: 4px
+
+    > :first-child
+      flex: 1
+      min-width: 0
+
+  &__u
+    flex: none
+    min-width: 28px
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  &__acts
+    text-align: right
+
+  &__aggiungi
+    display: flex
+    align-items: center
+    gap: 6px
+    width: 100%
+    padding: 10px 12px
+    border: 0
+    border-top: 1px dashed var(--color-border)
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  &__piede
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 12px
+
+    > :first-child
+      margin-right: auto
+
+  // Riepilogo dopo il carico
+  &__fatto
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    padding: 48px 16px
+    text-align: center
+
+  &__fatto-ico
+    color: var(--color-success)
+    font-size: 40px
+
+  &__fatto-tit
+    margin: 0
+    font-size: 18px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__fatto-sub
+    margin: 0
+    font-size: 13px
+    color: var(--color-text-inactive)
+
+  &__fatto-azioni
+    display: flex
+    flex-wrap: wrap
+    justify-content: center
+    gap: 8px
+    margin-top: 12px

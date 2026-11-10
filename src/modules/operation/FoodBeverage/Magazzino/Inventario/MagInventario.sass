@@ -1,0 +1,108 @@
+// ─── Magazzino ristorazione › Inventario ────────────────────────────────────
+.maginv
+  &__c-punto
+    width: 14%
+  &__c-stato
+    width: 11%
+  &__c-data
+    width: 16%
+  &__c-chi
+    width: 13%
+  &__c-n
+    width: 9%
+  &__c-val
+    width: 12%
+
+  &__riga
+    cursor: pointer
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+    &--aperto
+      color: var(--color-warning)
+    &--chiuso
+      color: var(--color-success)
+    &--annullato
+      color: var(--color-text-inactive)
+
+  &__dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: currentColor
+
+  &__neg
+    color: var(--color-error)
+
+  &__pos
+    color: var(--color-success)
+
+  &__testa
+    display: flex
+    align-items: center
+    gap: 12px
+
+  &__titolo
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 14px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__salvo
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  &__barra
+    display: flex
+    align-items: center
+    gap: 12px
+
+  &__codice
+    flex: 1
+    max-width: 560px
+
+  &__c-art
+    width: 22%
+  &__c-cat
+    width: 13%
+  &__c-q
+    width: 11%
+  &__c-conta
+    width: 16%
+  &__c-da
+    width: 15%
+
+  .maginv__table td
+    overflow: visible
+
+  &__q
+    display: flex
+    align-items: center
+    gap: 4px
+
+    > :first-child
+      flex: 1
+      min-width: 0
+
+  &__u
+    flex: none
+    min-width: 22px
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  &__piede
+    display: flex
+    align-items: center
+    gap: 8px
+
+    > :first-child
+      margin-right: auto

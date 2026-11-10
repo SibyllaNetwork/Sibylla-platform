@@ -1,0 +1,140 @@
+// ─── Ricevi merce › Da bolla: "Fotografa col telefono" ──────────────────────
+.magtel
+  &__corpo
+    display: flex
+    align-items: center
+    gap: 24px
+
+    @media (max-width: 640px)
+      flex-direction: column
+
+  &__qr
+    position: relative
+    flex: none
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 240px
+    height: 240px
+    padding: 10px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+
+    &.is-scaduto .magtel__qr-img
+      opacity: .15
+
+  &__qr-img
+    width: 100%
+    height: 100%
+    image-rendering: pixelated
+
+  &__qr-attesa
+    color: var(--color-primary)
+    font-size: 28px
+
+  &__nuovo
+    position: absolute
+
+  &__testo
+    display: flex
+    flex: 1
+    flex-direction: column
+    gap: 10px
+    min-width: 0
+
+  &__tit
+    margin: 0
+    font-size: 15px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__passi
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin: 0
+    padding-left: 18px
+    font-size: 13px
+    color: var(--color-text-active)
+
+  &__stato
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+    strong
+      color: var(--color-primary)
+      font-variant-numeric: tabular-nums
+
+    &--off
+      color: var(--color-warning)
+
+  &__pulsa
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    background: var(--color-success)
+    animation: magtel-pulsa 1.4s ease-in-out infinite
+
+  &__ok
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    padding: 32px 16px
+    text-align: center
+    animation: magtel-entra .35s ease both
+
+    strong
+      font-size: 16px
+      color: var(--color-primary)
+
+  &__ok-ico
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 56px
+    height: 56px
+    border-radius: 50%
+    background: var(--color-success)
+    color: var(--color-surface)
+    font-size: 24px
+    animation: magtel-spunta .45s ease
+
+  &__piede
+    display: flex
+    justify-content: flex-end
+
+@keyframes magtel-pulsa
+  0%, 100%
+    opacity: 1
+    transform: scale(1)
+  50%
+    opacity: .35
+    transform: scale(.8)
+
+@keyframes magtel-entra
+  from
+    opacity: 0
+    transform: translateY(8px)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes magtel-spunta
+  0%
+    transform: scale(.5)
+  70%
+    transform: scale(1.15)
+  100%
+    transform: scale(1)
+
+@media (prefers-reduced-motion: reduce)
+  .magtel__pulsa,
+  .magtel__ok,
+  .magtel__ok-ico
+    animation: none

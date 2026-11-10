@@ -50,6 +50,7 @@ export function applyModuleLabels(items: any[], moduli?: string[]): any[] {
 const ICONE_FB_STANDALONE: Record<string, string> = {
   'fb-operativo': 'concierge-bell',
   'fb-economato': 'warehouse',
+  'fb-magazzino': 'boxes-stacked',
   'fb-struttura': 'building',
   'fb-menu': 'book',
   'fb-generali': 'sliders',
@@ -97,8 +98,12 @@ export function applySoloRistorazione(items: any[], moduli?: string[]): any[] {
 const raccogliPagine = (items: any[]): string[] =>
   items.flatMap(n => [...(n.page ? [n.page] : []), ...(n.children ? raccogliPagine(n.children) : [])])
 
+/** Toglie i gruppi `soloStandalone` (es. il Magazzino della ristorazione) dal menu integrato. */
+const senzaSoloStandalone = (items: any[]): any[] =>
+  items.filter(n => !n.soloStandalone).map(n => (n.children ? { ...n, children: senzaSoloStandalone(n.children) } : n))
+
 export function applyStandalone(items: any[], moduli?: string[]): any[] {
-  if (!isFbStandalone(moduli)) return items
+  if (!isFbStandalone(moduli)) return senzaSoloStandalone(items)
   const fb = trova(items, 'food-beverage')
   const gruppi = (fb?.children ?? [])
     .filter((n: any) => n.children?.length)

@@ -1,0 +1,143 @@
+// ─── Magazzino ristorazione: cornice delle pagine ────────────────────────────
+//  La pagina occupa l'altezza disponibile; il corpo scorre in verticale.
+.magshell
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__azioni
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    flex-wrap: wrap
+    gap: 8px
+
+  &__struttura
+    min-width: 200px
+
+  &__attesa
+    padding: 16px 0
+
+  &__stato
+    display: flex
+    justify-content: center
+    padding: 48px 16px
+
+  &__corpo
+    display: flex
+    flex-direction: column
+    gap: 10px
+    flex: 1
+    min-height: 0
+
+// ─── Parti comuni alle pagine del magazzino (dentro la cornice) ─────────────
+.magpag
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 170px
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__check
+    display: flex
+    align-items: center
+    min-height: 34px
+
+  &__errore
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    color: var(--color-error)
+    font-size: 13px
+
+  &__wrap
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  // Tabelle del magazzino: colonne fisse in %, testo su una riga, niente scroll orizzontale
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+  &__num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__vuoto
+    padding: 24px 8px
+    text-align: center
+    color: var(--color-text-inactive)
+
+  &__somma
+    display: flex
+    align-items: baseline
+    flex-wrap: wrap
+    gap: 6px
+    margin: 0
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+  &__nota
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  &__pag
+    display: flex
+    justify-content: center
+
+  &__azzera
+    border: 0
+    background: transparent
+    color: var(--color-link)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  // Icone-azione in tabella: solid, senza box, blu Platform 16px (regole UI § 9)
+  &__act
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    border: 0
+    background: transparent
+    color: var(--color-primary)
+    font-size: 16px
+    cursor: pointer
+
+    &:disabled
+      color: var(--color-text-disabled)
+      cursor: default
+
+// Fuori dal blocco `.magpag` (non c'è un antenato con quella classe). Due classi:
+// `.sib-table th` allinea a sinistra e con una classe sola vincerebbe il DS.
+.magpag__table th.magpag__num,
+.magpag__table td.magpag__num
+  text-align: right
+
+// TruncatedText con tooltip: il wrapper inline-flex del Tooltip si allargherebbe quanto il testo e i puntini non
+// comparirebbero. Nelle tabelle del magazzino resta largo al massimo quanto la cella.
+.magpag__table td > span
+  max-width: 100%
+
+.magpag__table td .sib-truncate
+  min-width: 0
