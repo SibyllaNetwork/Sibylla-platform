@@ -11,7 +11,7 @@ import { SelectField } from '../../../../../core/components/form'
 import { PAGE_SUBTITLES } from '../../../../../navigation/pageSubtitles'
 import { useStrutturaCorrente } from '../../../../../hooks/useStrutturaCorrente'
 import { CLIENTS_INIT } from '../../../../../admin/SibyllaAdminPanel/constants'
-import { impostaStrutturaDemo } from '../api/magazzinoFbOp'
+import { DATI_DIMOSTRATIVI, impostaStrutturaDemo, NON_RAGGIUNGIBILE } from '../api/magazzinoFbOp'
 import type { Contesto, Punto } from '../api/tipi'
 import { useMagazzinoFb } from './useMagazzinoFb'
 import './MagShell.sass'
@@ -90,8 +90,8 @@ export default function MagShell({ page, title, className, actions, children }: 
         <div className="magshell__stato">
           <EmptyState
             icon="plug-circle-xmark"
-            title="Magazzino di Op non raggiungibile"
-            subtitle={errore && errore !== 'Magazzino di Op non raggiungibile.' ? errore : 'Il collegamento con Op non risponde: riprova tra poco.'}
+            title="Magazzino non raggiungibile"
+            subtitle={errore && errore !== NON_RAGGIUNGIBILE ? errore : 'Il collegamento con il gestionale non risponde: riprova tra poco.'}
             action={(
               <button type="button" className="sib-btn sib-btn--primary" onClick={() => carica(struttura ?? '', true, CLIENTS_INIT.find(x => x.nome === struttura)?.id ?? null)}>
                 <i className="fa-solid fa-rotate-right" aria-hidden="true" /> Riprova
@@ -101,6 +101,11 @@ export default function MagShell({ page, title, className, actions, children }: 
         </div>
       )}
 
+      {ctx && DATI_DIMOSTRATIVI && (
+        <p className="magshell__demo">
+          <i className="fa-solid fa-flask" aria-hidden="true" /> Dati dimostrativi: le modifiche restano solo in questa pagina e si perdono ricaricandola.
+        </p>
+      )}
       {ctx && <div className="magshell__corpo">{children(ctx)}</div>}
     </div>
   )
