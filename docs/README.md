@@ -4,6 +4,11 @@ Indice della documentazione per sviluppatori.
 
 ## In questa cartella (`docs/`)
 
+- **[integrazioni-backend.md](./integrazioni-backend.md)**: **indice per gli sviluppatori del backend (Portal)**. Tutti
+  i documenti di integrazione di Platform e di Op, in che ordine leggerli, cosa sblocca ognuno e cosa sistemare prima
+  del rilascio.
+- **[portal-magazzino-ristorazione.md](./portal-magazzino-ristorazione.md)**: Magazzino della Ristorazione nel database
+  di Sibylla. Scheda completa per il Portal: azioni, modello dati, configurazione e rilascio, script SQL, contratto.
 - **[guida-sviluppatori.md](./guida-sviluppatori.md)** — punto d'ingresso operativo:
   come installare, avviare e riprodurre da zero front-end e back-end (prerequisiti,
   env, comandi, auth, service layer, smoke test, troubleshooting).
