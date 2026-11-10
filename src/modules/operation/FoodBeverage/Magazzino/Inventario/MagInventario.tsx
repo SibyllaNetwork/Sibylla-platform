@@ -81,7 +81,7 @@ function Elenco({ ctx, onApri }: { ctx: MagCtx; onApri: (id: number) => void }) 
             </colgroup>
             <thead>
               <tr>
-                <th><span className="sib-colf-head">Punto{cf.th('puntoNome', 'punto', { options: punti, sort: true })}</span></th>
+                <th><span className="sib-colf-head">Punto{cf.th('puntoNome', 'punto', { options: punti })}</span></th>
                 <th><span className="sib-colf-head">Stato{cf.th('statoNome', 'stato', { options: Object.values(STATI) })}</span></th>
                 <th><span className="sib-colf-head"><TruncatedText text="Aperto il" />{cf.th('aperto_il', 'aperto il', { sort: true })}</span></th>
                 <th><span className="sib-colf-head"><TruncatedText text="Aperto da" />{cf.th('aperto_da', 'aperto da', { search: true })}</span></th>
