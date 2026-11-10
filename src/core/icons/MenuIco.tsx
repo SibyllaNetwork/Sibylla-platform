@@ -186,6 +186,8 @@ const MENU_MAP: Record<string, string> = {
   'fb-magazzino':               'fa-boxes-stacked',
   'fb-mag-giacenze':            'fa-boxes-stacked',
   'fb-mag-ricevi':              'fa-truck-ramp-box',
+  'fb-mag-riordino':            'fa-cart-arrow-down',
+  'fb-mag-ordini':              'fa-file-invoice',
   'fb-mag-movimenti':           'fa-right-left',
   'fb-mag-articoli':            'fa-wheat-awn',
   'fb-mag-ricette':             'fa-book-open',

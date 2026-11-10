@@ -23,7 +23,8 @@ export interface Rif { id: number; nome: string }
 
 /** § 8.2 */
 export interface CodiceABarre { ean: string; quantita: number; descrizione: string | null }
-export interface FornitoreArticolo { id_fornitore: number; nome: string; codice_fornitore: string | null; prezzo: number | null }
+/** `confezione`: multiplo d'ordine presso quel fornitore, nell'unità dell'articolo (es. cartone da 10 kg); null = qualsiasi quantità. */
+export interface FornitoreArticolo { id_fornitore: number; nome: string; codice_fornitore: string | null; prezzo: number | null; confezione: number | null }
 
 export interface Articolo {
   id: number
@@ -35,6 +36,10 @@ export interface Articolo {
   codici_a_barre: CodiceABarre[]
   fornitori: FornitoreArticolo[]
   scorta_minima: number
+  /** Riordino: quando la giacenza (più la merce in arrivo) scende a questo valore, l'articolo va riordinato. null = si usa la scorta minima. */
+  punto_riordino: number | null
+  /** Riordino: livello fino a cui riempire con l'ordine. null = il doppio del punto di riordino. */
+  scorta_obiettivo: number | null
   id_punto_predefinito: number | null
   costo_medio: number | null
   giacenza_totale: number
@@ -108,8 +113,10 @@ export interface ArticoloRichiesta {
   id_categoria: number | null
   unita: Unita
   codici_a_barre: CodiceABarre[]
-  fornitori: { id_fornitore: number; codice_fornitore: string | null }[]
+  fornitori: { id_fornitore: number; codice_fornitore: string | null; confezione?: number | null }[]
   scorta_minima: number
+  punto_riordino?: number | null
+  scorta_obiettivo?: number | null
   id_punto_predefinito: number | null
   attivo: boolean
   note: string | null
@@ -139,6 +146,8 @@ export interface MovimentoRichiesta {
   motivo?: string | null
   note?: string | null
   origine?: 'manuale' | 'codice_a_barre' | 'bolla'
+  /** Solo `carico`: l'ordine al fornitore che questo carico evade (le quantità ricevute si sommano alle sue righe). */
+  id_ordine?: number | null
   righe: RigaMovimentoRichiesta[]
 }
 
@@ -315,6 +324,80 @@ export interface RigaConta {
 
 export interface InventarioDettaglio extends InventarioRiga { righe: RigaConta[] }
 
+/** Fornitore completo (azione `fornitore`). */
+export interface FornitoreDettaglio extends FornitoreRichiesta { id: number; articoli: number }
+
+/** Riordino e ordini ai fornitori (docs/portal-magazzino-riordino.md). */
+export type StatoOrdine = 'bozza' | 'inviato' | 'parziale' | 'ricevuto' | 'chiuso' | 'annullato'
+
+export interface RigaRiordino {
+  id_articolo: number
+  nome: string
+  categoria: string | null
+  unita: Unita
+  giacenza: number
+  in_arrivo: number
+  punto_riordino: number
+  scorta_obiettivo: number
+  quantita_proposta: number
+  fornitori: { id_fornitore: number; nome: string; codice_fornitore: string | null; prezzo: number | null; confezione: number | null }[]
+  id_fornitore_proposto: number | null
+}
+
+export interface Riordino { aggiornato_il: string; righe: RigaRiordino[] }
+
+export interface RigaOrdine {
+  id_articolo: number
+  nome: string
+  unita: Unita
+  codice_fornitore: string | null
+  quantita: number
+  prezzo_atteso: number | null
+  ricevuta: number
+}
+
+export interface OrdineSintesi {
+  id: number
+  numero: string
+  id_struttura: number
+  fornitore: { id: number; nome: string; email: string | null }
+  stato: StatoOrdine
+  creato_il: string
+  creato_da: string
+  inviato_il: string | null
+  consegna_richiesta: string | null
+  righe_count: number
+  totale_atteso: number
+}
+
+export interface Ordine extends OrdineSintesi {
+  inviato_da: string | null
+  inviato_a: string[]
+  note: string | null
+  motivo_chiusura: string | null
+  righe: RigaOrdine[]
+}
+
+export interface OrdineRichiesta {
+  id: number | null
+  id_operazione?: string
+  id_struttura: number
+  id_fornitore: number
+  consegna_richiesta: string | null
+  note: string | null
+  righe: { id_articolo: number; quantita: number; prezzo_atteso: number | null }[]
+}
+
+export interface InvioOrdine {
+  id: number
+  id_operazione: string
+  a: string[]
+  cc: string[]
+  oggetto: string
+  messaggio: string
+  pdf: { nome_file: string; dati: string }
+}
+
 /** § 8.13 — "Fotografa col telefono". */
 export interface PassaggioTelefono { codice: string; url: string; scade_il: string }
 export interface StatoTelefono { stato: 'attesa' | 'inviata' | 'ritirata' | 'scaduta'; scade_il: string; file: FileBolla[] }
@@ -333,6 +416,14 @@ export interface Azioni {
   salva_punto: [PuntoRichiesta, Esito]
   elimina_punto: [{ id: number }, Esito]
   salva_fornitore: [FornitoreRichiesta, Esito]
+  fornitore: [{ id: number }, FornitoreDettaglio]
+  riordino: [{ id_struttura: number }, Riordino]
+  ordini: [{ id_struttura: number; stato?: StatoOrdine | null; id_fornitore?: number | null }, OrdineSintesi[]]
+  ordine: [{ id: number }, Ordine]
+  salva_ordine: [OrdineRichiesta, Esito]
+  invia_ordine: [InvioOrdine, Esito]
+  annulla_ordine: [{ id: number; motivo: string }, Esito]
+  chiudi_ordine: [{ id: number; motivo: string }, Esito]
   registra: [MovimentoRichiesta, Esito]
   movimenti: [FiltriMovimenti, Pagina<RigaRegistro>]
   movimento: [{ id: number }, MovimentoDettaglio]

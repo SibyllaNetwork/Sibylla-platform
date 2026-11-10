@@ -49,8 +49,9 @@ export default function ArticoloScheda({ idArticolo, ctx, onClose, onCambiato }:
     try {
       const e = await eseguiMag('salva_articolo', {
         id: a.id, nome: a.nome, id_categoria: a.id_categoria, unita: a.unita, codici_a_barre: a.codici_a_barre,
-        fornitori: a.fornitori.map(f => ({ id_fornitore: f.id_fornitore, codice_fornitore: f.codice_fornitore })),
-        scorta_minima: a.scorta_minima, id_punto_predefinito: a.id_punto_predefinito, attivo: !a.attivo, note: a.note,
+        fornitori: a.fornitori.map(f => ({ id_fornitore: f.id_fornitore, codice_fornitore: f.codice_fornitore, confezione: f.confezione })),
+        scorta_minima: a.scorta_minima, punto_riordino: a.punto_riordino, scorta_obiettivo: a.scorta_obiettivo,
+        id_punto_predefinito: a.id_punto_predefinito, attivo: !a.attivo, note: a.note,
       })
       if (!e.success) { toast.error(e.error_message || 'Operazione non riuscita.'); return }
       toast.success(a.attivo ? `«${a.nome}» disattivato.` : `«${a.nome}» di nuovo attivo.`)
@@ -85,6 +86,10 @@ export default function ArticoloScheda({ idArticolo, ctx, onClose, onCambiato }:
                 <div><dt>Categoria</dt><dd>{a.categoria ?? '—'}</dd></div>
                 <div><dt>Unità</dt><dd>{a.unita}</dd></div>
                 <div><dt>Scorta minima</dt><dd>{fmtQ(a.scorta_minima, a.unita)}</dd></div>
+                <div>
+                  <dt>Riordino</dt>
+                  <dd>{fmtQ(a.punto_riordino ?? a.scorta_minima, a.unita)} → {fmtQ(a.scorta_obiettivo ?? (a.punto_riordino ?? a.scorta_minima) * 2, a.unita)}</dd>
+                </div>
                 <div><dt>Costo medio</dt><dd>{a.costo_medio == null ? '—' : `${euroU(a.costo_medio)} / ${a.unita}`}</dd></div>
                 <div><dt>Punto dei carichi</dt><dd>{a.id_punto_predefinito ? nomePunto(a.id_punto_predefinito) : 'Primo magazzino'}</dd></div>
                 <div>
@@ -124,7 +129,7 @@ export default function ArticoloScheda({ idArticolo, ctx, onClose, onCambiato }:
                     <ul className="magscheda__elenco">
                       {a.fornitori.map(f => (
                         <li key={f.id_fornitore}>
-                          <span>{f.nome}{f.codice_fornitore ? ` · ${f.codice_fornitore}` : ''}</span>
+                          <span>{f.nome}{f.codice_fornitore ? ` · ${f.codice_fornitore}` : ''}{f.confezione ? ` · conf. ${fmtQ(f.confezione, a.unita)}` : ''}</span>
                           <strong>{f.prezzo == null ? '—' : `${euroU(f.prezzo)} / ${a.unita}`}</strong>
                         </li>
                       ))}

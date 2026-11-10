@@ -64,6 +64,7 @@ aggiornamento.
 | Documento | Cosa c'è |
 |---|---|
 | [portal-magazzino-ristorazione.md](portal-magazzino-ristorazione.md) | **Tutto il necessario**, documento autosufficiente: <br>• Parte A, azioni delle pagine sul database (schema `magfb`); <br>• Parte B, ingresso firmato per l'app Op; <br>• Parte C, lettura delle bolle con l'AI e "Fotografa col telefono"; <br>• § H, configurazione per ambiente, rotte del Proxy, CORS, limiti, ordine di rilascio, prove; <br>• Appendice 1, script SQL; <br>• Appendice 2, contratto completo |
+| [portal-magazzino-riordino.md](portal-magazzino-riordino.md) | **Riordino e ordini ai fornitori**, estensione della scheda precedente: punto di riordino e scorta obiettivo, proposta per fornitore, ordini con invio per email e PDF, carico collegato all'ordine; azioni, regole, casi di prova, script SQL |
 
 Regola: un'azienda presente in Platform (Ristorazione stand alone o con più moduli) tiene il magazzino nel database di
 Sibylla, anche quando usa l'app Op. Solo i clienti indipendenti di Op (senza Platform) restano in Op. La Parte A della
