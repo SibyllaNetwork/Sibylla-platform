@@ -1,8 +1,9 @@
-// ─── Magazzino della Ristorazione: client finto (solo sviluppo) ──────────────
+// ─── Magazzino della Ristorazione: client finto (sviluppo e demo) ────────────
 //  § B5.3 della scheda 17: risponde come il § 8 con pochi dati d'esempio in
 //  memoria (si azzerano ricaricando la pagina), errori compresi, per provare
 //  tutti i rami delle pagine finché Op e Portal non sono pronti. Lo carica
-//  magazzinoFbOp solo nella build di sviluppo: mai in produzione.
+//  magazzinoFbOp nella build di sviluppo e nelle build senza Portal (demo su Vercel);
+//  con il Portal configurato non si usa.
 //
 //  Per provare gli altri rami, da console:
 //    localStorage.setItem('sibylla.magFbFinto', JSON.stringify({ gestore: false }))   // utente operatore
@@ -10,7 +11,7 @@
 //    localStorage.setItem('sibylla.magFbFinto', JSON.stringify({ rete: false }))      // 502 dal Portal
 //    localStorage.removeItem('sibylla.magFbFinto')
 
-import { MagazzinoFbErrore, NON_RAGGIUNGIBILE } from './magazzinoFbOp'
+import { MagazzinoFbErrore, NON_RAGGIUNGIBILE, strutturaCorrenteDemo } from './magazzinoFbOp'
 import type {
   Articolo, ArticoloRichiesta, BollaLetta, CategoriaRicette, Contesto, DatiAzione, Esito, FornitoreBreve, FornitoreRichiesta,
   InventarioDettaglio, InventarioRiga, MovimentoRichiesta, NomeAzione, Punto, RepartoRicetta, Rif, RigaGiacenza, RigaMovimento,
@@ -398,7 +399,11 @@ type Gestori = { [A in NomeAzione]: (d: DatiAzione<A>, gestore: boolean) => Risp
 
 const azioni: Gestori = {
   contesto: (_d, gestore): Contesto => ({
-    strutture: db.strutture, punti: db.punti, categorie: [...db.categorie].sort((a, b) => a.nome.localeCompare(b.nome)),
+    // La struttura della demo è quella scelta in alto (nome e id di Platform).
+    strutture: db.strutture.map(x => {
+      const s = strutturaCorrenteDemo()
+      return s ? { ...x, nome: s.nome, id_struttura_platform: s.id } : x
+    }), punti: db.punti, categorie: [...db.categorie].sort((a, b) => a.nome.localeCompare(b.nome)),
     fornitori: db.fornitori.map((f): FornitoreBreve => ({ id: f.id, nome: f.nome, partita_iva: f.partita_iva })).sort((a, b) => a.nome.localeCompare(b.nome)),
     unita: [{ key: 'kg', nome: 'Chilogrammi' }, { key: 'l', nome: 'Litri' }, { key: 'pz', nome: 'Pezzi' }],
     motivi_scarto: [

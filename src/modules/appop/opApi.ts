@@ -21,20 +21,6 @@ export class OpApiError extends Error {
   }
 }
 
-/**
- * POST JSON a Op.Api che restituisce la risposta così com'è, per i chiamanti che devono leggere stato e corpo
- * (es. distinguere i 404 della rotta demo del magazzino ristorazione). Rete giù → OpApiError con status 0.
- */
-export async function opPostGrezzo(path: string, body: unknown): Promise<Response> {
-  const headers = new Headers({ Accept: 'application/json', 'Content-Type': 'application/json' })
-  if (CHIAVE_SVILUPPO) headers.set('X-Chiave-Amministrazione', CHIAVE_SVILUPPO)
-  try {
-    return await fetch(`${OP_API_URL}${path}`, { method: 'POST', headers, body: JSON.stringify(body) })
-  } catch {
-    throw new OpApiError(0, 'Op.Api non raggiungibile. Controlla la connessione o l’indirizzo del server.')
-  }
-}
-
 async function opFetch<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
   const headers = new Headers({ Accept: 'application/json' })
   if (body !== undefined) headers.set('Content-Type', 'application/json')

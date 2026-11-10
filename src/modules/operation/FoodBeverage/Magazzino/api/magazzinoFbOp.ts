@@ -1,35 +1,43 @@
-// ─── Magazzino della Ristorazione: client verso Op ───────────────────────────
-//  Una sola funzione per tutte le azioni del § 8 della scheda
-//  sibylla-op/docs/integrazione-sibylla/17-magazzino-ristorazione.md.
+// ─── Magazzino della Ristorazione: client ────────────────────────────────────
+//  Una sola funzione per tutte le azioni del § 8 della scheda 17 di sibylla-op.
+//  I dati stanno nel database di Sibylla Platform: le pagine parlano solo col
+//  Portal (`POST OpApp/magazzinoFb/Esegui`, docs/portal-magazzino-ristorazione.md).
 //
-//  Ordine, come la BI (leggiBiOp) e la configurazione dell'App Op!:
-//   1. in sviluppo, il client finto (§ B5.3), salvo REACT_APP_MAGAZZINO_FB_FINTO=0;
-//   2. la rotta demo di Op.Api per le aziende demo (§ B5.2), senza firma;
-//   3. il Portal, `POST OpApp/magazzinoFb/Esegui`, che firma e inoltra a Op.
-//  I dati stanno solo in Op: qui niente copie, niente calcoli.
+//  Senza un Portal configurato (build pubblicata senza REACT_APP_API_URL, come
+//  la demo su Vercel) e nella build di sviluppo si usa il client finto: dati
+//  dimostrativi in memoria, che si perdono ricaricando la pagina. Con il Portal
+//  configurato il client finto non si usa mai (salvo REACT_APP_MAGAZZINO_FB_FINTO=1).
 
 import { apiFetchSibylla, ApiError } from '../../../../../services/api'
-import { OpApiError, opPostGrezzo, type StrutturaOp } from '../../../../appop/opApi'
+import type { StrutturaOp } from '../../../../appop/opApi'
 import type { DatiAzione, Esito, NomeAzione, RispostaAzione } from './tipi'
 
-/** Errore da mostrare all'utente: `detail` di Op/Portal già in italiano. */
+/** Errore da mostrare all'utente: `detail` del Portal già in italiano. */
 export class MagazzinoFbErrore extends Error {
   constructor(public readonly status: number, message: string) {
     super(message)
   }
 }
 
-export const NON_RAGGIUNGIBILE = 'Magazzino di Op non raggiungibile.'
+export const NON_RAGGIUNGIBILE = 'Magazzino non raggiungibile.'
 
-/** Il client finto si usa solo nella build di sviluppo: mai in produzione. */
-export const CLIENT_FINTO = process.env.NODE_ENV === 'development' && process.env.REACT_APP_MAGAZZINO_FB_FINTO !== '0'
+const PORTAL_CONFIGURATO = !!process.env.REACT_APP_API_URL
+const FORZA = process.env.REACT_APP_MAGAZZINO_FB_FINTO
 
-// La rotta demo vuole la struttura di Platform (id e nome): la imposta la pagina che apre il magazzino.
+/**
+ * Dati dimostrativi: nella build di sviluppo (salvo REACT_APP_MAGAZZINO_FB_FINTO=0) e nelle build pubblicate senza
+ * Portal (demo su Vercel). Con il Portal configurato si usano solo i dati veri.
+ */
+export const CLIENT_FINTO = FORZA === '1'
+  || (FORZA !== '0' && (process.env.NODE_ENV === 'development' || !PORTAL_CONFIGURATO))
+
+/** Nella demo pubblicata (non in sviluppo) le pagine mostrano che i dati sono dimostrativi. */
+export const DATI_DIMOSTRATIVI = CLIENT_FINTO && process.env.NODE_ENV !== 'development'
+
+// Struttura scelta in alto: il client finto ne usa id e nome, così la demo mostra il ristorante giusto.
 let strutturaDemo: StrutturaOp | null = null
 export const impostaStrutturaDemo = (s: StrutturaOp | null) => { strutturaDemo = s }
-
-// Autore e livello li mette il Portal dal token; sulla rotta demo li manda la pagina (§ B5.2).
-const AUTORE_DEMO = 'Utente demo'
+export const strutturaCorrenteDemo = () => strutturaDemo
 
 const detailDi = (body: unknown): string | null => {
   if (body && typeof body === 'object') {
@@ -38,35 +46,6 @@ const detailDi = (body: unknown): string | null => {
     if (typeof b.title === 'string') return b.title
   }
   return null
-}
-
-type Esito3<T> = { ok: true; valore: T | null } | { ok: false }
-
-/** Rotta demo. `{ ok: false }` = non è un'azienda demo o Op non risponde: si passa al Portal. */
-async function viaDemo<T>(azione: string, dati: object): Promise<Esito3<T>> {
-  const p = new URLSearchParams()
-  if (strutturaDemo) { p.set('struttura', String(strutturaDemo.id)); p.set('nome', strutturaDemo.nome) }
-  let res: Response
-  try {
-    res = await opPostGrezzo(`/admin/collegata/magazzino-ristorazione?${p}`, { azione, autore: AUTORE_DEMO, gestore: true, dati })
-  } catch (e) {
-    if (e instanceof OpApiError) return { ok: false }
-    throw e
-  }
-  const text = await res.text()
-  let body: unknown = null
-  try { body = text ? JSON.parse(text) : null } catch { body = null }
-  if (res.ok) return { ok: true, valore: body as T }
-  // 404 con un `title` del contratto (es. "Articolo non trovato.") = elemento mancante (§ 6). Ogni altro 404 (senza
-  // corpo, con `detail` come "Struttura gestita da Sibylla Platform.", o col titolo generico "Not Found" di ASP.NET)
-  // vuol dire che la struttura non è un'azienda demo: si passa al Portal.
-  if (res.status === 404) {
-    const b = body as { title?: unknown; detail?: unknown } | null
-    if (b && typeof b.title === 'string' && b.title !== 'Not Found' && typeof b.detail !== 'string') throw new MagazzinoFbErrore(404, b.title)
-    return { ok: false }
-  }
-  if (res.status === 401) return { ok: false }
-  throw new MagazzinoFbErrore(res.status, detailDi(body) ?? NON_RAGGIUNGIBILE)
 }
 
 async function viaPortal<T>(azione: string, dati: object): Promise<T | null> {
@@ -93,8 +72,6 @@ export async function magazzinoFbOp<A extends NomeAzione>(azione: A, dati: DatiA
     const { eseguiFinto } = await import('./clientFinto')
     return eseguiFinto(azione, dati)
   }
-  const demo = await viaDemo<RispostaAzione<A>>(azione, dati as object)
-  if (demo.ok) return demo.valore
   return viaPortal<RispostaAzione<A>>(azione, dati as object)
 }
 
