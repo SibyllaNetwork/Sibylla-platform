@@ -57,10 +57,12 @@ async function viaDemo<T>(azione: string, dati: object): Promise<Esito3<T>> {
   let body: unknown = null
   try { body = text ? JSON.parse(text) : null } catch { body = null }
   if (res.ok) return { ok: true, valore: body as T }
-  // 404 con `title` = elemento mancante (§ 6); 404 senza corpo, rotta assente o "non collegata" = non è un'azienda demo.
+  // 404 con un `title` del contratto (es. "Articolo non trovato.") = elemento mancante (§ 6). Ogni altro 404 (senza
+  // corpo, con `detail` come "Struttura gestita da Sibylla Platform.", o col titolo generico "Not Found" di ASP.NET)
+  // vuol dire che la struttura non è un'azienda demo: si passa al Portal.
   if (res.status === 404) {
-    const b = body as { title?: unknown } | null
-    if (b && typeof b.title === 'string') throw new MagazzinoFbErrore(404, b.title)
+    const b = body as { title?: unknown; detail?: unknown } | null
+    if (b && typeof b.title === 'string' && b.title !== 'Not Found' && typeof b.detail !== 'string') throw new MagazzinoFbErrore(404, b.title)
     return { ok: false }
   }
   if (res.status === 401) return { ok: false }
@@ -74,8 +76,9 @@ async function viaPortal<T>(azione: string, dati: object): Promise<T | null> {
     if (e instanceof ApiError) {
       const b = e.body as { collegata?: unknown } | null
       if (e.status === 404 && b && typeof b === 'object' && b.collegata === false) return null
-      // 404 senza corpo = il Portal non espone ancora l'azione: "non raggiungibile", come un 502.
-      throw new MagazzinoFbErrore(e.status, detailDi(e.body) ?? NON_RAGGIUNGIBILE)
+      // 404 senza corpo o col titolo generico = il Portal non espone ancora l'azione: "non raggiungibile", come un 502.
+      const d = detailDi(e.body)
+      throw new MagazzinoFbErrore(e.status, d && d !== 'Not Found' ? d : NON_RAGGIUNGIBILE)
     }
     throw new MagazzinoFbErrore(0, NON_RAGGIUNGIBILE)
   }
