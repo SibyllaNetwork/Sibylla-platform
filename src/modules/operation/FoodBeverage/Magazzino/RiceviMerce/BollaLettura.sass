@@ -1,0 +1,533 @@
+// ─── Ricevi merce › Da bolla ────────────────────────────────────────────────
+//  Caricamento a trascinamento con miniature, lettura animata (scansione +
+//  passi), revisione con scheda fornitore, contatori e righe che compaiono
+//  una alla volta. Con "riduci movimento" restano solo i passi.
+.magbol
+  &__carica,
+  &__rev
+    display: flex
+    flex-direction: column
+    gap: 14px
+    flex: 1
+    min-height: 0
+
+  // Etichetta "AI di Sibylla": icona + testo colorato (niente pillole)
+  &__ai
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: var(--color-primary-500)
+    font-size: 12px
+    font-weight: 600
+
+  // ── Caricamento ─────────────────────────────────────────────────────────────
+  &__drop
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 220px
+    padding: 28px 20px
+    border: 2px dashed var(--color-primary-300)
+    border-radius: 14px
+    background: linear-gradient(135deg, var(--color-primary-50), var(--color-surface) 60%)
+    text-align: center
+    cursor: pointer
+    transition: border-color .2s ease, background-color .2s ease, transform .2s ease
+
+    &:hover,
+    &:focus-visible
+      border-color: var(--color-primary)
+      outline: none
+
+    &.is-sopra
+      border-color: var(--color-primary)
+      background: var(--color-primary-100)
+      transform: scale(1.01)
+
+    &.is-piena
+      min-height: 150px
+
+  &__drop-ico
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 64px
+    height: 64px
+    border-radius: 50%
+    background: var(--color-primary)
+    color: var(--color-surface)
+    font-size: 26px
+    box-shadow: 0 8px 24px var(--color-focus-ring)
+    animation: magbol-galleggia 3s ease-in-out infinite
+
+  &__drop-tit
+    font-size: 16px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__drop-sub
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  &__altri
+    display: flex
+    align-items: center
+    justify-content: center
+    flex-wrap: wrap
+    gap: 8px
+    margin: 4px 0
+
+  &__oppure
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  &__input
+    display: none
+
+  &__file
+    display: flex
+    flex-wrap: wrap
+    gap: 14px
+
+  &__pagina
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    width: 168px
+    margin: 0
+    padding: 8px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    animation: magbol-entra .35s ease both
+
+  &__pagina-num
+    position: absolute
+    top: 14px
+    left: 14px
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 22px
+    height: 22px
+    border-radius: 50%
+    background: var(--color-primary)
+    color: var(--color-surface)
+    font-size: 11px
+    font-weight: 700
+
+  &__img
+    width: 100%
+    height: 190px
+    border-radius: 6px
+    object-fit: cover
+
+  &__pdf
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 100%
+    height: 190px
+    border-radius: 6px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 56px
+
+  &__pagina-nome
+    width: 100%
+    font-size: 12px
+    text-align: center
+
+  &__pagina-azioni
+    display: flex
+    justify-content: center
+    gap: 2px
+
+  &__piede
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 8px
+
+    > .magpag__nota
+      margin-right: auto
+
+  // ── Lettura: anteprima scansionata + passi ──────────────────────────────────
+  &__lettura
+    display: flex
+    align-items: center
+    justify-content: center
+    flex-wrap: wrap
+    gap: 40px
+    padding: 32px 16px
+    animation: magbol-entra .35s ease both
+
+  &__scanner
+    position: relative
+    width: 240px
+    height: 320px
+    overflow: hidden
+    border: 1px solid var(--color-primary-200)
+    border-radius: 12px
+    background: var(--color-surface)
+    box-shadow: 0 12px 40px var(--color-focus-ring)
+
+  &__scan-img
+    width: 100%
+    height: 100%
+    object-fit: cover
+    filter: saturate(.85)
+
+  &__scan-pdf
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 100%
+    height: 100%
+    color: var(--color-primary)
+    font-size: 96px
+
+  // Linea luminosa che percorre la pagina dall'alto in basso
+  &__scan-linea
+    position: absolute
+    left: 0
+    right: 0
+    top: 0
+    height: 3px
+    background: var(--color-primary-400)
+    box-shadow: 0 0 12px 4px var(--color-primary-300), 0 0 32px 10px var(--color-focus-ring)
+    animation: magbol-scansione 2.2s ease-in-out infinite
+
+  // Velo che segue la linea: la parte "già letta" resta appena tinta
+  &__scan-velo
+    position: absolute
+    inset: 0
+    background: linear-gradient(180deg, var(--color-primary-100), transparent 70%)
+    opacity: .35
+    mix-blend-mode: multiply
+    animation: magbol-bagliore 2.2s ease-in-out infinite
+
+  &__scan-pagine
+    position: absolute
+    right: 10px
+    bottom: 10px
+    padding: 3px 8px
+    border-radius: 6px
+    background: var(--color-primary)
+    color: var(--color-surface)
+    font-size: 11px
+    font-weight: 600
+
+  &__passi
+    display: flex
+    flex-direction: column
+    gap: 12px
+    max-width: 380px
+
+  &__passi-tit
+    margin: 0
+    font-size: 18px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__passi-lista
+    display: flex
+    flex-direction: column
+    gap: 10px
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__passo
+    display: flex
+    align-items: center
+    gap: 10px
+    font-size: 13.5px
+    color: var(--color-text-disabled)
+    transition: color .3s ease
+
+    &--attivo
+      color: var(--color-primary)
+      font-weight: 600
+
+    &--fatto
+      color: var(--color-text-active)
+
+  &__passo-ico
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 24px
+    height: 24px
+    border: 1px solid currentColor
+    border-radius: 50%
+    font-size: 11px
+    transition: background-color .3s ease, color .3s ease, border-color .3s ease
+
+    .magbol__passo--dopo &
+      i
+        font-size: 5px
+
+    .magbol__passo--fatto &
+      border-color: var(--color-success)
+      background: var(--color-success)
+      color: var(--color-surface)
+      animation: magbol-spunta .35s ease
+
+  // ── Revisione ───────────────────────────────────────────────────────────────
+  &__intesta
+    display: grid
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr)
+    gap: 16px
+    align-items: stretch
+    animation: magbol-entra .4s ease both
+
+    @container (max-width: 1000px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__fcard
+    display: grid
+    grid-template-columns: 44px minmax(0, 1fr)
+    gap: 4px 12px
+    padding: 14px 16px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+
+  &__fcard-ico
+    grid-row: span 2
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 44px
+    height: 44px
+    border-radius: 10px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 18px
+
+  &__fcard-corpo
+    display: flex
+    flex-direction: column
+    gap: 2px
+    min-width: 0
+
+  &__fcard-lab
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  &__fcard-nome
+    font-size: 15px
+    color: var(--color-primary)
+
+  &__fcard-det
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  &__fcard-sel
+    grid-column: 2
+
+  &__testa
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 12px
+    align-content: start
+
+  &__abb
+    display: flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-error)
+
+    &--ok
+      color: var(--color-success)
+
+    &--nuovo
+      color: var(--color-warning)
+
+  &__conta
+    display: flex
+    align-items: center
+    justify-content: space-between
+    flex-wrap: wrap
+    gap: 8px 16px
+    margin: 0
+
+  &__conta-voci
+    display: inline-flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 14px
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+  &__totale
+    padding-left: 14px
+    border-left: 1px solid var(--color-border)
+
+    strong
+      color: var(--color-primary)
+      font-size: 14px
+
+  &__leg
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: var(--color-text-inactive)
+
+    &--ok .magbol__dot
+      background: var(--color-success)
+    &--nuovo .magbol__dot
+      background: var(--color-warning)
+    &--da .magbol__dot
+      background: var(--color-warning-light)
+      border: 1px solid var(--color-warning)
+
+  &__dot
+    width: 10px
+    height: 10px
+    border-radius: 2px
+
+  &__c-letto
+    width: 24%
+  &__c-art
+    width: 24%
+  &__c-q
+    width: 12%
+  &__c-pr
+    width: 12%
+  &__c-lot
+    width: 9%
+  &__c-sca
+    width: 14%
+  &__c-act
+    width: 5%
+
+  &__letto
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__letto-det
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  &__scelta
+    display: flex
+    align-items: center
+    gap: 4px
+
+    > :first-child
+      flex: 1
+      min-width: 0
+
+  &__q
+    display: flex
+    align-items: center
+    gap: 4px
+
+    > :first-child
+      flex: 1
+      min-width: 0
+
+  &__u
+    flex: none
+    min-width: 26px
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  &__acts
+    text-align: right
+
+// Righe della revisione (fuori dal blocco: non c'è un antenato `.magbol`)
+.magbol__table td
+  overflow: visible
+
+// Stato della riga: barra colorata a sinistra (niente sfondi a pillola)
+.magbol__table tr.is-ok td:first-child
+  box-shadow: inset 3px 0 0 var(--color-success)
+
+.magbol__table tr.is-nuovo td:first-child
+  box-shadow: inset 3px 0 0 var(--color-warning)
+
+.magbol__table tr.is-da td
+  background: var(--color-warning-light)
+
+.magbol__table tr.is-da td:first-child
+  box-shadow: inset 3px 0 0 var(--color-warning)
+
+.magbol__table tr.is-esclusa td
+  opacity: .45
+
+// Le righe compaiono una alla volta
+.magbol__table tbody tr.magbol__riga
+  animation: magbol-entra .4s ease both
+
+@for $i from 1 through 30
+  .magbol__table tbody tr.magbol__riga:nth-child(#{$i})
+    animation-delay: #{$i * 70ms}
+
+@keyframes magbol-scansione
+  0%
+    top: 0
+  50%
+    top: calc(100% - 3px)
+  100%
+    top: 0
+
+@keyframes magbol-bagliore
+  0%, 100%
+    opacity: .15
+  50%
+    opacity: .45
+
+@keyframes magbol-galleggia
+  0%, 100%
+    transform: translateY(0)
+  50%
+    transform: translateY(-5px)
+
+@keyframes magbol-entra
+  from
+    opacity: 0
+    transform: translateY(8px)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes magbol-spunta
+  0%
+    transform: scale(.6)
+  70%
+    transform: scale(1.15)
+  100%
+    transform: scale(1)
+
+// Riduci movimento: restano i passi, niente scansione, comparse o fluttuazioni
+@media (prefers-reduced-motion: reduce)
+  .magbol__drop-ico,
+  .magbol__pagina,
+  .magbol__lettura,
+  .magbol__intesta,
+  .magbol__scan-linea,
+  .magbol__scan-velo,
+  .magbol__passo-ico,
+  .magbol__table tbody tr.magbol__riga
+    animation: none
+
+  .magbol__scan-linea
+    display: none
+
+  .magbol__drop
+    transition: none
+
+    &.is-sopra
+      transform: none

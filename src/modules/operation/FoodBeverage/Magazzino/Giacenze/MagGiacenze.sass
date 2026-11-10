@@ -1,0 +1,73 @@
+// ─── Magazzino ristorazione › Giacenze ──────────────────────────────────────
+.maggia
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 1
+    min-width: 240px
+    max-width: 420px
+
+  &__cerca-riga
+    display: flex
+    align-items: center
+    gap: 6px
+
+  .maggia__cam i
+    color: var(--color-primary)
+    font-size: 16px
+
+  &__avviso
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    padding: 8px 12px
+    border: 1px solid var(--color-error)
+    border-radius: 6px
+    background: var(--color-error-light)
+    color: var(--color-error-dark)
+    font-size: 12.5px
+
+  &__c-nome
+    width: 22%
+  &__c-cat
+    width: 13%
+  &__c-ult
+    width: 13%
+
+  &__riga
+    cursor: pointer
+
+  // Righe speciali: due classi per vincere sullo sfondo bianco di .sib-table
+  .maggia__table tr.is-sotto td
+    background: var(--color-warning-light)
+
+  .maggia__table tr.is-neg td
+    background: var(--color-error-light)
+
+  &__nome
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+  &__ico
+    flex: none
+    font-size: 14px
+
+    &--neg
+      color: var(--color-error)
+
+    &--sotto
+      color: var(--color-warning)
+
+  &__neg
+    color: var(--color-error)
+    font-weight: 600
+
+  &__tot
+    font-weight: 600
+
+  &__zero
+    color: var(--color-text-disabled)

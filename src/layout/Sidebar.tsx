@@ -62,16 +62,17 @@ export default function Sidebar({
   // all'UNIONE delle pagine dei moduli sottoscritti (merge incrementale senza
   // duplicati). Nessun contratto / console → menu completo.
   const menu = useMemo(() => {
-    if (onConsole) return MENU_FULL
+    // Menu completo senza i gruppi riservati alla Ristorazione stand alone (es. il suo Magazzino)
+    if (onConsole) return applyStandalone(MENU_FULL as any[])
     if (assist) {
       const pagine = assist.struttureIds.length === 1
         ? paginePerStruttura(assist.struttureIds[0], assist.moduli, modules)
         : enabledPagesForModuli(assist.moduli, modules)
       return applySoloRistorazione(applyStandalone(applyModuleLabels(filterMenu(MENU_FULL as any[], pagine), assist.moduli), assist.moduli), assist.moduli)
     }
-    if (!currentProfileId) return MENU_FULL
+    if (!currentProfileId) return applyStandalone(MENU_FULL as any[])
     const profile = profiles.find(p => p.id === currentProfileId)
-    if (!profile) return MENU_FULL
+    if (!profile) return applyStandalone(MENU_FULL as any[])
     return applySoloRistorazione(applyStandalone(applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules)), profile.moduli), profile.moduli), profile.moduli)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onConsole, assist, currentProfileId, profiles, modules, pagineStruttura])

@@ -142,6 +142,13 @@ import SalaRistoranteFb            from '../modules/operation/FoodBeverage/SalaR
 import GestioneComandaFb          from '../modules/operation/FoodBeverage/GestioneComanda/GestioneComanda';
 import LibroPrenotazioniFb        from '../modules/operation/FoodBeverage/LibroPrenotazioni/LibroPrenotazioni';
 import FbIngredienti              from '../modules/operation/FoodBeverage/Economato/FbIngredienti';
+import MagGiacenze                from '../modules/operation/FoodBeverage/Magazzino/Giacenze/MagGiacenze';
+import MagArticoli                from '../modules/operation/FoodBeverage/Magazzino/Articoli/MagArticoli';
+import MagRicevi                  from '../modules/operation/FoodBeverage/Magazzino/RiceviMerce/MagRicevi';
+import MagMovimenti               from '../modules/operation/FoodBeverage/Magazzino/Movimenti/MagMovimenti';
+import MagRicette                 from '../modules/operation/FoodBeverage/Magazzino/Ricette/MagRicette';
+import MagInventario              from '../modules/operation/FoodBeverage/Magazzino/Inventario/MagInventario';
+import MagImpostazioni            from '../modules/operation/FoodBeverage/Magazzino/Impostazioni/MagImpostazioni';
 import FbFoodCost                 from '../modules/operation/FoodBeverage/Economato/FbFoodCost';
 import FbKds                      from '../modules/operation/FoodBeverage/Kds/FbKds';
 import FbCassa                    from '../modules/operation/FoodBeverage/Cassa/FbCassa';
@@ -569,6 +576,14 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'libro-prenotazioni') return <LibroPrenotazioniFb navigate={navigate}/>;
   if (page === 'fb-ingredienti')  return <FbIngredienti navigate={navigate}/>;
   if (page === 'fb-food-cost')    return <FbFoodCost navigate={navigate}/>;
+  // Magazzino della ristorazione (dati in Op, scheda 17 di sibylla-op)
+  if (page === 'fb-mag-giacenze') return <MagGiacenze navigate={navigate}/>;
+  if (page === 'fb-mag-articoli') return <MagArticoli navigate={navigate}/>;
+  if (page === 'fb-mag-ricevi')   return <MagRicevi navigate={navigate}/>;
+  if (page === 'fb-mag-movimenti') return <MagMovimenti navigate={navigate}/>;
+  if (page === 'fb-mag-ricette')  return <MagRicette navigate={navigate}/>;
+  if (page === 'fb-mag-inventario') return <MagInventario navigate={navigate}/>;
+  if (page === 'fb-mag-impostazioni') return <MagImpostazioni navigate={navigate}/>;
   if (page === 'fb-kds')          return <FbKds navigate={navigate}/>;
   if (page === 'fb-cassa')        return <FbCassa navigate={navigate}/>;
   if (page === 'ospiti-giorno')      return <OspitiGiornoFb navigate={navigate}/>;

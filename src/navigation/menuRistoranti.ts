@@ -128,6 +128,17 @@ const MENU_RISTORANTI:any[]=[
           {id:"fb-ingredienti",label:"Ingredienti e listino",page:"fb-ingredienti"},
           {id:"fb-food-cost",label:"Food cost e margini",page:"fb-food-cost"},
         ]},
+        // Magazzino della ristorazione: dati in Op (scheda 17 di sibylla-op). Solo per la Ristorazione stand alone:
+        // con una struttura ricettiva il magazzino resta Purchasing › Gestione del magazzino (vedi applyStandalone).
+        {id:"fb-magazzino",label:"Magazzino",soloStandalone:true,children:[
+          {id:"fb-mag-giacenze",label:"Giacenze",page:"fb-mag-giacenze"},
+          {id:"fb-mag-ricevi",label:"Ricevi merce",page:"fb-mag-ricevi"},
+          {id:"fb-mag-movimenti",label:"Movimenti",page:"fb-mag-movimenti"},
+          {id:"fb-mag-articoli",label:"Articoli",page:"fb-mag-articoli"},
+          {id:"fb-mag-ricette",label:"Ricette",page:"fb-mag-ricette"},
+          {id:"fb-mag-inventario",label:"Inventario",page:"fb-mag-inventario"},
+          {id:"fb-mag-impostazioni",label:"Impostazioni",page:"fb-mag-impostazioni"},
+        ]},
         {id:"fb-struttura",label:"Struttura",children:[
           {id:"fb-outlet",label:"Outlet",page:"fb-outlet"},
           {id:"fb-sale-tavoli",label:"Sale e tavoli",page:"fb-sale-tavoli"},

@@ -5,7 +5,7 @@ import NotifMenu from './NotifMenu'
 import FavoritesPanel from './FavoritesPanel'
 import Tooltip from '../core/components/Tooltip'
 import MENU_FULL from '../navigation/menuFull'
-import { filterMenu, applyModuleLabels } from '../navigation/filterMenu'
+import { filterMenu, applyModuleLabels, applyStandalone } from '../navigation/filterMenu'
 import { useFbSenzaHotel } from '../modules/operation/FoodBeverage/useFbSenzaHotel'
 import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
 import { useChatStore } from '../store/useChatStore'
@@ -56,12 +56,12 @@ export default function Topbar({
       const pagine = assist.struttureIds.length === 1
         ? paginePerStruttura(assist.struttureIds[0], assist.moduli, modules)
         : enabledPagesForModuli(assist.moduli, modules)
-      return applyModuleLabels(filterMenu(MENU_FULL as any[], pagine), assist.moduli)
+      return applyStandalone(applyModuleLabels(filterMenu(MENU_FULL as any[], pagine), assist.moduli), assist.moduli)
     }
-    if (!currentProfileId) return MENU_FULL
+    if (!currentProfileId) return applyStandalone(MENU_FULL as any[])
     const profile = profiles.find(p => p.id === currentProfileId)
-    if (!profile) return MENU_FULL
-    return applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules)), profile.moduli)
+    if (!profile) return applyStandalone(MENU_FULL as any[])
+    return applyStandalone(applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules)), profile.moduli), profile.moduli)
     // pagineStruttura: paginePerStruttura la legge dallo store, il menu va ricalcolato quando cambia.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assist, currentProfileId, profiles, modules, pagineStruttura])

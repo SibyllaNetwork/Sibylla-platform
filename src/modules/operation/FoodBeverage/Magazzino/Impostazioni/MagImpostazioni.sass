@@ -1,0 +1,42 @@
+// ─── Magazzino ristorazione › Impostazioni ──────────────────────────────────
+.magimp
+  &__colonne
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 24px
+    align-items: start
+
+    @container (max-width: 900px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__c-nome
+    width: 38%
+  &__c-tipo
+    width: 22%
+  &__c-stato
+    width: 22%
+  &__c-act
+    width: 18%
+
+  &__c-forn
+    width: 64%
+  &__c-piva
+    width: 36%
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: var(--color-text-inactive)
+
+    &--on
+      color: var(--color-success)
+
+  &__dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: currentColor
+
+  &__acts
+    text-align: right

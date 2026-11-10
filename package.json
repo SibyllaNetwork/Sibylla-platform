@@ -12,6 +12,7 @@
     "@types/node": "^16.18.126",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@zxing/browser": "^0.1.5",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "fflate": "^0.8.3",

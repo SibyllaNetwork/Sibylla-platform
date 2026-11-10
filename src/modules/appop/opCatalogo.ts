@@ -47,6 +47,7 @@ export const MODULI_SPECIFICI: ModuloOp[] = [
   { key: 'fbPrenotazioni',  label: 'Prenotazioni tavoli' },
   { key: 'fbOspiti',        label: 'Ospiti del giorno', pms: true },
   { key: 'fbMenu',          label: 'Menu e allergeni' },
+  { key: 'fbMagazzino',     label: 'Magazzino della ristorazione' },
   { key: 'biCruscotto',     label: 'Cruscotto (La giornata, Reparti oggi)' },
   { key: 'acquisti',        label: 'Centro acquisti (catalogo, ordini e ricevimento merce)' },
 ]
@@ -104,7 +105,7 @@ export const REPARTI_OP: InfoRepartoOp[] = [
   { key: 'manutenzione',         id: 3, nome: 'Manutenzione',          predefiniti: [...COMUNI, 'interventi'] },
   { key: 'magazzino',            id: 1, nome: 'Magazzino',             predefiniti: [...COMUNI, 'magazzino'] },
   { key: 'frontOffice',          id: 4, nome: 'Front Office',          predefiniti: [...COMUNI, 'checkin', 'checkout', 'serviziCamera', 'oggetti', 'turniPersonale'] },
-  { key: 'foodBeverage',         id: 5, nome: 'Food & Beverage',       predefiniti: [...COMUNI, 'fbSala', 'fbComande', 'fbPrenotazioni', 'fbOspiti', 'fbMenu'] },
+  { key: 'foodBeverage',         id: 5, nome: 'Food & Beverage',       predefiniti: [...COMUNI, 'fbSala', 'fbComande', 'fbPrenotazioni', 'fbOspiti', 'fbMenu', 'fbMagazzino'] },
   { key: 'risorseUmane',         id: 6, nome: 'Risorse umane',         predefiniti: [...COMUNI, 'hrApprovazioni', 'hrPresenze', 'hrTurni', 'hrComunicazioni', 'hrTimbrature', 'hrPersonale'] },
   { key: 'businessIntelligence', id: 7, nome: 'Business Intelligence', predefiniti: [...COMUNI, 'biCruscotto'] },
   { key: 'purchasing',           id: 8, nome: 'Purchasing',            predefiniti: [...COMUNI, 'acquisti'] },
