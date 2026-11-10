@@ -1,0 +1,279 @@
+// ─── Magazzino ristorazione › Riordino ──────────────────────────────────────
+//  Tabella compatta con schede per categoria, indicatore di livello per riga e
+//  riepilogo laterale degli ordini in preparazione.
+.magrio
+  // Schede per categoria: vanno a capo se sono tante (niente scorrimento orizzontale)
+  .magrio__tabs
+    flex-wrap: wrap
+    margin-bottom: 8px
+
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 290px
+    gap: 20px
+    align-items: start
+    flex: 1
+    min-height: 0
+
+    @container (max-width: 1100px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__principale
+    display: flex
+    flex-direction: column
+    gap: 10px
+    min-width: 0
+
+  &__barra
+    display: flex
+    align-items: center
+    gap: 12px
+
+  &__cerca
+    max-width: 300px
+
+  &__agg
+    margin-left: auto
+
+  // ── Tabella compatta ─────────────────────────────────────────────────────────
+  &__c-sel
+    width: 5%
+  &__c-art
+    width: 25%
+  &__c-liv
+    width: 22%
+  &__c-forn
+    width: 17%
+  &__c-q
+    width: 18%
+  &__c-pr
+    width: 13%
+
+  .magrio__table td
+    padding-top: 5px
+    padding-bottom: 5px
+    overflow: visible
+
+  .magrio__table tr.magrio__escl td
+    opacity: .55
+
+  &__art
+    display: flex
+    flex-direction: column
+    min-width: 0
+    line-height: 1.25
+
+  &__nome
+    min-width: 0
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11.5px
+    color: var(--color-warning)
+
+    &--esaurito
+      color: var(--color-error)
+
+  &__bozza
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    margin-left: 6px
+    color: var(--color-primary-500)
+    font-weight: 600
+
+  // Indicatore di livello: <meter> (giacenza + in arrivo tra 0 e la scorta obiettivo), largo quanto la cella
+  .magrio__td-liv > span
+    display: flex
+    width: 100%
+
+  &__livello
+    display: flex
+    flex-direction: column
+    gap: 3px
+    width: 100%
+    min-width: 0
+
+  &__meter
+    width: 100%
+    height: 7px
+    border: 0
+    border-radius: 4px
+    background: var(--color-primary-50)
+    appearance: none
+
+    &::-webkit-meter-bar
+      height: 7px
+      border: 0
+      border-radius: 4px
+      background: var(--color-primary-50)
+
+    &::-webkit-meter-optimum-value
+      border-radius: 4px
+      background: var(--color-success)
+
+    &::-webkit-meter-suboptimum-value
+      border-radius: 4px
+      background: var(--color-warning)
+
+    &::-webkit-meter-even-less-good-value
+      border-radius: 4px
+      background: var(--color-error)
+
+    &::-moz-meter-bar
+      border-radius: 4px
+      background: var(--color-warning)
+
+  &__liv-testo
+    overflow: hidden
+    font-size: 11.5px
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__q
+    display: flex
+    align-items: center
+    gap: 4px
+
+    > :first-child
+      flex: 1
+      min-width: 0
+
+  &__u
+    flex: none
+    min-width: 22px
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+    &--conf
+      color: var(--color-primary-500)
+      font-weight: 600
+
+  // ── Riepilogo laterale ───────────────────────────────────────────────────────
+  &__carrello
+    position: sticky
+    top: 0
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 16px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: linear-gradient(180deg, var(--color-primary-50), var(--color-surface) 40%)
+
+  &__car-tit
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-size: 14px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__car-lista
+    display: flex
+    flex-direction: column
+    gap: 8px
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__car-voce
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto
+    gap: 4px 8px
+    padding: 10px 12px
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    background: var(--color-surface)
+    transition: border-color .15s ease, box-shadow .15s ease
+
+    &:hover
+      border-color: var(--color-primary-300)
+      box-shadow: 0 4px 14px var(--color-focus-ring)
+
+  &__car-forn
+    grid-column: 1 / span 2
+    min-width: 0
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__car-det
+    grid-column: 1
+    align-self: center
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+    strong
+      color: var(--color-primary)
+
+  &__car-btn
+    grid-column: 2
+    align-self: center
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 6px 10px
+    border: 1px solid var(--color-primary)
+    border-radius: 6px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      background: var(--color-primary)
+      color: var(--color-surface)
+
+    &:disabled
+      opacity: .5
+      cursor: default
+
+  &__car-avviso
+    display: flex
+    gap: 6px
+    margin: 0
+    color: var(--color-warning)
+    font-size: 12px
+
+  &__car-tot
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    padding-top: 10px
+    border-top: 1px solid var(--color-border)
+    font-size: 12.5px
+
+    strong
+      font-size: 18px
+      color: var(--color-primary)
+
+  &__car-tutte
+    justify-content: center
+    width: 100%
+
+  &__tutto-ok
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    padding: 56px 16px
+    text-align: center
+
+    i
+      color: var(--color-success)
+      font-size: 36px
+
+    strong
+      font-size: 16px
+      color: var(--color-primary)
+
+@media (prefers-reduced-motion: reduce)
+  .magrio__car-voce
+    transition: none

@@ -28,6 +28,12 @@ interface MagazzinoFbState {
   /** Da Movimenti (scarico di una comanda): la pagina Ricette apre la ricetta di questa voce. */
   ricettaDaAprire: string | null
   setRicettaDaAprire: (voce: string | null) => void
+  /** Da Riordino: la pagina Ordini apre questo ordine appena creato. */
+  ordineDaAprire: number | null
+  setOrdineDaAprire: (id: number | null) => void
+  /** Da Ordini ("Registra l'arrivo"): Ricevi merce parte collegata a questo ordine. */
+  ordineDaRicevere: { id: number; id_fornitore: number } | null
+  setOrdineDaRicevere: (o: { id: number; id_fornitore: number } | null) => void
 }
 
 export const useMagazzinoFb = create<MagazzinoFbState>((set, get) => ({
@@ -69,4 +75,8 @@ export const useMagazzinoFb = create<MagazzinoFbState>((set, get) => ({
   setApriNuovoMovimento: v => set({ apriNuovoMovimento: v }),
   ricettaDaAprire: null,
   setRicettaDaAprire: voce => set({ ricettaDaAprire: voce }),
+  ordineDaAprire: null,
+  setOrdineDaAprire: id => set({ ordineDaAprire: id }),
+  ordineDaRicevere: null,
+  setOrdineDaRicevere: o => set({ ordineDaRicevere: o }),
 }))

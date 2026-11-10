@@ -1,0 +1,47 @@
+// ─── Magazzino ristorazione › Ordini ai fornitori ───────────────────────────
+.magordp
+  &__c-num
+    width: 13%
+  &__c-forn
+    width: 19%
+  &__c-stato
+    width: 14%
+  &__c-data
+    width: 16%
+  &__c-cons
+    width: 9%
+  &__c-n
+    width: 6%
+  &__c-tot
+    width: 7%
+
+  &__riga
+    cursor: pointer
+
+  &__num
+    font-variant-numeric: tabular-nums
+    color: var(--color-primary)
+    font-weight: 600
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+    color: var(--color-text-inactive)
+
+    &--inviato
+      color: var(--color-primary)
+    &--parziale
+      color: var(--color-warning)
+    &--ricevuto
+      color: var(--color-success)
+    &--annullato
+      color: var(--color-error)
+
+  &__dot
+    flex: none
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: currentColor
