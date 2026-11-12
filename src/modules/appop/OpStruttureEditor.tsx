@@ -17,6 +17,8 @@ import './OpStruttureEditor.sass'
 //  strutture, i piani con le camere (numero, tipo, posizione) e i dipendenti che
 //  lavorano in ciascuna. Le camere ricevono il QR alla creazione (scheda QR code);
 //  le strutture del dipendente decidono dove timbra e quali camere vede nell'app.
+//  Cliente integrato con Sibylla Platform (`solaLettura`): strutture, camere e
+//  dipendenti arrivano da Platform e si modificano lì, qui si vedono soltanto.
 
 type Sezione = 'camere' | 'dipendenti' | 'dati'
 
@@ -34,7 +36,12 @@ const righeDa = (s: StrutturaCliente): RigaCamera[] =>
 const ordinaPiani = (piani: string[]) => [...piani].sort((a, b) => a.localeCompare(b, 'it', { numeric: true }))
 const ordinaNumeri = (a: RigaCamera, b: RigaCamera) => a.numero.localeCompare(b.numero, 'it', { numeric: true })
 
-export default function OpStruttureEditor({ idCliente, dipendenti }: { idCliente: number; dipendenti: DipendenteOp[] }) {
+export default function OpStruttureEditor({ idCliente, dipendenti, solaLettura = false }: {
+  idCliente: number
+  dipendenti: DipendenteOp[]
+  /** Cliente integrato con Sibylla Platform: niente creazione, modifica o eliminazione. */
+  solaLettura?: boolean
+}) {
   const confirm = useConfirmStore(s => s.confirm)
   const [strutture, setStrutture] = useState<StrutturaCliente[] | null>(null)
   const [problema, setProblema] = useState<string | null>(null)
@@ -87,7 +94,7 @@ export default function OpStruttureEditor({ idCliente, dipendenti }: { idCliente
       <aside className="op-strutture__elenco">
         <div className="op-strutture__elenco-testa">
           <span>Strutture ({strutture.length})</span>
-          <Button size="sm" icon="plus" onClick={() => setNuova(true)}>Nuova</Button>
+          {!solaLettura && <Button size="sm" icon="plus" onClick={() => setNuova(true)}>Nuova</Button>}
         </div>
         {strutture.map(s => (
           <button
@@ -113,10 +120,11 @@ export default function OpStruttureEditor({ idCliente, dipendenti }: { idCliente
               struttura={struttura}
               dipendenti={dipendenti}
               unica={strutture.length === 1}
+              solaLettura={solaLettura}
               onAggiornata={aggiorna}
               onElimina={() => elimina(struttura)}
             />
-          : <EmptyState icon="hotel" title="Nessuna struttura" subtitle="Aggiungi la prima struttura del cliente, poi i piani e le camere." />}
+          : <EmptyState icon="hotel" title="Nessuna struttura" subtitle={solaLettura ? 'Le strutture arrivano da Sibylla Platform: aggiungile lì.' : 'Aggiungi la prima struttura del cliente, poi i piani e le camere.'} />}
       </section>
 
       <ModaleStruttura
@@ -141,11 +149,12 @@ interface DettaglioProps {
   struttura: StrutturaCliente
   dipendenti: DipendenteOp[]
   unica: boolean
+  solaLettura: boolean
   onAggiornata: (s: StrutturaCliente) => void
   onElimina: () => void
 }
 
-function DettaglioStruttura({ idCliente, struttura, dipendenti, unica, onAggiornata, onElimina }: DettaglioProps) {
+function DettaglioStruttura({ idCliente, struttura, dipendenti, unica, solaLettura, onAggiornata, onElimina }: DettaglioProps) {
   const [sezione, setSezione] = useState<Sezione>('camere')
   return (
     <div className="op-strutture__corpo">
@@ -162,9 +171,15 @@ function DettaglioStruttura({ idCliente, struttura, dipendenti, unica, onAggiorn
           ))}
         </div>
       </div>
-      {sezione === 'camere' && <CamereStruttura idCliente={idCliente} struttura={struttura} onAggiornata={onAggiornata} />}
-      {sezione === 'dipendenti' && <DipendentiStruttura idCliente={idCliente} struttura={struttura} dipendenti={dipendenti} onAggiornata={onAggiornata} />}
-      {sezione === 'dati' && <DatiStruttura idCliente={idCliente} struttura={struttura} unica={unica} onAggiornata={onAggiornata} onElimina={onElimina} />}
+      {sezione === 'camere' && (solaLettura
+        ? <CamereSolaLettura struttura={struttura} />
+        : <CamereStruttura idCliente={idCliente} struttura={struttura} onAggiornata={onAggiornata} />)}
+      {sezione === 'dipendenti' && (
+        <DipendentiStruttura idCliente={idCliente} struttura={struttura} dipendenti={dipendenti} solaLettura={solaLettura} onAggiornata={onAggiornata} />
+      )}
+      {sezione === 'dati' && (
+        <DatiStruttura idCliente={idCliente} struttura={struttura} unica={unica} solaLettura={solaLettura} onAggiornata={onAggiornata} onElimina={onElimina} />
+      )}
     </div>
   )
 }
@@ -309,6 +324,50 @@ function CamereStruttura({ idCliente, struttura, onAggiornata }: { idCliente: nu
   )
 }
 
+/** Camere di una struttura integrata con Sibylla Platform: arrivano da Platform, qui si vedono soltanto. */
+function CamereSolaLettura({ struttura }: { struttura: StrutturaCliente }) {
+  const piani = ordinaPiani(Array.from(new Set(struttura.camere.map(c => c.piano))))
+  if (piani.length === 0) {
+    return <EmptyState icon="door-closed" title="Nessuna camera" subtitle="Le camere arrivano da Sibylla Platform: aggiungile lì (un outlet di ristorazione non ne ha)." />
+  }
+  return (
+    <div className="op-strutture__sezione">
+      {piani.map(piano => {
+        const delPiano = struttura.camere.filter(c => c.piano === piano).sort((a, b) => a.numero.localeCompare(b.numero, 'it', { numeric: true }))
+        return (
+          <div key={piano} className="op-strutture__piano">
+            <div className="op-strutture__piano-testa">
+              <span className="op-strutture__piano-nome">Piano {piano}</span>
+              <span className="op-strutture__nota">{delPiano.length} camere</span>
+            </div>
+            <div className="sib-table-wrap">
+              <table className="sib-table op-strutture__tabella">
+                <colgroup>
+                  <col className="op-strutture__c-numero" /><col className="op-strutture__c-nome" /><col className="op-strutture__c-tipo" />
+                  <col className="op-strutture__c-posizione" />
+                </colgroup>
+                <thead>
+                  <tr><th>Numero</th><th>Nome</th><th>Tipo</th><th>Posizione (sull’etichetta)</th></tr>
+                </thead>
+                <tbody>
+                  {delPiano.map(c => (
+                    <tr key={c.id}>
+                      <td>{c.numero}</td>
+                      <td><TruncatedText text={c.nome ?? '—'} className="op-strutture__testo" /></td>
+                      <td><TruncatedText text={c.tipo ?? '—'} className="op-strutture__testo" /></td>
+                      <td><TruncatedText text={c.posizione ?? '—'} className="op-strutture__testo" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 /** Piano nuovo o camere in più su un piano: intervallo di numeri con tipo e posizione comuni. */
 function ModaleCamere({ open, piano, numeriUsati, onClose, onAggiungi }: {
   open: boolean
@@ -369,10 +428,11 @@ function ModaleCamere({ open, piano, numeriUsati, onClose, onAggiungi }: {
 
 // ─── Dipendenti della struttura ───────────────────────────────────────────────
 
-function DipendentiStruttura({ idCliente, struttura, dipendenti, onAggiornata }: {
+function DipendentiStruttura({ idCliente, struttura, dipendenti, solaLettura, onAggiornata }: {
   idCliente: number
   struttura: StrutturaCliente
   dipendenti: DipendenteOp[]
+  solaLettura: boolean
   onAggiornata: (s: StrutturaCliente) => void
 }) {
   const [scelti, setScelti] = useState<Set<number>>(() => new Set(struttura.dipendenti))
@@ -404,43 +464,51 @@ function DipendentiStruttura({ idCliente, struttura, dipendenti, onAggiornata }:
   }
 
   if (dipendenti.length === 0) {
-    return <EmptyState icon="users" title="Nessun dipendente" subtitle="Crea le utenze nella scheda Dipendenti, poi associale alle strutture." />
+    return <EmptyState icon="users" title="Nessun dipendente" subtitle={solaLettura ? 'I dipendenti arrivano da Sibylla Platform.' : 'Crea le utenze nella scheda Dipendenti, poi associale alle strutture.'} />
   }
 
   return (
     <div className="op-strutture__sezione">
       <div className="op-strutture__bar">
-        <p className="op-strutture__nota">I dipendenti associati timbrano con il QR di questa struttura e ne vedono le camere e le segnalazioni.</p>
+        <p className="op-strutture__nota">
+          I dipendenti associati timbrano con il QR di questa struttura e ne vedono le camere e le segnalazioni.
+          {solaLettura ? ' L’associazione arriva da Sibylla Platform e si modifica lì.' : ''}
+        </p>
         <SearchField value={cerca} placeholder="Cerca dipendente" onChange={e => setCerca(e.target.value)} onClear={() => setCerca('')} className="op-strutture__cerca" />
       </div>
+      {!solaLettura && (
       <div className="op-strutture__azioni-elenco">
         <button type="button" className="op-strutture__link" onClick={() => setScelti(new Set(dipendenti.map(d => d.id)))}>Seleziona tutti</button>
         <button type="button" className="op-strutture__link" onClick={() => setScelti(new Set())}>Nessuno</button>
         <span className="op-strutture__nota">{scelti.size} di {dipendenti.length} associati</span>
       </div>
+      )}
       <div className="op-strutture__dipendenti">
         {filtrati.map(d => (
           <div key={d.id} className="op-strutture__dipendente">
-            <CheckboxField name={`dip-${d.id}`} label={`${d.nome} ${d.cognome}`} checked={scelti.has(d.id)} onChange={e => cambia(d.id, e.target.checked)} />
+            <CheckboxField name={`dip-${d.id}`} label={`${d.nome} ${d.cognome}`} checked={scelti.has(d.id)} disabled={solaLettura} onChange={e => cambia(d.id, e.target.checked)} />
             <span className="op-strutture__nota">{labelLivello(d.livello)}{d.stato === 'bloccato' ? ' · bloccato' : ''}</span>
           </div>
         ))}
       </div>
       {problema && <AlertBanner type="error">{problema}</AlertBanner>}
-      <div className="op-strutture__salva">
-        <Button variant="secondary" onClick={() => setScelti(new Set(struttura.dipendenti))} disabled={!modificati || salvo}>Annulla</Button>
-        <Button onClick={salva} loading={salvo} disabled={!modificati}>Salva dipendenti</Button>
-      </div>
+      {!solaLettura && (
+        <div className="op-strutture__salva">
+          <Button variant="secondary" onClick={() => setScelti(new Set(struttura.dipendenti))} disabled={!modificati || salvo}>Annulla</Button>
+          <Button onClick={salva} loading={salvo} disabled={!modificati}>Salva dipendenti</Button>
+        </div>
+      )}
     </div>
   )
 }
 
 // ─── Dati della struttura ─────────────────────────────────────────────────────
 
-function DatiStruttura({ idCliente, struttura, unica, onAggiornata, onElimina }: {
+function DatiStruttura({ idCliente, struttura, unica, solaLettura, onAggiornata, onElimina }: {
   idCliente: number
   struttura: StrutturaCliente
   unica: boolean
+  solaLettura: boolean
   onAggiornata: (s: StrutturaCliente) => void
   onElimina: () => void
 }) {
@@ -464,9 +532,12 @@ function DatiStruttura({ idCliente, struttura, unica, onAggiornata, onElimina }:
   return (
     <div className="op-strutture__sezione">
       <div className="op-strutture__form">
-        <InputField name="nome-struttura" label="Nome della struttura" required value={nome} maxLength={200} onChange={e => setNome(e.target.value)} />
-        <InputField name="indirizzo-struttura" label="Indirizzo" value={indirizzo} maxLength={300} onChange={e => setIndirizzo(e.target.value)} />
+        <InputField name="nome-struttura" label="Nome della struttura" required value={nome} maxLength={200} readOnly={solaLettura} onChange={e => setNome(e.target.value)} />
+        <InputField name="indirizzo-struttura" label="Indirizzo" value={indirizzo} maxLength={300} readOnly={solaLettura} onChange={e => setIndirizzo(e.target.value)} />
       </div>
+      {solaLettura
+        ? <p className="op-strutture__nota">Nome e indirizzo arrivano da Sibylla Platform e si modificano lì.</p>
+        : (
       <div className="op-strutture__salva">
         <Tooltip text={unica ? 'È l’unica struttura del cliente: aggiungine un’altra prima di eliminarla.' : 'Elimina la struttura con camere e QR'}>
           <span><Button variant="secondary" icon="trash" onClick={onElimina} disabled={unica}>Elimina struttura</Button></span>
@@ -475,6 +546,7 @@ function DatiStruttura({ idCliente, struttura, unica, onAggiornata, onElimina }:
         <Button variant="secondary" onClick={() => { setNome(struttura.nome); setIndirizzo(struttura.indirizzo ?? '') }} disabled={!modificati || salvo}>Annulla</Button>
         <Button onClick={salva} loading={salvo} disabled={!modificati || nome.trim().length < 2}>Salva</Button>
       </div>
+        )}
     </div>
   )
 }
