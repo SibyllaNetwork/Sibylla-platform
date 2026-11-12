@@ -65,6 +65,8 @@ export interface ClienteOp {
   reparti: RepartoOp[]
   /** Azienda di Sibylla Platform collegata (null: azienda Op stand alone). */
   idAziendaPlatform?: number | null
+  /** Integrata con Sibylla Platform (dati da Platform); false: stand alone, anche se collegata solo per la BI. */
+  integrata?: boolean
 }
 
 export interface DatiCliente {

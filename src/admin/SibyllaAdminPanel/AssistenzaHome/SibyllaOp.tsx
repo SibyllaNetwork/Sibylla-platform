@@ -196,9 +196,9 @@ export default function SibyllaOp({ incorporata = false }: Props) {
                   <td><TruncatedText text={c.ragioneSociale} className="sibylla-op__testo sibylla-op__forte" /></td>
                   <td>{c.partitaIva ?? '—'}</td>
                   <td>
-                    {c.idAziendaPlatform
+                    {c.integrata && c.idAziendaPlatform
                       ? <TruncatedText text={`Integrata · ${nomePlatform(c.idAziendaPlatform)}`} className="sibylla-op__testo" />
-                      : <span className="sibylla-op__tenue">Stand alone</span>}
+                      : <span className="sibylla-op__tenue">{c.idAziendaPlatform ? `Stand alone · BI per ${nomePlatform(c.idAziendaPlatform)}` : 'Stand alone'}</span>}
                   </td>
                   <td>{nomePiano(c.piano)}</td>
                   <td><StatusBadge variant={c.stato === 'attivo' ? 'success' : 'warning'}>{c.stato === 'attivo' ? 'Attivo' : 'Sospeso'}</StatusBadge></td>
