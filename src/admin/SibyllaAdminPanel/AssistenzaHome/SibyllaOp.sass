@@ -1,7 +1,7 @@
 // ─── SIBYLLA OP! ──────────────────────────────────────────────────────────────
 //  Aziende dell'app Op!: tabella standard .sib-table (testo su una riga con
 //  ellipsis e tooltip, icone d'azione solid blu 16px senza box), nuova azienda
-//  integrata a sezioni (Card) e scheda dell'azienda a tab.
+//  (integrata con Platform o stand alone) a sezioni (Card) e scheda a tab.
 @use '../../../styles/tokens' as *
 
 .sibylla-op
@@ -81,6 +81,33 @@
     display: flex
     align-items: flex-end
     gap: $space-sm
+
+  // ── Integrazione con Sibylla Platform: azienda da verificare e anteprima di cosa arriva ──
+  &__verifica
+    display: flex
+    align-items: flex-start
+    gap: $space-sm
+
+  &__verifica-campo
+    flex: 1 1 auto
+    max-width: 520px
+
+  // Allineato al campo, sotto la sua etichetta (l'errore o l'aiuto del campo stanno sotto).
+  &__verifica-btn
+    margin-top: 22px
+
+  &__anteprima
+    display: flex
+    flex-direction: column
+    gap: $space-xs
+    padding: $space-md
+    border: 1px solid $border
+    border-radius: $radius-md
+
+  &__anteprima-elenco
+    margin: 0
+    padding-left: $space-md
+    color: $text-active
 
   &__riga-campo
     flex: 1 1 auto
