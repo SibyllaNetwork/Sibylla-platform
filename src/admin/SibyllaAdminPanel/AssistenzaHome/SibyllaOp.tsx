@@ -37,7 +37,7 @@ const PIANI: { value: PianoCliente; label: string }[] = [
 ]
 
 const TIPI: { value: TipoAziendaOp; label: string }[] = [
-  { value: 'struttura', label: 'Una sola struttura (l’azienda è l’albergo)' },
+  { value: 'struttura', label: 'Monostruttura' },
   { value: 'gruppo', label: 'Gruppo con più strutture' },
 ]
 

@@ -75,9 +75,9 @@ secondo il § 8 della scheda 17. Il corpo e la risposta di ogni azione sono **id
 
 Il Proxy deve far passare il JSON **senza deserializzarlo**: l'`Inoltra<T>` esistente in
 `SibyllaApiProxy/Controllers/OpAppController.cs` non va bene, perché trasforma gli errori in "Richiesta non riuscita.".
-L'inoltro generico `/Sibylla/{**path}` (`SibyllaApiProxy/Controllers/SibyllaController.cs`) è quello giusto: passa
-corpo e stato senza toccarli. **Oggi però esiste solo come modifica non ancora committata** nella copia di lavoro del
-Portal (ramo `release/staging`). Va committato e rilasciato, con le correzioni del § H4.
+L'inoltro generico `/Sibylla/{**path}` è quello giusto: passa corpo e stato senza toccarli. Il codice di riferimento, con
+le correzioni del § H4.1 già fatte, è in [portal-proxy/SibyllaController.cs](portal-proxy/SibyllaController.cs), da
+portare nella vostra copia del Portal ([istruzioni](portal-proxy/README.md)).
 
 ## A2. Cosa c'è già nel Portal e cosa si riusa
 
@@ -390,8 +390,7 @@ telefono), le chiavi (Op e Anthropic), i dati dei fornitori.
 4. Per la Ristorazione stand alone, se `id_struttura` deve essere l'**outlet** o la struttura padre di `config.strutture`.
 5. Se BI o Piano ferie hanno già, in un altro branch, la firma `X-Op-Firma` e la configurazione della chiave: in quel
    caso si riusano.
-6. Chi committa e rilascia l'inoltro `/Sibylla/{**path}` (`SibyllaController.cs`), oggi presente solo nella copia di
-   lavoro del Portal insieme a `HrController.cs` e al CORS per `localhost:3000` (§ H4).
+6. Per ogni ambiente, i valori di `ApiUrlBase` e `HrApiUrlBase` del Proxy ([portal-proxy/README.md](portal-proxy/README.md)).
 
 # G. Cosa cambia fuori dal Portal
 
@@ -432,7 +431,7 @@ Da `copilot-instructions.md` del Portal:
 | SibyllaApi | `Services/LettoreBolle.cs` | Chiamata all'API di Anthropic e abbinamento (§ C1) |
 | SibyllaApi | `Services/FirmaOp.cs` | Calcolo e verifica di `X-Op-Firma` (§ D2), con il test del vettore di prova |
 | Models | `Models/MagazzinoFb/*.cs` | DTO in `snake_case` come il contratto (Appendice 2) |
-| SibyllaApiProxy | `Controllers/SibyllaController.cs` (esiste solo nella copia di lavoro, da committare) | Inoltro generico `/Sibylla/{**path}`, con le correzioni del § H4 |
+| SibyllaApiProxy | `Controllers/SibyllaController.cs`, da [portal-proxy/](portal-proxy/README.md) | Inoltro generico `/Sibylla/{**path}`, correzioni del § H4.1 già fatte |
 | SibyllaApiProxy | `Program.cs` | CORS con le origini di Platform (§ H5) |
 | Infrastructure | `DbUp/Scripts/0 - Schema/0002xx_MagazzinoFb_Schema.sql` | Schema `magfb` (Appendice 1), con il primo numero libero |
 | Test | `Sibylla.Test/MagazzinoFb/*` | I casi del § E |
@@ -466,36 +465,21 @@ Il frontend chiama:
 L'ingresso della Parte B (`integrazione/op/magazzino-ristorazione`) lo chiama Op **direttamente su SibyllaApi**, non dal
 Proxy. Va reso raggiungibile da `api.sibyllaop.it` (regole di accesso dell'App Service, se presenti).
 
-### H4.1 L'inoltro esistente `/Sibylla/{**path}`
+### H4.1 L'inoltro `/Sibylla/{**path}`: codice di riferimento
 
-L'inoltro generico c'è già, ma **non è nel repository**: è una modifica non committata nella copia di lavoro del
-Portal (ramo `release/staging`), insieme ad altre da rilasciare con lui.
+Esisteva solo come modifica **mai committata** in una copia di lavoro del Portal. Il codice da usare, con le correzioni
+necessarie per il magazzino già fatte, è pubblicato in questo repository:
+[portal-proxy/SibyllaController.cs](portal-proxy/SibyllaController.cs). Le istruzioni per portarlo nel Portal (CORS,
+`ApiUrlBase`, `web.config`, prove) sono in [portal-proxy/README.md](portal-proxy/README.md).
 
-| File (non committati) | Cosa fa |
-|---|---|
-| `SibyllaApiProxy/Controllers/SibyllaController.cs` | `[Route("Sibylla")]`, `{verb} /Sibylla/{**path}` → `{verb} {ApiUrlBase}{path}`; copia corpo, query e `Authorization`; restituisce stato e corpo di SibyllaApi senza toccarli |
-| `SibyllaApiProxy/Controllers/HrController.cs` | stesso schema per `/Hr/{**path}` verso il servizio Sibylla HR (`HrApiUrlBase`) |
-| `SibyllaApiProxy/Program.cs` | CORS: aggiunti `http://localhost:3000` e `https://localhost:3000` |
-| `SibyllaApiProxy/appsettings.json` | `ApiUrlBase` = `https://sibyllaapi-prod-fxdjfrhvb3bpeuab.italynorth-01.azurewebsites.net/` |
+Correzioni rispetto alla copia di lavoro:
+1. rotte pubbliche `GET`/`POST /Sibylla/bolla-telefono/{codice}` con `[AllowAnonymous]`; tutto il resto resta
+   `[Authorize]`;
+2. negli errori `502` niente `ex.Message`: resta solo nel log, senza il codice del telefono;
+3. timeout di **120 s**;
+4. `[RequestSizeLimit]` a **30 MB**.
 
-Per il magazzino va bene così com'è nell'essenziale: passa il JSON senza deserializzarlo e conserva lo stato. Prima del
-rilascio vanno fatte **quattro correzioni**:
-
-1. **Rotte pubbliche del telefono.** Il controller è tutto `[Authorize]`: `GET` e `POST /Sibylla/bolla-telefono/{codice}`
-   non hanno token e verrebbero rifiutate con `401`. Aggiungere `[AllowAnonymous]` **solo** per il prefisso
-   `bolla-telefono/` (per esempio un'azione dedicata con `[Route("Sibylla/bolla-telefono/{codice}")]`), non per tutto
-   l'inoltro.
-2. **Niente dettagli tecnici negli errori.** Quando SibyllaApi non risponde, oggi restituisce
-   `"Upstream non raggiungibile — {ex.Message}"`: il messaggio dell'eccezione può contenere indirizzi interni. Rispondere
-   `502 { "detail": "Servizio non raggiungibile." }` e lasciare `ex` solo nel log.
-3. **Timeout.** Usa `new HttpClient()` con il timeout predefinito di **100 s**: `leggi_bolla` arriva a 90 s più il tempo
-   di rete. Portarlo ad almeno **120 s** (meglio un `HttpClient` registrato con `IHttpClientFactory`).
-4. **Corpo grande.** Legge tutto il corpo in memoria (`MemoryStream`): va bene fino a 30 MB, ma servono
-   `[RequestSizeLimit(31_457_280)]` sull'azione e, su App Service Windows, `maxAllowedContentLength` in `web.config`
-   (§ H6). In alternativa, copia in streaming.
-
-Il corpo e lo stato di SibyllaApi devono arrivare **identici** alla pagina, con `Content-Type: application/json`: il
-controller lo fa già (`File(payload, contentType)`).
+Lo stato e il corpo di SibyllaApi arrivano alla pagina **identici**: è quello che serve al magazzino.
 
 ## H5. CORS
 

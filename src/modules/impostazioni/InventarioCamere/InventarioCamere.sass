@@ -208,8 +208,14 @@
 
   // Pulsante "Dettagli camera": sempre fermo a destra della riga meta;
   // aperto = pieno, con la freccia ruotata.
-  &__toggle-det
+  &__meta-acts
     margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    flex-shrink: 0
+
+  &__toggle-det
     display: inline-flex
     align-items: center
     gap: 8px
@@ -236,8 +242,22 @@
       background: $primary
       color: #fff
 
-      i
+      i.fa-chevron-down
         transform: rotate(180deg)
+
+      .invc__toggle-mark
+        background: #fff
+
+  // L'icona del pulsante non ruota (solo la freccia) e resta a grandezza piena.
+  &__toggle-ico.fa-sliders
+    font-size: 12px
+
+  // Pallino: la tipologia ha regole diverse dai predefiniti.
+  &__toggle-mark
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    background: $warning
 
   // Riepilogo "Dettagli camera" (sola lettura)
   &__details
@@ -474,6 +494,9 @@
 
   // ── Larghezze ridotte (container query sul root pagina) ──────────────────────
   @container (max-width: 1100px)
+    &__toggle-txt
+      display: none
+
     &__fields
       grid-template-columns: repeat(6, minmax(0, 1fr)) auto
 
@@ -488,6 +511,9 @@
       grid-column: span 2
 
   @container (max-width: 720px)
+    &__meta
+      flex-wrap: wrap
+
     &__row
       grid-template-columns: 18px minmax(0, 1fr)
       padding-left: 12px

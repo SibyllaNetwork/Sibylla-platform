@@ -3,6 +3,10 @@
 > **Punto di partenza unico** per chi sviluppa e configura il backend di Sibylla Platform (Portal: `SibyllaApiProxy` +
 > `SibyllaApi`, .NET, SQL Server, Azure App Service). Elenca **tutti** i documenti da leggere, in che ordine, cosa sblocca
 > ognuno e cosa va sistemato prima del rilascio. Ultimo aggiornamento: **10 novembre 2026**.
+>
+> **Come si lavora.** Il team di Platform non scrive nel repository del Portal (Azure DevOps). Specifiche e codice di
+> riferimento per il backend sono **pubblicati qui**, nel repository Git di sibylla-platform (cartella `docs/`): gli
+> sviluppatori del backend li portano nella loro copia locale del Portal. Frontend e demo stanno su Vercel.
 
 ## I tre repository
 
@@ -26,7 +30,7 @@ SibyllaApi ──firmato──► Op.Api                                (BI, Pia
 
 | # | Cosa | Dove | Note |
 |---|---|---|---|
-| 0.1 | **Committare e rilasciare l'inoltro `/Sibylla/{**path}`** | Portal, copia di lavoro su `release/staging`: `SibyllaApiProxy/Controllers/SibyllaController.cs`, `HrController.cs`, `Program.cs` (CORS), `appsettings.json` (`ApiUrlBase`) | Oggi **non è nel repository**. Tutte le pagine di Platform passano di lì. Correzioni prima del rilascio: [magazzino, § H4.1](portal-magazzino-ristorazione.md#h41-linoltro-esistente-sibyllapath) (rotte pubbliche, errori senza dettagli tecnici, timeout 120 s, corpo fino a 30 MB) |
+| 0.1 | **Inoltri `/Sibylla/{**path}` e `/Hr/{**path}` nel Proxy** | Codice di riferimento in [portal-proxy/](portal-proxy/README.md): `SibyllaController.cs` e `HrController.cs`, da copiare nella vostra copia del Portal, con CORS e configurazione | Tutte le pagine di Platform passano di lì. Esistevano solo in una copia di lavoro mai committata; la versione qui ha già le correzioni (rotte pubbliche del telefono, errori senza dettagli tecnici, timeout 120 s, corpo fino a 30 MB). `HrApiUrlBase` va impostata per ambiente |
 | 0.2 | **CORS del Proxy con le origini di Platform** | `SibyllaApiProxy/Program.cs` | Aggiungere `https://sibylla-platform.vercel.app`, l'eventuale dominio definitivo e l'indirizzo di staging. Oggi ci sono i domini di Operation e, nella copia di lavoro, `localhost:3000` |
 | 0.3 | **Frontend collegato al Proxy** | Vercel (lo fa il team frontend) | `REACT_APP_API_URL` = URL del Proxy e login vero: oggi la demo non ha il Portal e aggira il login, quindi senza token il Portal risponderebbe `401` |
 | 0.4 | **Servizio comune di firma `X-Op-Firma`** | `SibyllaApi` | Una volta sola, con il test del vettore di prova: serve a BI, Piano ferie e magazzino. [sibylla-op 18, § 2](https://github.com/SibyllaNetwork/sibylla-op/blob/main/docs/integrazione-sibylla/18-portal-integrazione-completa.md) |
@@ -103,7 +107,7 @@ in fondo l'elenco delle cose da fare nel Portal.
 
 | Documento | Cosa c'è | Note |
 |---|---|---|
-| [human-resources/README.md](human-resources/README.md) e [01-modello-dati-e-api.md](human-resources/01-modello-dati-e-api.md) | Human Resources: entità, regole di business, API da realizzare; ogni scheda pagina ha la sua sezione "backend" | Il servizio Sibylla HR passa dal Proxy con `/Hr/{**path}` (`HrController.cs`, da committare, § 0.1) |
+| [human-resources/README.md](human-resources/README.md) e [01-modello-dati-e-api.md](human-resources/01-modello-dati-e-api.md) | Human Resources: entità, regole di business, API da realizzare; ogni scheda pagina ha la sua sezione "backend" | Il servizio Sibylla HR passa dal Proxy con `/Hr/{**path}` ([portal-proxy/HrController.cs](portal-proxy/HrController.cs), § 0.1) |
 | [integrazione paghe/README.md](integrazione%20paghe/README.md) e `Tracciato_RILPRE.pdf` | File presenze per TeamSystem (RILPRE) | Oggi lo genera il frontend; da portare sul server se l'esportazione dovrà essere lato backend |
 | [food-beverage.md](food-beverage.md) | Food & Beverage di Platform = **Outlet Manager**, backend Flask separato (`outlet.sibyllanetwork.it`) | In produzione l'instradamento di `/api/*` verso Outlet Manager va configurato sul web server, con l'iniezione del token SSO |
 
@@ -111,7 +115,7 @@ in fondo l'elenco delle cose da fare nel Portal.
 
 ## 6. Ordine consigliato
 
-1. § 0: inoltro `/Sibylla/{**path}` committato e corretto, CORS, servizio di firma.
+1. § 0: inoltri del Proxy da [portal-proxy/](portal-proxy/README.md), CORS, servizio di firma.
 2. § 2: BI e Piano ferie (inoltri semplici, sbloccano pagine già online).
 3. § 3: Magazzino della Ristorazione (Parte A, poi B, poi C).
 4. § 4: integrazione dell'app Op con i dati di Sibylla, a partire dalla scheda 01.

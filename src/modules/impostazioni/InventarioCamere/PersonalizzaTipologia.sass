@@ -1,0 +1,329 @@
+// ─── PERSONALIZZA TIPOLOGIA (pannello nella riga dell'Inventario camere) ──────
+@use '../../../styles/tokens' as *
+
+.pcam
+  display: flex
+  flex-direction: column
+  gap: 10px
+  padding: 0 14px 14px
+  border: 1px solid $border
+  border-top: 3px solid $primary
+  border-radius: 8px
+  background: $bg
+  animation: pcam-in .18s ease-out
+
+  &__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 8px 0
+    border-bottom: 1px solid $border
+
+  &__title
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+  &__head-acts
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    flex-shrink: 0
+
+  &__reset
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    border: none
+    background: none
+    padding: 4px 6px
+    font-family: inherit
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  &__close
+    width: 28px
+    height: 28px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: 1px solid $border
+    border-radius: 6px
+    background: var(--color-surface)
+    color: $primary
+    font-size: 14px
+    cursor: pointer
+
+    &:hover
+      border-color: $primary
+      background: $primary-50
+
+  // ── Blocco regola ────────────────────────────────────────────────────────────
+  &__block
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 12px 14px
+    border: 1px solid $border
+    border-radius: 8px
+    background: var(--color-surface)
+
+  &__block-head
+    display: flex
+    align-items: flex-end
+    gap: 12px
+
+  &__block-ico
+    width: 34px
+    height: 34px
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 8px
+    background: $primary-50
+    color: $primary
+    font-size: 15px
+    align-self: center
+
+  &__block-titles
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 2px
+    align-self: center
+
+    h4
+      margin: 0
+      font-family: $font-heading
+      font-size: 14px
+      font-weight: 700
+      color: $primary
+
+    span
+      font-size: 12px
+      color: $text-inactive
+
+  &__sim
+    width: 170px
+    flex-shrink: 0
+
+  // ── Tabella segmenti × giorni del soggiorno ──────────────────────────────────
+  &__table
+    display: flex
+    flex-direction: column
+
+  &__row
+    display: grid
+    grid-template-columns: 180px 170px minmax(0, 1fr)
+    gap: 16px
+    align-items: center
+    padding: 8px 0
+    border-top: 1px solid $border
+
+    &--head
+      border-top: none
+      padding-top: 0
+      font-size: 12px
+      font-weight: 600
+      color: $text-inactive
+      align-items: end
+
+  &__seg
+    display: flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+
+    > i
+      width: 16px
+      text-align: center
+      font-size: 16px
+      color: $primary
+
+  &__seg-txt
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+    strong
+      font-size: 13px
+      color: $text-active
+
+    span
+      font-size: 11.5px
+      color: $text-inactive
+      white-space: nowrap
+      overflow: hidden
+      text-overflow: ellipsis
+
+  &__days
+    display: flex
+    min-width: 0
+
+    // Linea del soggiorno dietro ai pallini
+    &--track
+      position: relative
+
+      &::before
+        content: ''
+        position: absolute
+        top: 50%
+        left: 11px
+        right: 11px
+        height: 2px
+        background: $primary-100
+        transform: translateY(-50%)
+
+  &__day, &__cell
+    flex: 1 1 0
+    min-width: 0
+    display: flex
+    justify-content: center
+
+  &__day
+    flex-direction: column
+    align-items: center
+    gap: 1px
+    line-height: 1.2
+
+    &.is-arr, &.is-dep
+      color: $primary
+
+  &__day-tag
+    max-width: 100%
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    font-size: 10.5px
+    font-weight: 600
+
+  &__day-num
+    font-size: 12px
+    font-weight: 700
+    color: $text-active
+
+  &__cell
+    position: relative
+    z-index: 1
+
+  &__dot
+    width: 8px
+    height: 8px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    background: $border
+    color: #fff
+    font-size: 10px
+    transition: transform .15s ease
+
+    &.is-on, &.is-dep, &.is-arr
+      width: 24px
+      height: 24px
+
+    &.is-on
+      background: $primary
+      animation: pcam-pop .22s ease-out
+
+    &.is-dep
+      background: $success
+
+    &.is-arr
+      background: var(--color-surface)
+      border: 2px solid $primary
+      color: $primary
+
+    &:hover
+      transform: scale(1.12)
+
+    &--sm.is-on, &--sm.is-dep, &--sm.is-arr
+      width: 18px
+      height: 18px
+      font-size: 8px
+
+  // ── Piede: regola fissa + legenda ────────────────────────────────────────────
+  &__foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px 16px
+    flex-wrap: wrap
+    padding-top: 10px
+    border-top: 1px solid $border
+    font-size: 12px
+
+  &__rule
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    color: $text-active
+
+    > i
+      color: $success
+
+  &__legend
+    display: inline-flex
+    gap: 14px
+    color: $text-inactive
+
+    > span
+      display: inline-flex
+      align-items: center
+      gap: 6px
+
+  // ── Larghezze ridotte (container query sul root pagina .invc) ────────────────
+  @container (max-width: 980px)
+    &__row
+      grid-template-columns: minmax(0, 1fr) 170px
+      row-gap: 8px
+
+      &--head > span
+        display: none
+
+    &__days
+      grid-column: 1 / -1
+
+  @container (max-width: 600px)
+    &__block-head
+      flex-wrap: wrap
+
+    &__sim
+      width: 100%
+
+    &__row
+      grid-template-columns: minmax(0, 1fr)
+
+    &__day-tag
+      font-size: 9px
+
+
+@keyframes pcam-in
+  from
+    opacity: 0
+    transform: translateY(-6px)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes pcam-pop
+  from
+    transform: scale(.4)
+  to
+    transform: none

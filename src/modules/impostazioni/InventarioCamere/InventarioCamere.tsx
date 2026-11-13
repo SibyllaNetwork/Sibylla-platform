@@ -9,6 +9,8 @@ import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useTipologieCamereStore, type TipologiaCamera } from '../../../store/useTipologieCamereStore'
 import RoomIllustration from './RoomIllustration'
 import ConfigurazioneCamera from './ConfigurazioneCamera'
+import PersonalizzaTipologia, { riassuntoPersonalizzazione } from './PersonalizzaTipologia'
+import { PERSONALIZZAZIONE_DEFAULT, personalizzazioneDi } from './personalizzazione'
 import { MAX_CAPACITA, MAX_LETTI_EXTRA, TIPI, lettiExtra, ospiti } from './catalogo'
 import './InventarioCamere.sass'
 import { useStruttureCliente, useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
@@ -96,6 +98,7 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
   }, [iniziali])
 
   const [aperta, setAperta] = useState<string | null>(null)
+  const [personalizza, setPersonalizza] = useState<string | null>(null)
   const [scheda_, setSchedaId] = useState<string | null>(null)
   const [errori, setErrori] = useState<Set<string>>(new Set())
   const [dragId, setDragId] = useState<string | null>(null)
@@ -170,7 +173,7 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
     return next
   })
 
-  const annulla = () => { setDraft(iniziali); setErrori(new Set()); setAperta(null) }
+  const annulla = () => { setDraft(iniziali); setErrori(new Set()); setAperta(null); setPersonalizza(null) }
   const salvaTutto = () => {
     const vuote = draft.filter((t) => !t.nome.trim()).map((t) => t.id)
     if (vuote.length) {
@@ -180,6 +183,7 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
     }
     salva(strutturaNome, draft)
     setAperta(null)
+    setPersonalizza(null)
     toast.success(`Tipologie di ${strutturaNome} salvate.`)
   }
 
@@ -231,10 +235,11 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
           <ul className="invc__list">
             {visibili.map((t) => (
               <TipologiaRow key={t.id} t={t} disabled={pmsEsterno}
-                aperta={aperta === t.id} evidenziata={modificata(t)} errore={errori.has(t.id)}
+                aperta={aperta === t.id} personalizza={personalizza === t.id} evidenziata={modificata(t)} errore={errori.has(t.id)}
                 dragging={dragId === t.id} over={overId === t.id && dragId !== t.id}
                 onChange={(p) => update(t.id, p)}
-                onToggleDettagli={() => setAperta((a) => (a === t.id ? null : t.id))}
+                onToggleDettagli={() => { setPersonalizza(null); setAperta((a) => (a === t.id ? null : t.id)) }}
+                onTogglePersonalizza={() => { setAperta(null); setPersonalizza((a) => (a === t.id ? null : t.id)) }}
                 onScheda={() => setSchedaId(t.id)}
                 onDuplica={() => duplica(t.id)}
                 onElimina={() => elimina(t)}
@@ -283,12 +288,14 @@ interface RowProps {
   t: TipologiaCamera
   disabled: boolean
   aperta: boolean
+  personalizza: boolean
   evidenziata: boolean
   errore: boolean
   dragging: boolean
   over: boolean
   onChange: (p: Partial<TipologiaCamera>) => void
   onToggleDettagli: () => void
+  onTogglePersonalizza: () => void
   onScheda: () => void
   onDuplica: () => void
   onElimina: () => void
@@ -297,10 +304,11 @@ interface RowProps {
   onDragEnd: () => void
 }
 
-function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over, onChange, onToggleDettagli, onScheda, onDuplica, onElimina, onDragStart, onDragEnter, onDragEnd }: RowProps) {
+function TipologiaRow({ t, disabled, aperta, personalizza, evidenziata, errore, dragging, over, onChange, onToggleDettagli, onTogglePersonalizza, onScheda, onDuplica, onElimina, onDragStart, onDragEnter, onDragEnd }: RowProps) {
   // La riga è trascinabile solo partendo dalla maniglia, così i campi restano selezionabili.
   const [armata, setArmata] = useState(false)
   const totale = t.capacita + t.lettiExtra
+  const personalizzata = JSON.stringify(personalizzazioneDi(t)) !== JSON.stringify(PERSONALIZZAZIONE_DEFAULT)
 
   return (
     <li
@@ -359,13 +367,27 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
             </Tooltip>
           )}
           {t.descrizione && <span className="invc__desc">{t.descrizione}</span>}
-          <button type="button" className={'invc__toggle-det' + (aperta ? ' is-open' : '')} aria-expanded={aperta}
-            aria-controls={`invc-det-${t.id}`} onClick={onToggleDettagli}>
-            Dettagli camera <i className="fa-solid fa-chevron-down" />
-          </button>
+          <span className="invc__meta-acts">
+            <Tooltip text={riassuntoPersonalizzazione(t)}>
+              <button type="button" className={'invc__toggle-det' + (personalizza ? ' is-open' : '')} aria-expanded={personalizza}
+                aria-controls={`pcam-${t.id}`} aria-label="Personalizza" onClick={onTogglePersonalizza}>
+                <i className="fa-light fa-sliders invc__toggle-ico" /> <span className="invc__toggle-txt">Personalizza</span>
+                {personalizzata && <span className="invc__toggle-mark" aria-label="Personalizzata" />}
+                <i className="fa-solid fa-chevron-down" />
+              </button>
+            </Tooltip>
+            <button type="button" className={'invc__toggle-det' + (aperta ? ' is-open' : '')} aria-expanded={aperta}
+              aria-controls={`invc-det-${t.id}`} onClick={onToggleDettagli}>
+              Dettagli camera <i className="fa-solid fa-chevron-down" />
+            </button>
+          </span>
         </div>
 
         {aperta && <DettagliCamera t={t} disabled={disabled} onModifica={onScheda} onClose={onToggleDettagli} />}
+        {personalizza && (
+          <PersonalizzaTipologia t={t} disabled={disabled} onClose={onTogglePersonalizza}
+            onChange={(p) => onChange({ personalizzazione: p })} />
+        )}
       </div>
 
     </li>
@@ -403,6 +425,7 @@ function DettagliCamera({ t, disabled, onModifica, onClose }: { t: TipologiaCame
         <div><dt>N. camere</dt><dd>{t.numero}</dd></div>
         <div><dt>Ospiti</dt><dd>{ospiti(t.capacita)}{t.lettiExtra > 0 && ` + ${lettiExtra(t.lettiExtra)}`}</dd></div>
         <div className="invc__dl-wide"><dt>Piani</dt><dd>{t.piani?.length ? t.piani.join(', ') : vuoto}</dd></div>
+        <div className="invc__dl-full"><dt>Cambio lenzuola</dt><dd>{riassuntoPersonalizzazione(t).replace('Cambio lenzuola: ', '')} · sempre alla partenza</dd></div>
         <div className="invc__dl-full"><dt>Descrizione</dt><dd>{t.descrizione || vuoto}</dd></div>
         <div className="invc__dl-full">
           <dt>Caratteristiche{t.amenities.length > 0 && ` (${t.amenities.length})`}</dt>

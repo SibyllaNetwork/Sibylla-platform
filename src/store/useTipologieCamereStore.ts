@@ -23,6 +23,18 @@ export interface TipologiaCamera {
   immagine: string | null
   gallery: string[]
   attiva: boolean
+  /** Personalizzazione operativa della tipologia (housekeeping). Assente = valori predefiniti. */
+  personalizzazione?: PersonalizzazioneCamera
+}
+
+/** Segmento dell'ospite che determina le regole di servizio in camera. */
+export type SegmentoOspite = 'individuali' | 'corporate' | 'gruppi'
+
+export interface PersonalizzazioneCamera {
+  /** Intervallo in giorni del cambio lenzuola, contato dalla data di arrivo del
+   *  soggiorno; 0 = solo alla partenza. Il cambio il giorno della partenza è
+   *  sempre previsto, a prescindere dall'intervallo. */
+  cambioLenzuola: Record<SegmentoOspite, number>
 }
 
 interface TipologieCamereState {
