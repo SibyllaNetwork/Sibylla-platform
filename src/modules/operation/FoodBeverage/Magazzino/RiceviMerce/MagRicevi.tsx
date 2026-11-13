@@ -26,6 +26,7 @@ import MagShell, { type MagCtx } from '../comune/MagShell'
 import { useArticoliTutti } from '../comune/useArticoliTutti'
 import { useInvio } from '../comune/useInvio'
 import { useMagazzinoFb } from '../comune/useMagazzinoFb'
+import { residui, useOrdiniAperti } from '../Ordini/useOrdiniAperti'
 import BollaLettura from './BollaLettura'
 import './MagRicevi.sass'
 
@@ -115,7 +116,33 @@ function CaricoRighe({ ctx, modo, articoli, onArticoliCambiati, onRegistrato }: 
   const [nuovoForn, setNuovoForn] = useState(false)
   const [nuovoArt, setNuovoArt] = useState<{ iniziale: ArticoloIniziale; codice: string } | null>(null)
   const [ultima, setUltima] = useState<string | null>(null)
+  const [idOrdine, setIdOrdine] = useState('')
   const invio = useInvio()
+  const ordiniAperti = useOrdiniAperti(ctx.idStruttura)
+  const ordineDaRicevere = useMagazzinoFb(s => s.ordineDaRicevere)
+  const setOrdineDaRicevere = useMagazzinoFb(s => s.setOrdineDaRicevere)
+  const ordiniFornitore = ordiniAperti.filter(o => o.fornitore.id === Number(idFornitore))
+
+  /** Collega il carico a un ordine: le righe si precompilano con quanto manca, al prezzo atteso. */
+  const scegliOrdine = async (id: string) => {
+    setIdOrdine(id)
+    if (!id) return
+    try {
+      const o = await eseguiMag('ordine', { id: Number(id) })
+      const q = (n: number | null) => (n == null ? '' : String(n).replace('.', ','))
+      setRighe(residui(o).map(r => ({ ...rigaVuota(r.id_articolo, q(r.residuo)), prezzo: q(r.prezzo_atteso) })))
+      if (!documento) setDocumento(`Ordine ${o.numero}`)
+    } catch (e) { toast.error(messaggioErrore(e)) }
+  }
+
+  // Da "Ordini ai fornitori" → "Registra l'arrivo": si parte già collegati a quell'ordine.
+  useEffect(() => {
+    if (!ordineDaRicevere) return
+    setIdFornitore(String(ordineDaRicevere.id_fornitore))
+    scegliOrdine(String(ordineDaRicevere.id))
+    setOrdineDaRicevere(null)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ordineDaRicevere])
 
   // Il modo vale per tutto il carico: le righe restano, cambia solo l'origine registrata.
   useEffect(() => { if (modo === 'manuale' && righe.length === 0) setRighe([rigaVuota()]) }, [modo, righe.length])
@@ -158,6 +185,7 @@ function CaricoRighe({ ctx, modo, articoli, onArticoliCambiati, onRegistrato }: 
       id_fornitore: idFornitore ? Number(idFornitore) : null,
       documento: documento.trim() || null,
       origine: modo === 'codice' ? 'codice_a_barre' : 'manuale',
+      id_ordine: idOrdine ? Number(idOrdine) : null,
       righe: righeValide.map(r => ({
         id_articolo: r.id_articolo,
         quantita: numero(r.quantita),
@@ -176,7 +204,7 @@ function CaricoRighe({ ctx, modo, articoli, onArticoliCambiati, onRegistrato }: 
           <SelectField
             name="ric-forn" label="Fornitore" required value={idFornitore}
             options={[{ value: '', label: 'Scegli il fornitore' }, ...ctx.contesto.fornitori.map(f => ({ value: f.id, label: f.nome }))]}
-            onChange={e => setIdFornitore(e.target.value)}
+            onChange={e => { setIdFornitore(e.target.value); setIdOrdine('') }}
           />
           <Tooltip text="Nuovo fornitore">
             <button type="button" className="sib-btn sib-btn--icon magric__icon-btn" aria-label="Nuovo fornitore" onClick={() => setNuovoForn(true)}>
@@ -192,6 +220,21 @@ function CaricoRighe({ ctx, modo, articoli, onArticoliCambiati, onRegistrato }: 
           onChange={e => setIdPunto(e.target.value)}
         />
       </div>
+
+      {ordiniFornitore.length > 0 && (
+        <div className="magric__ordine">
+          <SelectField
+            name="ric-ordine" label="Collega a un ordine" className="magric__ordine-sel" value={idOrdine}
+            options={[{ value: '', label: 'Nessun ordine' }, ...ordiniFornitore.map(o => ({ value: o.id, label: `${o.numero} del ${new Date(o.creato_il).toLocaleDateString('it-IT')}${o.stato === 'parziale' ? ' (arrivato in parte)' : ''}` }))]}
+            onChange={e => scegliOrdine(e.target.value)}
+          />
+          <span className="magpag__nota">
+            {idOrdine
+              ? 'Righe precompilate con la merce ancora da ricevere: correggi le quantità arrivate. Il carico aggiorna l’ordine.'
+              : `${fornitore?.nome ?? 'Il fornitore'} ha ${ordiniFornitore.length === 1 ? 'un ordine aperto' : `${ordiniFornitore.length} ordini aperti`}: collegalo per segnarlo come arrivato.`}
+          </span>
+        </div>
+      )}
 
       {modo === 'codice' && (
         <div className="magric__lettore">

@@ -133,6 +133,8 @@ const MENU_RISTORANTI:any[]=[
         {id:"fb-magazzino",label:"Magazzino",soloStandalone:true,children:[
           {id:"fb-mag-giacenze",label:"Giacenze",page:"fb-mag-giacenze"},
           {id:"fb-mag-ricevi",label:"Ricevi merce",page:"fb-mag-ricevi"},
+          {id:"fb-mag-riordino",label:"Riordino",page:"fb-mag-riordino"},
+          {id:"fb-mag-ordini",label:"Ordini ai fornitori",page:"fb-mag-ordini"},
           {id:"fb-mag-movimenti",label:"Movimenti",page:"fb-mag-movimenti"},
           {id:"fb-mag-articoli",label:"Articoli",page:"fb-mag-articoli"},
           {id:"fb-mag-ricette",label:"Ricette",page:"fb-mag-ricette"},

@@ -14,7 +14,7 @@
 import { MagazzinoFbErrore, NON_RAGGIUNGIBILE, strutturaCorrenteDemo } from './magazzinoFbOp'
 import type {
   Articolo, ArticoloRichiesta, BollaLetta, CategoriaRicette, Contesto, DatiAzione, Esito, FornitoreBreve, FornitoreRichiesta,
-  InventarioDettaglio, InventarioRiga, MovimentoRichiesta, NomeAzione, Punto, RepartoRicetta, Rif, RigaGiacenza, RigaMovimento,
+  InventarioDettaglio, InventarioRiga, MovimentoRichiesta, Ordine, OrdineSintesi, RigaRiordino, StatoOrdine, NomeAzione, Punto, RepartoRicetta, Rif, RigaGiacenza, RigaMovimento,
   RigaRegistro, RispostaAzione, StrutturaMag, TipoMovimento, Unita, VoceRicetta,
 } from './tipi'
 
@@ -40,7 +40,7 @@ const ko = (msg: string): Esito => ({ success: false, error_message: msg, id: nu
 // ─── Dati d'esempio ───────────────────────────────────────────────────────────
 
 interface ArticoloDb extends Omit<Articolo, 'giacenza_totale' | 'sotto_scorta' | 'categoria' | 'fornitori'> {
-  fornitori: { id_fornitore: number; codice_fornitore: string | null; prezzo: number | null }[]
+  fornitori: { id_fornitore: number; codice_fornitore: string | null; prezzo: number | null; confezione: number | null }[]
 }
 interface MovimentoDb extends Omit<RigaRegistro, 'righe_count' | 'valore' | 'anteprima'> { righe: RigaMovimento[] }
 interface VoceDb { id_voce: number; nome: string; prezzo: number; id_categoria_menu: number; disponibile: boolean }
@@ -53,6 +53,22 @@ interface InventarioDb extends Omit<InventarioRiga, 'articoli' | 'contati' | 'di
   teoriche?: Map<number, number>
 }
 interface FornitoreDb extends FornitoreRichiesta { id: number }
+interface OrdineDb {
+  id: number
+  numero: string
+  id_struttura: number
+  id_fornitore: number
+  stato: StatoOrdine
+  creato_il: string
+  creato_da: string
+  inviato_il: string | null
+  inviato_da: string | null
+  inviato_a: string[]
+  consegna_richiesta: string | null
+  note: string | null
+  motivo_chiusura: string | null
+  righe: { id_articolo: number; quantita: number; prezzo_atteso: number | null; ricevuta: number }[]
+}
 
 const db = {
   strutture: [{ id: 1, id_struttura_platform: 9, nome: 'Osteria della Mole' }] as StrutturaMag[],
@@ -67,9 +83,9 @@ const db = {
     { id: 9, nome: 'Conserve' },
   ] as Rif[],
   fornitori: [
-    { id: 1, nome: 'Ingrosso Sud S.r.l.', partita_iva: '01234567890', codice_fiscale: null, indirizzo: 'Via Roma 1', cap: '80100', comune: 'Napoli', provincia: 'NA', telefono: null, email: null, pec: null },
-    { id: 2, nome: 'Pescheria Il Molo', partita_iva: '09876543210', codice_fiscale: null, indirizzo: 'Molo Beverello', cap: '80133', comune: 'Napoli', provincia: 'NA', telefono: null, email: null, pec: null },
-    { id: 3, nome: 'Cantine Campane S.p.A.', partita_iva: '05554443332', codice_fiscale: null, indirizzo: 'Via del Vino 8', cap: '83100', comune: 'Avellino', provincia: 'AV', telefono: null, email: null, pec: null },
+    { id: 1, nome: 'Ingrosso Sud S.r.l.', partita_iva: '01234567890', codice_fiscale: null, indirizzo: 'Via Roma 1', cap: '80100', comune: 'Napoli', provincia: 'NA', telefono: '081 5550101', email: 'ordini@ingrossosud.example', pec: null },
+    { id: 2, nome: 'Pescheria Il Molo', partita_iva: '09876543210', codice_fiscale: null, indirizzo: 'Molo Beverello', cap: '80133', comune: 'Napoli', provincia: 'NA', telefono: '081 5550202', email: 'banco@pescheriailmolo.example', pec: null },
+    { id: 3, nome: 'Cantine Campane S.p.A.', partita_iva: '05554443332', codice_fiscale: null, indirizzo: 'Via del Vino 8', cap: '83100', comune: 'Avellino', provincia: 'AV', telefono: '0825 555303', email: 'commerciale@cantinecampane.example', pec: null },
   ] as FornitoreDb[],
   articoli: [] as ArticoloDb[],
   giacenze: new Map<string, number>(),
@@ -89,37 +105,43 @@ const db = {
   ricette: new Map<number, RicettaDb>(),
   inventari: [] as InventarioDb[],
   chiavi: new Map<string, number | null>(),
+  ordini: [] as OrdineDb[],
+  prossimoOrdine: 0,
   prossimo: 1000,
 }
 
 const nuovoId = () => ++db.prossimo
 
 function art(id: number, nome: string, cat: number, unita: Unita, scorta: number, costo: number, forn: number, cod: string,
-  ean: { ean: string; quantita: number; descrizione: string }[] = []): ArticoloDb {
+  ean: { ean: string; quantita: number; descrizione: string }[] = [],
+  riordino: { punto?: number; obiettivo?: number; confezione?: number } = {}): ArticoloDb {
   return {
     id, codice: `ART-${String(id).padStart(6, '0')}`, nome, id_categoria: cat, unita, codici_a_barre: ean,
-    fornitori: [{ id_fornitore: forn, codice_fornitore: cod, prezzo: costo }], scorta_minima: scorta,
+    fornitori: [{ id_fornitore: forn, codice_fornitore: cod, prezzo: costo, confezione: riordino.confezione ?? null }], scorta_minima: scorta,
+    punto_riordino: riordino.punto ?? null, scorta_obiettivo: riordino.obiettivo ?? null,
     id_punto_predefinito: null, costo_medio: costo, attivo: true, note: null,
   }
 }
 
 db.articoli = [
   art(37, 'Farina 00', 1, 'kg', 5, 0.9312, 1, 'FA00-1', [
-    { ean: '8001234567890', quantita: 1, descrizione: 'Pacco 1 kg' }, { ean: '8001234567906', quantita: 10, descrizione: 'Cartone 10 pacchi' }]),
+    { ean: '8001234567890', quantita: 1, descrizione: 'Pacco 1 kg' }, { ean: '8001234567906', quantita: 10, descrizione: 'Cartone 10 pacchi' }],
+    { punto: 25, obiettivo: 50, confezione: 10 }),
   art(52, 'Spaghetti', 2, 'kg', 4, 1.85, 1, 'SPA-500', [{ ean: '8001234500019', quantita: 0.5, descrizione: 'Pacco 500 g' }]),
   art(53, 'Paccheri', 2, 'kg', 3, 2.1, 1, 'PAC-500', [{ ean: '8001234500026', quantita: 0.5, descrizione: 'Pacco 500 g' }]),
-  art(61, 'Vongole veraci', 4, 'kg', 2, 11, 2, 'VON-1'),
-  art(62, 'Pesce di paranza', 4, 'kg', 2, 9.5, 2, 'PAR-1'),
+  art(61, 'Vongole veraci', 4, 'kg', 2, 11, 2, 'VON-1', [], { punto: 3, obiettivo: 6 }),
+  art(62, 'Pesce di paranza', 4, 'kg', 2, 9.5, 2, 'PAR-1', [], { punto: 2.5, obiettivo: 5 }),
   art(70, 'Olio extravergine di oliva', 5, 'l', 5, 7.6, 1, 'EVO-5', [{ ean: '8005110000052', quantita: 5, descrizione: 'Latta 5 l' }]),
   art(71, 'Olio di semi di arachide', 5, 'l', 5, 2.4, 1, 'ARA-10'),
   art(72, 'Sale grosso', 5, 'kg', 2, 0.5, 1, 'SAL-1'),
   art(80, 'Pomodori pelati', 9, 'pz', 24, 1.2, 1, 'PEL-400', [{ ean: '8004567000400', quantita: 1, descrizione: 'Latta 400 g' }]),
-  art(81, 'Mozzarella fior di latte', 6, 'kg', 3, 7.8, 1, 'MOZ-1'),
-  art(82, 'Mascarpone', 6, 'kg', 1, 6.9, 1, 'MAS-500'),
+  art(81, 'Mozzarella fior di latte', 6, 'kg', 3, 7.8, 1, 'MOZ-1', [], { punto: 4, obiettivo: 8, confezione: 1 }),
+  art(82, 'Mascarpone', 6, 'kg', 1, 6.9, 1, 'MAS-500', [], { confezione: 0.5 }),
   art(90, 'Basilico', 3, 'kg', 0.2, 18, 1, 'BAS-100'),
   art(91, 'Aglio', 3, 'kg', 0.5, 4.2, 1, 'AGL-1'),
   art(100, 'Acqua naturale 75 cl', 7, 'pz', 48, 0.45, 1, 'ACQ-75', [
-    { ean: '8002270000751', quantita: 1, descrizione: 'Bottiglia 75 cl' }, { ean: '8002270000768', quantita: 12, descrizione: 'Cassa da 12' }]),
+    { ean: '8002270000751', quantita: 1, descrizione: 'Bottiglia 75 cl' }, { ean: '8002270000768', quantita: 12, descrizione: 'Cassa da 12' }],
+    { punto: 120, obiettivo: 192, confezione: 12 }),
   art(110, 'Falanghina DOC', 8, 'l', 6, 6.4, 3, 'FAL-075', [{ ean: '8009990000751', quantita: 0.75, descrizione: 'Bottiglia 75 cl' }]),
 ]
 
@@ -155,6 +177,7 @@ function articoloOut(a: ArticoloDb): Articolo {
   return {
     ...a, categoria: nomeCat(a.id_categoria), giacenza_totale: t, sotto_scorta: t < a.scorta_minima,
     fornitori: a.fornitori.map(f => ({ ...f, nome: nomeForn(f.id_fornitore) })),
+    punto_riordino: a.punto_riordino, scorta_obiettivo: a.scorta_obiettivo,
   }
 }
 
@@ -244,6 +267,13 @@ function registra(d: MovimentoRichiesta, gestore: boolean, origineForzata?: Riga
     }
   }
   if ((d.tipo === 'scarico' || d.tipo === 'rettifica') && !d.motivo?.trim()) return ko('Indica il motivo.')
+  const ordine = d.id_ordine != null ? db.ordini.find(o => o.id === d.id_ordine) : undefined
+  if (d.id_ordine != null) {
+    if (d.tipo !== 'carico') return ko("Solo un carico può evadere un ordine.")
+    if (!ordine || ordine.id_struttura !== d.id_struttura) return ko('Ordine non trovato.')
+    if (ordine.id_fornitore !== d.id_fornitore) return ko("L'ordine è di un altro fornitore.")
+    if (ordine.stato !== 'inviato' && ordine.stato !== 'parziale') return ko(`L'ordine ${ordine.numero} non è aperto.`)
+  }
 
   // Applica: costo medio sui carichi con prezzo, poi le giacenze.
   for (const r of righe) {
@@ -253,7 +283,7 @@ function registra(d: MovimentoRichiesta, gestore: boolean, origineForzata?: Riga
       a.costo_medio = t <= 0 || a.costo_medio == null ? r4(r.prezzo_unitario) : r4((t * a.costo_medio + r.quantita * r.prezzo_unitario) / (t + r.quantita))
       const f = a.fornitori.find(x => x.id_fornitore === d.id_fornitore)
       if (f) f.prezzo = r.prezzo_unitario
-      else a.fornitori.push({ id_fornitore: d.id_fornitore!, codice_fornitore: null, prezzo: r.prezzo_unitario })
+      else a.fornitori.push({ id_fornitore: d.id_fornitore!, codice_fornitore: null, prezzo: r.prezzo_unitario, confezione: null })
     }
     aggiungi(r.id_articolo, r.id_punto, r.quantita)
   }
@@ -265,6 +295,13 @@ function registra(d: MovimentoRichiesta, gestore: boolean, origineForzata?: Riga
     documento: d.documento ?? null, motivo: d.motivo ?? null, comanda: null, annulla: null, annullato_da: null,
     righe: righe.map(r => { const a = articoloDb(r.id_articolo)!; return { ...r, nome: a.nome, unita: a.unita, giacenza_dopo: giac(a.id, r.id_punto) } }),
   })
+  if (ordine) {
+    for (const r of righe) {
+      const ro = ordine.righe.find(x => x.id_articolo === r.id_articolo)
+      if (ro) ro.ricevuta = r3(ro.ricevuta + r.quantita)
+    }
+    ordine.stato = ordine.righe.every(x => x.ricevuta >= x.quantita - 1e-9) ? 'ricevuto' : 'parziale'
+  }
   return ok(id, avvisiScorta(righe.map(r => r.id_articolo)))
 }
 
@@ -312,6 +349,53 @@ function seminaMovimenti() {
   })
 }
 seminaMovimenti()
+
+// ─── Ordini ai fornitori ──────────────────────────────────────────────────────
+
+const numeroOrdine = () => `ORD-${new Date().getFullYear()}-${String(++db.prossimoOrdine).padStart(4, '0')}`
+const giorno = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10) }
+
+function seminaOrdini() {
+  db.ordini.push({
+    id: nuovoId(), numero: numeroOrdine(), id_struttura: 1, id_fornitore: 1, stato: 'ricevuto', creato_il: fa(3, 11), creato_da: 'Mario Rossi',
+    inviato_il: fa(3, 11), inviato_da: 'Mario Rossi', inviato_a: ['ordini@ingrossosud.example'], consegna_richiesta: giorno(-2), note: null, motivo_chiusura: null,
+    righe: [{ id_articolo: 37, quantita: 20, prezzo_atteso: 0.95, ricevuta: 20 }, { id_articolo: 52, quantita: 10, prezzo_atteso: 1.85, ricevuta: 10 }],
+  })
+  db.ordini.push({
+    id: nuovoId(), numero: numeroOrdine(), id_struttura: 1, id_fornitore: 2, stato: 'inviato', creato_il: fa(0, 9), creato_da: 'Mario Rossi',
+    inviato_il: fa(0, 9), inviato_da: 'Mario Rossi', inviato_a: ['banco@pescheriailmolo.example'], consegna_richiesta: giorno(1), note: 'Consegna entro le 10:00.', motivo_chiusura: null,
+    righe: [{ id_articolo: 61, quantita: 3, prezzo_atteso: 11, ricevuta: 0 }],
+  })
+}
+seminaOrdini()
+
+const fornitoreDb = (id: number) => db.fornitori.find(f => f.id === id)
+const totaleOrdine = (o: OrdineDb) => r2(o.righe.reduce((t, r) => t + r.quantita * (r.prezzo_atteso ?? 0), 0))
+
+function ordineSintesi(o: OrdineDb): OrdineSintesi {
+  const f = fornitoreDb(o.id_fornitore)
+  return {
+    id: o.id, numero: o.numero, id_struttura: o.id_struttura, fornitore: { id: o.id_fornitore, nome: f?.nome ?? '', email: f?.email ?? null },
+    stato: o.stato, creato_il: o.creato_il, creato_da: o.creato_da, inviato_il: o.inviato_il, consegna_richiesta: o.consegna_richiesta,
+    righe_count: o.righe.length, totale_atteso: totaleOrdine(o),
+  }
+}
+
+function ordineOut(o: OrdineDb): Ordine {
+  return {
+    ...ordineSintesi(o), inviato_da: o.inviato_da, inviato_a: o.inviato_a, note: o.note, motivo_chiusura: o.motivo_chiusura,
+    righe: o.righe.map(r => {
+      const a = articoloDb(r.id_articolo)!
+      return { id_articolo: a.id, nome: a.nome, unita: a.unita, codice_fornitore: a.fornitori.find(x => x.id_fornitore === o.id_fornitore)?.codice_fornitore ?? null, quantita: r.quantita, prezzo_atteso: r.prezzo_atteso, ricevuta: r.ricevuta }
+    }),
+  }
+}
+
+/** Merce ordinata e non ancora arrivata (ordini inviati o arrivati in parte) per articolo, nella struttura. */
+function inArrivo(idStruttura: number, idArticolo: number) {
+  return r3(db.ordini.filter(o => o.id_struttura === idStruttura && (o.stato === 'inviato' || o.stato === 'parziale'))
+    .reduce((t, o) => t + o.righe.filter(r => r.id_articolo === idArticolo).reduce((u, r) => u + Math.max(0, r.quantita - r.ricevuta), 0), 0))
+}
 
 // ─── Ricette ──────────────────────────────────────────────────────────────────
 
@@ -485,21 +569,26 @@ const azioni: Gestori = {
       if (d.id_categoria != null && !db.categorie.some(c => c.id === d.id_categoria)) return ko('Categoria non valida.')
       if (d.fornitori.some(f => !db.fornitori.some(x => x.id === f.id_fornitore))) return ko('Fornitore non valido.')
       if (!(d.scorta_minima >= 0)) return ko('Scorta minima non valida.')
+      if (d.punto_riordino != null && !(d.punto_riordino >= 0)) return ko('Punto di riordino non valido.')
+      if (d.scorta_obiettivo != null && !(d.scorta_obiettivo > (d.punto_riordino ?? d.scorta_minima))) return ko('La scorta obiettivo deve essere maggiore del punto di riordino.')
+      if (d.fornitori.some(f => f.confezione != null && !(f.confezione > 0))) return ko('Confezione non valida.')
       if (d.id != null) {
         const a = articoloDb(d.id)
         if (!a) return ko('Articolo non trovato.')
         if (a.unita !== d.unita && db.movimenti.some(m => m.righe.some(r => r.id_articolo === a.id))) return ko("L'articolo ha già dei movimenti: l'unità di misura non si può cambiare.")
         Object.assign(a, {
           nome, id_categoria: d.id_categoria, unita: d.unita, codici_a_barre: d.codici_a_barre, scorta_minima: d.scorta_minima,
+          punto_riordino: d.punto_riordino ?? null, scorta_obiettivo: d.scorta_obiettivo ?? null,
           id_punto_predefinito: d.id_punto_predefinito, attivo: d.attivo, note: d.note,
-          fornitori: d.fornitori.map(f => ({ ...f, prezzo: a.fornitori.find(x => x.id_fornitore === f.id_fornitore)?.prezzo ?? null })),
+          fornitori: d.fornitori.map(f => ({ id_fornitore: f.id_fornitore, codice_fornitore: f.codice_fornitore, confezione: f.confezione ?? null, prezzo: a.fornitori.find(x => x.id_fornitore === f.id_fornitore)?.prezzo ?? null })),
         })
         return ok(a.id)
       }
       const id = nuovoId()
       db.articoli.push({
         id, codice: `ART-${String(id).padStart(6, '0')}`, nome, id_categoria: d.id_categoria, unita: d.unita, codici_a_barre: d.codici_a_barre,
-        fornitori: d.fornitori.map(f => ({ ...f, prezzo: null })), scorta_minima: d.scorta_minima, id_punto_predefinito: d.id_punto_predefinito,
+        fornitori: d.fornitori.map(f => ({ id_fornitore: f.id_fornitore, codice_fornitore: f.codice_fornitore, confezione: f.confezione ?? null, prezzo: null })),
+        scorta_minima: d.scorta_minima, punto_riordino: d.punto_riordino ?? null, scorta_obiettivo: d.scorta_obiettivo ?? null, id_punto_predefinito: d.id_punto_predefinito,
         costo_medio: null, attivo: d.attivo, note: d.note,
       })
       return ok(id)
@@ -586,6 +675,113 @@ const azioni: Gestori = {
       db.fornitori.push({ ...d, id, nome })
       return ok(id)
     })
+  },
+
+  fornitore: d => {
+    const f = fornitoreDb(d.id) ?? nonTrovato('Fornitore non trovato.')!
+    return { ...f, articoli: db.articoli.filter(a => a.fornitori.some(x => x.id_fornitore === f.id)).length }
+  },
+
+  riordino: d => {
+    if (!db.strutture.some(s => s.id === d.id_struttura)) nonTrovato('Struttura non trovata.')
+    const punti = puntiStruttura(d.id_struttura)
+    const righe: RigaRiordino[] = []
+    for (const a of db.articoli.filter(x => x.attivo)) {
+      const punto = a.punto_riordino ?? a.scorta_minima
+      if (!(punto > 0)) continue
+      const giacenza = r3(punti.reduce((t, p) => t + giac(a.id, p.id), 0))
+      const arrivo = inArrivo(d.id_struttura, a.id)
+      if (giacenza + arrivo > punto) continue
+      const obiettivo = a.scorta_obiettivo ?? r3(punto * 2)
+      const forn = a.fornitori.find(f => f.prezzo != null) ?? a.fornitori[0]
+      let q = r3(Math.max(0, obiettivo - giacenza - arrivo))
+      if (forn?.confezione) q = r3(Math.ceil(q / forn.confezione - 1e-9) * forn.confezione)
+      righe.push({
+        id_articolo: a.id, nome: a.nome, categoria: nomeCat(a.id_categoria), unita: a.unita, giacenza, in_arrivo: arrivo,
+        punto_riordino: punto, scorta_obiettivo: obiettivo, quantita_proposta: q,
+        fornitori: a.fornitori.map(f => ({ id_fornitore: f.id_fornitore, nome: nomeForn(f.id_fornitore), codice_fornitore: f.codice_fornitore, prezzo: f.prezzo, confezione: f.confezione })),
+        id_fornitore_proposto: forn?.id_fornitore ?? null,
+      })
+    }
+    return { aggiornato_il: adesso(), righe: righe.sort((x, y) => x.nome.localeCompare(y.nome)) }
+  },
+
+  ordini: d => db.ordini
+    .filter(o => o.id_struttura === d.id_struttura && (!d.stato || o.stato === d.stato) && (!d.id_fornitore || o.id_fornitore === d.id_fornitore))
+    .sort((a, b) => b.creato_il.localeCompare(a.creato_il))
+    .map(ordineSintesi),
+
+  ordine: d => ordineOut(db.ordini.find(o => o.id === d.id) ?? nonTrovato('Ordine non trovato.')!),
+
+  salva_ordine: (d, gestore) => {
+    if (!gestore) riservata()
+    return conChiave(d.id == null ? d.id_operazione : undefined, () => {
+      if (!db.strutture.some(s => s.id === d.id_struttura)) return ko('Struttura non valida.')
+      if (!fornitoreDb(d.id_fornitore)) return ko('Indica il fornitore.')
+      if (!d.righe?.length) return ko('Aggiungi almeno un articolo.')
+      if (d.righe.length > 200) return ko('Al massimo 200 righe per ordine.')
+      const visti = new Set<number>()
+      for (let i = 0; i < d.righe.length; i++) {
+        const r = d.righe[i]
+        const a = articoloDb(r.id_articolo)
+        if (!a || !a.attivo) return ko(`Riga ${i + 1}: articolo non valido.`)
+        if (visti.has(a.id)) return ko(`«${a.nome}» compare due volte.`)
+        visti.add(a.id)
+        if (!(r.quantita > 0) || r3(r.quantita) !== r.quantita) return ko(`Riga ${i + 1}: quantità non valida.`)
+        if (r.prezzo_atteso != null && !(r.prezzo_atteso >= 0)) return ko('Prezzo non valido.')
+      }
+      if (d.consegna_richiesta && Number.isNaN(Date.parse(d.consegna_richiesta))) return ko('La data di consegna non è valida.')
+      const righe = d.righe.map(r => ({ id_articolo: r.id_articolo, quantita: r.quantita, prezzo_atteso: r.prezzo_atteso, ricevuta: 0 }))
+      if (d.id != null) {
+        const o = db.ordini.find(x => x.id === d.id)
+        if (!o) return ko('Ordine non trovato.')
+        if (o.stato !== 'bozza') return ko("Si modificano solo gli ordini in bozza: questo è già stato inviato.")
+        Object.assign(o, { id_fornitore: d.id_fornitore, consegna_richiesta: d.consegna_richiesta, note: d.note, righe })
+        return ok(o.id)
+      }
+      const id = nuovoId()
+      db.ordini.push({
+        id, numero: numeroOrdine(), id_struttura: d.id_struttura, id_fornitore: d.id_fornitore, stato: 'bozza', creato_il: adesso(), creato_da: AUTORE,
+        inviato_il: null, inviato_da: null, inviato_a: [], consegna_richiesta: d.consegna_richiesta, note: d.note, motivo_chiusura: null, righe,
+      })
+      return ok(id)
+    })
+  },
+
+  invia_ordine: (d, gestore) => {
+    if (!gestore) riservata()
+    return conChiave(d.id_operazione, () => {
+      const o = db.ordini.find(x => x.id === d.id)
+      if (!o) return ko('Ordine non trovato.')
+      if (o.stato !== 'bozza' && o.stato !== 'inviato') return ko(`L'ordine ${o.numero} non si può più inviare.`)
+      const email = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+      if (!d.a?.length) return ko("Indica l'email del fornitore.")
+      if ([...d.a, ...(d.cc ?? [])].some(x => !email.test(x))) return ko('Email non valida.')
+      if (!d.oggetto?.trim()) return ko("Indica l'oggetto dell'email.")
+      if (!d.pdf?.dati) return ko("Manca il PDF dell'ordine.")
+      Object.assign(o, { stato: 'inviato', inviato_il: adesso(), inviato_da: AUTORE, inviato_a: d.a })
+      return ok(o.id, [`Email inviata a ${d.a.join(', ')} (simulata nella demo).`])
+    })
+  },
+
+  annulla_ordine: (d, gestore) => {
+    if (!gestore) riservata()
+    const o = db.ordini.find(x => x.id === d.id)
+    if (!o) return ko('Ordine non trovato.')
+    if (!d.motivo?.trim()) return ko("Indica il motivo dell'annullamento.")
+    if (o.stato !== 'bozza' && o.stato !== 'inviato') return ko("Si annullano solo gli ordini in bozza o inviati e non ancora arrivati.")
+    Object.assign(o, { stato: 'annullato', motivo_chiusura: d.motivo.trim() })
+    return ok(o.id)
+  },
+
+  chiudi_ordine: (d, gestore) => {
+    if (!gestore) riservata()
+    const o = db.ordini.find(x => x.id === d.id)
+    if (!o) return ko('Ordine non trovato.')
+    if (!d.motivo?.trim()) return ko('Indica il motivo della chiusura.')
+    if (o.stato !== 'inviato' && o.stato !== 'parziale') return ko('Si chiudono solo gli ordini inviati o arrivati in parte.')
+    Object.assign(o, { stato: 'chiuso', motivo_chiusura: d.motivo.trim() })
+    return ok(o.id)
   },
 
   registra: (d, gestore) => conChiave(d.id_operazione, () => registra(d, gestore)),

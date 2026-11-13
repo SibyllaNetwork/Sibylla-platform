@@ -159,6 +159,8 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "fb-cassa": "Il turno di cassa: incassi per metodo, riepilogo IVA, storni e chiusura",
   "fb-mag-giacenze": "Quanta merce c'è in magazzino, cucina e bar, sempre aggiornata da carichi, movimenti e comande",
   "fb-mag-ricevi": "Il carico della merce arrivata dai fornitori: a mano, con il codice a barre o leggendo la bolla",
+  "fb-mag-riordino": "Gli articoli arrivati al punto di riordino, raggruppati per fornitore: si trasformano in ordini",
+  "fb-mag-ordini": "Gli ordini ai fornitori: bozza, invio per email con il PDF e arrivo della merce",
   "fb-mag-movimenti": "Scarichi, trasferimenti, resi, scarti e rettifiche, con il registro di tutti i movimenti",
   "fb-mag-articoli": "Le materie prime e i prodotti a magazzino: unità, codici a barre, fornitori e scorta minima",
   "fb-mag-ricette": "Le materie prime di ogni piatto e bevanda: a ogni porzione servita si scaricano da sole",

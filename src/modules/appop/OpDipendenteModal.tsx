@@ -17,6 +17,11 @@ interface Props {
   moduli: RepartiModuli
   onClose: () => void
   onSalva: (d: DipendenteRichiesta) => Promise<void>
+  /**
+   * Azienda integrata con Sibylla Platform: anagrafica, grado, reparti e HR arrivano da Platform e si vedono soltanto;
+   * qui si spengono solo moduli e pagine alla persona.
+   */
+  soloModuli?: boolean
 }
 
 const VUOTO: DipendenteRichiesta = { nome: '', cognome: '', email: '', livello: 'impiegato', reparti: [], responsabileReparti: [], hr: false, inviaInvito: true, esclusi: [] }
@@ -24,7 +29,8 @@ const VUOTO: DipendenteRichiesta = { nome: '', cognome: '', email: '', livello: 
 // ─── UTENZA DELL'APP OP! ──────────────────────────────────────────────────────
 //  Nome, email aziendale, grado, reparti (tra quelli attivi), reparti di cui è
 //  responsabile e HR. Alla creazione si può mandare subito l'invito via email.
-export default function OpDipendenteModal({ open, dipendente, reparti, moduli, onClose, onSalva }: Props) {
+//  Azienda integrata con Platform (`soloModuli`): si cambiano solo moduli e pagine.
+export default function OpDipendenteModal({ open, dipendente, reparti, moduli, onClose, onSalva, soloModuli = false }: Props) {
   const [f, setF] = useState<DipendenteRichiesta>(VUOTO)
   const [errore, setErrore] = useState<string | null>(null)
   const [salvo, setSalvo] = useState(false)
@@ -50,6 +56,17 @@ export default function OpDipendenteModal({ open, dipendente, reparti, moduli, o
     set('responsabileReparti', on ? [...f.responsabileReparti, r] : f.responsabileReparti.filter(x => x !== r))
 
   const salva = async () => {
+    if (soloModuli) {
+      setSalvo(true)
+      try {
+        await onSalva({ ...f, esclusi: (f.esclusi ?? []).filter(v => suoi.includes(v.split(':')[0] as RepartoOp)) })
+      } catch (e) {
+        setErrore(e instanceof Error ? e.message : 'Salvataggio non riuscito.')
+      } finally {
+        setSalvo(false)
+      }
+      return
+    }
     if (!f.nome.trim() || !f.cognome.trim() || !/^\S+@\S+\.\S+$/.test(f.email.trim())) {
       setErrore('Indica nome, cognome e un indirizzo email valido.')
       return
@@ -73,18 +90,25 @@ export default function OpDipendenteModal({ open, dipendente, reparti, moduli, o
   return (
     <Modal open={open} onClose={onClose} title={dipendente ? `${dipendente.nome} ${dipendente.cognome}` : 'Nuova utenza App Op!'} size="lg">
       <div className="op-dip">
+        {soloModuli && (
+          <p className="op-dip__vuoto">
+            Azienda integrata con Sibylla Platform: nome, email, grado, reparti e HR arrivano da Platform e si modificano lì. Qui puoi
+            spegnere moduli e pagine alla persona.
+          </p>
+        )}
         <div className="op-dip__grid">
-          <InputField name="nome" label="Nome" value={f.nome} onChange={e => set('nome', e.target.value)} maxLength={80} required />
-          <InputField name="cognome" label="Cognome" value={f.cognome} onChange={e => set('cognome', e.target.value)} maxLength={80} required />
+          <InputField name="nome" label="Nome" value={f.nome} onChange={e => set('nome', e.target.value)} maxLength={80} required disabled={soloModuli} />
+          <InputField name="cognome" label="Cognome" value={f.cognome} onChange={e => set('cognome', e.target.value)} maxLength={80} required disabled={soloModuli} />
           <InputField
             name="email" type="email" label="Email aziendale" value={f.email} maxLength={254} required
-            disabled={dipendente?.stato === 'attivo'}
-            hint={dipendente?.stato === 'attivo' ? 'L’account è attivo: l’email è il nome utente e non si cambia.' : 'Qui arriva il codice di invito.'}
+            disabled={soloModuli || dipendente?.stato === 'attivo'}
+            hint={soloModuli ? undefined : dipendente?.stato === 'attivo' ? 'L’account è attivo: l’email è il nome utente e non si cambia.' : 'Qui arriva il codice di invito.'}
             onChange={e => set('email', e.target.value)}
           />
           <SelectField
             name="livello" label="Grado" value={f.livello}
             options={LIVELLI_OP.map(l => ({ value: l.value, label: l.label }))}
+            disabled={soloModuli}
             onChange={e => set('livello', e.target.value as LivelloOp)}
           />
         </div>
@@ -98,9 +122,9 @@ export default function OpDipendenteModal({ open, dipendente, reparti, moduli, o
             <div className="op-dip__reparti">
               {reparti.map(r => (
                 <div key={r} className="op-dip__reparto">
-                  <CheckboxField name={`rep-${r}`} label={nomeReparto(r)} checked={f.reparti.includes(r)} onChange={e => toggleReparto(r, e.target.checked)} />
+                  <CheckboxField name={`rep-${r}`} label={nomeReparto(r)} checked={f.reparti.includes(r)} disabled={soloModuli} onChange={e => toggleReparto(r, e.target.checked)} />
                   {f.reparti.includes(r) && (
-                    <CheckboxField name={`resp-${r}`} label="Responsabile" checked={f.responsabileReparti.includes(r)} onChange={e => toggleResponsabile(r, e.target.checked)} className="op-dip__resp" />
+                    <CheckboxField name={`resp-${r}`} label="Responsabile" checked={f.responsabileReparti.includes(r)} disabled={soloModuli} onChange={e => toggleResponsabile(r, e.target.checked)} className="op-dip__resp" />
                   )}
                 </div>
               ))}
@@ -112,7 +136,7 @@ export default function OpDipendenteModal({ open, dipendente, reparti, moduli, o
         <OpPersonalizzazione reparti={suoi} moduli={moduli} esclusi={f.esclusi ?? []} onChange={v => set('esclusi', v)} />
 
         <div className="op-dip__opzioni">
-          <ToggleSwitch checked={f.hr} label="Ufficio del personale (HR)" description="Approvazioni di secondo livello e gestione del personale di tutti i reparti." onChange={v => set('hr', v)} />
+          <ToggleSwitch checked={f.hr} disabled={soloModuli} label="Ufficio del personale (HR)" description="Approvazioni di secondo livello e gestione del personale di tutti i reparti." onChange={v => set('hr', v)} />
           {!dipendente && (
             <CheckboxField name="invito" label="Invia subito l’invito via email" checked={f.inviaInvito !== false} onChange={e => set('inviaInvito', e.target.checked)} />
           )}

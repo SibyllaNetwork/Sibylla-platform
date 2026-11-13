@@ -16,7 +16,8 @@ import Tooltip from '../../../../../core/components/Tooltip'
 import TruncatedText from '../../../../../core/components/TruncatedText'
 import { DatePickerField, InputField, SelectField } from '../../../../../core/components/form'
 import { eseguiMag, messaggioErrore, nuovaIdOperazione, riuscito } from '../api/magazzinoFbOp'
-import type { Articolo, BollaLetta, Esito, FileBolla, Unita } from '../api/tipi'
+import type { Articolo, BollaLetta, Esito, FileBolla, Ordine, Unita } from '../api/tipi'
+import { residui, useOrdiniAperti } from '../Ordini/useOrdiniAperti'
 import { euro, euroU, fmtData, isoConFuso, numero, oraLocale } from '../comune/formato'
 import { MagAvvisi, MagCorpo, MagErrore, MagGriglia, MagPiede } from '../comune/MagModale'
 import type { MagCtx } from '../comune/MagShell'
@@ -109,6 +110,13 @@ export default function BollaLettura({ ctx, articoli, onArticoliCambiati, onRegi
   const [editNuovo, setEditNuovo] = useState<RigaRev | null>(null)
   const [invio, setInvio] = useState<{ inCorso: boolean; passo: string | null; errore: string | null }>({ inCorso: false, passo: null, errore: null })
   const chiavi = useRef<Chiavi | null>(null)
+  const ordiniAperti = useOrdiniAperti(ctx.idStruttura)
+  const [ordine, setOrdine] = useState<Ordine | null>(null)
+  const ordiniFornitore = typeof fornitore === 'number' ? ordiniAperti.filter(o => o.fornitore.id === fornitore) : []
+  const scegliOrdine = async (id: string) => {
+    if (!id) { setOrdine(null); return }
+    try { setOrdine(await eseguiMag('ordine', { id: Number(id) })) } catch (e) { setErrore(messaggioErrore(e)) }
+  }
 
   const opzioniArt = useMemo(() => articoli.map(a => ({ value: a.id, label: `${a.nome} (${a.unita})` })), [articoli])
   const perId = useMemo(() => new Map(articoli.map(a => [a.id, a])), [articoli])
@@ -272,6 +280,7 @@ export default function BollaLettura({ ctx, articoli, onArticoliCambiati, onRegi
         id_fornitore: idForn,
         documento: documento.trim() || null,
         origine: 'bolla',
+        id_ordine: ordine && typeof fornitore === 'number' && ordine.fornitore.id === fornitore ? ordine.id : null,
         righe: incluse.map(r => ({
           id_articolo: r.scelta === 'nuovo' ? c.creati.articoli.get(r.k)! : (r.scelta as number),
           quantita: numero(r.quantita),
@@ -414,7 +423,7 @@ export default function BollaLettura({ ctx, articoli, onArticoliCambiati, onRegi
             <span className="magbol__fcard-lab">Fornitore letto sulla bolla</span>
             <strong className="magbol__fcard-nome"><TruncatedText text={letto?.nome ?? 'Non leggibile'} /></strong>
             <span className="magbol__fcard-det"><TruncatedText text={[letto?.partita_iva && `P. IVA ${letto.partita_iva}`, indirizzo].filter(Boolean).join(' · ') || '—'} /></span>
-            <span className={`magbol__abb ${fornAbbinato ? 'magbol__abb--ok' : fornitore === 'nuovo' ? 'magbol__abb--nuovo' : ''}`}>
+            <span className={`magbol__abb ${fornAbbinato ? 'magbol__abb--ok' : fornitore === 'nuovo' ? 'magbol__abb--nuovo' : fornitore === '' ? '' : 'magbol__abb--manuale'}`}>
               {fornitore === 'nuovo'
                 ? <><i className="fa-solid fa-circle-plus" aria-hidden="true" /> Nuovo: sarà creato alla conferma</>
                 : fornAbbinato
@@ -431,7 +440,7 @@ export default function BollaLettura({ ctx, articoli, onArticoliCambiati, onRegi
               ...(letto?.nome && letto.id_fornitore == null ? [{ value: 'nuovo', label: `Crea «${letto.nome}»` }] : []),
               ...ctx.contesto.fornitori.map(f => ({ value: f.id, label: f.nome })),
             ]}
-            onChange={e => setFornitore(e.target.value === 'nuovo' ? 'nuovo' : e.target.value ? Number(e.target.value) : '')}
+            onChange={e => { setFornitore(e.target.value === 'nuovo' ? 'nuovo' : e.target.value ? Number(e.target.value) : ''); setOrdine(null) }}
           />
         </section>
         <div className="magbol__testa">
@@ -440,6 +449,19 @@ export default function BollaLettura({ ctx, articoli, onArticoliCambiati, onRegi
           <SelectField name="bol-punto" label="Carica in" value={idPunto} options={ctx.puntiAttivi.map(p => ({ value: p.id, label: p.nome }))} onChange={e => setIdPunto(e.target.value)} />
         </div>
       </div>
+
+      {ordiniFornitore.length > 0 && (
+        <div className="magbol__ordine">
+          <SelectField
+            name="bol-ordine" label="Collega a un ordine" className="magbol__ordine-sel" value={ordine ? String(ordine.id) : ''}
+            options={[{ value: '', label: 'Nessun ordine' }, ...ordiniFornitore.map(o => ({ value: o.id, label: `${o.numero} del ${new Date(o.creato_il).toLocaleDateString('it-IT')}` }))]}
+            onChange={e => scegliOrdine(e.target.value)}
+          />
+          {ordine ? <DifferenzeOrdine ordine={ordine} righe={incluse} perId={perId} /> : (
+            <span className="magpag__nota">Questo fornitore ha {ordiniFornitore.length === 1 ? 'un ordine aperto' : `${ordiniFornitore.length} ordini aperti`}: collegalo per vedere le differenze e segnarlo come arrivato.</span>
+          )}
+        </div>
+      )}
 
       <p className="magbol__conta">
         <span className="magbol__ai"><i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" /> Letta dall’AI di Sibylla: controlla prima di confermare</span>
@@ -587,3 +609,30 @@ function NuovoDaBolla({ riga, ctx, onClose, onSalva }: { riga: RigaRev | null; c
     </Modal>
   )
 }
+
+/** Confronto bolla ↔ ordine (solo visivo, prima della conferma): mancanti, in più, non ordinati. */
+function DifferenzeOrdine({ ordine, righe, perId }: { ordine: Ordine; righe: RigaRev[]; perId: Map<number, Articolo> }) {
+  const inBolla = new Map<number, number>()
+  righe.forEach(r => { if (typeof r.scelta === 'number') inBolla.set(r.scelta, (inBolla.get(r.scelta) ?? 0) + (numero(r.quantita) ?? 0)) })
+  const diff: { testo: string; tipo: 'meno' | 'piu' | 'extra' }[] = []
+  for (const r of residui(ordine)) {
+    const q = Math.round((inBolla.get(r.id_articolo) ?? 0) * 1000) / 1000
+    if (q < r.residuo) diff.push({ tipo: 'meno', testo: `${r.nome}: attesi ${fmtQOrd(r.residuo, r.unita)}, sulla bolla ${fmtQOrd(q, r.unita)}` })
+    else if (q > r.residuo) diff.push({ tipo: 'piu', testo: `${r.nome}: attesi ${fmtQOrd(r.residuo, r.unita)}, sulla bolla ${fmtQOrd(q, r.unita)}` })
+  }
+  inBolla.forEach((_q, id) => {
+    if (!ordine.righe.some(r => r.id_articolo === id)) diff.push({ tipo: 'extra', testo: `${perId.get(id)?.nome ?? 'Articolo'}: non era nell'ordine` })
+  })
+  if (diff.length === 0) return <span className="magbol__abb magbol__abb--ok"><i className="fa-solid fa-circle-check" aria-hidden="true" /> La bolla corrisponde all’ordine {ordine.numero}.</span>
+  return (
+    <ul className="magbol__diff">
+      {diff.map((d, i) => (
+        <li key={i} className={`magbol__diff-${d.tipo}`}>
+          <i className={`fa-solid ${d.tipo === 'meno' ? 'fa-arrow-down' : d.tipo === 'piu' ? 'fa-arrow-up' : 'fa-plus'}`} aria-hidden="true" /> {d.testo}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+const fmtQOrd = (n: number, u: Unita) => `${n.toLocaleString('it-IT', { maximumFractionDigits: 3 })} ${u}`

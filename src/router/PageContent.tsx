@@ -146,6 +146,8 @@ import MagGiacenze                from '../modules/operation/FoodBeverage/Magazz
 import MagArticoli                from '../modules/operation/FoodBeverage/Magazzino/Articoli/MagArticoli';
 import MagRicevi                  from '../modules/operation/FoodBeverage/Magazzino/RiceviMerce/MagRicevi';
 import MagMovimenti               from '../modules/operation/FoodBeverage/Magazzino/Movimenti/MagMovimenti';
+import MagRiordino                from '../modules/operation/FoodBeverage/Magazzino/Riordino/MagRiordino';
+import MagOrdini                  from '../modules/operation/FoodBeverage/Magazzino/Ordini/MagOrdini';
 import MagRicette                 from '../modules/operation/FoodBeverage/Magazzino/Ricette/MagRicette';
 import MagInventario              from '../modules/operation/FoodBeverage/Magazzino/Inventario/MagInventario';
 import MagImpostazioni            from '../modules/operation/FoodBeverage/Magazzino/Impostazioni/MagImpostazioni';
@@ -581,6 +583,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'fb-mag-articoli') return <MagArticoli navigate={navigate}/>;
   if (page === 'fb-mag-ricevi')   return <MagRicevi navigate={navigate}/>;
   if (page === 'fb-mag-movimenti') return <MagMovimenti navigate={navigate}/>;
+  if (page === 'fb-mag-riordino') return <MagRiordino navigate={navigate}/>;
+  if (page === 'fb-mag-ordini')   return <MagOrdini navigate={navigate}/>;
   if (page === 'fb-mag-ricette')  return <MagRicette navigate={navigate}/>;
   if (page === 'fb-mag-inventario') return <MagInventario navigate={navigate}/>;
   if (page === 'fb-mag-impostazioni') return <MagImpostazioni navigate={navigate}/>;

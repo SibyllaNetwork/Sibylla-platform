@@ -39,28 +39,33 @@ interface Bozza {
   id_categoria: string
   unita: Unita
   scorta_minima: string
+  punto_riordino: string
+  scorta_obiettivo: string
   id_punto_predefinito: string
   note: string
   attivo: boolean
   codici: { ean: string; quantita: string; descrizione: string }[]
-  fornitori: { id_fornitore: string; codice_fornitore: string }[]
+  fornitori: { id_fornitore: string; codice_fornitore: string; confezione: string }[]
 }
+
+const testo = (n: number | null | undefined) => (n == null ? '' : String(n).replace('.', ','))
 
 function bozzaDa(a?: Articolo | null, i?: ArticoloIniziale): Bozza {
   if (a) {
     return {
       nome: a.nome, id_categoria: a.id_categoria == null ? '' : String(a.id_categoria), unita: a.unita,
-      scorta_minima: String(a.scorta_minima).replace('.', ','), id_punto_predefinito: a.id_punto_predefinito == null ? '' : String(a.id_punto_predefinito),
+      scorta_minima: String(a.scorta_minima).replace('.', ','), punto_riordino: testo(a.punto_riordino), scorta_obiettivo: testo(a.scorta_obiettivo),
+      id_punto_predefinito: a.id_punto_predefinito == null ? '' : String(a.id_punto_predefinito),
       note: a.note ?? '', attivo: a.attivo,
       codici: a.codici_a_barre.map(c => ({ ean: c.ean, quantita: String(c.quantita).replace('.', ','), descrizione: c.descrizione ?? '' })),
-      fornitori: a.fornitori.map(f => ({ id_fornitore: String(f.id_fornitore), codice_fornitore: f.codice_fornitore ?? '' })),
+      fornitori: a.fornitori.map(f => ({ id_fornitore: String(f.id_fornitore), codice_fornitore: f.codice_fornitore ?? '', confezione: testo(f.confezione) })),
     }
   }
   return {
     nome: i?.nome ?? '', id_categoria: i?.id_categoria == null ? '' : String(i.id_categoria), unita: i?.unita ?? 'kg',
-    scorta_minima: '0', id_punto_predefinito: '', note: '', attivo: true,
+    scorta_minima: '0', punto_riordino: '', scorta_obiettivo: '', id_punto_predefinito: '', note: '', attivo: true,
     codici: i?.ean ? [{ ean: i.ean, quantita: '1', descrizione: '' }] : [],
-    fornitori: i?.id_fornitore ? [{ id_fornitore: String(i.id_fornitore), codice_fornitore: i.codice_fornitore ?? '' }] : [],
+    fornitori: i?.id_fornitore ? [{ id_fornitore: String(i.id_fornitore), codice_fornitore: i.codice_fornitore ?? '', confezione: '' }] : [],
   }
 }
 
@@ -84,8 +89,10 @@ export default function ArticoloForm({ open, onClose, ctx, articolo, iniziale, o
       id_categoria: b.id_categoria ? Number(b.id_categoria) : null,
       unita: b.unita,
       codici_a_barre: b.codici.filter(c => c.ean.trim()).map(c => ({ ean: c.ean.trim(), quantita: numero(c.quantita) ?? 0, descrizione: c.descrizione.trim() || null })),
-      fornitori: b.fornitori.filter(f => f.id_fornitore).map(f => ({ id_fornitore: Number(f.id_fornitore), codice_fornitore: f.codice_fornitore.trim() || null })),
+      fornitori: b.fornitori.filter(f => f.id_fornitore).map(f => ({ id_fornitore: Number(f.id_fornitore), codice_fornitore: f.codice_fornitore.trim() || null, confezione: numero(f.confezione) })),
       scorta_minima: numero(b.scorta_minima) ?? -1,
+      punto_riordino: numero(b.punto_riordino),
+      scorta_obiettivo: numero(b.scorta_obiettivo),
       id_punto_predefinito: b.id_punto_predefinito ? Number(b.id_punto_predefinito) : null,
       attivo: b.attivo,
       note: b.note.trim() || null,
@@ -112,6 +119,16 @@ export default function ArticoloForm({ open, onClose, ctx, articolo, iniziale, o
           <InputField
             name="art-scorta" label={`Scorta minima (${b.unita})`} value={b.scorta_minima}
             onChange={e => set({ scorta_minima: e.target.value })}
+          />
+          <InputField
+            name="art-riordino" label={`Punto di riordino (${b.unita})`} value={b.punto_riordino} placeholder="Come la scorta minima"
+            hint="Quando giacenza e merce in arrivo scendono qui, l'articolo entra nel Riordino."
+            onChange={e => set({ punto_riordino: e.target.value })}
+          />
+          <InputField
+            name="art-obiettivo" label={`Scorta obiettivo (${b.unita})`} value={b.scorta_obiettivo} placeholder="Il doppio del punto di riordino"
+            hint="Il livello fino a cui riempire con l'ordine."
+            onChange={e => set({ scorta_obiettivo: e.target.value })}
           />
           <SelectField
             name="art-punto" label="Punto predefinito dei carichi" value={b.id_punto_predefinito} options={punti}
@@ -151,16 +168,18 @@ export default function ArticoloForm({ open, onClose, ctx, articolo, iniziale, o
         <MagSezione
           titolo="Fornitori"
           azioni={(
-            <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => set({ fornitori: [...b.fornitori, { id_fornitore: '', codice_fornitore: '' }] })}>
+            <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => set({ fornitori: [...b.fornitori, { id_fornitore: '', codice_fornitore: '', confezione: '' }] })}>
               <i className="fa-solid fa-plus" aria-hidden="true" /> Aggiungi fornitore
             </button>
           )}
         >
           {b.fornitori.length === 0 && <p className="magart__vuoto">Nessun fornitore collegato: si aggiunge da solo al primo carico.</p>}
+          {b.fornitori.length > 0 && <p className="magart__vuoto">"Confezione" è il multiplo con cui si ordina a quel fornitore (es. cartone da 10 kg): il Riordino arrotonda le quantità per eccesso. Vuota = qualsiasi quantità.</p>}
           {b.fornitori.map((f, i) => (
             <div key={i} className="magart__riga magart__riga--fornitore">
               <SelectField name={`art-forn-${i}`} ariaLabel="Fornitore" value={f.id_fornitore} options={fornitori} onChange={e => set({ fornitori: b.fornitori.map((x, j) => (j === i ? { ...x, id_fornitore: e.target.value } : x)) })} />
               <InputField name={`art-fcod-${i}`} ariaLabel="Codice del fornitore" placeholder="Codice sul listino / DDT" value={f.codice_fornitore} onChange={e => set({ fornitori: b.fornitori.map((x, j) => (j === i ? { ...x, codice_fornitore: e.target.value } : x)) })} />
+              <InputField name={`art-fconf-${i}`} ariaLabel={`Confezione (${b.unita})`} placeholder={`Confezione (${b.unita})`} value={f.confezione} onChange={e => set({ fornitori: b.fornitori.map((x, j) => (j === i ? { ...x, confezione: e.target.value } : x)) })} />
               <Tooltip text="Togli il fornitore">
                 <button type="button" className="magart__togli" aria-label="Togli il fornitore" onClick={() => set({ fornitori: b.fornitori.filter((_, j) => j !== i) })}>
                   <i className="fa-solid fa-xmark" aria-hidden="true" />

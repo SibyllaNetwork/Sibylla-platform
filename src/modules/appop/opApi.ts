@@ -49,7 +49,7 @@ async function opFetch<T>(path: string, method = 'GET', body?: unknown): Promise
 
 export type StatoCliente = 'attivo' | 'sospeso'
 export type PianoCliente = 'base' | 'completo' | 'personalizzato'
-/** "struttura": l'azienda è l'albergo (una sola struttura); "gruppo": più strutture, ognuna con piani e camere. */
+/** "struttura": monostruttura (l'azienda è l'albergo); "gruppo": più strutture, ognuna con piani e camere. */
 export type TipoAziendaOp = 'struttura' | 'gruppo'
 
 export interface ClienteOp {
@@ -65,6 +65,8 @@ export interface ClienteOp {
   reparti: RepartoOp[]
   /** Azienda di Sibylla Platform collegata (null: azienda Op stand alone). */
   idAziendaPlatform?: number | null
+  /** Integrata con Sibylla Platform (dati da Platform); false: stand alone, anche se collegata solo per la BI. */
+  integrata?: boolean
 }
 
 export interface DatiCliente {
@@ -93,11 +95,50 @@ export interface DettaglioCliente extends DatiCliente {
   strutture: { id: number; nome: string; indirizzo: string | null }[]
   /** Azienda di Sibylla Platform collegata (null: azienda Op stand alone). */
   idAziendaPlatform: number | null
+  /**
+   * Integrata con Sibylla Platform: dati dell'azienda, strutture, camere e dipendenti con i ruoli arrivano da Platform
+   * e si aggiornano da soli; Op rifiuta le loro modifiche (400 "integrata_platform").
+   */
+  integrata: boolean
+  /** Stato dell'integrazione (null: stand alone). */
+  integrazione: IntegrazionePlatform | null
+}
+
+export interface IntegrazionePlatform {
+  attivaDal: string
+  ultimoRiallineamento: string | null
+  /** Ultimo riallineamento non riuscito. */
+  errore: string | null
+  /** Cose da sistemare in Platform (es. dipendenti senza email). */
+  avvisi: string[]
+}
+
+/** Cosa arriverà da Sibylla Platform integrando l'azienda, letto prima della conferma. */
+export interface AnteprimaPlatform {
+  idAziendaPlatform: number
+  ragioneSociale: string
+  partitaIva: string | null
+  indirizzo: string | null
+  strutture: { nome: string; tipo: 'ricettiva' | 'outlet'; camere: number }[]
+  dipendenti: number
+  dipendentiSenzaEmail: number
+  /** Azienda Op già integrata con questa azienda di Platform (null: libera). */
+  giaCollegataA: string | null
+}
+
+/** Nuova azienda integrata: i dati arrivano da Platform, qui solo abbonamento, reparti e moduli. */
+export interface NuovaAziendaIntegrata {
+  idAziendaPlatform: number
+  piano: PianoCliente
+  attivoDal?: string | null
+  scadeIl?: string | null
+  note?: string | null
+  reparti: Partial<Record<RepartoOp, string[] | null>>
 }
 
 /**
- * Nuova azienda Op, con gli stessi dati di sibyllaop.it/admin → Nuova azienda: una sola struttura (`nomeSede`,
- * l'insegna) o un gruppo (`strutture`). Da Platform nasce integrata: `idAziendaPlatform` è l'azienda di Platform.
+ * Nuova azienda Op stand alone, con gli stessi dati di sibyllaop.it/admin → Nuova azienda: monostruttura (`nomeSede`,
+ * l'insegna) o un gruppo (`strutture`). Le integrate si creano con `nuovaIntegrata`.
  */
 export interface NuovaAziendaOp {
   dati: DatiCliente
@@ -154,8 +195,17 @@ export const opAdminApi = {
   nuovoCliente: (r: NuovaAziendaOp) => opFetch<DettaglioCliente>(B, 'POST', r),
   aggiornaCliente: (id: number, dati: DatiCliente) => opFetch<DettaglioCliente>(`${B}/${id}`, 'PUT', dati),
   stato: (id: number, stato: StatoCliente) => opFetch<void>(`${B}/${id}/stato`, 'PUT', { stato }),
-  /** Collega l'azienda Op a un'azienda di Sibylla Platform (null: scollega, torna stand alone). */
-  platform: (id: number, idAziendaPlatform: number | null) => opFetch<DettaglioCliente>(`${B}/${id}/platform`, 'PUT', { idAziendaPlatform }),
+  /** Cosa arriva da Platform integrando l'azienda `idPlatform` (`cliente`: azienda Op già esistente da integrare). */
+  anteprimaPlatform: (idPlatform: number, cliente?: number) =>
+    opFetch<AnteprimaPlatform>(`${B}/platform/${idPlatform}/anteprima${cliente ? `?cliente=${cliente}` : ''}`),
+  /** Nuova azienda integrata con Sibylla Platform: dati, strutture, camere e dipendenti arrivano da Platform. */
+  nuovaIntegrata: (r: NuovaAziendaIntegrata) => opFetch<DettaglioCliente>(`${B}/integrata`, 'POST', r),
+  /** Azienda stand alone che diventa integrata: strutture e dipendenti si abbinano per nome ed email. */
+  integra: (id: number, idAziendaPlatform: number) => opFetch<DettaglioCliente>(`${B}/${id}/integrazione`, 'POST', { idAziendaPlatform }),
+  /** Rilegge subito da Platform dati, strutture, camere e dipendenti. */
+  riallinea: (id: number) => opFetch<DettaglioCliente>(`${B}/${id}/integrazione/riallinea`, 'POST'),
+  /** Termina l'integrazione: l'azienda torna stand alone, i dati restano in Op. */
+  terminaIntegrazione: (id: number) => opFetch<DettaglioCliente>(`${B}/${id}/integrazione`, 'DELETE'),
   /** Elimina l'azienda con tutti i suoi dati (strutture, camere, utenti, turni…). Irreversibile. */
   eliminaCliente: (id: number) => opFetch<{ righe: number }>(`${B}/${id}`, 'DELETE'),
   /** Amministratore dell'azienda: riceve l'invito via email e configura l'azienda su sibyllaop.it/azienda. */

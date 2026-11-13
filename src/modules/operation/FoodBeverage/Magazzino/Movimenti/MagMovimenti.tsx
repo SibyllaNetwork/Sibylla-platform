@@ -58,7 +58,6 @@ const giorniFa = (n: number) => { const d = new Date(); d.setDate(d.getDate() - 
 
 /** Massimo di movimenti letti per periodo: oltre, si chiede di restringere il periodo. */
 const MASSIMO = 5000
-const STATI_MOV = ['Valido', 'Annullato', 'Storno']
 
 function Registro({ ctx, navigate, nuovo, chiudiNuovo }: { ctx: MagCtx; navigate: (p: string) => void; nuovo: boolean; chiudiNuovo: () => void }) {
   const setRicetta = useMagazzinoFb(s => s.setRicettaDaAprire)
@@ -108,16 +107,15 @@ function Registro({ ctx, navigate, nuovo, chiudiNuovo }: { ctx: MagCtx; navigate
     ...m,
     tipoNome: m.annulla ? 'Storno' : m.origine === 'comanda' ? 'Comanda' : nomeTipo(m.tipo),
     origineNome: nomeOrigine(m.origine),
-    statoNome: m.annulla ? STATI_MOV[2] : m.annullato_da ? STATI_MOV[1] : STATI_MOV[0],
     dettaglioTesto: m.comanda ? `Tavolo ${m.comanda.tavolo} · ${m.comanda.voce} ×${m.comanda.porzioni}` : `${m.anteprima}${m.documento ? ` · ${m.documento}` : ''}`,
     doveNome: dove(m),
     chiNome: chi(m),
   })),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [dati, ctx.contesto.motivi_scarto])
-  const scelte = (k: 'tipoNome' | 'origineNome' | 'doveNome' | 'chiNome') => Array.from(new Set(tutte.map(r => r[k]))).sort()
+  const scelte = (k: 'tipoNome' | 'doveNome' | 'chiNome') => Array.from(new Set(tutte.map(r => r[k]))).sort()
   const filtrate = useMemo(() => cf.sortRows(tutte.filter(m =>
-    cf.matchMulti(m.tipoNome, 'tipoNome') && cf.matchMulti(m.origineNome, 'origineNome') && cf.matchMulti(m.statoNome, 'statoNome') &&
+    cf.matchMulti(m.tipoNome, 'tipoNome') &&
     cf.matchText(m.dettaglioTesto, 'dettaglioTesto') && cf.matchMulti(m.doveNome, 'doveNome') && cf.matchMulti(m.chiNome, 'chiNome') &&
     cf.matchText(m.autore, 'autore'),
   )),
@@ -176,12 +174,12 @@ function Registro({ ctx, navigate, nuovo, chiudiNuovo }: { ctx: MagCtx; navigate
             </colgroup>
             <thead>
               <tr>
-                <th><span className="sib-colf-head">Data{cf.th('data', 'data', { sort: true })}{cf.th('statoNome', 'stato', { options: STATI_MOV })}</span></th>
-                <th><span className="sib-colf-head">Tipo{cf.th('tipoNome', 'tipo', { options: scelte('tipoNome') })}{cf.th('origineNome', 'origine', { options: scelte('origineNome') })}</span></th>
+                <th><span className="sib-colf-head">Data{cf.th('data', 'data', { sort: true })}</span></th>
+                <th><span className="sib-colf-head">Tipo{cf.th('tipoNome', 'tipo', { options: scelte('tipoNome') })}</span></th>
                 <th><span className="sib-colf-head">Dettaglio{cf.th('dettaglioTesto', 'dettaglio o documento', { search: true })}</span></th>
                 <th><span className="sib-colf-head">Punto{cf.th('doveNome', 'punto', { options: scelte('doveNome') })}</span></th>
                 <th><span className="sib-colf-head"><TruncatedText text="Fornitore o motivo" />{cf.th('chiNome', 'fornitore o motivo', { options: scelte('chiNome') })}</span></th>
-                <th><span className="sib-colf-head">Autore{cf.th('autore', 'autore', { search: true, sort: true })}</span></th>
+                <th><span className="sib-colf-head">Autore{cf.th('autore', 'autore', { search: true })}</span></th>
                 <th className="magpag__num"><span className="sib-colf-head">Valore{cf.th('valore', 'valore', { sort: true })}</span></th>
                 <th aria-label="Azioni" />
               </tr>
