@@ -14,9 +14,15 @@ export const MAX_INTERVALLO = 7
 
 export const PERSONALIZZAZIONE_DEFAULT: PersonalizzazioneCamera = {
   cambioLenzuola: { individuali: 3, corporate: 2, gruppi: 4 },
+  modoLenzuola: 'segmento',
+  cambioLenzuolaTutti: 3,
 }
 
-export const personalizzazioneDi = (t: TipologiaCamera): PersonalizzazioneCamera => t.personalizzazione ?? PERSONALIZZAZIONE_DEFAULT
+export const personalizzazioneDi = (t: TipologiaCamera): PersonalizzazioneCamera => ({ ...PERSONALIZZAZIONE_DEFAULT, ...t.personalizzazione })
+
+/** Intervallo del cambio lenzuola effettivo per il segmento (tiene conto di "uguale per tutti"). */
+export const intervalloLenzuola = (p: PersonalizzazioneCamera, segmento: SegmentoOspite) =>
+  p.modoLenzuola === 'tutti' ? p.cambioLenzuolaTutti ?? PERSONALIZZAZIONE_DEFAULT.cambioLenzuolaTutti! : p.cambioLenzuola[segmento]
 
 export const etichettaIntervallo = (n: number) =>
   n === 0 ? 'Solo alla partenza' : n === 1 ? 'Ogni giorno' : `Ogni ${n} giorni`
@@ -43,6 +49,6 @@ export function dateCambioLenzuola(t: TipologiaCamera, segmento: SegmentoOspite,
   const a = new Date(arrivo.getFullYear(), arrivo.getMonth(), arrivo.getDate())
   const p = new Date(partenza.getFullYear(), partenza.getMonth(), partenza.getDate())
   const notti = Math.max(0, Math.round((p.getTime() - a.getTime()) / giorno))
-  return giorniCambioLenzuola(personalizzazioneDi(t).cambioLenzuola[segmento], notti)
+  return giorniCambioLenzuola(intervalloLenzuola(personalizzazioneDi(t), segmento), notti)
     .map((g) => new Date(a.getFullYear(), a.getMonth(), a.getDate() + g))
 }

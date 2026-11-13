@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import Tooltip from '../../../core/components/Tooltip'
-import { SelectField } from '../../../core/components/form'
+import { RadioGroup, SelectField } from '../../../core/components/form'
 import type { PersonalizzazioneCamera, SegmentoOspite, TipologiaCamera } from '../../../store/useTipologieCamereStore'
 import {
   OPZIONI_INTERVALLO, PERSONALIZZAZIONE_DEFAULT, SEGMENTI, etichettaIntervallo, giorniCambioLenzuola, personalizzazioneDi,
@@ -34,8 +34,13 @@ export default function PersonalizzaTipologia({ t, disabled, onChange, onClose }
     return Array.from({ length: notti + 1 }, (_, g) => new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() + g))
   }, [notti])
 
-  const setIntervallo = (seg: SegmentoOspite, n: number) =>
-    onChange({ ...pers, cambioLenzuola: { ...pers.cambioLenzuola, [seg]: n } })
+  const perTutti = pers.modoLenzuola === 'tutti'
+  const setIntervallo = (seg: SegmentoOspite | 'tutti', n: number) =>
+    onChange(seg === 'tutti' ? { ...pers, cambioLenzuolaTutti: n } : { ...pers, cambioLenzuola: { ...pers.cambioLenzuola, [seg]: n } })
+  // Righe della tabella: una sola per "uguale per tutti", una per segmento altrimenti.
+  const righe: { id: SegmentoOspite | 'tutti'; label: string; icona: string; intervallo: number }[] = perTutti
+    ? [{ id: 'tutti', label: 'Tutti gli ospiti', icona: 'fa-people-group', intervallo: pers.cambioLenzuolaTutti ?? 3 }]
+    : SEGMENTI.map((s) => ({ ...s, intervallo: pers.cambioLenzuola[s.id] }))
 
   return (
     <div className="pcam" id={`pcam-${t.id}`}>
@@ -60,16 +65,23 @@ export default function PersonalizzaTipologia({ t, disabled, onChange, onClose }
           <span className="pcam__block-ico"><i className="fa-solid fa-bed" /></span>
           <span className="pcam__block-titles">
             <h4>Cambio lenzuola</h4>
-            <span>Intervallo per tipo di ospite, contato dalla data di arrivo del soggiorno</span>
+            <span>{perTutti ? 'Stesso intervallo per tutti gli ospiti' : 'Intervallo per tipo di ospite'}, contato dalla data di arrivo del soggiorno</span>
           </span>
           <SelectField name={`pcam-sim-${t.id}`} label="Simula un soggiorno di" className="pcam__sim" value={notti}
             options={Array.from({ length: MAX_NOTTI_SIM }, (_, i) => ({ value: i + 1, label: i === 0 ? '1 notte' : `${i + 1} notti` }))}
             onChange={(e) => setNotti(Number(e.target.value))} />
         </header>
 
+        <RadioGroup name={`pcam-modo-${t.id}`} label="Applica il cambio lenzuola" className="pcam__modo" disabled={disabled}
+          value={perTutti ? 'tutti' : 'segmento'} onChange={(v) => onChange({ ...pers, modoLenzuola: v as 'tutti' | 'segmento' })}
+          options={[
+            { value: 'tutti', label: 'Uguale per tutti gli ospiti' },
+            { value: 'segmento', label: 'Per tipo di ospite (individuali, corporate, gruppi)' },
+          ]} />
+
         <div className="pcam__table" role="table" aria-label="Cambio lenzuola per tipo di ospite">
           <div className="pcam__row pcam__row--head" role="row">
-            <span role="columnheader">Tipo di ospite</span>
+            <span role="columnheader">{perTutti ? 'Ospiti' : 'Tipo di ospite'}</span>
             <span role="columnheader">Cambio lenzuola</span>
             <div className="pcam__days" role="columnheader">
               {giorni.map((d, g) => (
@@ -81,8 +93,8 @@ export default function PersonalizzaTipologia({ t, disabled, onChange, onClose }
             </div>
           </div>
 
-          {SEGMENTI.map((s) => {
-            const intervallo = pers.cambioLenzuola[s.id]
+          {righe.map((s) => {
+            const intervallo = s.intervallo
             const cambi = new Set(giorniCambioLenzuola(intervallo, notti))
             return (
               <div key={s.id} className="pcam__row" role="row">
@@ -139,6 +151,7 @@ export default function PersonalizzaTipologia({ t, disabled, onChange, onClose }
 
 /** Riassunto breve per il tooltip del pulsante Personalizza. */
 export const riassuntoPersonalizzazione = (t: TipologiaCamera) => {
-  const p = personalizzazioneDi(t).cambioLenzuola
-  return `Cambio lenzuola: ${SEGMENTI.map((s) => `${s.label} ${etichettaIntervallo(p[s.id]).toLowerCase()}`).join(' · ')}`
+  const p = personalizzazioneDi(t)
+  if (p.modoLenzuola === 'tutti') return `Cambio lenzuola: ${etichettaIntervallo(p.cambioLenzuolaTutti ?? 3).toLowerCase()} per tutti gli ospiti`
+  return `Cambio lenzuola: ${SEGMENTI.map((s) => `${s.label} ${etichettaIntervallo(p.cambioLenzuola[s.id]).toLowerCase()}`).join(' · ')}`
 }

@@ -35,6 +35,10 @@ export interface PersonalizzazioneCamera {
    *  soggiorno; 0 = solo alla partenza. Il cambio il giorno della partenza è
    *  sempre previsto, a prescindere dall'intervallo. */
   cambioLenzuola: Record<SegmentoOspite, number>
+  /** 'tutti' = stesso intervallo per ogni ospite (`cambioLenzuolaTutti`);
+   *  'segmento' (o assente) = intervallo per tipo di ospite. */
+  modoLenzuola?: 'tutti' | 'segmento'
+  cambioLenzuolaTutti?: number
 }
 
 interface TipologieCamereState {
