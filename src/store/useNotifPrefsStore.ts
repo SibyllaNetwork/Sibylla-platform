@@ -21,6 +21,10 @@ interface NotifPrefsState {
   setTurniPersonale: (v: boolean) => void
   turniCadenza: CadenzaTurni
   setTurniCadenza: (v: CadenzaTurni) => void
+  // `avvisiRitardo` abilita gli avvisi di ritardo che i dipendenti mandano
+  // dall'App Op!: arrivano al responsabile HR (Centro notifiche e campanella).
+  avvisiRitardo: boolean
+  setAvvisiRitardo: (v: boolean) => void
 }
 
 export const useNotifPrefsStore = create<NotifPrefsState>()(
@@ -34,6 +38,8 @@ export const useNotifPrefsStore = create<NotifPrefsState>()(
       setTurniPersonale: (v) => set({ turniPersonale: v }),
       turniCadenza: 'settimanale',
       setTurniCadenza: (v) => set({ turniCadenza: v }),
+      avvisiRitardo: true,
+      setAvvisiRitardo: (v) => set({ avvisiRitardo: v }),
     }),
     { name: 'sibylla.notif-prefs' },
   ),

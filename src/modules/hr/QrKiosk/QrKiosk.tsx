@@ -6,8 +6,8 @@ import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
 import { DatePickerField, SelectField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
-import { DIPENDENTI_PRESENZE, SENZA_APP, useGiornataPresenze, useRegistroPresenzeStore, type DipendentePresenze } from '../../../store/useRegistroPresenzeStore'
-import { dataDa, isoDi, minToHHMM, repartoIcon, ritardoDi, turnoPrevisto } from '../_presenze/presenze.model'
+import { DIPENDENTI_PRESENZE, SENZA_APP, useGiornataPresenze, useRegistroPresenzeStore } from '../../../store/useRegistroPresenzeStore'
+import { dataDa, isoDi } from '../_presenze/presenze.model'
 import { useStrutturaPagina, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
 import { idStruttura } from '../../../core/demo/struttureDemo'
 import { generaPms, type CameraDemo } from '../../operation/_data/pmsDemo'
@@ -18,15 +18,14 @@ import './QrKiosk.sass'
  * Qr Code & kiosk — HR › Gestione delle presenze, subito dopo Timbrature.
  * Tutti i QR che il personale inquadra con l'App Op!:
  *  - il QR di timbratura del kiosk all'ingresso (si rinnova ogni minuto);
- *  - il QR d'installazione dell'app, con lo stato di attivazione e gli avvisi
- *    di ritardo arrivati oggi dall'app;
+ *  - il QR d'installazione dell'app, con lo stato di attivazione (gli avvisi
+ *    di ritardo dall'app arrivano come notifica al responsabile HR);
  *  - il QR di ogni camera della struttura, da attaccare in camera: la cameriera
  *    lo inquadra per aprire e chiudere la pulizia. Divisi per piano, si
  *    stampano uno alla volta, per piano o tutti insieme.
  */
 
 const KIOSK_PATH = kioskPath(POSTAZIONE_DEFAULT)
-const MOTIVI_RITARDO = ['Traffico sulla statale', 'Visita medica', 'Sciopero dei mezzi', 'Accompagno i figli a scuola', '']
 
 /** Contenuto del QR della camera letto dall'App Op! (struttura + numero). */
 const testoQrCamera = (idStr: number, numero: string) => `${APP_URL}pulizie?s=${idStr}&c=${encodeURIComponent(numero)}`
@@ -36,8 +35,6 @@ const etichettaPiano = (p: number) => (p === 0 ? 'Piano terra' : `Piano ${p}`)
 /** Tipo camera leggibile dal gestionale: "SGL CLASSICA (Singola Classic)" → "Singola Classic". */
 const tipoBreve = (t: string) => t.match(/\(([^)]+)\)/)?.[1] ?? t.charAt(0) + t.slice(1).toLowerCase()
 
-const iniziali = (d: { nome: string; cognome: string }) => `${d.nome[0]}${d.cognome[0]}`
-
 export default function QrKiosk({ navigate }: { navigate: (p: string) => void }) {
   const giornata = useGiornataPresenze()
   const conNomeFino = useRegistroPresenzeStore((s) => s.timbraturaConNomeFino)
@@ -45,7 +42,6 @@ export default function QrKiosk({ navigate }: { navigate: (p: string) => void })
 
   const adesso = useAdesso()
   const oggiIso = isoDi(adesso)
-  const minutiOra = adesso.getHours() * 60 + adesso.getMinutes()
 
   // ── QR del kiosk e dell'app ──
   const { qr: qrKiosk, scadeTra } = useQrTimbratura(POSTAZIONE_DEFAULT, adesso)
@@ -69,23 +65,6 @@ export default function QrKiosk({ navigate }: { navigate: (p: string) => void })
     return Array.from(m.entries()).sort((a, b) => a[0] - b[0])
   }, [camere])
   const pianiVisibili = piano === '' ? piani : piani.filter(([p]) => String(p) === piano)
-
-  // ── Avvisi di ritardo di oggi (dall'App Op!) ──
-  const avvisi = useMemo(() => {
-    const oggi = dataDa(oggiIso)
-    return DIPENDENTI_PRESENZE.flatMap((dip) => {
-      const turno = turnoPrevisto(dip.id, oggi)
-      const ritardo = ritardoDi(dip.id, oggi)
-      if (!turno || !ritardo) return []
-      const g = giornata(dip.id, oggiIso)
-      // Chi oggi è in ferie o assente non ha un turno da rispettare.
-      if (!g.segmenti.some((s) => s.tipo === 'presente') && !g.timbrature.length && minutiOra > turno.inizio) return []
-      const avvisatoAlle = turno.inizio - 12 - (dip.id % 4) * 7
-      if (avvisatoAlle > minutiOra) return []
-      const entrata = [...g.timbrature].sort((a, b) => a.min - b.min).find((t) => t.verso === 'entrata')
-      return [{ dip, previsto: turno.inizio + ritardo, turno: turno.inizio, motivo: MOTIVI_RITARDO[dip.id % MOTIVI_RITARDO.length], avvisatoAlle, entrata: entrata?.min }]
-    })
-  }, [giornata, oggiIso, minutiOra])
 
   // ── App dipendenti ──
   const attivi = DIPENDENTI_PRESENZE.filter((d) => !SENZA_APP.includes(d.id))
@@ -210,37 +189,6 @@ export default function QrKiosk({ navigate }: { navigate: (p: string) => void })
         </section>
       </div>
 
-      {/* ── Avvisi di ritardo (arrivano dall'App Op!) ── */}
-      <section className="qrk__card">
-        <header className="qrk__card-head">
-          <h2 className="qrk__card-title"><i className="fa-solid fa-alarm-clock" aria-hidden="true" />Avvisi di ritardo di oggi dall'app ({avvisi.length})</h2>
-        </header>
-        {avvisi.length ? (
-          <div className="sib-table-wrap qrk__table">
-            <table className="sib-table">
-              <colgroup><col className="qrk__c-dip" /><col /><col /><col className="qrk__c-motivo" /><col /><col /></colgroup>
-              <thead><tr><th>Dipendente</th><th>Turno</th><th>Arrivo previsto</th><th>Motivo</th><th>Avvisato alle</th><th>Entrata</th></tr></thead>
-              <tbody>
-                {avvisi.map((a) => (
-                  <tr key={a.dip.id}>
-                    <td><Persona d={a.dip} /></td>
-                    <td>{minToHHMM(a.turno)}</td>
-                    <td className="qrk__num">{minToHHMM(a.previsto)} <span className="qrk__ritardo">+{a.previsto - a.turno}'</span></td>
-                    <td><TruncatedText text={a.motivo || '—'} /></td>
-                    <td className="qrk__muted">{minToHHMM(a.avvisatoAlle)}</td>
-                    <td>{a.entrata != null
-                      ? <span className={a.entrata > a.previsto ? 'qrk__late' : 'qrk__ok'}>{minToHHMM(a.entrata)}</span>
-                      : <span className="qrk__muted">Non ancora entrato</span>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="qrk__empty">Nessun avviso di ritardo oggi.</p>
-        )}
-      </section>
-
       {/* ── QR code delle camere ── */}
       <section className="qrk__card">
         <header className="qrk__card-head qrk__card-head--tools">
@@ -307,18 +255,6 @@ function CameraQr({ camera, idStr, onStampa }: { camera: CameraDemo; idStr: numb
         </Tooltip>
       </div>
     </li>
-  )
-}
-
-function Persona({ d }: { d: DipendentePresenze }) {
-  return (
-    <span className="qrk__persona">
-      <span className="qrk__avatar">{iniziali(d)}</span>
-      <span className="qrk__persona-txt">
-        <span className="qrk__persona-nome"><TruncatedText text={`${d.nome} ${d.cognome}`} /></span>
-        <span className="qrk__persona-rep"><i className={`fa-solid ${repartoIcon(d.reparto)}`} aria-hidden="true" />{d.reparto}</span>
-      </span>
-    </span>
   )
 }
 

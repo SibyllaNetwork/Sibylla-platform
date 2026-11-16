@@ -25,12 +25,15 @@ const REPORT_CITYTAX_LABEL = "Report City Tax";
 // Riga dei suggerimenti di Sibylla sui turni del personale (ferie/permessi/
 // malattie + occupazione): flag "Centro notifiche" e cadenza di invio.
 const TURNI_LABEL = "Turni del personale";
+// Avvisi di ritardo mandati dai dipendenti con l'App Op!: al responsabile HR.
+const RITARDO_LABEL = "Avviso di ritardo (al responsabile HR)";
 
 const GENERALI_INIT:NotifRow[] = [
   {label:EFF_LABEL,                         cn:true, email:false,scad:false,gg:null},
   {label:REPORT_PICKUP_LABEL,              cn:true, email:true, scad:false,gg:null},
   {label:REPORT_CITYTAX_LABEL,             cn:true, email:true, scad:false,gg:null},
   {label:TURNI_LABEL,                      cn:true, email:false,scad:false,gg:null},
+  {label:RITARDO_LABEL,                    cn:true, email:false,scad:false,gg:null},
   {label:"Richiesta prenotazione extra",   cn:true, email:true, scad:false,gg:null},
   {label:"Scadenza opzione",               cn:true, email:true, scad:true, gg:8},
   {label:"Richiesta acquisto lotti",       cn:true, email:true, scad:true, gg:1},
@@ -73,6 +76,7 @@ export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void
   const setReportPickupOn = useNotifPrefsStore(s=>s.setReportPickup);
   const setReportCityTaxOn = useNotifPrefsStore(s=>s.setReportCityTax);
   const setTurniOn = useNotifPrefsStore(s=>s.setTurniPersonale);
+  const setRitardoOn = useNotifPrefsStore(s=>s.setAvvisiRitardo);
   const turniCadenza = useNotifPrefsStore(s=>s.turniCadenza);
   const setTurniCadenza = useNotifPrefsStore(s=>s.setTurniCadenza);
 
@@ -82,6 +86,7 @@ export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void
       : r.label===REPORT_PICKUP_LABEL ? {...r, cn:useNotifPrefsStore.getState().reportPickup}
       : r.label===REPORT_CITYTAX_LABEL ? {...r, cn:useNotifPrefsStore.getState().reportCityTax}
       : r.label===TURNI_LABEL ? {...r, cn:useNotifPrefsStore.getState().turniPersonale}
+      : r.label===RITARDO_LABEL ? {...r, cn:useNotifPrefsStore.getState().avvisiRitardo}
       : {...r}));
   const [person,   setPerson]   = useState<PersonRow[]>(PERSON_INIT.map(r=>({...r})));
   const [carrello, setCarrello] = useState<PersonRow[]>(CARRELLO_INIT.map(r=>({...r})));
@@ -99,6 +104,8 @@ export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void
       if(field==="cn" && r.label===REPORT_CITYTAX_LABEL) setReportCityTaxOn(nv);
       // idem per i suggerimenti sui turni del personale
       if(field==="cn" && r.label===TURNI_LABEL) setTurniOn(nv);
+      // idem per gli avvisi di ritardo dall'App Op!
+      if(field==="cn" && r.label===RITARDO_LABEL) setRitardoOn(nv);
       return {...r,[field]:nv};
     }));
   const setGg   = (ri:number, v:number) =>

@@ -8,6 +8,8 @@ import { useVccEmesseStore, useVccRows, vccScadute } from '../store/useVccEmesse
 import { usePreventiviSoggiornoStore } from '../store/usePreventiviSoggiornoStore'
 import { useFbSenzaHotel } from '../modules/operation/FoodBeverage/useFbSenzaHotel'
 import { useNotificheRistorazione } from './notificheRistorazione'
+import { useAvvisiRitardoOggi, testoAvvisoRitardo } from '../modules/hr/_presenze/avvisiRitardo'
+import { minToHHMM } from '../modules/hr/_presenze/presenze.model'
 import './notif.sass'
 
 // ── Tipi ─────────────────────────────────────────────────────────────────────
@@ -138,6 +140,17 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
       read: turniLetti.has(6001), reportPage: 'centro-notifiche', reportLabel: 'Apri nel Centro notifiche',
     }] : []),
   ]
+  // Avvisi di ritardo dei dipendenti dall'App Op! → al responsabile HR.
+  const ritardoOn = useNotifPrefsStore(s => s.avvisiRitardo)
+  const avvisiRitardo = useAvvisiRitardoOggi()
+  const [ritardiLetti, setRitardiLetti] = useState<Set<number>>(new Set())
+  const ritardoNotifs: Notif[] = !ritardoOn ? [] : avvisiRitardo.map((a, i) => ({
+    id: 6100 + i, sev: 'warning' as Sev, origin: 'platform' as Origin,
+    title: 'Avviso di ritardo',
+    text: testoAvvisoRitardo(a),
+    ref: `Responsabile HR · ${a.dip.reparto}`, date: `Oggi ${minToHHMM(a.avvisatoAlle)}`, read: ritardiLetti.has(6100 + i),
+    reportPage: 'hr-timbrature', reportLabel: 'Apri Timbrature',
+  }))
   // Utenza stand alone (sola ristorazione): la campanella parla del ristorante, non dell'hotel.
   const standalone = useFbSenzaHotel()
   const ristorazione = useNotificheRistorazione(standalone)
@@ -146,7 +159,7 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
     id: n.id, sev: n.sev, origin: 'platform', title: n.title, text: n.text, ref: n.ref, date: n.date,
     read: ristLette.has(n.id), reportPage: n.page, reportLabel: n.label,
   }))
-  const tutte = standalone ? ristNotifs : [...turniNotifs, ...pagamenti, ...visibili]
+  const tutte = standalone ? ristNotifs : [...ritardoNotifs, ...turniNotifs, ...pagamenti, ...visibili]
 
   const unreadCount = tutte.filter(n => !n.read).length
 
@@ -160,12 +173,13 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   }, [])
 
   const markAllRead = () => {
-    setVccLetta(true); setTurniLetti(new Set([6000, 6001])); setRistLette(new Set(ristNotifs.map(n => n.id))); setNotifs(prev => prev.map(n => ({ ...n, read: true })))
+    setVccLetta(true); setTurniLetti(new Set([6000, 6001])); setRitardiLetti(new Set(ritardoNotifs.map(n => n.id))); setRistLette(new Set(ristNotifs.map(n => n.id))); setNotifs(prev => prev.map(n => ({ ...n, read: true })))
     pagamenti.forEach(n => n.pagamento && segnaPagamentoLetto(n.pagamento.preventivo, n.pagamento.tentativo))
   }
   const markRead    = (id: number) => {
     if (id === VCC_ID) setVccLetta(true)
     if (id === 6000 || id === 6001) setTurniLetti(prev => new Set(prev).add(id))
+    if (ritardoNotifs.some(n => n.id === id)) setRitardiLetti(prev => new Set(prev).add(id))
     if (ristNotifs.some(n => n.id === id)) setRistLette(prev => new Set(prev).add(id))
     const pg = pagamenti.find(n => n.id === id)?.pagamento
     if (pg) segnaPagamentoLetto(pg.preventivo, pg.tentativo)

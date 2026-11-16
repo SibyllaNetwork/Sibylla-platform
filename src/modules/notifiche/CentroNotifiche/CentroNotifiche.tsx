@@ -16,6 +16,8 @@ import { useNotifPrefsStore } from '../../../store/useNotifPrefsStore'
 import { toast } from '../../../core/components/Toast/useToast'
 import { exportReportPickupPdf } from './reportPickupPdf'
 import { useHrGestioneStore } from '../../../store/useHrGestioneStore'
+import { useAvvisiRitardoOggi, testoAvvisoRitardo } from '../../hr/_presenze/avvisiRitardo'
+import { minToHHMM } from '../../hr/_presenze/presenze.model'
 import {
   useTurniPersonaleStore, suggerisciTurni, suggerimentiPerCadenza, etichettaSettimana, giornoMese, GIORNI_LUNGHI,
   giorniSettimana,
@@ -431,6 +433,19 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     })
     return [...sugg, ...pubbl]
   }, [turniOn, turniCadenza, richiesteHr, pubblicazioniTurni])
+  // Avvisi di ritardo dei dipendenti dall'App Op! → al responsabile HR
+  // (attivabili dalla riga "Avviso di ritardo" di Configura notifiche).
+  const ritardoOn = useNotifPrefsStore((s) => s.avvisiRitardo)
+  const avvisiRitardo = useAvvisiRitardoOggi()
+  const ritardoNotifs: NotificaUI[] = useMemo(() => !ritardoOn ? [] : avvisiRitardo.map((a, i) => ({
+    id: 930000 + i,
+    sev: 'warning' as const,
+    title: 'Avviso di ritardo',
+    text: testoAvvisoRitardo(a),
+    ref: `Responsabile HR · ${a.dip.reparto}`,
+    date: 'Oggi', time: minToHHMM(a.avvisatoAlle), group: 'oggi' as const,
+    read: false, source: 'platform' as const, channel: 'App Op!',
+  })), [ritardoOn, avvisiRitardo])
   const applicaSuggerimentoTurni = useTurniPersonaleStore((s) => s.applicaSuggerimento)
   const setFocusTurni = useTurniPersonaleStore((s) => s.setFocus)
   const assegnazioniTurni = useTurniPersonaleStore((s) => s.assegnazioni)
@@ -452,8 +467,8 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   }
 
   const allNotifications = useMemo(
-    () => [...turniNotifs, ...pagamentiNotifs, ...vccNotifs, ...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
-    [turniNotifs, pagamentiNotifs, vccNotifs, cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
+    () => [...ritardoNotifs, ...turniNotifs, ...pagamentiNotifs, ...vccNotifs, ...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
+    [ritardoNotifs, turniNotifs, pagamentiNotifs, vccNotifs, cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
   )
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),
