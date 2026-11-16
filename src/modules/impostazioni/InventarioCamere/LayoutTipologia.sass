@@ -17,43 +17,82 @@
     font-size: 12px
     color: $text-inactive
 
-  // ── Assegnazione per camera ──────────────────────────────────────────────────
-  &__assign
-    display: grid
-    grid-template-columns: 210px minmax(0, 300px) minmax(0, 1fr)
-    align-items: end
-    gap: 12px
-
-  &__current
-    display: flex
-    align-items: center
-    gap: 10px
-    min-width: 0
-    height: 34px
-    padding: 0 12px
-    border: 1px solid $border
-    border-left: 3px solid $primary
-    border-radius: 6px
-    background: $bg
-
-  &__current-txt
-    min-width: 0
+  // ── Elenco camere della tipologia ────────────────────────────────────────────
+  &__rooms-box
     display: flex
     flex-direction: column
-    line-height: 1.2
+    gap: 10px
 
-    strong, span
-      overflow: hidden
-      text-overflow: ellipsis
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    flex-wrap: wrap
+    gap: 12px
+
+  &__f-piano
+    width: 160px
+
+  &__f-mostra
+    width: 220px
+
+  &__count
+    margin-left: auto
+    padding-bottom: 8px
+    font-size: 12px
+    color: $text-inactive
+
+  // Nessuno scroll orizzontale: solo verticale, con l'intestazione fissa.
+  &__rooms.sib-table-wrap
+    margin-bottom: 0
+    max-height: 380px
+    overflow-x: hidden
+    overflow-y: auto
+
+  &__table.sib-table
+    table-layout: fixed
+
+    td
+      padding-top: 6px
+      padding-bottom: 6px
       white-space: nowrap
+      overflow: hidden
 
-    strong
-      font-size: 12px
-      color: $primary
+    tr.is-spec td:first-child
+      box-shadow: inset 3px 0 0 $primary
 
-    span
-      font-size: 11px
-      color: $text-inactive
+  &__c-num
+    width: 11%
+
+  &__c-piano
+    width: 9%
+
+  &__c-lay
+    width: 34%
+
+  &__c-letti
+    width: 36%
+
+  &__c-act
+    width: 10%
+
+  &__th-act, &__td-act
+    text-align: right
+
+  &__num
+    color: $primary
+
+  &__cell-letti
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+    > :last-child
+      min-width: 0
+
+  &__none
+    text-align: center
+    color: $text-inactive
 
   &__beds
     display: inline-flex
@@ -93,10 +132,6 @@
     border-radius: 8px
     background: var(--color-surface)
     transition: border-color .15s, box-shadow .15s
-
-    &.is-current
-      border-color: $primary
-      box-shadow: inset 0 0 0 1px $primary
 
   &__card-head
     display: flex
@@ -194,15 +229,28 @@
 
   // ── Larghezze ridotte (container query sul root pagina .invc) ────────────────
   @container (max-width: 980px)
-    &__assign
-      grid-template-columns: 200px minmax(0, 1fr)
+    &__c-num
+      width: 13%
 
-    &__current
-      grid-column: 1 / -1
+    &__c-piano
+      width: 9%
+
+    &__c-lay
+      width: 42%
+
+    &__c-letti
+      width: 22%
+
+    &__c-act
+      width: 14%
+
+    &__cell-letti > :last-child
+      display: none
 
   @container (max-width: 600px)
-    &__assign
-      grid-template-columns: minmax(0, 1fr)
+    &__count
+      margin-left: 0
+      padding-bottom: 0
 
 
 // ─── Editor layout (modale) ───────────────────────────────────────────────────

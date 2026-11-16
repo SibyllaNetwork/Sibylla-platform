@@ -14,12 +14,12 @@ import { PERSONALIZZAZIONE_DEFAULT, layoutDellaCamera, layoutPredefinitoDi, nume
 import { MAX_CAPACITA, MAX_LETTI_EXTRA, TIPI, lettiExtra, ospiti } from './catalogo'
 import './InventarioCamere.sass'
 import { useStruttureCliente, useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
+import { generaPms, type CameraDemo } from '../../operation/_data/pmsDemo'
 
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
 // Tipologie della struttura dalle schede demo: tutte le tipologie del catalogo,
-// col numero di camere ripartito sul totale della struttura (stesso giro di
-// tipologie del front office per quelle già presenti, almeno 1 per le altre).
-const TIP_GIRO = ['Doppia Classic', 'Matrimoniale Deluxe', 'Singola Classic', 'Twin Classic', 'Tripla Classic', 'Matrimoniale Deluxe', 'DUS', 'Quadrupla']
+// con le camere (numeri e piani) del gestionale demo condiviso con Planner e
+// Stato camere, così la numerazione è la stessa in tutte le pagine.
 const BASE: Record<string, { tipo: string; capacita: number; lettiExtra: number; descrizione: string }> = {
   'Singola Classic':     { tipo: 'Singola',      capacita: 1, lettiExtra: 0, descrizione: 'Letto singolo, scrivania e bagno privato con doccia.' },
   'Doppia Classic':      { tipo: 'Doppia',       capacita: 2, lettiExtra: 0, descrizione: 'Letto matrimoniale, spaziosa e accogliente: perfetta per le coppie.' },
@@ -41,35 +41,61 @@ const pianoBreve = (nome: string) => {
   return i === 0 ? 'PT' : i > 0 ? `${i}°` : nome
 }
 
-function tipologieDemo(scheda: { camere: number; seme: number; categoria: string }): TipologiaCamera[] {
-  const nomi = Object.keys(BASE)
-  const conta = new Map<string, number>()
-  const piani = new Map<string, Set<number>>()
-  const numeri = new Map<string, string[]>()
-  const perPianoUsati = new Map<number, number>()
-  const n = Math.max(scheda.camere, nomi.length)
-  const perPiano = n <= 8 ? n : n <= 40 ? 10 : n <= 100 ? 16 : 25
-  const totPiani = Math.ceil(n / perPiano)
-  for (let i = 0; i < n; i++) {
-    // Le camere "una per tipologia" sono sparse sui piani, le altre seguono la numerazione.
-    const piano = i < nomi.length ? 1 + (i % totPiani) : 1 + Math.floor(i / perPiano)
-    const ultimo = piano === totPiani
-    const tip = i < nomi.length ? nomi[(i * 5 + scheda.seme) % nomi.length]
-      : scheda.categoria === 'studentato' ? (i % 4 === 0 ? 'Twin Classic' : 'Singola Classic')
-      : ultimo && i % perPiano >= perPiano - 2 ? 'Suite' : TIP_GIRO[(scheda.seme + i * 7) % TIP_GIRO.length]
-    conta.set(tip, (conta.get(tip) ?? 0) + 1)
-    piani.set(tip, (piani.get(tip) ?? new Set()).add(piano))
-    // Numerazione: piano × 100 + progressivo sul piano (101, 102, … 201, …).
-    const k = (perPianoUsati.get(piano) ?? 0) + 1
-    perPianoUsati.set(piano, k)
-    numeri.set(tip, [...(numeri.get(tip) ?? []), String(piano * 100 + k)])
+function tipologieDemo(scheda: { nome: string; camere: number; seme: number; categoria: string }): TipologiaCamera[] {
+  const per = camerePerTipologia(scheda)
+  return Object.keys(BASE).map((nome) => {
+    const cs = per.get(nome) ?? []
+    return {
+      id: `tip-${scheda.seme}-${nome}`, nome, ...BASE[nome], numero: cs.length,
+      piani: Array.from(new Set(cs.map((c) => c.piano))).sort((x, y) => x - y).map(nomePiano),
+      camere: cs.map((c) => c.numero),
+      nomeOnline: '', amenities: [], immagine: null, gallery: [], attiva: true,
+    }
+  })
+}
+
+// Camere del gestionale demo (le stesse di Planner e Stato camere) ripartite sulle
+// tipologie del catalogo: TUTTE le singole vanno alla Singola, le doppie fra
+// Doppia/Twin/DUS (la prima del piano più basso è l'accessibile), le matrimoniali
+// fra Matrimoniale Deluxe e Family, le triple fra Tripla, Quadrupla e Tripla con letto aggiunto.
+const DA_CATEGORIA: Record<CameraDemo['categoria'], string[]> = {
+  SGL: ['Singola Classic'],
+  DBL: ['Doppia Classic', 'Twin Classic', 'Doppia Classic', 'DUS', 'Doppia Classic', 'Twin Classic'],
+  MAT: ['Matrimoniale Deluxe', 'Matrimoniale Deluxe', 'Family'],
+  TRP: ['Tripla Classic', 'Quadrupla', 'Tripla Classic', 'Tripla con letto aggiunto'],
+  SUITE: ['Suite'],
+}
+function camerePerTipologia(scheda: { nome: string; camere: number; categoria: string }): Map<string, CameraDemo[]> {
+  const pms = generaPms({ nome: scheda.nome, categoria: scheda.categoria, camere: scheda.camere })
+  const per = new Map<string, CameraDemo[]>()
+  const giro = new Map<string, number>()
+  let accessibile = false
+  for (const c of pms.camere) {
+    let tip: string
+    if (c.categoria === 'DBL' && !accessibile) { tip = 'Camera accessibile'; accessibile = true }
+    else {
+      const g = giro.get(c.categoria) ?? 0
+      giro.set(c.categoria, g + 1)
+      const l = DA_CATEGORIA[c.categoria]
+      tip = l[g % l.length]
+    }
+    per.set(tip, [...(per.get(tip) ?? []), c])
   }
-  return nomi.map((nome) => ({
-    id: `tip-${scheda.seme}-${nome}`, nome, ...BASE[nome], numero: conta.get(nome) ?? 1,
-    piani: Array.from(piani.get(nome) ?? []).sort((x, y) => x - y).map(nomePiano),
-    camere: (numeri.get(nome) ?? []).sort((x, y) => Number(x) - Number(y)),
-    nomeOnline: '', amenities: [], immagine: null, gallery: [], attiva: true,
-  }))
+  return per
+}
+
+/**
+ * Tipologie salvate prima della numerazione (o con numeri che non esistono nel
+ * gestionale): prendono le camere della tipologia omonima del gestionale, col
+ * numero di camere e i piani conseguenti.
+ */
+function allineaNumerazione(salvate: TipologiaCamera[], demo: TipologiaCamera[]): TipologiaCamera[] {
+  const esistenti = new Set(demo.flatMap((d) => d.camere ?? []))
+  return salvate.map((t) => {
+    if (t.camere?.length && t.camere.every((n) => esistenti.has(n))) return t
+    const d = demo.find((x) => x.nome === t.nome)
+    return d?.camere?.length ? { ...t, camere: d.camere, numero: d.camere.length, piani: d.piani } : { ...t, camere: undefined }
+  })
 }
 
 let _seq = 0
@@ -94,7 +120,10 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
   const salva = useTipologieCamereStore((s) => s.salva)
   const confirm = useConfirmStore((s) => s.confirm)
 
-  const iniziali = useMemo(() => salvate ?? (scheda ? tipologieDemo(scheda) : []), [salvate, scheda])
+  const iniziali = useMemo(() => {
+    const demo = scheda ? tipologieDemo(scheda) : []
+    return salvate ? allineaNumerazione(salvate, demo) : demo
+  }, [salvate, scheda])
   const [draft, setDraft] = useState<TipologiaCamera[]>(iniziali)
   // Il salvataggio dalla scheda camera aggiorna lo store: in quel caso la bozza
   // dell'elenco (eventuali altre modifiche non salvate) non va riallineata.
