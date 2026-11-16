@@ -1,47 +1,32 @@
-import { useEffect, useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
+import React, { useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
-import TruncatedText from '../../../core/components/TruncatedText'
-import Pagination from '../../../core/components/Pagination'
-import { DatePickerField, DateRangeField, InputField, SearchField, SelectField } from '../../../core/components/form'
+import { DatePickerField, InputField, SelectField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { REPARTI_HR } from '../../../store/useHrGestioneStore'
 import {
-  DIPENDENTI_PRESENZE, SENZA_APP, useGiornataPresenze, useRegistroPresenzeStore, type DipendentePresenze,
+  DIPENDENTI_PRESENZE, useGiornataPresenze, useRegistroPresenzeStore, type DipendentePresenze,
 } from '../../../store/useRegistroPresenzeStore'
 import {
-  chiaveGiorno, dataDa, hhmmToMin, isoDi, minToHHMM, repartoIcon, ritardoDi, turnoPrevisto,
+  chiaveGiorno, festivitaNazionale, fmtOre, GSETT, hhmmToMin, isoDi, MESI_LUNGHI, minToHHMM, repartoIcon,
   type Timbratura, type VersoTimbratura,
 } from '../_presenze/presenze.model'
 import { POSTAZIONI } from '../_presenze/ModaleTimbrature'
 import { exportXls } from '../hrExport'
-import Kiosk, { APP_URL, POSTAZIONE_DEFAULT, kioskPath, useAdesso, useQr, useQrTimbratura } from './Kiosk'
+import '../_presenze/RegistroMensile.sass'
 import './Timbrature.sass'
 
 /**
  * Timbrature — HR › Gestione delle presenze.
- * Come entra ed esce il personale: il QR del kiosk all'ingresso (si rinnova ogni
- * minuto, il dipendente lo inquadra con l'App Op!), gli avvisi di ritardo
- * arrivati oggi dall'app, lo stato di attivazione dell'app e lo storico di
- * tutte le timbrature, che l'ufficio del personale può aggiungere, correggere
- * o eliminare. Le timbrature sono le stesse del Registro presenze.
+ * Lo storico delle entrate e uscite del personale, con lo stesso stile a
+ * griglia del Registro presenze (vista dettagliata): un riquadro per
+ * dipendente con i giorni del mese in colonna e, per riga, ogni coppia
+ * entrata/uscita e le ore lavorate. Clic su un orario per correggerlo o
+ * eliminarlo, doppio clic su una casella vuota per aggiungere la timbratura.
+ * QR di timbratura, kiosk e app dipendenti sono in «Qr Code & kiosk».
  */
-
-const PAGE_SIZE = 10
-const KIOSK_PATH = kioskPath(POSTAZIONE_DEFAULT)
-
-const MOTIVI_RITARDO = ['Traffico sulla statale', 'Visita medica', 'Sciopero dei mezzi', 'Accompagno i figli a scuola', '']
-
-interface RigaTimbratura {
-  key: string
-  dip: DipendentePresenze
-  iso: string
-  t: Timbratura
-  manuale: boolean
-}
 
 interface FormTimbratura {
   /** Timbratura in modifica: giorno e id d'origine. */
@@ -54,97 +39,90 @@ interface FormTimbratura {
   note: string
 }
 
+interface Coppia { entrata?: Timbratura; uscita?: Timbratura }
+
+interface GiornoTimbr {
+  iso: string
+  n: number
+  dow: number
+  oggi: boolean
+  futuro: boolean
+  festivita: string | null
+  coppie: Coppia[]
+  lavorati: number
+  manuale: boolean
+}
+
 const fmtData = (iso: string) => iso.split('-').reverse().join('/')
-const iniziali = (d: { nome: string; cognome: string }) => `${d.nome[0]}${d.cognome[0]}`
+const MESI_BREVI = MESI_LUNGHI.map((m) => m.slice(0, 3).toLowerCase())
+const ORDINALI = ['1ª', '2ª', '3ª', '4ª', '5ª', '6ª']
+
+/** Timbrature del giorno in coppie entrata → uscita, in ordine d'orario. */
+function coppieDi(timbrature: Timbratura[]): Coppia[] {
+  const out: Coppia[] = []
+  ;[...timbrature].sort((a, b) => a.min - b.min).forEach((t) => {
+    const ultima = out[out.length - 1]
+    if (t.verso === 'entrata' || !ultima || ultima.uscita) out.push(t.verso === 'entrata' ? { entrata: t } : { uscita: t })
+    else ultima.uscita = t
+  })
+  return out
+}
+
+const lavoratiDi = (coppie: Coppia[]) => coppie.reduce((s, c) => s + (c.entrata && c.uscita ? Math.max(0, c.uscita.min - c.entrata.min) : 0), 0)
 
 export default function Timbrature({ navigate }: { navigate: (p: string) => void }) {
   const giornata = useGiornataPresenze()
   const timbratureManuali = useRegistroPresenzeStore((s) => s.timbrature)
   const impostaTimbrature = useRegistroPresenzeStore((s) => s.impostaTimbrature)
-  const conNomeFino = useRegistroPresenzeStore((s) => s.timbraturaConNomeFino)
-  const setConNomeFino = useRegistroPresenzeStore((s) => s.setTimbraturaConNomeFino)
   const confirm = useConfirmStore((s) => s.confirm)
 
-  const adesso = useAdesso()
-  const oggiIso = isoDi(adesso)
-  const minutiOra = adesso.getHours() * 60 + adesso.getMinutes()
-
-  // ── QR del kiosk ──
-  const { qr: qrKiosk, scadeTra } = useQrTimbratura(POSTAZIONE_DEFAULT, adesso)
-  const qrApp = useQr(APP_URL, 240)
-  const [kiosk, setKiosk] = useState(false)
-  const kioskUrl = `${window.location.origin}${KIOSK_PATH}`
-
-  // ── Filtri dello storico ──
-  const [dal, setDal] = useState(oggiIso)
-  const [al, setAl] = useState(oggiIso)
+  const oggi = new Date()
+  const oggiIso = isoDi(oggi)
+  const [anno, setAnno] = useState(oggi.getFullYear())
+  const [mese, setMese] = useState(oggi.getMonth())
   const [reparto, setReparto] = useState('')
-  const [verso, setVerso] = useState('')
   const [cerca, setCerca] = useState('')
-  const [page, setPage] = useState(1)
   const [form, setForm] = useState<FormTimbratura | null>(null)
 
-  // Timbrature dei giorni del filtro (fino a oggi: le future non esistono ancora).
-  const righe = useMemo(() => {
-    const out: RigaTimbratura[] = []
-    const fine = al > oggiIso ? oggiIso : al
-    const d = dataDa(dal)
-    for (let n = 0; isoDi(d) <= fine && n < 93; n++, d.setDate(d.getDate() + 1)) {
-      const iso = isoDi(d)
-      DIPENDENTI_PRESENZE.forEach((dip) => {
-        const g = giornata(dip.id, iso)
-        const manuale = !!timbratureManuali[chiaveGiorno(dip.id, iso)]
-        g.timbrature.forEach((t) => out.push({ key: `${dip.id}|${iso}|${t.id}`, dip, iso, t, manuale }))
-      })
-    }
-    return out.sort((a, b) => (b.iso + minToHHMM(b.t.min)).localeCompare(a.iso + minToHHMM(a.t.min)))
-  }, [dal, al, oggiIso, giornata, timbratureManuali])
+  const nudgeMese = (d: number) => {
+    const x = new Date(anno, mese + d, 1)
+    setAnno(x.getFullYear()); setMese(x.getMonth())
+  }
+  const vaiAOggi = () => { setAnno(oggi.getFullYear()); setMese(oggi.getMonth()) }
 
-  const filtrate = useMemo(() => righe.filter((r) =>
-    (!reparto || r.dip.reparto === reparto) &&
-    (!verso || r.t.verso === verso) &&
-    (!cerca.trim() || `${r.dip.nome} ${r.dip.cognome}`.toLowerCase().includes(cerca.trim().toLowerCase()))), [righe, reparto, verso, cerca])
+  const dipendenti = useMemo(() => DIPENDENTI_PRESENZE.filter((d) =>
+    (!reparto || d.reparto === reparto) &&
+    (!cerca.trim() || `${d.nome} ${d.cognome}`.toLowerCase().includes(cerca.trim().toLowerCase()))), [reparto, cerca])
 
-  useEffect(() => { setPage(1) }, [dal, al, reparto, verso, cerca])
-  const totalPages = Math.max(1, Math.ceil(filtrate.length / PAGE_SIZE))
-  const pageRows = filtrate.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-
-  // ── Avvisi di ritardo di oggi (dall'App Op!) ──
-  const avvisi = useMemo(() => {
-    const oggi = dataDa(oggiIso)
-    return DIPENDENTI_PRESENZE.flatMap((dip) => {
-      const turno = turnoPrevisto(dip.id, oggi)
-      const ritardo = ritardoDi(dip.id, oggi)
-      if (!turno || !ritardo) return []
-      const g = giornata(dip.id, oggiIso)
-      // Chi oggi è in ferie o assente non ha un turno da rispettare.
-      if (!g.segmenti.some((s) => s.tipo === 'presente') && !g.timbrature.length && minutiOra > turno.inizio) return []
-      const avvisatoAlle = turno.inizio - 12 - (dip.id % 4) * 7
-      if (avvisatoAlle > minutiOra) return []
-      const entrata = [...g.timbrature].sort((a, b) => a.min - b.min).find((t) => t.verso === 'entrata')
-      return [{ dip, previsto: turno.inizio + ritardo, turno: turno.inizio, motivo: MOTIVI_RITARDO[dip.id % MOTIVI_RITARDO.length], avvisatoAlle, entrata: entrata?.min }]
+  // Giorni del mese per dipendente (fino a oggi: le timbrature future non esistono ancora).
+  const mesePerDip = useMemo(() => {
+    const nGiorni = new Date(anno, mese + 1, 0).getDate()
+    const m = new Map<number, GiornoTimbr[]>()
+    dipendenti.forEach((dip) => {
+      const giorni: GiornoTimbr[] = []
+      for (let n = 1; n <= nGiorni; n++) {
+        const d = new Date(anno, mese, n)
+        const iso = isoDi(d)
+        const futuro = iso > oggiIso
+        const coppie = futuro ? [] : coppieDi(giornata(dip.id, iso).timbrature)
+        giorni.push({
+          iso, n, dow: d.getDay(), oggi: iso === oggiIso, futuro, festivita: festivitaNazionale(d),
+          coppie, lavorati: lavoratiDi(coppie), manuale: !!timbratureManuali[chiaveGiorno(dip.id, iso)],
+        })
+      }
+      m.set(dip.id, giorni)
     })
-  }, [giornata, oggiIso, minutiOra])
-
-  // ── App dipendenti ──
-  const attivi = DIPENDENTI_PRESENZE.filter((d) => !SENZA_APP.includes(d.id))
-  const daAttivare = DIPENDENTI_PRESENZE.filter((d) => SENZA_APP.includes(d.id))
-  const dallApp7gg = useMemo(() => {
-    let n = 0
-    const d = dataDa(oggiIso)
-    for (let i = 0; i < 7; i++) {
-      const iso = isoDi(d)
-      DIPENDENTI_PRESENZE.forEach((dip) => { n += giornata(dip.id, iso).timbrature.filter((t) => t.postazione === 'App Op!').length })
-      d.setDate(d.getDate() - 1)
-    }
-    return n
-  }, [giornata, oggiIso])
+    return m
+  }, [dipendenti, anno, mese, oggiIso, giornata, timbratureManuali])
 
   // ── Nuova / modifica / elimina ──
-  const nuova = () => setForm({ dipId: '', data: oggiIso, ora: minToHHMM(minutiOra), verso: 'entrata', postazione: 'inserita dall\'HR', note: '' })
-  const modifica = (r: RigaTimbratura) => setForm({
-    orig: { dipId: r.dip.id, iso: r.iso, id: r.t.id },
-    dipId: String(r.dip.id), data: r.iso, ora: minToHHMM(r.t.min), verso: r.t.verso, postazione: r.t.postazione, note: r.t.note ?? '',
+  const nuova = (dipId = '', data = oggiIso, verso: VersoTimbratura = 'entrata') => setForm({
+    dipId, data, ora: data === oggiIso ? minToHHMM(oggi.getHours() * 60 + oggi.getMinutes()) : verso === 'entrata' ? '09:00' : '18:00',
+    verso, postazione: 'inserita dall\'HR', note: '',
+  })
+  const modifica = (dip: DipendentePresenze, iso: string, t: Timbratura) => setForm({
+    orig: { dipId: dip.id, iso, id: t.id },
+    dipId: String(dip.id), data: iso, ora: minToHHMM(t.min), verso: t.verso, postazione: t.postazione, note: t.note ?? '',
   })
 
   function salva() {
@@ -167,237 +145,184 @@ export default function Timbrature({ navigate }: { navigate: (p: string) => void
     setForm(null)
   }
 
-  async function elimina(r: RigaTimbratura) {
+  async function elimina() {
+    if (!form?.orig) return
+    const o = form.orig
+    const dip = DIPENDENTI_PRESENZE.find((d) => d.id === o.dipId)
+    const t = giornata(o.dipId, o.iso).timbrature.find((x) => x.id === o.id)
+    if (!dip || !t) return
     const ok = await confirm({
       title: 'Elimina timbratura',
-      message: `Eliminare l'${r.t.verso} delle ${minToHHMM(r.t.min)} del ${fmtData(r.iso)} di ${r.dip.nome} ${r.dip.cognome}? La presenza della giornata verrà ricalcolata.`,
+      message: `Eliminare l'${t.verso} delle ${minToHHMM(t.min)} del ${fmtData(o.iso)} di ${dip.nome} ${dip.cognome}? La presenza della giornata verrà ricalcolata.`,
       confirmLabel: 'Elimina',
       danger: true,
     })
     if (!ok) return
-    impostaTimbrature(chiaveGiorno(r.dip.id, r.iso), giornata(r.dip.id, r.iso).timbrature.filter((t) => t.id !== r.t.id))
+    impostaTimbrature(chiaveGiorno(o.dipId, o.iso), giornata(o.dipId, o.iso).timbrature.filter((x) => x.id !== o.id))
     toast.success('Timbratura eliminata.', 'Eliminata')
+    setForm(null)
   }
 
-  const esporta = () => exportXls(`timbrature_${dal}_${al}`, ['Dipendente', 'Reparto', 'Tipo', 'Data', 'Ora', 'Postazione', 'Note'],
-    filtrate.map((r) => [`${r.dip.nome} ${r.dip.cognome}`, r.dip.reparto, r.t.verso === 'entrata' ? 'Entrata' : 'Uscita', fmtData(r.iso), minToHHMM(r.t.min), r.t.postazione, r.t.note ?? '']))
-
-  const copia = (testo: string, msg = 'Indirizzo del kiosk copiato.') => {
-    navigator.clipboard?.writeText(testo).then(() => toast.success(msg, 'Copiato')).catch(() => toast.error('Copia non riuscita.', 'Errore'))
+  function esporta() {
+    const righe: string[][] = []
+    dipendenti.forEach((dip) => (mesePerDip.get(dip.id) ?? []).forEach((g) => g.coppie.forEach((c) => {
+      ;[c.entrata, c.uscita].forEach((t) => t && righe.push([
+        `${dip.nome} ${dip.cognome}`, dip.reparto, t.verso === 'entrata' ? 'Entrata' : 'Uscita', fmtData(g.iso), minToHHMM(t.min), t.postazione, t.note ?? '',
+      ]))
+    })))
+    exportXls(`timbrature_${anno}-${String(mese + 1).padStart(2, '0')}`, ['Dipendente', 'Reparto', 'Tipo', 'Data', 'Ora', 'Postazione', 'Note'], righe)
   }
-
-  const fuoriTermine = conNomeFino < oggiIso
 
   return (
     <div className="tmb">
       <PageHead
         title="Timbrature"
-        subtitle="Entrate e uscite del personale: QR di timbratura, avvisi di ritardo, app dipendenti e storico"
+        subtitle="Storico delle entrate e uscite del personale, giorno per giorno"
         onBack={() => navigate('home')}
         actions={
           <div className="tmb__head-actions">
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setKiosk(true)}>
-              <i className="fa-solid fa-display" aria-hidden="true" />Apri kiosk
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('hr-qr-kiosk')}>
+              <i className="fa-solid fa-qrcode" aria-hidden="true" />Qr Code & kiosk
             </button>
-            <button type="button" className="sib-btn sib-btn--primary" onClick={nuova}>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={() => nuova()}>
               <i className="fa-solid fa-plus" aria-hidden="true" />Nuova timbratura
             </button>
           </div>
         }
       />
 
-      <div className="tmb__top">
-        {/* ── QR code timbratura ── */}
-        <section className="tmb__card">
-          <header className="tmb__card-head">
-            <h2 className="tmb__card-title"><i className="fa-solid fa-qrcode" aria-hidden="true" />QR code timbratura</h2>
-          </header>
-          <div className="tmb__qr-body">
-            <div className="tmb__qr">
-              {qrKiosk ? <img src={qrKiosk} alt="QR code di timbratura del kiosk" /> : <span className="tmb__qr-ph" />}
-              <span className={`tmb__qr-scade${scadeTra <= 10 ? ' tmb__qr-scade--warn' : ''}`}>Si rinnova tra {scadeTra}s</span>
-            </div>
-            <div className="tmb__how">
-              <h3 className="tmb__how-title">Come funziona</h3>
-              <ol className="tmb__steps">
-                <li>Apri il <b>kiosk</b> su un tablet o un monitor all'ingresso del personale.</li>
-                <li>Il dipendente apre l'<b>App Op!</b> sul telefono.</li>
-                <li>Inquadra il QR: Sibylla riconosce da sola se è un'entrata o un'uscita.</li>
-              </ol>
-              <p className="tmb__hint">Il codice cambia ogni minuto: una foto del QR non basta per timbrare da casa.</p>
-              <div className="tmb__url">
-                <span className="tmb__url-lbl">Indirizzo del kiosk</span>
-                <code className="tmb__code">{KIOSK_PATH}</code>
-                <span className="tmb__url-tools">
-                  <Tooltip text="Copia l'indirizzo">
-                    <button type="button" className="sib-btn sib-btn--icon tmb__ico" aria-label="Copia l'indirizzo del kiosk" onClick={() => copia(kioskUrl)}>
-                      <i className="fa-solid fa-copy" />
-                    </button>
-                  </Tooltip>
-                  <Tooltip text="Apri in una nuova scheda">
-                    <button type="button" className="sib-btn sib-btn--icon tmb__ico" aria-label="Apri il kiosk in una nuova scheda"
-                      onClick={() => window.open(kioskUrl, '_blank', 'noopener')}>
-                      <i className="fa-solid fa-arrow-up-right-from-square" />
-                    </button>
-                  </Tooltip>
-                </span>
-              </div>
-            </div>
+      <div className="tmb__toolbar">
+        <SelectField name="reparto" label="Reparto" className="tmb__f-rep" value={reparto} onChange={(e) => setReparto(e.target.value)}
+          options={[{ value: '', label: 'Tutti i reparti' }, ...REPARTI_HR.map((r) => ({ value: r, label: r }))]} />
+        <InputField name="ricerca" label="Cerca" className="tmb__f-cerca" placeholder="Cerca dipendente" value={cerca} onChange={(e) => setCerca(e.target.value)} />
+        <div className="tmb__tools">
+          <div className="tmb__periodo">
+            <Tooltip text="Mese precedente">
+              <button type="button" className="tmb__per-btn" aria-label="Mese precedente" onClick={() => nudgeMese(-1)}>
+                <i className="fa-solid fa-chevron-left" />
+              </button>
+            </Tooltip>
+            <span className="tmb__per-label">{MESI_LUNGHI[mese]} {anno}</span>
+            <Tooltip text="Mese successivo">
+              <button type="button" className="tmb__per-btn" aria-label="Mese successivo" onClick={() => nudgeMese(1)}>
+                <i className="fa-solid fa-chevron-right" />
+              </button>
+            </Tooltip>
           </div>
-        </section>
-
-        {/* ── App dipendenti ── */}
-        <section className="tmb__card">
-          <header className="tmb__card-head">
-            <h2 className="tmb__card-title"><i className="fa-solid fa-mobile-screen" aria-hidden="true" />App dipendenti</h2>
-          </header>
-          <div className="tmb__qr-body">
-            <div className="tmb__qr tmb__qr--sm">
-              {qrApp ? <img src={qrApp} alt="QR code per installare l'App Op!" /> : <span className="tmb__qr-ph" />}
-              <span className="tmb__qr-note">Inquadralo per installare l'app</span>
-            </div>
-            <div className="tmb__how">
-              <p className="tmb__app-info"><b>{attivi.length}</b> di {DIPENDENTI_PRESENZE.length} dipendenti hanno attivato l'App Op!</p>
-              <p className="tmb__app-info">Ultimi 7 giorni: <b>{dallApp7gg}</b> timbrature dall'app.</p>
-              {daAttivare.length > 0 && (
-                <div className="tmb__attivare">
-                  <span>Da attivare:</span>
-                  {daAttivare.map((d) => <span key={d.id} className="tmb__pill">{d.nome} {d.cognome}</span>)}
-                  <button type="button" className="sib-btn sib-btn--ghost tmb__invita"
-                    onClick={() => toast.success(`Invito all'App Op! inviato a ${daAttivare.map((d) => d.nome).join(' e ')}.`, 'Invito inviato')}>
-                    <i className="fa-solid fa-paper-plane" aria-hidden="true" />Invia invito
-                  </button>
-                </div>
-              )}
-              <div className="tmb__url">
-                <span className="tmb__url-lbl">Link d'installazione</span>
-                <code className="tmb__code">{APP_URL.replace('https://', '')}</code>
-                <Tooltip text="Copia il link">
-                  <button type="button" className="sib-btn sib-btn--icon tmb__ico" aria-label="Copia il link d'installazione dell'App Op!" onClick={() => copia(APP_URL, 'Link d\'installazione copiato.')}>
-                    <i className="fa-solid fa-copy" />
-                  </button>
-                </Tooltip>
-              </div>
-              <ol className="tmb__steps tmb__steps--muted">
-                <li>Il dipendente inquadra questo QR (o apre il link d'installazione) dal telefono.</li>
-                <li>Su iPhone: Condividi → <i>Aggiungi alla schermata Home</i>. Su Android: <i>Installa app</i>.</li>
-                <li>Accede con email aziendale o cellulare e il codice ricevuto via email.</li>
-              </ol>
-              <div className="tmb__nome">
-                <DatePickerField name="con-nome" label="Timbratura con nome e cognome consentita fino al" value={conNomeFino}
-                  onChange={(e) => e.target.value && setConNomeFino(e.target.value)} />
-                <p className={`tmb__hint${fuoriTermine ? ' tmb__hint--warn' : ''}`}>
-                  {fuoriTermine
-                    ? 'Scaduta: ora si timbra solo inquadrando il QR del kiosk.'
-                    : "Fino a questa data chi non riesce a inquadrare il QR può timbrare scrivendo nome e cognome nell'app."}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      {/* ── Avvisi di ritardo ── */}
-      <section className="tmb__card">
-        <header className="tmb__card-head">
-          <h2 className="tmb__card-title"><i className="fa-solid fa-alarm-clock" aria-hidden="true" />Avvisi di ritardo di oggi ({avvisi.length})</h2>
-        </header>
-        {avvisi.length ? (
-          <div className="sib-table-wrap tmb__table tmb__table--avvisi">
-            <table className="sib-table">
-              <colgroup><col className="tmb__c-dip" /><col /><col /><col className="tmb__c-motivo" /><col /><col /></colgroup>
-              <thead><tr><th>Dipendente</th><th>Turno</th><th>Arrivo previsto</th><th>Motivo</th><th>Avvisato alle</th><th>Entrata</th></tr></thead>
-              <tbody>
-                {avvisi.map((a) => (
-                  <tr key={a.dip.id}>
-                    <td><Persona d={a.dip} /></td>
-                    <td>{minToHHMM(a.turno)}</td>
-                    <td className="tmb__num">{minToHHMM(a.previsto)} <span className="tmb__ritardo">+{a.previsto - a.turno}'</span></td>
-                    <td><TruncatedText text={a.motivo || '—'} /></td>
-                    <td className="tmb__muted">{minToHHMM(a.avvisatoAlle)}</td>
-                    <td>{a.entrata != null
-                      ? <span className={a.entrata > a.previsto ? 'tmb__late' : 'tmb__ok'}>{minToHHMM(a.entrata)}</span>
-                      : <span className="tmb__muted">Non ancora entrato</span>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="tmb__empty-card">Nessun avviso di ritardo oggi.</p>
-        )}
-      </section>
-
-      {/* ── Storico timbrature ── */}
-      <section className="tmb__card">
-        <header className="tmb__card-head tmb__card-head--tools">
-          <h2 className="tmb__card-title"><i className="fa-solid fa-clock-rotate-left" aria-hidden="true" />Storico timbrature</h2>
-          <Tooltip text="Esporta in Excel">
-            <button type="button" className="sib-btn sib-btn--icon tmb__ico" aria-label="Esporta in Excel" onClick={esporta} disabled={!filtrate.length}>
+          <button type="button" className="sib-btn sib-btn--ghost tmb__oggi" onClick={vaiAOggi}>Oggi</button>
+          <Tooltip text="Timbrature del mese in Excel">
+            <button type="button" className="tmb__icon-btn" onClick={esporta} disabled={!dipendenti.length} aria-label="Timbrature del mese in Excel">
               <i className="fa-regular fa-file-xls" />
             </button>
           </Tooltip>
-        </header>
-        <div className="tmb__filters">
-          <DateRangeField nameFrom="dal" nameTo="al" label="Periodo" valueFrom={dal} valueTo={al}
-            onChangeFrom={(e) => e.target.value && setDal(e.target.value)} onChangeTo={(e) => e.target.value && setAl(e.target.value)} />
-          <SelectField name="reparto" label="Reparto" className="tmb__field" value={reparto} onChange={(e) => setReparto(e.target.value)}
-            options={[{ value: '', label: 'Tutti i reparti' }, ...REPARTI_HR.map((r) => ({ value: r, label: r }))]} />
-          <SelectField name="verso" label="Tipo" className="tmb__field tmb__field--sm" value={verso} onChange={(e) => setVerso(e.target.value)}
-            options={[{ value: '', label: 'Entrate e uscite' }, { value: 'entrata', label: 'Entrate' }, { value: 'uscita', label: 'Uscite' }]} />
-          <div className="tmb__search">
-            <SearchField name="cerca" placeholder="Cerca dipendente…" value={cerca} onChange={(e) => setCerca(e.target.value)} onClear={() => setCerca('')} />
-          </div>
         </div>
-        <div className="sib-table-wrap tmb__table">
-          <table className="sib-table">
-            <colgroup>
-              <col className="tmb__c-dip" /><col className="tmb__c-tipo" /><col className="tmb__c-ora" /><col className="tmb__c-post" /><col /><col className="tmb__c-az" />
-            </colgroup>
-            <thead><tr><th>Dipendente</th><th>Tipo</th><th>Orario</th><th>Postazione</th><th>Note</th><th className="tmb__az">Azioni</th></tr></thead>
-            <tbody>
-              {pageRows.map((r) => (
-                <tr key={r.key}>
-                  <td><Persona d={r.dip} /></td>
-                  <td>
-                    <span className={`tmb__verso tmb__verso--${r.t.verso}`}>
-                      <i className={`fa-solid ${r.t.verso === 'entrata' ? 'fa-right-to-bracket' : 'fa-right-from-bracket'}`} aria-hidden="true" />
-                      {r.t.verso === 'entrata' ? 'Entrata' : 'Uscita'}
-                    </span>
-                  </td>
-                  <td className="tmb__num"><b>{fmtData(r.iso)} {minToHHMM(r.t.min)}</b></td>
-                  <td><TruncatedText text={r.t.postazione} /></td>
-                  <td>
-                    {r.manuale && (
-                      <Tooltip text="Inserita o corretta dall'ufficio del personale">
-                        <i className="fa-solid fa-pen tmb__mod" aria-label="Modificata dall'ufficio del personale" />
-                      </Tooltip>
-                    )}
-                    <TruncatedText text={r.t.note ?? (r.manuale ? '' : '—')} />
-                  </td>
-                  <td className="tmb__az">
-                    <Tooltip text="Modifica">
-                      <button type="button" className="sib-btn sib-btn--icon tmb__ico" aria-label="Modifica timbratura" onClick={() => modifica(r)}>
-                        <i className="fa-solid fa-pen" />
-                      </button>
-                    </Tooltip>
-                    <Tooltip text="Elimina">
-                      <button type="button" className="sib-btn sib-btn--icon tmb__ico" aria-label="Elimina timbratura" onClick={() => elimina(r)}>
-                        <i className="fa-solid fa-trash" />
-                      </button>
-                    </Tooltip>
-                  </td>
-                </tr>
-              ))}
-              {!pageRows.length && <tr><td colSpan={6} className="tmb__empty">Nessuna timbratura per i filtri impostati.</td></tr>}
-            </tbody>
-          </table>
+      </div>
+
+      <div className="rpm">
+        <div className="rpm__legend" aria-label="Legenda">
+          <span className="rpm__leg"><span className="tmb__leg-dot tmb__leg-dot--in" aria-hidden="true" />Entrata</span>
+          <span className="rpm__leg"><span className="tmb__leg-dot tmb__leg-dot--out" aria-hidden="true" />Uscita</span>
+          <span className="rpm__leg"><i className="fa-solid fa-triangle-exclamation tmb__warn" aria-hidden="true" />Timbratura mancante</span>
+          <span className="rpm__legend-end">
+            <span className="rpm__leg"><i className="fa-solid fa-pen" aria-hidden="true" />Inserita o corretta dall'HR</span>
+          </span>
         </div>
-        <div className="tmb__pager">
-          <span className="tmb__count">{filtrate.length} {filtrate.length === 1 ? 'timbratura' : 'timbrature'}</span>
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </div>
-      </section>
+
+        {dipendenti.map((dip) => {
+          const giorni = mesePerDip.get(dip.id) ?? []
+          const righeCoppie = Math.max(1, ...giorni.map((g) => g.coppie.length))
+          const nTimbr = giorni.reduce((s, g) => s + g.coppie.reduce((k, c) => k + (c.entrata ? 1 : 0) + (c.uscita ? 1 : 0), 0), 0)
+          const daApp = giorni.reduce((s, g) => s + g.coppie.reduce((k, c) => k + [c.entrata, c.uscita].filter((t) => t?.postazione === 'App Op!').length, 0), 0)
+          const mancanti = giorni.filter((g) => !g.oggi && g.coppie.some((c) => !c.entrata || !c.uscita)).length
+          const manuali = giorni.filter((g) => g.manuale && g.coppie.length).length
+          const oreTot = giorni.reduce((s, g) => s + g.lavorati, 0)
+          return (
+            <section key={dip.id} className="rpm__card">
+              <header className="rpm__head">
+                <span className="rpm__avatar rpm__avatar--ini">{dip.nome[0]}{dip.cognome[0]}</span>
+                <span className="rpm__nome">{dip.nome} {dip.cognome}</span>
+                <span className="rpm__reparto"><i className={`fa-solid ${repartoIcon(dip.reparto)}`} aria-hidden="true" />{dip.reparto}</span>
+              </header>
+
+              <table className="rpm__grid tmb__grid">
+                <colgroup>
+                  <col className="rpm__c-label" />
+                  {giorni.map((g) => <col key={g.iso} />)}
+                  <col className="rpm__c-tot" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th scope="row">Giorno</th>
+                    {giorni.map((g) => (
+                      <th key={g.iso} className={cls(g)}>
+                        {g.festivita ? <Tooltip text={g.festivita}><span className="rpm__fest">{g.n}</span></Tooltip> : g.n}
+                      </th>
+                    ))}
+                    <th className="rpm__tot-col">Totale</th>
+                  </tr>
+                  <tr className="rpm__r-gsett">
+                    <th scope="row">G. sett.</th>
+                    {giorni.map((g) => <th key={g.iso} className={cls(g)}>{GSETT[g.dow]}</th>)}
+                    <th className="rpm__tot-col" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: righeCoppie }).flatMap((_, k) => (['entrata', 'uscita'] as const).map((verso) => (
+                    <tr key={`${k}-${verso}`} className={verso === 'uscita' && k < righeCoppie - 1 ? 'tmb__r-sep' : undefined}>
+                      <th scope="row">{righeCoppie > 1 ? `${ORDINALI[k] ?? `${k + 1}ª`} ${verso}` : verso === 'entrata' ? 'Entrata' : 'Uscita'}</th>
+                      {giorni.map((g) => {
+                        const c = g.coppie[k]
+                        const t = c?.[verso]
+                        // Coppia iniziata ma senza l'altra metà (escluso oggi, con il dipendente ancora dentro).
+                        const manca = !!c && !t && !(g.oggi && verso === 'uscita')
+                        return (
+                          <td key={g.iso} className={`${cls(g)}${g.futuro ? ' tmb__cell--fut' : ' tmb__cell'}`}
+                            onDoubleClick={() => !g.futuro && !t && nuova(String(dip.id), g.iso, verso)}>
+                            {t ? (
+                              <Tooltip content={<CellaTooltip t={t} iso={g.iso} anno={anno} />}>
+                                <button type="button" className={`tmb__time ${verso === 'entrata' ? 'rpm__in' : 'rpm__out'}`}
+                                  aria-label={`Modifica ${verso} delle ${minToHHMM(t.min)} del ${fmtData(g.iso)}`} onClick={() => modifica(dip, g.iso, t)}>
+                                  {minToHHMM(t.min)}
+                                  {g.manuale && <i className="fa-solid fa-pen rpm__mod" aria-hidden="true" />}
+                                </button>
+                              </Tooltip>
+                            ) : manca ? (
+                              <Tooltip text={`${verso === 'entrata' ? 'Entrata' : 'Uscita'} mancante: doppio clic per aggiungerla`}>
+                                <i className="fa-solid fa-triangle-exclamation tmb__warn" aria-label={`${verso} mancante`} />
+                              </Tooltip>
+                            ) : null}
+                          </td>
+                        )
+                      })}
+                      <td className="rpm__tot-col" />
+                    </tr>
+                  )))}
+                  <tr className="tmb__r-ore">
+                    <th scope="row">Ore</th>
+                    {giorni.map((g) => (
+                      <td key={g.iso} className={`${cls(g)} tmb__cell--ro`}>{g.lavorati > 0 && fmtOreBreve(g.lavorati)}</td>
+                    ))}
+                    <td className="rpm__tot-col">{oreTot > 0 && fmtOreBreve(oreTot)}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <footer className="rpm__foot">
+                <div className="rpm__tot">
+                  <span><b className="rpm__tot-ord">{nTimbr}</b> {nTimbr === 1 ? 'Timbratura' : 'Timbrature'}</span>
+                  <span><b className="rpm__tot-ord">{fmtOre(oreTot)}</b> Lavorate</span>
+                  {daApp > 0 && <span><b className="rpm__tot-per">{daApp}</b> Dall'App Op!</span>}
+                  {mancanti > 0 && <span><b className="rpm__tot-ano">{mancanti}</b> {mancanti === 1 ? 'Giorno con timbratura mancante' : 'Giorni con timbrature mancanti'}</span>}
+                  {manuali > 0 && <span className="rpm__tot-mod"><i className="fa-solid fa-pen" aria-hidden="true" /> {manuali} {manuali === 1 ? 'giorno modificato' : 'giorni modificati'}</span>}
+                </div>
+                <span className="rpm__hint">Clic su un orario per modificarlo · doppio clic su una casella vuota per aggiungere</span>
+              </footer>
+            </section>
+          )
+        })}
+
+        {dipendenti.length === 0 && <div className="rpm__empty">Nessun dipendente per i filtri selezionati.</div>}
+      </div>
 
       {/* ── Nuova / modifica timbratura ── */}
       <Modal open={!!form} onClose={() => setForm(null)} title={form?.orig ? 'Modifica timbratura' : 'Nuova timbratura'} size="md">
@@ -420,6 +345,11 @@ export default function Timbrature({ navigate }: { navigate: (p: string) => void
               <p className="tmb__hint tmb__hint--warn">La data è nel futuro: la timbratura comparirà nello storico da quel giorno.</p>
             )}
             <div className="tmb-form__actions">
+              {form.orig && (
+                <button type="button" className="sib-btn sib-btn--ghost tmb-form__del" onClick={elimina}>
+                  <i className="fa-solid fa-trash" aria-hidden="true" />Elimina
+                </button>
+              )}
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setForm(null)}>Annulla</button>
               <button type="button" className="sib-btn sib-btn--primary" onClick={salva} disabled={!form.dipId || !form.data || !form.ora}>
                 {form.orig ? 'Salva modifiche' : 'Aggiungi timbratura'}
@@ -428,23 +358,24 @@ export default function Timbrature({ navigate }: { navigate: (p: string) => void
           </div>
         )}
       </Modal>
-
-      {kiosk && createPortal(
-        <Kiosk postazione={POSTAZIONE_DEFAULT} onClose={() => setKiosk(false)} />,
-        document.body,
-      )}
     </div>
   )
 }
 
-function Persona({ d }: { d: DipendentePresenze }) {
+/** "8h 30'" → compatto per la cella: "8:30". */
+const fmtOreBreve = (min: number) => `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}`
+
+function cls(g: GiornoTimbr) {
+  return [g.festivita || g.dow === 0 || g.dow === 6 ? 'rpm__we' : '', g.oggi ? 'rpm__oggi' : ''].filter(Boolean).join(' ')
+}
+
+function CellaTooltip({ t, iso, anno }: { t: Timbratura; iso: string; anno: number }): React.ReactElement {
+  const [, m, g] = iso.split('-').map(Number)
   return (
-    <span className="tmb__persona">
-      <span className="tmb__avatar">{iniziali(d)}</span>
-      <span className="tmb__persona-txt">
-        <span className="tmb__persona-nome"><TruncatedText text={`${d.nome} ${d.cognome}`} /></span>
-        <span className="tmb__persona-rep"><i className={`fa-solid ${repartoIcon(d.reparto)}`} aria-hidden="true" />{d.reparto}</span>
-      </span>
+    <span className="rpm__tip">
+      <span className="rpm__tip-t">{t.verso === 'entrata' ? 'Entrata' : 'Uscita'} delle {minToHHMM(t.min)} · {g} {MESI_BREVI[m - 1]} {anno}</span>
+      <span>Postazione: {t.postazione}</span>
+      {t.note && <span>{t.note}</span>}
     </span>
   )
 }

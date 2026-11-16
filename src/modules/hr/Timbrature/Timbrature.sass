@@ -1,11 +1,12 @@
 // ─── TIMBRATURE (HR › Gestione delle presenze) ──────────────────────────────────
+// Storico a griglia mensile: la matrice riusa le classi .rpm del Registro
+// presenze (vista dettagliata); qui solo toolbar e righe specifiche.
 @use '../../../styles/tokens' as *
 
 .tmb
-  container: tmb / inline-size
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 14px
 
   &__head-actions
     display: flex
@@ -14,108 +15,142 @@
     .sib-btn i
       margin-right: 7px
 
-  &__top
-    display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
-    gap: 16px
-
-  // ── Card ─────────────────────────────────────────────────────────────────────
-  &__card
-    min-width: 0
-    border: 1px solid $border
-    border-radius: $radius-md
-    background: $white
-
-  &__card-head
+  // ── Toolbar su una riga: filtri a sinistra, periodo ed export a destra ──────
+  &__toolbar
+    container: tmb-toolbar / inline-size
     display: flex
-    align-items: center
+    flex-wrap: wrap
+    align-items: flex-end
     gap: 10px
-    padding: 12px 16px
-    border-bottom: 1px solid $border
 
-    &--tools
-      justify-content: space-between
+    > *
+      min-width: 0
 
-  &__card-title
-    display: flex
-    align-items: center
-    gap: 9px
-    margin: 0
-    font-family: $font-heading
-    font-size: 14px
-    font-weight: 700
-    color: $text-active
+  &__f-rep
+    width: 190px
 
-    i
-      color: $primary
-      font-size: 15px
+  &__f-cerca
+    width: 220px
 
-  // ── QR ───────────────────────────────────────────────────────────────────────
-  &__qr-body
-    display: flex
-    gap: 20px
-    padding: 16px
-
-  &__qr
+  &__tools
     flex: none
     display: flex
-    flex-direction: column
     align-items: center
     gap: 8px
+    margin-left: auto
 
-    img,
-    .tmb__qr-ph
-      width: 176px
-      height: 176px
-      padding: 8px
-      border: 1px solid $border
-      border-radius: $radius-md
-      background: #FFFFFF
+  // Controllo del periodo: ‹ Novembre 2026 ›
+  &__periodo
+    display: inline-flex
+    align-items: center
+    height: 34px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
 
-    &--sm img,
-    &--sm .tmb__qr-ph
-      width: 136px
-      height: 136px
-
-  &__qr-scade
-    font-size: 12px
-    font-weight: 700
+  &__per-btn
+    width: 32px
+    height: 32px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: none
+    background: none
     color: $primary
-    font-variant-numeric: tabular-nums
+    font-size: 12px
+    cursor: pointer
 
-    &--warn
-      color: $error
+    &:hover
+      background: $primary-50
 
-  &__qr-note
-    font-size: 11px
-    color: $text-inactive
-
-  &__how
-    min-width: 0
-    display: flex
-    flex-direction: column
-    gap: 8px
-
-  &__how-title
-    margin: 0
+  &__per-label
+    min-width: 128px
+    padding: 0 6px
+    text-align: center
     font-family: $font-heading
     font-size: 13px
     font-weight: 700
-    color: $text-active
+    color: $primary
+    white-space: nowrap
 
-  &__steps
-    margin: 0
-    padding-left: 18px
-    list-style: decimal
-    display: flex
-    flex-direction: column
-    gap: 5px
-    font-size: 12.5px
-    color: $text-active
+  &__oggi.sib-btn
+    padding-inline: 8px
 
-    &--muted
-      font-size: 11.5px
-      color: $text-inactive
+  &__icon-btn
+    width: 34px
+    height: 34px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+    color: $primary
+    font-size: 16px
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      border-color: $primary
+
+    &:disabled
+      opacity: .45
+      cursor: not-allowed
+
+  // ── Legenda ──────────────────────────────────────────────────────────────────
+  &__leg-dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+
+    &--in
+      background: $success
+
+    &--out
+      background: $error
+
+  &__warn
+    color: $warning
+    font-size: 10px
+
+  // ── Matrice ──────────────────────────────────────────────────────────────────
+  &__grid.rpm__grid
+    td.tmb__cell
+      cursor: cell
+
+    td.tmb__cell--fut,
+    td.tmb__cell--ro
+      cursor: default
+
+    tr.tmb__r-sep td,
+    tr.tmb__r-sep th
+      border-bottom: 1px dashed $border
+
+    tr.tmb__r-ore
+      th,
+      td
+        height: 24px
+        background: $bg
+        font-weight: 700
+        color: $text-active
+        font-variant-numeric: tabular-nums
+
+  &__time
+    position: relative
+    padding: 0 1px
+    border: none
+    border-radius: 3px
+    background: none
+    font-family: inherit
+    font-size: inherit
+    font-weight: 600
+    cursor: pointer
+
+    &:hover
+      background: $primary-50
+
+    .rpm__mod
+      top: -4px
+      right: -6px
 
   &__hint
     margin: 0
@@ -124,228 +159,6 @@
 
     &--warn
       color: $error
-
-  &__url
-    display: flex
-    flex-wrap: wrap
-    align-items: center
-    gap: 6px 8px
-
-  &__qr-body > &__how > &__url:last-child
-    margin-top: auto
-
-  // copia + apri in una nuova scheda: vanno a capo insieme
-  &__url-tools
-    display: inline-flex
-    gap: 4px
-
-  &__url-lbl
-    font-size: 11px
-    color: $text-inactive
-    white-space: nowrap
-
-  &__code
-    white-space: nowrap
-    padding: 2px 8px
-    border-radius: 4px
-    background: $bg
-    font-size: 11.5px
-    color: $text-active
-
-  &__app-info
-    margin: 0
-    font-size: 13px
-    color: $text-active
-
-    b
-      color: $primary
-
-  &__attivare
-    display: flex
-    flex-wrap: wrap
-    align-items: center
-    gap: 6px
-    font-size: 12px
-    color: $text-inactive
-
-  &__pill
-    color: $text-active
-    font-size: 12px
-    font-weight: 600
-
-    & + &::before
-      content: '·'
-      margin-right: 6px
-      color: $text-inactive
-
-  &__invita.sib-btn
-    i
-      margin-right: 6px
-
-  &__nome
-    display: flex
-    flex-direction: column
-    gap: 4px
-    max-width: 340px
-
-  // Icone azione/strumenti: fa-solid, blu Platform, 16px (sib-btn--icon forza grigio 12px)
-  &__ico.sib-btn--icon i
-    color: $primary
-    font-size: 16px
-
-  // ── Tabelle ──────────────────────────────────────────────────────────────────
-  &__table .sib-table.sib-table
-    table-layout: fixed
-    width: 100%
-
-  &__table.sib-table-wrap
-    border: none
-    border-radius: 0
-
-  &__c-dip
-    width: 26%
-
-  &__c-motivo
-    width: 24%
-
-  &__c-tipo
-    width: 13%
-
-  &__c-ora
-    width: 17%
-
-  &__c-post
-    width: 18%
-
-  &__c-az
-    width: 10%
-
-  &__az.tmb__az
-    text-align: center
-    white-space: nowrap
-
-  &__num
-    font-variant-numeric: tabular-nums
-
-  &__muted
-    color: $text-inactive
-
-  &__ritardo
-    margin-left: 4px
-    font-size: 11px
-    font-weight: 700
-    color: $warning
-
-  &__late
-    font-weight: 700
-    color: $error
-
-  &__ok
-    font-weight: 700
-    color: $success
-
-  &__mod
-    margin-right: 6px
-    font-size: 11px
-    color: $primary
-
-  &__persona
-    display: flex
-    align-items: center
-    gap: 10px
-    min-width: 0
-
-  &__avatar
-    flex: none
-    width: 30px
-    height: 30px
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    border-radius: 50%
-    background: $primary-100
-    color: $primary
-    font-size: 11px
-    font-weight: 700
-
-  &__persona-txt
-    min-width: 0
-    display: flex
-    flex-direction: column
-
-  &__persona-nome
-    min-width: 0
-    font-weight: 600
-    color: $text-active
-
-  &__persona-rep
-    display: inline-flex
-    align-items: center
-    gap: 5px
-    font-size: 11px
-    color: $text-inactive
-
-    i
-      font-size: 10px
-      color: $primary
-
-  &__verso
-    display: inline-flex
-    align-items: center
-    gap: 7px
-    font-size: 12px
-    font-weight: 600
-
-    &--entrata
-      color: $success
-
-    &--uscita
-      color: $primary
-
-  &__empty.tmb__empty,
-  &__empty-card
-    padding: 22px 16px
-    text-align: center
-    font-size: 13px
-    color: $text-inactive
-
-  &__empty-card
-    margin: 0
-
-  // ── Filtri storico ───────────────────────────────────────────────────────────
-  &__filters
-    display: flex
-    flex-wrap: wrap
-    align-items: flex-end
-    gap: 12px
-    padding: 12px 16px
-    border-bottom: 1px solid $border
-
-  &__field
-    width: 190px
-
-    &--sm
-      width: 170px
-
-  &__search
-    margin-left: auto
-    width: 240px
-
-  // Paginazione SEMPRE centrata (standard piattaforma)
-  &__pager
-    position: relative
-    display: flex
-    justify-content: center
-    padding: 10px 16px
-    border-top: 1px solid $border
-
-  &__count
-    position: absolute
-    left: 16px
-    top: 50%
-    transform: translateY(-50%)
-    font-size: 12px
-    color: $text-inactive
 
 // ── Modale nuova / modifica ──────────────────────────────────────────────────
 .tmb-form
@@ -365,11 +178,21 @@
     padding-top: 14px
     border-top: 1px solid $border
 
-// ── Laptop con sidebar aperta ─────────────────────────────────────────────────
-@container tmb (max-width: 1080px)
-  .tmb
-    &__top
-      grid-template-columns: minmax(0, 1fr)
+  &__del.sib-btn
+    margin-right: auto
+    color: $error
 
-    &__search
-      margin-left: 0
+    i
+      margin-right: 6px
+
+// Laptop con sidebar aperta: campi più stretti, la riga resta una
+@container tmb-toolbar (max-width: 1000px)
+  .tmb
+    &__f-rep
+      width: 150px
+
+    &__f-cerca
+      width: 160px
+
+    &__per-label
+      min-width: 110px
