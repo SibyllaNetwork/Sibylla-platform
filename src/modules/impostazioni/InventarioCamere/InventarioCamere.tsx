@@ -19,7 +19,8 @@ import { generaPms, type CameraDemo } from '../../operation/_data/pmsDemo'
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
 // Tipologie della struttura dalle schede demo: tutte le tipologie del catalogo,
 // con le camere (numeri e piani) del gestionale demo condiviso con Planner e
-// Stato camere, così la numerazione è la stessa in tutte le pagine.
+// Stato camere, così la numerazione è la stessa in tutte le pagine (almeno una
+// camera per tipologia: le mancanti proseguono la numerazione della struttura).
 const BASE: Record<string, { tipo: string; capacita: number; lettiExtra: number; descrizione: string }> = {
   'Singola Classic':     { tipo: 'Singola',      capacita: 1, lettiExtra: 0, descrizione: 'Letto singolo, scrivania e bagno privato con doccia.' },
   'Doppia Classic':      { tipo: 'Doppia',       capacita: 2, lettiExtra: 0, descrizione: 'Letto matrimoniale, spaziosa e accogliente: perfetta per le coppie.' },
@@ -43,8 +44,15 @@ const pianoBreve = (nome: string) => {
 
 function tipologieDemo(scheda: { nome: string; camere: number; seme: number; categoria: string }): TipologiaCamera[] {
   const per = camerePerTipologia(scheda)
+  // Le tipologie senza camere nel gestionale (strutture piccole) ne ricevono
+  // comunque una, numerata dopo l'ultima della struttura (7, 8… oppure 517, 518…).
+  let ultimo = Math.max(0, ...Array.from(per.values()).flat().map((c) => Number(c.numero) || 0))
   return Object.keys(BASE).map((nome) => {
-    const cs = per.get(nome) ?? []
+    let cs = per.get(nome) ?? []
+    if (!cs.length) {
+      ultimo += 1
+      cs = [{ numero: String(ultimo), piano: ultimo >= 100 ? Math.floor(ultimo / 100) : 1, categoria: 'DBL', tipo: nome, tariffa: 0 }]
+    }
     return {
       id: `tip-${scheda.seme}-${nome}`, nome, ...BASE[nome], numero: cs.length,
       piani: Array.from(new Set(cs.map((c) => c.piano))).sort((x, y) => x - y).map(nomePiano),
