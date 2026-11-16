@@ -9,8 +9,8 @@ import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useTipologieCamereStore, type TipologiaCamera } from '../../../store/useTipologieCamereStore'
 import RoomIllustration from './RoomIllustration'
 import ConfigurazioneCamera from './ConfigurazioneCamera'
-import PersonalizzaTipologia, { riassuntoPersonalizzazione } from './PersonalizzaTipologia'
-import { PERSONALIZZAZIONE_DEFAULT, personalizzazioneDi } from './personalizzazione'
+import PersonalizzaTipologia, { riassuntoCompleto, riassuntoPersonalizzazione } from './PersonalizzaTipologia'
+import { PERSONALIZZAZIONE_DEFAULT, layoutDellaCamera, layoutPredefinitoDi, numerazioneCamere, personalizzazioneDi } from './personalizzazione'
 import { MAX_CAPACITA, MAX_LETTI_EXTRA, TIPI, lettiExtra, ospiti } from './catalogo'
 import './InventarioCamere.sass'
 import { useStruttureCliente, useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
@@ -45,6 +45,8 @@ function tipologieDemo(scheda: { camere: number; seme: number; categoria: string
   const nomi = Object.keys(BASE)
   const conta = new Map<string, number>()
   const piani = new Map<string, Set<number>>()
+  const numeri = new Map<string, string[]>()
+  const perPianoUsati = new Map<number, number>()
   const n = Math.max(scheda.camere, nomi.length)
   const perPiano = n <= 8 ? n : n <= 40 ? 10 : n <= 100 ? 16 : 25
   const totPiani = Math.ceil(n / perPiano)
@@ -57,10 +59,15 @@ function tipologieDemo(scheda: { camere: number; seme: number; categoria: string
       : ultimo && i % perPiano >= perPiano - 2 ? 'Suite' : TIP_GIRO[(scheda.seme + i * 7) % TIP_GIRO.length]
     conta.set(tip, (conta.get(tip) ?? 0) + 1)
     piani.set(tip, (piani.get(tip) ?? new Set()).add(piano))
+    // Numerazione: piano × 100 + progressivo sul piano (101, 102, … 201, …).
+    const k = (perPianoUsati.get(piano) ?? 0) + 1
+    perPianoUsati.set(piano, k)
+    numeri.set(tip, [...(numeri.get(tip) ?? []), String(piano * 100 + k)])
   }
   return nomi.map((nome) => ({
     id: `tip-${scheda.seme}-${nome}`, nome, ...BASE[nome], numero: conta.get(nome) ?? 1,
     piani: Array.from(piani.get(nome) ?? []).sort((x, y) => x - y).map(nomePiano),
+    camere: (numeri.get(nome) ?? []).sort((x, y) => Number(x) - Number(y)),
     nomeOnline: '', amenities: [], immagine: null, gallery: [], attiva: true,
   }))
 }
@@ -120,6 +127,7 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
     const usati = new Set(draft.flatMap((t) => t.piani ?? []))
     return PIANI_NOMI.filter((x) => usati.has(x)).concat(Array.from(usati).filter((x) => !PIANI_NOMI.includes(x)))
   }, [draft])
+  const numerazione = useMemo(() => numerazioneCamere(draft, (n) => PIANI_NOMI.indexOf(n)), [draft])
   const visibili = draft.filter((t) => (!piano || (t.piani ?? []).includes(piano)) && (!tipoFiltro || t.tipo === tipoFiltro))
   // Scelta dal catalogo → la tipologia entra in bozza e si apre subito la pagina
   // di allestimento; Annulla la scarta, Applica torna all'elenco sulla riga nuova.
@@ -156,7 +164,9 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
   }, [vaiA, scheda_])
   const duplica = (id: string) => setDraft((d) => {
     const i = d.findIndex((t) => t.id === id)
-    const copia = { ...d[i], id: nuovoId(), nome: `${d[i].nome} (copia)` }
+    // La copia non eredita i numeri di camera né le assegnazioni di layout per camera.
+    const pers = d[i].personalizzazione
+    const copia = { ...d[i], id: nuovoId(), nome: `${d[i].nome} (copia)`, camere: undefined, personalizzazione: pers && { ...pers, layoutCamere: undefined } }
     return [...d.slice(0, i + 1), copia, ...d.slice(i + 1)]
   })
   const elimina = async (t: TipologiaCamera) => {
@@ -234,7 +244,7 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
         ) : (
           <ul className="invc__list">
             {visibili.map((t) => (
-              <TipologiaRow key={t.id} t={t} disabled={pmsEsterno}
+              <TipologiaRow key={t.id} t={t} numeri={numerazione.get(t.id) ?? []} disabled={pmsEsterno}
                 aperta={aperta === t.id} personalizza={personalizza === t.id} evidenziata={modificata(t)} errore={errori.has(t.id)}
                 dragging={dragId === t.id} over={overId === t.id && dragId !== t.id}
                 onChange={(p) => update(t.id, p)}
@@ -286,6 +296,8 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
 
 interface RowProps {
   t: TipologiaCamera
+  /** Numeri delle camere della tipologia. */
+  numeri: string[]
   disabled: boolean
   aperta: boolean
   personalizza: boolean
@@ -304,7 +316,7 @@ interface RowProps {
   onDragEnd: () => void
 }
 
-function TipologiaRow({ t, disabled, aperta, personalizza, evidenziata, errore, dragging, over, onChange, onToggleDettagli, onTogglePersonalizza, onScheda, onDuplica, onElimina, onDragStart, onDragEnter, onDragEnd }: RowProps) {
+function TipologiaRow({ t, numeri, disabled, aperta, personalizza, evidenziata, errore, dragging, over, onChange, onToggleDettagli, onTogglePersonalizza, onScheda, onDuplica, onElimina, onDragStart, onDragEnter, onDragEnd }: RowProps) {
   // La riga è trascinabile solo partendo dalla maniglia, così i campi restano selezionabili.
   const [armata, setArmata] = useState(false)
   const totale = t.capacita + t.lettiExtra
@@ -368,7 +380,7 @@ function TipologiaRow({ t, disabled, aperta, personalizza, evidenziata, errore, 
           )}
           {t.descrizione && <span className="invc__desc">{t.descrizione}</span>}
           <span className="invc__meta-acts">
-            <Tooltip text={riassuntoPersonalizzazione(t)}>
+            <Tooltip text={riassuntoCompleto(t)}>
               <button type="button" className={'invc__toggle-det' + (personalizza ? ' is-open' : '')} aria-expanded={personalizza}
                 aria-controls={`pcam-${t.id}`} aria-label="Personalizza" onClick={onTogglePersonalizza}>
                 <i className="fa-light fa-sliders invc__toggle-ico" /> <span className="invc__toggle-txt">Personalizza</span>
@@ -383,9 +395,9 @@ function TipologiaRow({ t, disabled, aperta, personalizza, evidenziata, errore, 
           </span>
         </div>
 
-        {aperta && <DettagliCamera t={t} disabled={disabled} onModifica={onScheda} onClose={onToggleDettagli} />}
+        {aperta && <DettagliCamera t={t} numeri={numeri} disabled={disabled} onModifica={onScheda} onClose={onToggleDettagli} />}
         {personalizza && (
-          <PersonalizzaTipologia t={t} disabled={disabled} onClose={onTogglePersonalizza}
+          <PersonalizzaTipologia t={t} numeri={numeri} disabled={disabled} onClose={onTogglePersonalizza}
             onChange={(p) => onChange({ personalizzazione: p })} />
         )}
       </div>
@@ -406,9 +418,11 @@ function Letti({ tipo, capacita, extra }: { tipo: string; capacita: number; extr
 }
 
 // Riepilogo in sola lettura di quanto inserito nella scheda camera.
-function DettagliCamera({ t, disabled, onModifica, onClose }: { t: TipologiaCamera; disabled: boolean; onModifica: () => void; onClose: () => void }) {
+function DettagliCamera({ t, numeri, disabled, onModifica, onClose }: { t: TipologiaCamera; numeri: string[]; disabled: boolean; onModifica: () => void; onClose: () => void }) {
   const immagini = [t.immagine, ...t.gallery].filter((x): x is string => !!x)
   const vuoto = <span className="invc__dd-empty">Non indicato</span>
+  const predefinito = layoutPredefinitoDi(t)
+  const specifiche = numeri.filter((n) => layoutDellaCamera(t, n)?.id !== predefinito?.id)
   return (
     <div className="invc__details" id={`invc-det-${t.id}`}>
       <div className="invc__details-head">
@@ -425,6 +439,11 @@ function DettagliCamera({ t, disabled, onModifica, onClose }: { t: TipologiaCame
         <div><dt>N. camere</dt><dd>{t.numero}</dd></div>
         <div><dt>Ospiti</dt><dd>{ospiti(t.capacita)}{t.lettiExtra > 0 && ` + ${lettiExtra(t.lettiExtra)}`}</dd></div>
         <div className="invc__dl-wide"><dt>Piani</dt><dd>{t.piani?.length ? t.piani.join(', ') : vuoto}</dd></div>
+        <div className="invc__dl-wide"><dt>Numerazione</dt><dd>{numeri.length ? numeri.join(', ') : vuoto}</dd></div>
+        <div className="invc__dl-full"><dt>Layout</dt><dd>
+          {predefinito ? <>{predefinito.nome} (predefinito)</> : vuoto}
+          {specifiche.length > 0 && <> · layout specifico per {specifiche.map((n) => `${n} (${layoutDellaCamera(t, n)?.nome})`).join(', ')}</>}
+        </dd></div>
         <div className="invc__dl-full"><dt>Cambio lenzuola</dt><dd>{riassuntoPersonalizzazione(t).replace('Cambio lenzuola: ', '')} · sempre alla partenza</dd></div>
         <div className="invc__dl-full"><dt>Descrizione</dt><dd>{t.descrizione || vuoto}</dd></div>
         <div className="invc__dl-full">

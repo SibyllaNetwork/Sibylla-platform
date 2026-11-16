@@ -3,14 +3,16 @@ import Tooltip from '../../../core/components/Tooltip'
 import { RadioGroup, SelectField } from '../../../core/components/form'
 import type { PersonalizzazioneCamera, SegmentoOspite, TipologiaCamera } from '../../../store/useTipologieCamereStore'
 import {
-  OPZIONI_INTERVALLO, PERSONALIZZAZIONE_DEFAULT, SEGMENTI, etichettaIntervallo, giorniCambioLenzuola, personalizzazioneDi,
+  OPZIONI_INTERVALLO, PERSONALIZZAZIONE_DEFAULT, SEGMENTI, etichettaIntervallo, giorniCambioLenzuola, layoutPredefinitoDi, personalizzazioneDi,
 } from './personalizzazione'
+import LayoutTipologia from './LayoutTipologia'
 import './PersonalizzaTipologia.sass'
 
 // ─── Personalizza tipologia ───────────────────────────────────────────────────
 //  Pannello a fisarmonica nella riga dell'inventario: regole operative della
 //  tipologia. Cambio lenzuola per segmento d'ospite con anteprima viva su un
 //  soggiorno simulato; il cambio alla partenza è fisso e non disattivabile.
+//  Layout: disposizione dei letti per singola camera (vedi LayoutTipologia).
 
 const MAX_NOTTI_SIM = 14
 const GIORNO_SETT = ['do', 'lu', 'ma', 'me', 'gi', 've', 'sa']
@@ -18,12 +20,14 @@ const fmt = (d: Date) => d.toLocaleDateString('it-IT', { weekday: 'short', day: 
 
 interface Props {
   t: TipologiaCamera
+  /** Numeri delle camere della tipologia (per il blocco Layout). */
+  numeri: string[]
   disabled: boolean
   onChange: (p: PersonalizzazioneCamera) => void
   onClose: () => void
 }
 
-export default function PersonalizzaTipologia({ t, disabled, onChange, onClose }: Props) {
+export default function PersonalizzaTipologia({ t, numeri, disabled, onChange, onClose }: Props) {
   const pers = personalizzazioneDi(t)
   const [notti, setNotti] = useState(7)
   const predefinita = JSON.stringify(pers) === JSON.stringify(PERSONALIZZAZIONE_DEFAULT)
@@ -145,6 +149,8 @@ export default function PersonalizzaTipologia({ t, disabled, onChange, onClose }
           </span>
         </footer>
       </section>
+
+      <LayoutTipologia t={t} numeri={numeri} pers={pers} disabled={disabled} onChange={onChange} />
     </div>
   )
 }
@@ -154,4 +160,10 @@ export const riassuntoPersonalizzazione = (t: TipologiaCamera) => {
   const p = personalizzazioneDi(t)
   if (p.modoLenzuola === 'tutti') return `Cambio lenzuola: ${etichettaIntervallo(p.cambioLenzuolaTutti ?? 3).toLowerCase()} per tutti gli ospiti`
   return `Cambio lenzuola: ${SEGMENTI.map((s) => `${s.label} ${etichettaIntervallo(p.cambioLenzuola[s.id]).toLowerCase()}`).join(' · ')}`
+}
+
+/** Riassunto del cambio lenzuola + layout predefinito, per il tooltip del pulsante Personalizza. */
+export const riassuntoCompleto = (t: TipologiaCamera) => {
+  const lay = layoutPredefinitoDi(t)
+  return lay ? `${riassuntoPersonalizzazione(t)} — Layout predefinito: ${lay.nome}` : riassuntoPersonalizzazione(t)
 }

@@ -1,0 +1,272 @@
+// ─── LAYOUT TIPOLOGIA (blocco "Layout" del pannello Personalizza) ─────────────
+@use '../../../styles/tokens' as *
+
+.laycam
+  &__new
+    flex-shrink: 0
+    align-self: center
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  &__empty
+    margin: 0
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 12px
+    color: $text-inactive
+
+  // ── Assegnazione per camera ──────────────────────────────────────────────────
+  &__assign
+    display: grid
+    grid-template-columns: 210px minmax(0, 300px) minmax(0, 1fr)
+    align-items: end
+    gap: 12px
+
+  &__current
+    display: flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+    height: 34px
+    padding: 0 12px
+    border: 1px solid $border
+    border-left: 3px solid $primary
+    border-radius: 6px
+    background: $bg
+
+  &__current-txt
+    min-width: 0
+    display: flex
+    flex-direction: column
+    line-height: 1.2
+
+    strong, span
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    strong
+      font-size: 12px
+      color: $primary
+
+    span
+      font-size: 11px
+      color: $text-inactive
+
+  &__beds
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    flex-shrink: 0
+    color: $primary
+    font-size: 16px
+
+  // ── Libreria layout ──────────────────────────────────────────────────────────
+  &__lib
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__lib-title
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__grid
+    list-style: none
+    margin: 0
+    padding: 0
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))
+    gap: 10px
+
+  &__card
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 0
+    padding: 10px 12px
+    border: 1px solid $border
+    border-radius: 8px
+    background: var(--color-surface)
+    transition: border-color .15s, box-shadow .15s
+
+    &.is-current
+      border-color: $primary
+      box-shadow: inset 0 0 0 1px $primary
+
+  &__card-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+
+  &__card-name
+    min-width: 0
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+
+  &__card-acts
+    display: inline-flex
+    gap: 2px
+    flex-shrink: 0
+
+  &__ico-btn
+    width: 26px
+    height: 26px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: none
+    border-radius: 6px
+    background: none
+    color: $primary
+    font-size: 14px
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      background: $primary-50
+
+    &:disabled
+      color: $text-disabled
+      cursor: not-allowed
+
+  &__card-desc, &__card-note
+    font-size: 12px
+    color: $text-inactive
+
+  &__card-note
+    font-style: italic
+
+  &__card-foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    margin-top: auto
+    padding-top: 6px
+    border-top: 1px dashed $border
+    font-size: 12px
+
+  &__pred
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-weight: 600
+    color: $primary
+
+    i
+      color: $warning
+
+  &__link
+    border: none
+    background: none
+    padding: 0
+    font-family: inherit
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      text-decoration: underline
+
+    &:disabled
+      color: $text-disabled
+      cursor: not-allowed
+
+  &__uso
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    color: $text-active
+
+    &--none
+      color: $text-inactive
+
+  &__sum
+    font-size: 12px
+    color: $text-inactive
+
+  // ── Larghezze ridotte (container query sul root pagina .invc) ────────────────
+  @container (max-width: 980px)
+    &__assign
+      grid-template-columns: 200px minmax(0, 1fr)
+
+    &__current
+      grid-column: 1 / -1
+
+  @container (max-width: 600px)
+    &__assign
+      grid-template-columns: minmax(0, 1fr)
+
+
+// ─── Editor layout (modale) ───────────────────────────────────────────────────
+.laycam-ed
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__label
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__letti
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__row
+    display: grid
+    grid-template-columns: 26px minmax(0, 1fr) 80px 26px
+    align-items: center
+    gap: 8px
+
+  &__row-ico
+    color: $primary
+    font-size: 16px
+    text-align: center
+
+  &__add
+    align-self: flex-start
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  &__tot
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 8px 12px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $bg
+    font-size: 12px
+    color: $text-active
+
+    strong
+      color: $primary
+
+  &__warn
+    margin: -6px 0 0
+    display: flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-active
+
+    i
+      color: $warning
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 20px

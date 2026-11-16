@@ -23,6 +23,8 @@ export interface TipologiaCamera {
   immagine: string | null
   gallery: string[]
   attiva: boolean
+  /** Numerazione delle camere della tipologia (es. "101"). Assente = generata dall'inventario. */
+  camere?: string[]
   /** Personalizzazione operativa della tipologia (housekeeping). Assente = valori predefiniti. */
   personalizzazione?: PersonalizzazioneCamera
 }
@@ -39,6 +41,23 @@ export interface PersonalizzazioneCamera {
    *  'segmento' (o assente) = intervallo per tipo di ospite. */
   modoLenzuola?: 'tutti' | 'segmento'
   cambioLenzuolaTutti?: number
+  /** Layout di configurazione (disposizione dei letti) della tipologia. Assente = layout base del tipo. */
+  layouts?: LayoutCamera[]
+  /** Layout applicato alle camere senza un'assegnazione specifica. Assente = primo layout. */
+  layoutPredefinito?: string
+  /** Layout assegnato alla singola camera: numero camera → id layout. */
+  layoutCamere?: Record<string, string>
+}
+
+/** Elemento letto di un layout. */
+export type ElementoLetto = 'matrimoniale' | 'king' | 'singolo' | 'divano-letto' | 'castello' | 'brandina' | 'culla'
+
+export interface LayoutCamera {
+  id: string
+  nome: string
+  letti: { tipo: ElementoLetto; quantita: number }[]
+  /** Indicazioni per l'housekeeping (es. "letti uniti verso la finestra"). */
+  note?: string
 }
 
 interface TipologieCamereState {
