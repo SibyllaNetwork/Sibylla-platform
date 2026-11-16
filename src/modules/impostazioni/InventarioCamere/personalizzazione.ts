@@ -61,6 +61,7 @@ export function dateCambioLenzuola(t: TipologiaCamera, segmento: SegmentoOspite,
 export const ELEMENTI_LETTO: { id: ElementoLetto; label: string; icona: string; posti: number }[] = [
   { id: 'matrimoniale', label: 'Letto matrimoniale', icona: 'fa-bed', posti: 2 },
   { id: 'king', label: 'Letto king size', icona: 'fa-bed', posti: 2 },
+  { id: 'francese', label: 'Letto alla francese', icona: 'fa-bed', posti: 1 },
   { id: 'singolo', label: 'Letto singolo', icona: 'fa-bed-front', posti: 1 },
   { id: 'divano-letto', label: 'Divano letto', icona: 'fa-couch', posti: 2 },
   { id: 'castello', label: 'Letto a castello', icona: 'fa-bed-bunk', posti: 2 },
@@ -71,21 +72,38 @@ export const elementoLetto = (id: ElementoLetto) => ELEMENTI_LETTO.find((e) => e
 
 type L = LayoutCamera['letti']
 const l = (...x: [ElementoLetto, number][]): L => x.map(([tipo, quantita]) => ({ tipo, quantita }))
-const LAYOUT_BASE: Record<string, [string, L][]> = {
-  Singola: [['Letto singolo', l(['singolo', 1])]],
-  Doppia: [['Matrimoniale', l(['matrimoniale', 1])], ['Letti separati', l(['singolo', 2])]],
-  Twin: [['Letti separati', l(['singolo', 2])], ['Letti uniti', l(['matrimoniale', 1])]],
-  Matrimoniale: [['King size', l(['king', 1])], ['Matrimoniale con culla', l(['matrimoniale', 1], ['culla', 1])]],
-  Tripla: [['Matrimoniale + singolo', l(['matrimoniale', 1], ['singolo', 1])], ['Tre letti singoli', l(['singolo', 3])]],
+/** Allestimenti preconfigurati della struttura, con la loro sigla. */
+export const ALLESTIMENTI_PRECONFIGURATI: LayoutCamera[] = [
+  { id: 'pre-AS', codice: 'AS', nome: 'Allestimento Superiori', letti: l(['king', 1]), note: 'Dotazioni e set di cortesia superiori' },
+  { id: 'pre-L1', codice: 'L1', nome: 'Letto singolo', letti: l(['singolo', 1]) },
+  { id: 'pre-LF', codice: 'LF', nome: 'Letto Francese', letti: l(['francese', 1]) },
+  { id: 'pre-LM', codice: 'LM', nome: 'Letto Matrimoniale', letti: l(['matrimoniale', 1]) },
+  { id: 'pre-LS', codice: 'LS', nome: 'Letti separati', letti: l(['singolo', 2]) },
+]
+const pre = (codice: string) => ALLESTIMENTI_PRECONFIGURATI.find((x) => x.codice === codice)!
+
+// Layout di partenza per tipo di camera: gli allestimenti preconfigurati adatti
+// (il primo è il predefinito) più le composizioni a più letti dei tipi grandi.
+const LAYOUT_BASE: Record<string, (string | [string, L])[]> = {
+  Singola: ['L1', 'LF'],
+  DUS: ['LM', 'LF', 'LS'],
+  Doppia: ['LM', 'LS', 'AS'],
+  Twin: ['LS', 'LM'],
+  Matrimoniale: ['LM', 'AS', ['Matrimoniale con culla', l(['matrimoniale', 1], ['culla', 1])]],
+  Accessibile: ['LM', 'LS'],
+  Suite: ['AS', 'LM', ['King size + divano letto', l(['king', 1], ['divano-letto', 1])]],
+  Tripla: [['Matrimoniale + singolo', l(['matrimoniale', 1], ['singolo', 1])], ['Tre letti singoli', l(['singolo', 3])], 'LM', 'LS'],
   Quadrupla: [['Due matrimoniali', l(['matrimoniale', 2])], ['Matrimoniale + due singoli', l(['matrimoniale', 1], ['singolo', 2])]],
   Family: [['Matrimoniale + castello', l(['matrimoniale', 1], ['castello', 1])], ['Matrimoniale + divano letto', l(['matrimoniale', 1], ['divano-letto', 1])]],
-  Suite: [['King size + divano letto', l(['king', 1], ['divano-letto', 1])], ['King size', l(['king', 1])]],
-  Accessibile: [['Matrimoniale', l(['matrimoniale', 1])], ['Letti separati', l(['singolo', 2])]],
-  DUS: [['Matrimoniale uso singola', l(['matrimoniale', 1])]],
 }
 
 export const layoutsBase = (tipo: string): LayoutCamera[] =>
-  (LAYOUT_BASE[tipo] ?? [['Standard', l(['matrimoniale', 1])]]).map(([nome, letti], i) => ({ id: `base-${i + 1}`, nome, letti }))
+  (LAYOUT_BASE[tipo] ?? ['LM']).map((x, i) => typeof x === 'string'
+    ? { ...pre(x), letti: pre(x).letti.map((y) => ({ ...y })) }
+    : { id: `base-${i + 1}`, nome: x[0], letti: x[1] })
+
+/** "LM · Letto Matrimoniale" se l'allestimento ha la sigla, altrimenti il nome. */
+export const etichettaLayout = (l: Pick<LayoutCamera, 'codice' | 'nome'>) => (l.codice ? `${l.codice} · ${l.nome}` : l.nome)
 
 export const layoutsDi = (t: TipologiaCamera) => t.personalizzazione?.layouts ?? layoutsBase(t.tipo)
 

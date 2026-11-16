@@ -10,7 +10,7 @@ import { useTipologieCamereStore, type TipologiaCamera } from '../../../store/us
 import RoomIllustration from './RoomIllustration'
 import ConfigurazioneCamera from './ConfigurazioneCamera'
 import PersonalizzaTipologia, { riassuntoCompleto, riassuntoPersonalizzazione } from './PersonalizzaTipologia'
-import { PERSONALIZZAZIONE_DEFAULT, layoutDellaCamera, layoutPredefinitoDi, numerazioneCamere, personalizzazioneDi } from './personalizzazione'
+import { PERSONALIZZAZIONE_DEFAULT, etichettaLayout, layoutDellaCamera, layoutPredefinitoDi, numerazioneCamere, personalizzazioneDi } from './personalizzazione'
 import { MAX_CAPACITA, MAX_LETTI_EXTRA, TIPI, lettiExtra, ospiti } from './catalogo'
 import './InventarioCamere.sass'
 import { useStruttureCliente, useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
@@ -478,8 +478,8 @@ function DettagliCamera({ t, numeri, disabled, onModifica, onClose }: { t: Tipol
         <div className="invc__dl-wide"><dt>Piani</dt><dd>{t.piani?.length ? t.piani.join(', ') : vuoto}</dd></div>
         <div className="invc__dl-wide"><dt>Numerazione</dt><dd>{numeri.length ? numeri.join(', ') : vuoto}</dd></div>
         <div className="invc__dl-full"><dt>Layout</dt><dd>
-          {predefinito ? <>{predefinito.nome} (predefinito)</> : vuoto}
-          {specifiche.length > 0 && <> · layout specifico per {specifiche.map((n) => `${n} (${layoutDellaCamera(t, n)?.nome})`).join(', ')}</>}
+          {predefinito ? <>{etichettaLayout(predefinito)} (predefinito)</> : vuoto}
+          {specifiche.length > 0 && <> · layout specifico per {specifiche.map((n) => `${n} (${etichettaLayout(layoutDellaCamera(t, n)!)})`).join(', ')}</>}
         </dd></div>
         <div className="invc__dl-full"><dt>Cambio lenzuola</dt><dd>{riassuntoPersonalizzazione(t).replace('Cambio lenzuola: ', '')} · sempre alla partenza</dd></div>
         <div className="invc__dl-full"><dt>Descrizione</dt><dd>{t.descrizione || vuoto}</dd></div>

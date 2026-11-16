@@ -50,10 +50,12 @@ export interface PersonalizzazioneCamera {
 }
 
 /** Elemento letto di un layout. */
-export type ElementoLetto = 'matrimoniale' | 'king' | 'singolo' | 'divano-letto' | 'castello' | 'brandina' | 'culla'
+export type ElementoLetto = 'matrimoniale' | 'king' | 'francese' | 'singolo' | 'divano-letto' | 'castello' | 'brandina' | 'culla'
 
 export interface LayoutCamera {
   id: string
+  /** Sigla dell'allestimento (es. LM = Letto matrimoniale). */
+  codice?: string
   nome: string
   letti: { tipo: ElementoLetto; quantita: number }[]
   /** Indicazioni per l'housekeeping (es. "letti uniti verso la finestra"). */

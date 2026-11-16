@@ -3,7 +3,7 @@ import Tooltip from '../../../core/components/Tooltip'
 import { RadioGroup, SelectField } from '../../../core/components/form'
 import type { PersonalizzazioneCamera, SegmentoOspite, TipologiaCamera } from '../../../store/useTipologieCamereStore'
 import {
-  OPZIONI_INTERVALLO, PERSONALIZZAZIONE_DEFAULT, SEGMENTI, etichettaIntervallo, giorniCambioLenzuola, layoutPredefinitoDi, personalizzazioneDi,
+  OPZIONI_INTERVALLO, PERSONALIZZAZIONE_DEFAULT, SEGMENTI, etichettaIntervallo, giorniCambioLenzuola, etichettaLayout, layoutPredefinitoDi, personalizzazioneDi,
 } from './personalizzazione'
 import LayoutTipologia from './LayoutTipologia'
 import './PersonalizzaTipologia.sass'
@@ -165,5 +165,5 @@ export const riassuntoPersonalizzazione = (t: TipologiaCamera) => {
 /** Riassunto del cambio lenzuola + layout predefinito, per il tooltip del pulsante Personalizza. */
 export const riassuntoCompleto = (t: TipologiaCamera) => {
   const lay = layoutPredefinitoDi(t)
-  return lay ? `${riassuntoPersonalizzazione(t)} — Layout predefinito: ${lay.nome}` : riassuntoPersonalizzazione(t)
+  return lay ? `${riassuntoPersonalizzazione(t)} — Layout predefinito: ${etichettaLayout(lay)}` : riassuntoPersonalizzazione(t)
 }

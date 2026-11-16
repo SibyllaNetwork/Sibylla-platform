@@ -5,7 +5,7 @@ import TruncatedText from '../../../core/components/TruncatedText'
 import { CheckboxField, InputField, SelectField } from '../../../core/components/form'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import type { ElementoLetto, LayoutCamera, PersonalizzazioneCamera, TipologiaCamera } from '../../../store/useTipologieCamereStore'
-import { ELEMENTI_LETTO, descriviLetti, elementoLetto, layoutsDi, postiLetto } from './personalizzazione'
+import { ALLESTIMENTI_PRECONFIGURATI, ELEMENTI_LETTO, descriviLetti, elementoLetto, etichettaLayout, layoutsDi, postiLetto } from './personalizzazione'
 import { lettiExtra as lettiExtraTxt, ospiti } from './catalogo'
 import './LayoutTipologia.sass'
 
@@ -46,8 +46,8 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
   const specifiche = numeri.filter(specifico)
   useEffect(() => { if (mostra && !numeri.includes(mostra)) setMostra('') }, [numeri, mostra])
   const opzioniLayout = [
-    { value: '', label: `Predefinito (${predefinito?.nome ?? 'nessuno'})` },
-    ...layouts.map((x) => ({ value: x.id, label: `${x.nome} · ${posti(postiLetto(x.letti))}` })),
+    { value: '', label: `Predefinito (${predefinito ? etichettaLayout(predefinito) : 'nessuno'})` },
+    ...layouts.map((x) => ({ value: x.id, label: `${etichettaLayout(x)} · ${posti(postiLetto(x.letti))}` })),
   ]
   // Nuovo layout per la camera: parte dai letti del layout attuale e le viene assegnato.
   const nuovoPerCamera = (n: string) => {
@@ -62,7 +62,7 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
     if (!l) return
     const soloSuo = specifico(n) && l.id !== predefinito?.id && numeri.every((m) => m === n || effettivo(m)?.id !== l.id)
     setEditor(soloSuo ? { nuovo: false, layout: l, camera: n }
-      : { nuovo: true, camera: n, layout: { ...l, id: nuovoLayoutId(), nome: `Camera ${n}`, letti: l.letti.map((x) => ({ ...x })) } })
+      : { nuovo: true, camera: n, layout: { ...l, id: nuovoLayoutId(), codice: undefined, nome: `Camera ${n}`, letti: l.letti.map((x) => ({ ...x })) } })
   }
 
   const assegna = (n: string, id: string) => {
@@ -84,7 +84,7 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
       title: 'Elimina layout',
       danger: true,
       confirmLabel: 'Elimina',
-      message: <>Eliminare il layout <strong>{l.nome}</strong>?{coinvolte.length > 0 && <> {coinvolte.length === 1 ? `La camera ${coinvolte[0]} tornerà` : `Le camere ${coinvolte.join(', ')} torneranno`} al layout predefinito.</>}</>,
+      message: <>Eliminare il layout <strong>{etichettaLayout(l)}</strong>?{coinvolte.length > 0 && <> {coinvolte.length === 1 ? `La camera ${coinvolte[0]} tornerà` : `Le camere ${coinvolte.join(', ')} torneranno`} al layout predefinito.</>}</>,
     })
     if (!ok) return
     const ls = layouts.filter((x) => x.id !== l.id)
@@ -93,7 +93,7 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
   }
 
   const nuovo = () => setEditor({ nuovo: true, camera: null, layout: { id: nuovoLayoutId(), nome: '', letti: [{ tipo: 'matrimoniale', quantita: 1 }] } })
-  const duplica = (l: LayoutCamera) => setEditor({ nuovo: true, camera: null, layout: { ...l, id: nuovoLayoutId(), nome: `${l.nome} (copia)`, letti: l.letti.map((x) => ({ ...x })) } })
+  const duplica = (l: LayoutCamera) => setEditor({ nuovo: true, camera: null, layout: { ...l, id: nuovoLayoutId(), codice: undefined, nome: `${l.nome} (copia)`, letti: l.letti.map((x) => ({ ...x })) } })
 
   return (
     <section className="pcam__block laycam">
@@ -147,7 +147,7 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
                   <div className="laycam__focus-prev">
                     <Letti letti={l.letti} />
                     <span>
-                      <strong>{l.nome}</strong> · {descriviLetti(l.letti)} · {posti(postiLetto(l.letti))}
+                      <strong>{etichettaLayout(l)}</strong> · {descriviLetti(l.letti)} · {posti(postiLetto(l.letti))}
                       {l.note && <em> — {l.note}</em>}
                     </span>
                   </div>
@@ -220,7 +220,7 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
             return (
               <li key={l.id} className="laycam__card">
                 <div className="laycam__card-head">
-                  <TruncatedText text={l.nome} className="laycam__card-name" />
+                  <TruncatedText text={etichettaLayout(l)} className="laycam__card-name" />
                   <span className="laycam__card-acts">
                     <Tooltip text="Modifica layout">
                       <button type="button" className="laycam__ico-btn" aria-label={`Modifica ${l.nome}`} disabled={disabled}
@@ -261,6 +261,7 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
       {editor && (
         <LayoutEditor key={editor.layout.id} iniziale={editor.layout} nuovo={editor.nuovo} camera={editor.camera}
           nomiUsati={layouts.filter((x) => x.id !== editor.layout.id).map((x) => x.nome.trim().toLowerCase())}
+          codiciUsati={layouts.filter((x) => x.id !== editor.layout.id && x.codice).map((x) => x.codice!.toUpperCase())}
           capacita={t.capacita} lettiExtra={t.lettiExtra}
           onClose={() => setEditor(null)} onSave={salvaLayout} />
       )}
@@ -288,18 +289,21 @@ interface EditorProps {
   nuovo: boolean
   camera: string | null
   nomiUsati: string[]
+  codiciUsati: string[]
   capacita: number
   lettiExtra: number
   onClose: () => void
   onSave: (l: LayoutCamera, nuovo: boolean, assegnaA: string | null) => void
 }
 
-function LayoutEditor({ iniziale, nuovo, camera, nomiUsati, capacita, lettiExtra, onClose, onSave }: EditorProps) {
+function LayoutEditor({ iniziale, nuovo, camera, nomiUsati, codiciUsati, capacita, lettiExtra, onClose, onSave }: EditorProps) {
   const [l, setL] = useState<LayoutCamera>(iniziale)
   const [assegna, setAssegna] = useState(nuovo && !!camera)
   const [tentato, setTentato] = useState(false)
   const nome = l.nome.trim()
   const errNome = !nome ? 'Obbligatorio' : nomiUsati.includes(nome.toLowerCase()) ? 'Esiste già un layout con questo nome' : undefined
+  const codice = (l.codice ?? '').trim().toUpperCase()
+  const errCodice = codice && codiciUsati.includes(codice) ? 'Sigla già usata' : undefined
   const tot = postiLetto(l.letti)
   const avviso = tot < capacita ? `Meno posti letto della capacità della tipologia (${ospiti(capacita)})`
     : tot > capacita + lettiExtra ? `Più posti letto di quelli previsti dalla tipologia (${ospiti(capacita)}${lettiExtra ? ` + ${lettiExtraTxt(lettiExtra)}` : ''})`
@@ -309,15 +313,28 @@ function LayoutEditor({ iniziale, nuovo, camera, nomiUsati, capacita, lettiExtra
     setL((x) => ({ ...x, letti: x.letti.map((y, j) => (j === i ? { ...y, ...patch } : y)) }))
   const salva = () => {
     setTentato(true)
-    if (errNome) return
-    onSave({ ...l, nome, note: l.note?.trim() || undefined }, nuovo, assegna && camera ? camera : null)
+    if (errNome || errCodice) return
+    onSave({ ...l, codice: codice || undefined, nome, note: l.note?.trim() || undefined }, nuovo, assegna && camera ? camera : null)
   }
 
   return (
     <Modal open onClose={onClose} title={nuovo ? 'Nuovo layout' : 'Modifica layout'} size="md" className="laycam-ed">
       <div className="laycam-ed__body">
-        <InputField name="laycam-ed-nome" label="Nome del layout" placeholder="Es. Letti separati" maxLength={60}
-          value={l.nome} error={tentato ? errNome : undefined} onChange={(e) => setL({ ...l, nome: e.target.value })} />
+        {nuovo && (
+          <SelectField name="laycam-ed-pre" label="Parti da un allestimento preconfigurato" value=""
+            placeholder="Scegli un allestimento (facoltativo)"
+            options={ALLESTIMENTI_PRECONFIGURATI.map((x) => ({ value: x.id, label: `${etichettaLayout(x)} · ${descriviLetti(x.letti)}` }))}
+            onChange={(e) => {
+              const p = ALLESTIMENTI_PRECONFIGURATI.find((x) => x.id === e.target.value)
+              if (p) setL({ ...l, codice: p.codice, nome: p.nome, note: p.note, letti: p.letti.map((x) => ({ ...x })) })
+            }} />
+        )}
+        <div className="laycam-ed__ident">
+          <InputField name="laycam-ed-codice" label="Sigla" placeholder="Es. LS" maxLength={4} className="laycam-ed__codice"
+            value={l.codice ?? ''} error={tentato ? errCodice : undefined} onChange={(e) => setL({ ...l, codice: e.target.value.toUpperCase() })} />
+          <InputField name="laycam-ed-nome" label="Nome del layout" placeholder="Es. Letti separati" maxLength={60} className="laycam-ed__nome"
+            value={l.nome} error={tentato ? errNome : undefined} onChange={(e) => setL({ ...l, nome: e.target.value })} />
+        </div>
 
         <div className="laycam-ed__letti">
           <span className="laycam-ed__label">Letti</span>
