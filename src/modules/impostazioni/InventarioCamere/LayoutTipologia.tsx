@@ -39,14 +39,21 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
   const effettivo = (n: string) => layouts.find((x) => x.id === assegnati[n]) ?? predefinito
 
   const [editor, setEditor] = useState<{ layout: LayoutCamera; nuovo: boolean; camera: string | null } | null>(null)
-  const [piano, setPiano] = useState('')
-  const [mostra, setMostra] = useState<'tutte' | 'specifico'>('tutte')
+  // Mostra: '' = tutte le camere (tabella), altrimenti il numero della camera scelta.
+  const [mostra, setMostra] = useState('')
 
   const specifico = (n: string) => layouts.some((x) => x.id === assegnati[n])
   const specifiche = numeri.filter(specifico)
-  const piani = Array.from(new Set(numeri.map(pianoDi))).sort((a, b) => a - b)
-  useEffect(() => { setPiano('') }, [t.id])
-  const visibili = numeri.filter((n) => (!piano || pianoDi(n) === Number(piano)) && (mostra === 'tutte' || specifico(n)))
+  useEffect(() => { if (mostra && !numeri.includes(mostra)) setMostra('') }, [numeri, mostra])
+  const opzioniLayout = [
+    { value: '', label: `Predefinito (${predefinito?.nome ?? 'nessuno'})` },
+    ...layouts.map((x) => ({ value: x.id, label: `${x.nome} · ${posti(postiLetto(x.letti))}` })),
+  ]
+  // Nuovo layout per la camera: parte dai letti del layout attuale e le viene assegnato.
+  const nuovoPerCamera = (n: string) => {
+    const l = effettivo(n)
+    setEditor({ nuovo: true, camera: n, layout: { id: nuovoLayoutId(), nome: '', letti: l ? l.letti.map((x) => ({ ...x })) : [{ tipo: 'matrimoniale', quantita: 1 }] } })
+  }
 
   // Personalizza la singola camera: se il suo layout è già solo suo (e non è il
   // predefinito) si modifica quello, altrimenti si parte da una copia dedicata.
@@ -106,20 +113,48 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
       ) : (
         <div className="laycam__rooms-box">
           <div className="laycam__toolbar">
-            {piani.length > 1 && (
-              <SelectField name={`laycam-piano-${t.id}`} label="Piano" className="laycam__f-piano" value={piano}
-                options={[{ value: '', label: 'Tutti i piani' }, ...piani.map((x) => ({ value: x, label: `${x}° piano` }))]}
-                onChange={(e) => setPiano(e.target.value)} />
-            )}
             <SelectField name={`laycam-mostra-${t.id}`} label="Mostra" className="laycam__f-mostra" value={mostra}
-              options={[{ value: 'tutte', label: 'Tutte le camere' }, { value: 'specifico', label: 'Solo con layout specifico' }]}
-              onChange={(e) => setMostra(e.target.value as 'tutte' | 'specifico')} />
+              options={[{ value: '', label: 'Tutte le camere' }, ...numeri.map((n) => ({ value: n, label: n }))]}
+              onChange={(e) => setMostra(e.target.value)} />
             <span className="laycam__count">
               {numeri.length} {numeri.length === 1 ? 'camera' : 'camere'} {t.nome || 'della tipologia'}
               {specifiche.length > 0 && <> · {specifiche.length} con layout specifico</>}
             </span>
           </div>
 
+          {mostra ? (() => {
+            const l = effettivo(mostra)
+            const spec = specifico(mostra)
+            return (
+              <div className={'laycam__focus' + (spec ? ' is-spec' : '')}>
+                <div className="laycam__focus-head">
+                  <span className="laycam__focus-num">Camera {mostra}</span>
+                  <span className="laycam__focus-sub">{pianoDi(mostra)}° piano · {spec ? 'layout specifico' : 'layout predefinito della tipologia'}</span>
+                </div>
+                <div className="laycam__focus-row">
+                  <SelectField name={`laycam-lay-${t.id}-focus`} label="Layout della camera" className="laycam__f-lay" disabled={disabled}
+                    value={spec ? assegnati[mostra] : ''} options={opzioniLayout} onChange={(e) => assegna(mostra, e.target.value)} />
+                  <button type="button" className="sib-btn sib-btn--secondary laycam__focus-btn" disabled={disabled} onClick={() => nuovoPerCamera(mostra)}>
+                    <i className="fa-light fa-plus" /> Crea nuovo layout
+                  </button>
+                  {spec && (
+                    <button type="button" className="laycam__link" disabled={disabled} onClick={() => assegna(mostra, '')}>
+                      <i className="fa-light fa-arrow-rotate-left" /> Torna al predefinito
+                    </button>
+                  )}
+                </div>
+                {l && (
+                  <div className="laycam__focus-prev">
+                    <Letti letti={l.letti} />
+                    <span>
+                      <strong>{l.nome}</strong> · {descriviLetti(l.letti)} · {posti(postiLetto(l.letti))}
+                      {l.note && <em> — {l.note}</em>}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          })() : (
           <div className="sib-table-wrap laycam__rooms">
             <table className="sib-table laycam__table">
               <colgroup>
@@ -133,7 +168,7 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
                 <tr><th>Camera</th><th>Piano</th><th>Layout</th><th>Letti</th><th className="laycam__th-act">Azioni</th></tr>
               </thead>
               <tbody>
-                {visibili.map((n) => {
+                {numeri.map((n) => {
                   const l = effettivo(n)
                   const spec = specifico(n)
                   return (
@@ -142,11 +177,7 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
                       <td>{pianoDi(n)}°</td>
                       <td>
                         <SelectField name={`laycam-lay-${t.id}-${n}`} ariaLabel={`Layout della camera ${n}`} disabled={disabled}
-                          value={spec ? assegnati[n] : ''}
-                          options={[
-                            { value: '', label: `Predefinito (${predefinito?.nome ?? 'nessuno'})` },
-                            ...layouts.map((x) => ({ value: x.id, label: `${x.nome} · ${posti(postiLetto(x.letti))}` })),
-                          ]}
+                          value={spec ? assegnati[n] : ''} options={opzioniLayout}
                           onChange={(e) => assegna(n, e.target.value)} />
                       </td>
                       <td>
@@ -173,12 +204,10 @@ export default function LayoutTipologia({ t, numeri, pers, disabled, onChange }:
                     </tr>
                   )
                 })}
-                {visibili.length === 0 && (
-                  <tr><td colSpan={5} className="laycam__none">Nessuna camera con questi filtri.</td></tr>
-                )}
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
 
