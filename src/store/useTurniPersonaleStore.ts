@@ -5,9 +5,10 @@ import {
   type Reparto, type RichiestaAssenza, type TipoAssenza,
 } from './useHrGestioneStore'
 import {
-  FASCE_ID, PIANIFICAZIONE_DEFAULT, fabbisognoVuoto, oreTurno, useHrConfigStore,
-  type FabbisognoRepartoHr, type FasciaId, type TurnoHr,
+  FASCE_ID, PIANIFICAZIONE_DEFAULT, RIPOSO, fabbisognoVuoto, giorniLavorativiOrario, oreSettimanaliOrario, oreTurno, useHrConfigStore,
+  type FabbisognoRepartoHr, type FasciaId, type OrarioHr, type SchemaTurniHr, type TurnoHr,
 } from './useHrConfigStore'
+import { useContrattiPersonaleStore } from './useContrattiPersonaleStore'
 import type { CadenzaTurni } from './useNotifPrefsStore'
 export type { CadenzaTurni }
 
@@ -23,35 +24,79 @@ export type { CadenzaTurni }
 // (da ripubblicare, con notifica ai soli dipendenti coinvolti).
 // Mock persistito (demo): il back end sostituirà seed, occupazione e algoritmo.
 
-// ─── Contratti: ore e giorni a settimana ─────────────────────────────────────
+// ─── Contratto → orario di lavoro: ore e giorni a settimana ─────────────────
+// Catena: dipendente → contratto vigente (Crea anagrafica) → orario di lavoro
+// (Configurazione HR › Orari di lavoro) e schema di rotazione (› Turnistica).
+// - Orario «a turni»: fissa solo ore e giorni; la giornata la decide il turno.
+// - Orario fisso: i giorni sono già scritti nell'orario → il dipendente compare
+//   già pianificato (turno «F»), non si trascina e non lo tocca Sibylla.
 export interface ContrattoTurno {
-  /** Etichetta del contratto, es. "Part time 60%". */
+  /** Nome dell'orario di lavoro, es. "Turnista 40 h · 5 giorni". */
   tipo: string
-  /** Giorni di servizio a settimana previsti dal contratto. */
+  /** Giorni di servizio a settimana previsti dall'orario. */
   giorni: number
-  /** Ore settimanali da contratto. */
+  /** Ore settimanali dall'orario. */
   ore: number
+  orarioId: string
+  aTurni: boolean
+  /** Tolleranza su entrata/uscita (minuti) per i ritardi delle timbrature. */
+  flessibilitaMin: number
+  /** Schema di rotazione assegnato nel contratto. */
+  schemaId?: string
+  /** Data da cui conta lo schema (decorrenza del contratto). */
+  ancoraSchema: string
+  /** 'contratto' = letto dal contratto vigente; 'demo' = inquadramento d'esempio. */
+  fonte: 'contratto' | 'demo'
 }
 
-// Full time 40 h (su 5 o 6 giorni, CCNL turismo), part time verticali in
-// percentuale e lavoro a chiamata. Chi non è in elenco non ha ancora il
-// contratto in anagrafica: niente controllo delle ore finché non si indica.
-export const CONTRATTI_TURNO: Record<number, ContrattoTurno> = {
-  1:  { tipo: 'Full time',              giorni: 5, ore: 40 },
-  2:  { tipo: 'Full time',              giorni: 5, ore: 40 },
-  3:  { tipo: 'Full time su 6 giorni',  giorni: 6, ore: 40 },
-  4:  { tipo: 'Part time 80%',          giorni: 4, ore: 32 },
-  5:  { tipo: 'Part time 80%',          giorni: 4, ore: 32 },
-  6:  { tipo: 'Full time',              giorni: 5, ore: 40 },
-  7:  { tipo: 'Part time 40%',          giorni: 2, ore: 16 },
-  8:  { tipo: 'Full time',              giorni: 5, ore: 40 },
-  9:  { tipo: 'Full time',              giorni: 5, ore: 40 },
-  10: { tipo: 'Full time su 6 giorni',  giorni: 6, ore: 40 },
-  11: { tipo: 'A chiamata',             giorni: 3, ore: 24 },
+// Inquadramento d'esempio dei dipendenti demo (gli id 1–12 non hanno un
+// contratto nello storico): orario di lavoro e schema di rotazione. Paolo
+// Greco (12) non ha contratto apposta: «Contratto non indicato».
+const INQUADRAMENTO_DEMO: Record<number, { orarioId: string; schemaId?: string }> = {
+  1:  { orarioId: 'ora-tur5' },
+  2:  { orarioId: 'ora-tur5', schemaId: 'sch-fo52' },
+  3:  { orarioId: 'ora-tur' },
+  4:  { orarioId: 'ora-tur32' },
+  5:  { orarioId: 'ora-tur32' },
+  6:  { orarioId: 'ora-tur5' },
+  7:  { orarioId: 'ora-tur16' },
+  8:  { orarioId: 'ora-tur5', schemaId: 'sch-piani' },
+  9:  { orarioId: 'ora-ft5' },
+  10: { orarioId: 'ora-tur' },
+  11: { orarioId: 'ora-chi24' },
 }
-export const contrattoDi = (id: number): ContrattoTurno | null => CONTRATTI_TURNO[id] ?? null
+/** Lunedì da cui si contano i cicli degli schemi quando il contratto non ha decorrenza. */
+const ANCORA_SCHEMI = '2026-01-05'
+
+/** Inquadramento del dipendente: contratto vigente (per nome) oppure quello d'esempio. */
+function inquadramentoDi(id: number): { orarioId: string; schemaId?: string; ancora: string; fonte: 'contratto' | 'demo' } | null {
+  const nome = nomeDipendente(id)
+  const vigente = useContrattiPersonaleStore.getState().contratti
+    .filter(c => c.nomeImpiegato === nome && c.orarioId)
+    .sort((a, b) => (b.decorrenza ?? b.createdAt).localeCompare(a.decorrenza ?? a.createdAt))[0]
+  if (vigente) return { orarioId: vigente.orarioId!, schemaId: vigente.schemaTurniId, ancora: vigente.decorrenza ?? ANCORA_SCHEMI, fonte: 'contratto' }
+  const demo = INQUADRAMENTO_DEMO[id]
+  return demo ? { ...demo, ancora: ANCORA_SCHEMI, fonte: 'demo' } : null
+}
+export const orarioDi = (id: number): OrarioHr | undefined => {
+  const inq = inquadramentoDi(id)
+  return inq ? useHrConfigStore.getState().orari.find(o => o.id === inq.orarioId) : undefined
+}
+export function contrattoDi(id: number): ContrattoTurno | null {
+  const inq = inquadramentoDi(id)
+  const o = orarioDi(id)
+  if (!inq || !o) return null
+  return {
+    tipo: o.nome, giorni: giorniLavorativiOrario(o), ore: oreSettimanaliOrario(o), orarioId: o.id, aTurni: o.aTurni,
+    flessibilitaMin: o.flessibilitaMin, schemaId: inq.schemaId, ancoraSchema: inq.ancora, fonte: inq.fonte,
+  }
+}
+/** Il dipendente ha un orario fisso: i suoi giorni vengono dall'orario, non dai turni. */
+export const haOrarioFisso = (id: number) => { const o = orarioDi(id); return !!o && !o.aTurni }
+/** Tolleranza dell'orario sulle timbrature (minuti); 0 se senza contratto. */
+export const flessibilitaDi = (id: number) => orarioDi(id)?.flessibilitaMin ?? 0
 /** Base usata per pianificare chi non ha ancora il contratto in anagrafica. */
-const CONTRATTO_STANDARD: ContrattoTurno = { tipo: 'Full time', giorni: 5, ore: 40 }
+const CONTRATTO_STANDARD = { tipo: 'Full time', giorni: 5, ore: 40 }
 
 // ─── Date ─────────────────────────────────────────────────────────────────────
 const parse = (iso: string) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d, 12) }
@@ -197,9 +242,57 @@ export type Assegnazioni = Record<string, number[]>
 export type TurniAssegnati = Record<string, string>
 export const chiaveTurno = (iso: string, id: number) => `${iso}|${id}`
 
+/** Giornata dell'orario fisso come turno «F» (null = giorno libero, undefined = il dipendente è a turni). */
+export function turnoFisso(id: number, iso: string): TurnoHr | null | undefined {
+  const o = orarioDi(id)
+  if (!o || o.aTurni) return undefined
+  const wd = (parse(iso).getDay() + 6) % 7
+  const g = o.giorni[wd]
+  if (!g?.attivo || !g.fasce.length) return null
+  const a = g.fasce[0], b = g.fasce.length > 1 ? g.fasce[g.fasce.length - 1] : undefined
+  return {
+    id: `fisso-${o.id}-${wd}`, sigla: 'F', nome: `Orario fisso · ${o.nome}`, inizio: a.inizio, fine: a.fine,
+    inizio2: b?.inizio, fine2: b?.fine, pausaMin: g.pausaMin, colore: 0, reparti: [],
+  }
+}
+/**
+ * Assegnazioni come le vedono tutte le viste: quelle salvate più i dipendenti
+ * con orario fisso nei loro giorni di lavoro (tolti i giorni di assenza
+ * bloccante); i dipendenti a orario fisso salvati per errore vengono ignorati.
+ */
+export function assegnazioniEffettive(assegnazioni: Assegnazioni, giorni: string[], richieste: RichiestaAssenza[] = useHrGestioneStore.getState().richieste): Assegnazioni {
+  const out: Assegnazioni = { ...assegnazioni }
+  const fissi = DIPENDENTI_HR.filter(d => haOrarioFisso(d.id)).map(d => d.id)
+  for (const g of giorni) {
+    const base = (assegnazioni[g] ?? []).filter(id => !fissi.includes(id))
+    const extra = fissi.filter(id => turnoFisso(id, g) && !bloccaTurno(assenzaDi(richieste, id, g)))
+    out[g] = [...base, ...extra]
+  }
+  return out
+}
+/** Giorni da considerare per una settimana: domenica prima e lunedì dopo inclusi (riposo di 11 h). */
+export const giorniConBordi = (lunedi: string) => [addGiorni(lunedi, -1), ...giorniSettimana(lunedi), addGiorni(lunedi, 7)]
+
+// ─── Schemi di rotazione ─────────────────────────────────────────────────────
+export const schemaDi = (id: number): SchemaTurniHr | undefined => {
+  const c = contrattoDi(id)
+  return c?.schemaId ? useHrConfigStore.getState().schemi.find(s => s.id === c.schemaId) : undefined
+}
+/** Passo dello schema nel giorno: id del turno, 'R' (riposo) o undefined senza schema. */
+export function passoSchema(id: number, iso: string): string | undefined {
+  const s = schemaDi(id)
+  const c = contrattoDi(id)
+  if (!s || !c || !s.sequenza.length) return undefined
+  const giorni = Math.round((parse(iso).getTime() - parse(c.ancoraSchema).getTime()) / 86400000)
+  const n = s.sequenza.length
+  return s.sequenza[((giorni % n) + n) % n]
+}
+
 /** Turno del dipendente nel giorno (se assegnato); senza scelta esplicita vale il predefinito del reparto. */
 export function turnoDel(assegnazioni: Assegnazioni, turni: TurniAssegnati, iso: string, id: number, catalogo?: TurnoHr[]): TurnoHr | undefined {
   if (!(assegnazioni[iso] ?? []).includes(id)) return undefined
+  const fisso = turnoFisso(id, iso)
+  if (fisso !== undefined) return fisso ?? undefined
   const t = turnoById(turni[chiaveTurno(iso, id)], catalogo)
   if (t) return t
   const r = repartoDi(id)
@@ -236,8 +329,8 @@ export interface RiepilogoSettimana {
   riposoBreve: string[]
 }
 /** Una giornata di assenza vale ore/giorni del contratto (es. 40 h su 5 giorni = 8 h). */
-export const oreAtteseSettimana = (c: ContrattoTurno, giorniAssenza: number) =>
-  Math.max(0, Math.round((c.ore - giorniAssenza * (c.ore / c.giorni)) * 10) / 10)
+export const oreAtteseSettimana = (c: Pick<ContrattoTurno, 'ore' | 'giorni'>, giorniAssenza: number) =>
+  Math.max(0, Math.round((c.ore - (c.giorni ? giorniAssenza * (c.ore / c.giorni) : 0)) * 10) / 10)
 
 export function riepilogoSettimana(assegnazioni: Assegnazioni, turni: TurniAssegnati, lunedi: string, id: number, richieste: RichiestaAssenza[], catalogo?: TurnoHr[]): RiepilogoSettimana {
   const giorni = giorniSettimana(lunedi)
@@ -314,11 +407,13 @@ export function suggerisciTurni(lunedi: string, richieste: RichiestaAssenza[], o
   const giorni = giorniSettimana(lunedi)
   const bloccati = opz.esistenti && opz.daGiorno ? giorni.filter(g => g < opz.daGiorno!) : []
   const out: Assegnazioni = Object.fromEntries(giorni.map(g => [g, bloccati.includes(g) ? [...(opz.esistenti!.assegnazioni[g] ?? [])] : []]))
+  // Chi ha l'orario fisso è già al suo posto in tutti i giorni (non lo sposta nessuno).
+  Object.assign(out, assegnazioniEffettive(out, giorni, richieste))
   const tAss: TurniAssegnati = {}
   // Domenica precedente (per il riposo di 11 ore del lunedì) e giorni bloccati.
   if (opz.esistenti) {
     const dom = addGiorni(lunedi, -1)
-    out[dom] = [...(opz.esistenti.assegnazioni[dom] ?? [])]
+    out[dom] = assegnazioniEffettive(opz.esistenti.assegnazioni, [dom], richieste)[dom]
     for (const g of [dom, ...bloccati]) for (const id of out[g]) {
       const t = turnoDel(opz.esistenti.assegnazioni, opz.esistenti.turni, g, id, catalogo)
       if (t) tAss[chiaveTurno(g, id)] = t.id
@@ -340,7 +435,7 @@ export function suggerisciTurni(lunedi: string, richieste: RichiestaAssenza[], o
     return { giorni: Math.max(0, c.giorni - a), ore: oreAtteseSettimana(c, a) }
   }
   const puo = (id: number, iso: string, t: TurnoHr) => {
-    if (out[iso].includes(id) || assenzaDi(richieste, id, iso)) return false
+    if (haOrarioFisso(id) || out[iso].includes(id) || assenzaDi(richieste, id, iso)) return false
     const lim = limiti(id)
     if (giorniDi(id) >= lim.giorni || oreDi(id) + oreTurno(t) > lim.ore) return false
     const prima = riposoPrima(out, tAss, iso, id, t, catalogo)
@@ -360,6 +455,17 @@ export function suggerisciTurni(lunedi: string, richieste: RichiestaAssenza[], o
       return Object.fromEntries(c.fasce.map(f => [f.fascia, Math.max(0, Math.min(f.serve, cap) - f.ha)])) as Partial<Record<Fascia, number>>
     }
 
+    // Giro 0: chi ha uno schema di rotazione parte dallo schema (turno del
+    // passo del giorno, se valido nel reparto e se rispetta ore e riposi).
+    const seguonoSchema = staff.filter(d => schemaDi(d.id))
+    for (const d of seguonoSchema) for (const iso of liberi) {
+      const passo = passoSchema(d.id, iso)
+      const t = passo && passo !== RIPOSO ? validi.find(x => x.id === passo) : undefined
+      if (t && puo(d.id, iso, t)) metti(d.id, iso, t)
+    }
+    // Nei giri successivi un riposo previsto dallo schema si rispetta.
+    const riposoDaSchema = (id: number, iso: string) => passoSchema(id, iso) === RIPOSO
+
     // 1° giro: copre le fasce richieste, prima i giorni più carichi. Prima una
     // persona per fascia su tutti i giorni, poi i rinforzi dei picchi. Fra i turni
     // validi sceglie quello che copre più fasce scoperte (a pari merito il predefinito).
@@ -374,7 +480,8 @@ export function suggerisciTurni(lunedi: string, richieste: RichiestaAssenza[], o
           .sort((a, b) => b.utile - a.utile || (a.t.id === pred?.id ? -1 : b.t.id === pred?.id ? 1 : 0))
         let fatto = false
         for (const { t } of ordinati) {
-          const c = staff.filter(d => puo(d.id, iso, t)).sort((a, b) => residuo(b.id) - residuo(a.id))[0]
+          const c = staff.filter(d => !riposoDaSchema(d.id, iso) && puo(d.id, iso, t))
+            .sort((a, b) => Number(passoSchema(b.id, iso) === t.id) - Number(passoSchema(a.id, iso) === t.id) || residuo(b.id) - residuo(a.id))[0]
           if (c) { metti(c.id, iso, t); fatto = true; break }
         }
         if (!fatto) break
@@ -384,6 +491,7 @@ export function suggerisciTurni(lunedi: string, richieste: RichiestaAssenza[], o
     // sul turno della fascia meno coperta (mai nei giorni in cui il reparto è chiuso).
     for (const d of staff) {
       for (const iso of perCarico) {
+        if (riposoDaSchema(d.id, iso)) continue
         const fab = fabbisognoFasce(rep, iso)
         if (fab.M + fab.P + fab.N === 0) continue
         const cop = coperturaReparto(rep, iso, out, tAss, richieste, catalogo)
@@ -392,7 +500,8 @@ export function suggerisciTurni(lunedi: string, richieste: RichiestaAssenza[], o
           .filter(t => fasceTurno(t).some(f => fab[f] > 0))
           .sort((a, b) => Math.min(...fasceTurno(a).map(margine)) - Math.min(...fasceTurno(b).map(margine))
             || (a.id === pred?.id ? -1 : b.id === pred?.id ? 1 : 0))
-        const t = candidati.find(x => puo(d.id, iso, x))
+        const passo = passoSchema(d.id, iso)
+        const t = [...candidati].sort((a, b) => Number(b.id === passo) - Number(a.id === passo)).find(x => puo(d.id, iso, x))
         if (t) metti(d.id, iso, t)
       }
     }
@@ -427,6 +536,10 @@ export function suggerisciTurni(lunedi: string, richieste: RichiestaAssenza[], o
   const fissi = REPARTI_HR.filter(r => !fabbisognoAOccupazione(r))
   note.push(`Picco di occupazione ${GIORNI_LUNGHI[iPicco].toLowerCase()} ${giornoMese(giorni[iPicco])} (${occs[iPicco]}%)${aOcc.length ? `: più personale su ${aOcc.join(', ')}` : ''}.${fissi.length ? ` ${fissi.join(', ')}: minimo fisso.` : ''}`)
   note.push(`Ogni turno rispetta il monte ore del contratto e le ${riposoMinOre()} ore di riposo fra un turno e l'altro.`)
+  const conSchema = DIPENDENTI_HR.filter(d => !haOrarioFisso(d.id) && schemaDi(d.id))
+  if (conSchema.length) note.push(`Seguono il loro schema di rotazione: ${conSchema.map(d => `${d.nome} ${d.cognome} (${schemaDi(d.id)!.nome})`).join(', ')}.`)
+  const fissiOrario = DIPENDENTI_HR.filter(d => haOrarioFisso(d.id))
+  if (fissiOrario.length) note.push(`Con orario fisso, già pianificati dal contratto: ${fissiOrario.map(d => `${d.nome} ${d.cognome}`).join(', ')}.`)
   for (const d of DIPENDENTI_HR) if (!contrattoDi(d.id)) note.push(`${d.nome} ${d.cognome}: contratto non indicato in anagrafica, pianificato su ${CONTRATTO_STANDARD.ore} h standard.`)
   for (const a of assenzeConsiderate) {
     const chi = nomeDipendente(a.id)
@@ -444,9 +557,11 @@ export function suggerisciTurni(lunedi: string, richieste: RichiestaAssenza[], o
   }
 
   // Si restituisce solo la settimana (la domenica precedente serviva per il riposo).
-  const assegnazioni: Assegnazioni = Object.fromEntries(giorni.map(g => [g, [...out[g]].sort((a, b) => a - b)]))
+  // I dipendenti a orario fisso non si salvano: li riaggiunge assegnazioniEffettive.
+  const turniTot = giorni.reduce((n, g) => n + out[g].length, 0)
+  const assegnazioni: Assegnazioni = Object.fromEntries(giorni.map(g => [g, out[g].filter(id => !haOrarioFisso(id)).sort((a, b) => a - b)]))
   const turniAssegnati: TurniAssegnati = Object.fromEntries(Object.entries(tAss).filter(([k]) => giorni.includes(k.split('|')[0])))
-  const turni = giorni.reduce((s, g) => s + assegnazioni[g].length, 0)
+  const turni = turniTot
   return {
     lunedi, assegnazioni, turniAssegnati, turni, occupazioneMedia, picco: { iso: giorni[iPicco], occ: occs[iPicco] },
     fasceCoperte, fasceTot, assenzeConsiderate, scoperture, giorniBloccati: bloccati, note,
@@ -509,10 +624,11 @@ const toccata = (st: TurniState, iso: string): Record<string, SettimanaTurni> =>
 }
 const fotografia = (st: Pick<TurniState, 'assegnazioni' | 'turni'>, lunedi: string) => {
   const giorni = giorniSettimana(lunedi)
-  const assegnazioni: Assegnazioni = Object.fromEntries(giorni.map(g => [g, [...(st.assegnazioni[g] ?? [])]]))
+  const eff = assegnazioniEffettive(st.assegnazioni, giorni)
+  const assegnazioni: Assegnazioni = Object.fromEntries(giorni.map(g => [g, [...(eff[g] ?? [])]]))
   const turni: TurniAssegnati = {}
   for (const g of giorni) for (const id of assegnazioni[g]) {
-    const t = turnoDel(st.assegnazioni, st.turni, g, id)
+    const t = turnoDel(eff, st.turni, g, id)
     if (t) turni[chiaveTurno(g, id)] = t.id
   }
   return { assegnazioni, turni }
@@ -543,7 +659,9 @@ function seed(): Pick<TurniState, 'assegnazioni' | 'turni' | 'settimane' | 'pubb
     Object.assign(assegnazioni, s.assegnazioni)
     Object.assign(turni, s.turniAssegnati)
     const at = `${addGiorni(l, -3)}T17:30:00`
-    pubblicazioni.unshift({ id: `pt-seed-${l}`, lunedi: l, at, assegnazioni: s.assegnazioni, turni: s.turniAssegnati, destinatari: new Set(Object.values(s.assegnazioni).flat()).size })
+    // La fotografia pubblicata comprende anche chi ha l'orario fisso, come quelle di pubblica().
+    const snap = fotografia({ assegnazioni: s.assegnazioni, turni: s.turniAssegnati }, l)
+    pubblicazioni.unshift({ id: `pt-seed-${l}`, lunedi: l, at, ...snap, destinatari: new Set(Object.values(snap.assegnazioni).flat()).size })
   }
   return {
     assegnazioni,
@@ -658,8 +776,9 @@ export function coinvoltiDaRipubblicare(st: Pick<TurniState, 'assegnazioni' | 't
 export function turnoPianificato(id: number, iso: string): { inizio: number; fine: number; stacco?: { da: number; a: number } } | null | undefined {
   const st = useTurniPersonaleStore.getState()
   const pianificata = giorniSettimana(lunediDi(iso)).some(g => (st.assegnazioni[g] ?? []).length > 0)
-  if (!pianificata) return undefined
-  const t = turnoDel(st.assegnazioni, st.turni, iso, id)
+  // Orario fisso: vale sempre l'orario, anche nelle settimane non pianificate.
+  if (!pianificata && !haOrarioFisso(id)) return undefined
+  const t = turnoDel(assegnazioniEffettive(st.assegnazioni, [iso]), st.turni, iso, id)
   if (!t) return null
   const iv = intervalliTurno(t).sort((a, b) => a[0] - b[0])
   const fine = fineTurno(t)

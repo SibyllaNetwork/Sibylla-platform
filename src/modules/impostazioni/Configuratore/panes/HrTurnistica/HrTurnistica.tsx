@@ -6,12 +6,15 @@ import { CfgToolbar, CfgTable, CfgSaveBar, CfgMultiSelect } from '../../../../..
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import {
   useHrConfigStore, nuovoId, oreTurno, turnoNotturno, RIPOSO, FASCE_ID, GIORNI_SETTIMANA, fabbisognoVuoto,
+  oreMedieGiorno, turniCompatibili, schemiCompatibili, oreSettimanaliOrario, giorniLavorativiOrario,
   type TurnoHr, type SchemaTurniHr, type PianificazioneTurniHr, type FabbisognoRepartoHr, type FasciaId, type RepartoHr,
 } from '../../../../../store/useHrConfigStore'
 import { useHrDraft, diffCount } from '../_hr/useHrDraft'
 import HrFormModal from '../_hr/HrFormModal'
 import HrRowActions from '../_hr/HrRowActions'
 import { HrColorPicker } from '../_hr/HrColore'
+import { DIPENDENTI_HR } from '../../../../../store/useHrGestioneStore'
+import { orarioDi } from '../../../../../store/useTurniPersonaleStore'
 import './HrTurnistica.sass'
 
 // ─── RISORSE UMANE › TURNISTICA ──────────────────────────────────────────────
@@ -67,6 +70,9 @@ export default function HrTurnistica() {
   const turni = useHrConfigStore(s => s.turni)
   const schemi = useHrConfigStore(s => s.schemi)
   const pianificazione = useHrConfigStore(s => s.pianificazione)
+  const orari = useHrConfigStore(s => s.orari)
+  const orariATurni = orari.filter(o => o.aTurni)
+  const dipendentiCon = (orarioId: string) => DIPENDENTI_HR.filter(d => orarioDi(d.id)?.id === orarioId)
   const reparti = useHrConfigStore(s => s.reparti)
   const setTurnistica = useHrConfigStore(s => s.setTurnistica)
   const confirm = useConfirmStore(s => s.confirm)
@@ -278,6 +284,43 @@ export default function HrTurnistica() {
             )
           })}
         </CfgTable>
+
+        <span className="hrcfg-modal__label">Coerenza con gli orari di lavoro</span>
+        <p className="cfg-hrtur__desc">Gli orari «a turni» (Configurazione HR › Orari di lavoro) fissano ore e giorni: qui si vede se turni e schemi bastano a comporli. Calcolato sulla bozza di questa scheda.</p>
+        <CfgTable
+          columns={[
+            { key: 'orario', label: 'Orario a turni', width: '24%' },
+            { key: 'media', label: 'Ore al giorno', width: '11%', align: 'right' },
+            { key: 'turni', label: 'Turni compatibili', width: '20%' },
+            { key: 'schemi', label: 'Schemi compatibili', width: '25%' },
+            { key: 'dip', label: 'Dipendenti', width: '20%' },
+          ]}
+        >
+          {orariATurni.map(o => {
+            const tc = turniCompatibili(o, draft.turni)
+            const sc = schemiCompatibili(o, draft.schemi, draft.turni)
+            const dd = dipendentiCon(o.id)
+            return (
+              <tr key={o.id}>
+                <td>
+                  <TruncatedText text={o.nome} className="cfg-hrtur__name" />
+                </td>
+                <td className="cfg-hrtur__num">{fmtOre(Math.round(oreMedieGiorno(o) * 10) / 10)} h</td>
+                <td>
+                  {tc.length
+                    ? <span className="cfg-hrtur__seq">{tc.map(t => <Tooltip key={t.id} text={`${t.nome} · ${fmtOre(oreTurno(t))} h`}><span><TurnoChip turno={t} small /></span></Tooltip>)}</span>
+                    : (
+                      <Tooltip text={`Nessun turno da circa ${fmtOre(Math.round(oreMedieGiorno(o) * 10) / 10)} h: con ${giorniLavorativiOrario(o)} giorni il monte di ${fmtOre(oreSettimanaliOrario(o))} h non si raggiunge con i turni esistenti. Crea un turno di questa durata o cambia l'orario.`}>
+                        <span className="cfg-hrtur__warn"><i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /> Nessuno</span>
+                      </Tooltip>
+                    )}
+                </td>
+                <td className="cfg-hrtur__cell-trunc"><TruncatedText text={sc.length ? sc.map(x => x.nome).join(', ') : '—'} className="cfg-hrtur__trunc" /></td>
+                <td className="cfg-hrtur__cell-trunc"><TruncatedText text={dd.length ? dd.map(d => `${d.nome.charAt(0)}. ${d.cognome}`).join(', ') : 'Nessuno'} full={dd.map(d => `${d.nome} ${d.cognome}`).join(', ') || 'Nessun dipendente'} className="cfg-hrtur__trunc" /></td>
+              </tr>
+            )
+          })}
+        </CfgTable>
       </section>
 
       {/* ── Schemi di rotazione ───────────────────────────────────────────── */}
@@ -312,6 +355,10 @@ export default function HrTurnistica() {
                   </div>
                   <footer className="cfg-hrtur__schema-foot">
                     Ciclo di {s.sequenza.length} giorni · {lavoro} lavorati, {s.sequenza.length - lavoro} di riposo · ≈ {fmtOre(oreSett)} h/sett.
+                    {(() => {
+                      const adatti = orariATurni.filter(o => schemiCompatibili(o, [s], draft.turni).length)
+                      return <span className="cfg-hrtur__adatto">{adatti.length ? <>Adatto a: {adatti.map(o => o.nome).join(', ')}</> : 'Nessun orario a turni con questo monte ore'}</span>
+                    })()}
                   </footer>
                 </article>
               )

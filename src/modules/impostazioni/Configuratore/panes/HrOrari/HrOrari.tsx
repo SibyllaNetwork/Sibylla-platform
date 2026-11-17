@@ -6,7 +6,11 @@ import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import {
   useHrConfigStore, nuovoId, oreSettimanaliOrario, giorniLavorativiOrario, minutiGiorno,
   GIORNI_SETTIMANA, REGIMI_ORARIO, type OrarioHr, type RegimeOrario,
+  avvisiOrario, oreMedieGiorno, turniCompatibili, schemiCompatibili, oreTurno,
 } from '../../../../../store/useHrConfigStore'
+import { DIPENDENTI_HR } from '../../../../../store/useHrGestioneStore'
+import { orarioDi } from '../../../../../store/useTurniPersonaleStore'
+import Tooltip from '../../../../../core/components/Tooltip'
 import { useHrDraft, diffCount } from '../_hr/useHrDraft'
 import HrRowActions from '../_hr/HrRowActions'
 import SettimanaOrario, { MODELLI } from './SettimanaOrario'
@@ -24,6 +28,53 @@ const nuovo = (): OrarioHr => ({
   id: nuovoId('ora'), nome: 'Nuovo orario', regime: 'full-time', aTurni: false, oreSettimanali: 40, giorniSettimana: 5, flessibilitaMin: 10,
   giorni: MODELLI[0].giorni(),
 })
+const fmtH = (h: number) => (Number.isInteger(h) ? `${h}` : h.toFixed(1).replace('.', ','))
+
+/**
+ * Collegamento dell'orario con Turnistica e Turni del personale: chi lo usa,
+ * se a turni quali turni e schemi sono compatibili, e gli avvisi di legge.
+ */
+function CollegamentoTurni({ orario }: { orario: OrarioHr }) {
+  const turni = useHrConfigStore(s => s.turni)
+  const schemi = useHrConfigStore(s => s.schemi)
+  const usatoDa = DIPENDENTI_HR.filter(d => orarioDi(d.id)?.id === orario.id)
+  const avvisi = avvisiOrario(orario, turni)
+  const tc = orario.aTurni ? turniCompatibili(orario, turni) : []
+  const sc = orario.aTurni ? schemiCompatibili(orario, schemi, turni) : []
+  return (
+    <div className="cfg-hrora__link">
+      <div className="cfg-hrora__link-row">
+        <i className="fa-solid fa-link" aria-hidden="true" />
+        <span>
+          {orario.aTurni
+            ? <>In <strong>Turni del personale</strong> le giornate si compongono con i turni della Turnistica: media di <strong>{fmtH(oreMedieGiorno(orario))} h</strong> al giorno.</>
+            : <>Orario fisso: in <strong>Turni del personale</strong> chi lo ha compare già pianificato nei suoi giorni (non usa la Turnistica).</>}
+          {' '}La flessibilità vale per i ritardi delle timbrature.
+        </span>
+      </div>
+      {orario.aTurni && (
+        <div className="cfg-hrora__link-row">
+          <span className="cfg-hrora__link-lbl">Turni compatibili</span>
+          {tc.length
+            ? tc.map(t => <Tooltip key={t.id} text={`${t.nome} · ${fmtH(oreTurno(t))} h`}><span className="cfg-hrora__sigla" data-col={t.colore}>{t.sigla}</span></Tooltip>)
+            : <span className="cfg-hrora__link-none">nessuno</span>}
+          <span className="cfg-hrora__link-lbl">Schemi compatibili</span>
+          <span className="cfg-hrora__link-txt">{sc.length ? sc.map(x => x.nome).join(', ') : 'nessuno'}</span>
+        </div>
+      )}
+      <div className="cfg-hrora__link-row">
+        <span className="cfg-hrora__link-lbl">Usato da</span>
+        <span className="cfg-hrora__link-txt">{usatoDa.length ? usatoDa.map(d => `${d.nome} ${d.cognome}`).join(', ') : 'nessun dipendente'}</span>
+      </div>
+      {avvisi.map(a => (
+        <div key={a} className="cfg-hrora__link-row cfg-hrora__link-warn">
+          <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /> {a}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 const completion = (v: OrarioHr[]) => (v.length ? 'configured' as const : 'empty' as const)
 const fmtOre = (h: number) => (Number.isInteger(h) ? `${h}` : h.toFixed(2).replace('.', ',').replace(/0$/, ''))
 
@@ -119,6 +170,8 @@ export default function HrOrari() {
 
               <ToggleSwitch label="Orario a turni" description="Le fasce dei singoli giorni le assegna la Turnistica: qui si fissa solo il monte ore."
                 checked={sel.aTurni} onChange={(v) => set('aTurni', v)} />
+
+              <CollegamentoTurni orario={sel} />
 
               {sel.aTurni ? (
                 <div className="cfg-hrora__grid">

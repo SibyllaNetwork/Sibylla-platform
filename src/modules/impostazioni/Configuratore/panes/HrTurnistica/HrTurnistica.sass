@@ -257,3 +257,31 @@
     overflow: hidden
     text-overflow: ellipsis
     white-space: nowrap
+
+.cfg-hrtur__warn
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 12px
+  font-weight: 600
+  color: $warning
+  cursor: help
+
+.cfg-hrtur__adatto
+  display: block
+  margin-top: 4px
+  color: $text-active
+
+.cfg-hrtur__trunc
+  display: block
+  min-width: 0
+  max-width: 100%
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+// Il Tooltip avvolge il testo troncato in uno span inline: va reso blocco perché l'ellipsis funzioni.
+.cfg-hrtur__cell-trunc > span
+  display: block
+  min-width: 0
+  max-width: 100%

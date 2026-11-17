@@ -12,12 +12,14 @@ import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 import {
   DIPENDENTI_HR, REPARTI_HR, isoOf, nomeDipendente, useHrGestioneStore, type DipendenteHr, type Reparto,
 } from '../../../store/useHrGestioneStore'
-import { oreTurno, useHrConfigStore, type TurnoHr } from '../../../store/useHrConfigStore'
+import { RIPOSO, oreTurno, useHrConfigStore, type TurnoHr } from '../../../store/useHrConfigStore'
+import { useContrattiPersonaleStore } from '../../../store/useContrattiPersonaleStore'
 import {
   GIORNI_BREVI, addGiorni, fasceCopertura, riposoMinOre, assenzaDi, bloccaTurno, coinvoltiDaRipubblicare, coperturaReparto,
   etichettaSettimana, fabbisognoAOccupazione, fmtOre, giornoLungo, giornoMese, giorniSettimana, livelloCarico, lunediDi,
   occupazione, orarioTurno, repartoHr, riepilogoSettimana, riposoDopo, riposoPrima, statoSettimana, suggerisciTurni,
   turnoDel, turnoPredefinito, turniValidi, useTurniPersonaleStore,
+  assegnazioniEffettive, giorniConBordi, haOrarioFisso, passoSchema, schemaDi,
   type CoperturaReparto, type RiepilogoSettimana, type SuggerimentoTurni,
 } from '../../../store/useTurniPersonaleStore'
 import './TurniPersonale.sass'
@@ -60,7 +62,7 @@ function Sigla({ t, size = 'md' }: { t?: TurnoHr; size?: 'sm' | 'md' }) {
 }
 
 // ── Menu di scelta del turno (al rilascio, al clic sul chip o sulla cella) ──
-interface OpzioneTurno { t: TurnoHr; avvisi: string[] }
+interface OpzioneTurno { t: TurnoHr; avvisi: string[]; /** Turno previsto dallo schema di rotazione del dipendente. */ schema?: string }
 function MenuTurno({ titolo, opzioni, corrente, onScegli, onTogli, onChiudi }: {
   titolo: string
   opzioni: OpzioneTurno[]
@@ -82,13 +84,14 @@ function MenuTurno({ titolo, opzioni, corrente, onScegli, onTogli, onChiudi }: {
     <div ref={ref} className="tpe__menu" role="menu" aria-label={titolo}
       onClick={e => e.stopPropagation()} onDragOver={e => e.stopPropagation()}>
       <div className="tpe__menu-title">{titolo}</div>
-      {opzioni.map(({ t, avvisi }) => (
+      {opzioni.map(({ t, avvisi, schema }) => (
         <button key={t.id} type="button" role="menuitemradio" aria-checked={t.id === corrente}
           className={clsx('tpe__menu-opt', t.id === corrente && 'tpe__menu-opt--on')} onClick={() => onScegli(t)}>
           <Sigla t={t} />
           <span className="tpe__menu-body">
             <span className="tpe__menu-name">{t.nome}</span>
             <span className="tpe__menu-orario">{orarioTurno(t)} · {fmtH(oreTurno(t))} h</span>
+            {schema && <span className="tpe__menu-schema"><i className="fa-solid fa-arrows-rotate" aria-hidden="true" /> Previsto dallo schema «{schema}»</span>}
             {avvisi.map(a => <span key={a} className="tpe__menu-warn"><i className="fa-solid fa-triangle-exclamation" aria-hidden="true" /> {a}</span>)}
           </span>
           {t.id === corrente && <i className="fa-solid fa-check tpe__menu-check" aria-hidden="true" />}
@@ -147,6 +150,8 @@ function Copertura({ coperture, reparto, onReparto }: { coperture: CoperturaRepa
 }
 
 // ── Ore assegnate / contratto ──
+const schemaNome = (id: string) => useHrConfigStore.getState().schemi.find(s => s.id === id)?.nome ?? id
+
 function OreDip({ r, onScheda }: { r: RiepilogoSettimana; onScheda: () => void }) {
   const righe = [
     r.contratto
@@ -157,6 +162,9 @@ function OreDip({ r, onScheda }: { r: RiepilogoSettimana; onScheda: () => void }
     `${r.giorni} ${r.giorni === 1 ? 'giorno' : 'giorni'} in turno · ${r.riposi} ${r.riposi === 1 ? 'riposo' : 'riposi'}${r.assenze ? ` · ${r.assenze} di assenza` : ''}`,
     r.riposi < 1 ? 'Nessun giorno di riposo nella settimana' : '',
     r.riposoBreve.length ? `Meno di ${riposoMinOre()} h di riposo prima di ${r.riposoBreve.map(giornoLungo).join(', ')}` : '',
+    r.contratto && !r.contratto.aTurni ? 'Orario fisso: i giorni vengono dall\'orario di lavoro del contratto' : '',
+    r.contratto?.schemaId ? `Schema di rotazione: ${schemaNome(r.contratto.schemaId)}` : '',
+    r.contratto && r.contratto.flessibilitaMin ? `Flessibilità sulle timbrature: ${r.contratto.flessibilitaMin} minuti` : '',
   ].filter(Boolean)
   const allarme = r.riposi < 1 || r.riposoBreve.length > 0
   return (
@@ -177,8 +185,12 @@ function OreDip({ r, onScheda }: { r: RiepilogoSettimana; onScheda: () => void }
 export default function TurniPersonale({ navigate }: { navigate: (p: string) => void }) {
   const richieste = useHrGestioneStore(s => s.richieste)
   const catalogo = useHrConfigStore(s => s.turni)
+  // Orari e schemi del Configuratore e contratti: cambiano ore attese, orari fissi e passi degli schemi.
+  const orariHr = useHrConfigStore(s => s.orari)
+  const schemiHr = useHrConfigStore(s => s.schemi)
+  const contrattiHr = useContrattiPersonaleStore(s => s.contratti)
   const store = useTurniPersonaleStore()
-  const { assegnazioni, turni, settimane, pubblicazioni, focusLunedi, assegna, setTurno, rimuovi, sposta, svuota, applicaSuggerimento, pubblica, setFocus } = store
+  const { assegnazioni: assegnazioniSalvate, turni, settimane, pubblicazioni, focusLunedi, assegna, setTurno, rimuovi, sposta, svuota, applicaSuggerimento, pubblica, setFocus } = store
   const confirm = useConfirmStore(s => s.confirm)
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
 
@@ -201,13 +213,17 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
   const [sbloccati, setSbloccati] = useState<Set<string>>(() => new Set())
 
   const giorni = useMemo(() => giorniSettimana(lunedi), [lunedi])
+  // Assegnazioni salvate + chi ha l'orario fisso nei suoi giorni (non si salvano: vengono dal contratto).
+  const assegnazioni = useMemo(() => assegnazioniEffettive(assegnazioniSalvate, giorniConBordi(lunedi), richieste),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [assegnazioniSalvate, lunedi, richieste, orariHr, contrattiHr])
   const stato = settimane[lunedi]
   const statoPubbl = statoSettimana(stato)
   const coinvolti = useMemo(() => statoPubbl === 'da-ripubblicare' ? coinvoltiDaRipubblicare(store, lunedi) : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [statoPubbl, assegnazioni, turni, pubblicazioni, lunedi])
   const giorniFuturi = giorni.filter(g => g >= oggi)
-  const turniFuturi = giorniFuturi.reduce((s, g) => s + (assegnazioni[g] ?? []).length, 0)
+  const turniFuturi = giorniFuturi.reduce((s, g) => s + (assegnazioniSalvate[g] ?? []).filter(id => !haOrarioFisso(id)).length, 0)
   const turniSettimana = giorni.reduce((s, g) => s + (assegnazioni[g] ?? []).length, 0)
 
   const personale = useMemo(() => {
@@ -218,7 +234,8 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
   }, [reparto, search])
 
   const riepiloghi = useMemo(() => new Map(DIPENDENTI_HR.map(d => [d.id, riepilogoSettimana(assegnazioni, turni, lunedi, d.id, richieste, catalogo)])),
-    [assegnazioni, turni, lunedi, richieste, catalogo])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [assegnazioni, turni, lunedi, richieste, catalogo, orariHr, schemiHr, contrattiHr])
 
   const sel = selezionato != null ? dip(selezionato) ?? null : null
   const turniSel = sel ? turniValidi(sel.reparto, catalogo) : []
@@ -242,7 +259,11 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
   }
   const opzioniPer = (iso: string, id: number): OpzioneTurno[] => {
     const r = dip(id)?.reparto
-    return r ? turniValidi(r, catalogo).map(t => ({ t, avvisi: avvisiTurno(iso, id, t) })) : []
+    const passo = passoSchema(id, iso)
+    const sc = schemaDi(id)
+    const out = r ? turniValidi(r, catalogo).map(t => ({ t, avvisi: avvisiTurno(iso, id, t), schema: passo === t.id && sc ? sc.nome : undefined })) : []
+    // Il turno previsto dallo schema in cima.
+    return out.sort((a, b) => Number(!!b.schema) - Number(!!a.schema))
   }
 
   // ── Giorni passati: modificabili solo dopo conferma ──
@@ -257,6 +278,14 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
     return ok
   }
 
+  // ── Orario fisso: i giorni vengono dal contratto, qui non si toccano ──
+  const fisso = (id: number) => {
+    if (!haOrarioFisso(id)) return false
+    const d = dip(id)!
+    toast.info(`${d.nome} ${d.cognome} ha un orario fisso (${riepiloghi.get(id)?.contratto?.tipo ?? ''}): i suoi giorni vengono dal contratto. Per cambiarli modifica l'orario di lavoro nell'Archivio del personale.`, 'Turni del personale')
+    return true
+  }
+
   // ── Assegnazione ──
   const assegnaCon = (iso: string, id: number, t: TurnoHr) => {
     const avvisi = avvisiTurno(iso, id, t)
@@ -267,6 +296,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
     else if (a?.inAttesa) toast.info(`${nome} ha una richiesta di ${a.tipo.toLowerCase()} da approvare per ${giornoLungo(iso)}.`, 'Turni del personale')
   }
   const prova = async (iso: string, id: number, da?: string) => {
+    if (fisso(id)) return
     const nome = nomeDipendente(id)
     const a = assenzaDi(richieste, id, iso)
     if (bloccaTurno(a)) { toast.warning(`${nome} è in ${a!.tipo.toLowerCase()} ${giornoLungo(iso)}.`, 'Turni del personale'); return }
@@ -287,7 +317,9 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
     setPicker({ iso, id, modo: 'nuovo', dove: 'giorno' })
   }
   const clicGiorno = async (iso: string) => {
-    if (!sel || !turnoAttivoSel) return
+    if (!sel) return
+    if (fisso(sel.id)) return
+    if (!turnoAttivoSel) return
     const a = assenzaDi(richieste, sel.id, iso)
     if (bloccaTurno(a)) { toast.warning(`${sel.nome} ${sel.cognome} è in ${a!.tipo.toLowerCase()} ${giornoLungo(iso)}.`, 'Turni del personale'); return }
     if ((assegnazioni[iso] ?? []).includes(sel.id)) return
@@ -295,10 +327,12 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
     assegnaCon(iso, sel.id, turnoAttivoSel)
   }
   const apriCambio = async (iso: string, id: number, dove: Picker['dove']) => {
+    if (fisso(id)) return
     if (!(await okPassato(iso))) return
     setPicker({ iso, id, modo: (assegnazioni[iso] ?? []).includes(id) ? 'cambia' : 'nuovo', dove })
   }
   const togli = async (iso: string, id: number) => {
+    if (fisso(id)) return
     if (!(await okPassato(iso))) return
     rimuovi(iso, id)
   }
@@ -387,6 +421,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
   // ── Chip di un dipendente in turno ──
   const chip = (g: string, id: number) => {
     const d = dip(id)!
+    const fix = haOrarioFisso(id)
     const t = turnoDi(g, id)
     const a = assenzaDi(richieste, id, g)
     const conflitto = bloccaTurno(a)
@@ -398,31 +433,33 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
       a?.inAttesa ? `${a.tipo.toLowerCase()} da approvare` : '',
       conflitto ? `in ${a!.tipo.toLowerCase()}: non conta nella copertura, toglilo dal turno` : '',
       breve ? `solo ${fmtH(prima!)} h di riposo dal turno precedente` : '',
-      'clic per cambiare turno',
+      fix ? 'orario fisso dal contratto' : 'clic per cambiare turno',
     ].filter(Boolean).join(' · ')
     const aperto = picker?.dove === 'chip' && picker.iso === g && picker.id === id
     return (
       <span key={id} className="tpe__chip-wrap">
         <span
-          className={clsx('tpe__chip', a?.inAttesa && 'tpe__chip--attesa', conflitto && 'tpe__chip--conflitto', aperto && 'tpe__chip--open')}
+          className={clsx('tpe__chip', a?.inAttesa && 'tpe__chip--attesa', conflitto && 'tpe__chip--conflitto', aperto && 'tpe__chip--open', fix && 'tpe__chip--fisso')}
           data-rep={repIdx(d.reparto)}
-          draggable
+          draggable={!fix}
           tabIndex={0}
           role="button"
           aria-label={`${d.nome} ${d.cognome}, turno ${t?.nome ?? 'non indicato'}: cambia turno`}
-          onDragStart={e => { e.stopPropagation(); onDragStart(e, { id, da: g }) }}
+          onDragStart={e => { e.stopPropagation(); if (fix) { e.preventDefault(); return } onDragStart(e, { id, da: g }) }}
           onClick={e => { e.stopPropagation(); void apriCambio(g, id, 'chip') }}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void apriCambio(g, id, 'chip') } }}
         >
           <Sigla t={t} />
           <TruncatedText text={nomeBreve(id)} full={full} className="tpe__chip-name" />
           {(breve || conflitto) && <i className="fa-solid fa-triangle-exclamation tpe__chip-warn" aria-hidden="true" />}
-          <Tooltip text="Togli dal turno">
-            <button type="button" className="tpe__chip-x" aria-label={`Togli ${d.nome} ${d.cognome} dal turno`}
-              onClick={e => { e.stopPropagation(); void togli(g, id) }}>
-              <i className="fa-solid fa-xmark" aria-hidden="true" />
-            </button>
-          </Tooltip>
+          {fix ? <i className="fa-solid fa-lock tpe__chip-lock" aria-hidden="true" /> : (
+            <Tooltip text="Togli dal turno">
+              <button type="button" className="tpe__chip-x" aria-label={`Togli ${d.nome} ${d.cognome} dal turno`}
+                onClick={e => { e.stopPropagation(); void togli(g, id) }}>
+                <i className="fa-solid fa-xmark" aria-hidden="true" />
+              </button>
+            </Tooltip>
+          )}
         </span>
         {aperto && menuPer(picker!)}
       </span>
@@ -450,6 +487,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
       <li className="tpe__legend-sep" aria-hidden="true" />
       <li><span className="tpe__sw tpe__sw--assente" />Assente (non conta in copertura)</li>
       <li><span className="tpe__sw tpe__sw--attesa" />Richiesta da approvare</li>
+      <li><Sigla size="sm" t={{ id: 'f', sigla: 'F', nome: '', inizio: '', fine: '', pausaMin: 0, colore: 0, reparti: [] }} />Orario fisso (dal contratto)</li>
       <li><i className="fa-solid fa-lock tpe__legend-ico" aria-hidden="true" />Giorno passato</li>
       <li>
         <Tooltip text="La barra indica il carico di lavoro che l'occupazione prevista porta ai reparti, non un giudizio sull'occupazione: un'occupazione alta è positiva, ma richiede più personale.">
@@ -483,24 +521,27 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
     const r = riepiloghi.get(d.id)!
     const assenze = giorni.map(g => ({ g, a: assenzaDi(richieste, d.id, g) })).filter(x => x.a)
     const attivo = selezionato === d.id
+    const fix = haOrarioFisso(d.id)
     return (
       <div
         key={d.id}
         role="option"
         aria-selected={attivo}
         tabIndex={0}
-        draggable
-        onDragStart={e => onDragStart(e, { id: d.id })}
+        draggable={!fix}
+        onDragStart={e => { if (fix) { e.preventDefault(); return } onDragStart(e, { id: d.id }) }}
         onClick={() => { setSelezionato(attivo ? null : d.id); setTurnoSel(null) }}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelezionato(attivo ? null : d.id); setTurnoSel(null) } }}
-        className={clsx('tpe__emp', attivo && 'tpe__emp--active')}
+        className={clsx('tpe__emp', attivo && 'tpe__emp--active', fix && 'tpe__emp--fisso')}
         data-rep={repIdx(d.reparto)}
       >
-        <i className="fa-solid fa-grip-dots-vertical tpe__grip" aria-hidden="true" />
+        {fix
+          ? <Tooltip text="Orario fisso: già pianificato dal contratto"><i className="fa-solid fa-lock tpe__grip" aria-label="Orario fisso" /></Tooltip>
+          : <i className="fa-solid fa-grip-dots-vertical tpe__grip" aria-hidden="true" />}
         <span className="tpe__emp-body">
           <TruncatedText text={`${d.nome} ${d.cognome}`} className="tpe__emp-name" />
           {r.contratto
-            ? <TruncatedText text={`${d.reparto} · ${r.contratto.tipo}`} className="tpe__emp-sub" />
+            ? <TruncatedText text={`${d.reparto} · ${r.contratto.tipo}${r.contratto.schemaId ? ` · ${schemaNome(r.contratto.schemaId)}` : ''}`} className="tpe__emp-sub" />
             : (
               <Tooltip text="Senza contratto in anagrafica le ore non si possono controllare. Apri l'Archivio del personale per indicarlo.">
                 <button type="button" className="tpe__emp-nocontr" onClick={e => { e.stopPropagation(); vaiScheda() }}>
@@ -762,17 +803,28 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
                             const prima = t ? riposoPrima(assegnazioni, turni, g, d.id, t, catalogo) : null
                             const breve = prima != null && prima < riposoMinOre()
                             const aperto = picker?.dove === 'cella' && picker.iso === g && picker.id === d.id
+                            const fix = haOrarioFisso(d.id)
+                            const passo = !t && !fix ? passoSchema(d.id, g) : undefined
+                            const previsto = passo && passo !== RIPOSO ? catalogo.find(x => x.id === passo) : undefined
                             const label = t ? `${t.nome} ${orarioTurno(t)}${breve ? ` · solo ${fmtH(prima!)} h di riposo dal turno precedente` : ''}${blocca ? ` · in ${a!.tipo.toLowerCase()}` : ''}`
-                              : blocca ? `${a!.tipo} (dal modulo Gestione ferie e permessi)` : `Riposo${a?.inAttesa ? ` · ${a.tipo.toLowerCase()} da approvare` : ''} · clic per assegnare`
+                              : blocca ? `${a!.tipo} (dal modulo Gestione ferie e permessi)`
+                              : fix ? 'Riposo (orario fisso dal contratto)'
+                              : `Riposo${a?.inAttesa ? ` · ${a.tipo.toLowerCase()} da approvare` : ''}${previsto ? ` · lo schema prevede ${previsto.nome}` : passo === RIPOSO ? ' · riposo previsto dallo schema' : ''} · clic per assegnare`
                             return (
                               <td key={g} className={clsx('tpe__cell', g < oggi && 'tpe__cell--past', g === oggi && 'tpe__cell--today')}>
                                 {blocca && !t ? (
                                   <Tooltip text={label}><span className="tpe__cell-abs">{a!.tipo}</span></Tooltip>
+                                ) : fix ? (
+                                  <Tooltip text={t ? `${label} · orario fisso dal contratto` : label}>
+                                    <span className="tpe__cell-fisso">
+                                      {t ? <><Sigla t={t} size="sm" /><span className="tpe__cell-orario">{orarioBreve(t)}</span></> : <span className="tpe__cell-r">R</span>}
+                                    </span>
+                                  </Tooltip>
                                 ) : (
                                   <Tooltip text={label}>
                                     <button type="button" className={clsx('tpe__cell-btn', !t && 'tpe__cell-btn--vuota', (breve || blocca) && 'tpe__cell-btn--warn', a?.inAttesa && 'tpe__cell-btn--attesa', aperto && 'tpe__cell-btn--open')}
                                       onClick={() => void apriCambio(g, d.id, 'cella')}>
-                                      {t ? <><Sigla t={t} size="sm" /><span className="tpe__cell-orario">{orarioBreve(t)}</span></> : <span className="tpe__cell-r">R</span>}
+                                      {t ? <><Sigla t={t} size="sm" /><span className="tpe__cell-orario">{orarioBreve(t)}</span></> : previsto ? <span className="tpe__cell-prev">{previsto.sigla}?</span> : <span className="tpe__cell-r">R</span>}
                                       {(breve || blocca) && <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />}
                                     </button>
                                   </Tooltip>
@@ -822,7 +874,8 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
             <div className="tpe-modal__days">
               {giorniSettimana(suggerimento.lunedi).map((g, i) => {
                 const bloccato = suggerimento.giorniBloccati.includes(g)
-                const ids = (suggerimento.assegnazioni[g] ?? []).filter(id => !reparto || dip(id)?.reparto === reparto)
+                const effSugg = assegnazioniEffettive(suggerimento.assegnazioni, [g], richieste)
+                const ids = (effSugg[g] ?? []).filter(id => !reparto || dip(id)?.reparto === reparto)
                   .sort((a, b) => repIdx(dip(a)!.reparto) - repIdx(dip(b)!.reparto))
                 return (
                   <div key={g} className={clsx('tpe-modal__day', bloccato && 'tpe-modal__day--past')}>
@@ -830,7 +883,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
                     <span className="tpe-modal__day-occ">{occupazione(g)}% · {ids.length} in turno</span>
                     <span className="tpe-modal__day-list">
                       {ids.map(id => {
-                        const t = turnoDel(suggerimento.assegnazioni, suggerimento.turniAssegnati, g, id, catalogo)
+                        const t = turnoDel(effSugg, suggerimento.turniAssegnati, g, id, catalogo)
                         return (
                           <span key={id} className="tpe-modal__pers" data-rep={repIdx(dip(id)!.reparto)}>
                             <Sigla t={t} size="sm" />

@@ -10,7 +10,7 @@ import { useConfirmStore } from '../../../store/useConfirmStore'
 import { getEditingAnagrafica, clearEditingAnagrafica } from './_state'
 import {
   useHrConfigStore, findById, percentualePartTime, spettanzeAnnue, ralMinima, fmtEuro,
-  oreSettimanaliOrario, giorniLavorativiOrario, MATURAZIONI,
+  oreSettimanaliOrario, giorniLavorativiOrario, MATURAZIONI, schemiCompatibili, oreSettimanaliSchema,
 } from '../../../store/useHrConfigStore'
 import { useAnagraficaOpStore, abilitazioneVuota, type AbilitazioneOp } from '../../../store/useAnagraficaOpStore'
 import { useModuloAttivo } from '../../../hooks/useModuloAttivo'
@@ -667,9 +667,18 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
             <SelectField name="schema_turni" label="Schema di turnazione"   value={form.schemaTurniId} onChange={(e) => set('schemaTurniId', e.target.value)}
               hint={(() => {
                 const sc = findById(schemi, form.schemaTurniId)
-                return sc ? sc.sequenza.map((id) => turni.find((t) => t.id === id)?.sigla ?? 'R').join(' · ') : findById(orari, form.orarioId)?.aTurni ? 'Orario a turni: scegli la rotazione' : undefined
+                const o = findById(orari, form.orarioId)
+                if (o && !o.aTurni) return 'Orario fisso: i giorni vengono dall\u2019orario, lo schema non serve'
+                const seq = sc ? sc.sequenza.map((id) => turni.find((t) => t.id === id)?.sigla ?? 'R').join(' · ') : ''
+                if (sc && o && !schemiCompatibili(o, [sc], turni).length) return `${seq} · ≈ ${Math.round(oreSettimanaliSchema(sc, turni) * 10) / 10} h/sett., non in linea con l\u2019orario (${oreSettimanaliOrario(o)} h su ${giorniLavorativiOrario(o)} giorni)`
+                return sc ? seq : o?.aTurni ? 'Orario a turni: scegli la rotazione' : undefined
               })()}
-              options={[{ value: '', label: 'Nessuna (orario fisso)' }, ...schemi.map((x) => ({ value: x.id, label: x.nome }))]} />
+              disabled={!!findById(orari, form.orarioId) && !findById(orari, form.orarioId)!.aTurni}
+              options={[{ value: '', label: 'Nessuna (orario fisso)' }, ...schemi.map((x) => {
+                const o = findById(orari, form.orarioId)
+                const ok = o?.aTurni && schemiCompatibili(o, [x], turni).length
+                return { value: x.id, label: ok ? `${x.nome} (in linea con l\u2019orario)` : x.nome }
+              })]} />
           </div>
         </Section>
 

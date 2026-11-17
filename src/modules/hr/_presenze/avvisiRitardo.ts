@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { DIPENDENTI_PRESENZE, useGiornataPresenze, type DipendentePresenze } from '../../../store/useRegistroPresenzeStore'
 import { dataDa, isoDi, minToHHMM, ritardoDi, turnoPrevisto } from './presenze.model'
+import { flessibilitaDi } from '../../../store/useTurniPersonaleStore'
 
 // ─── Avvisi di ritardo dall'App Op! ──────────────────────────────────────────
 //  Il dipendente in ritardo lo segnala dall'app prima dell'inizio del turno:
@@ -33,7 +34,8 @@ export function useAvvisiRitardoOggi(): AvvisoRitardo[] {
     return DIPENDENTI_PRESENZE.flatMap((dip) => {
       const turno = turnoPrevisto(dip.id, oggi)
       const ritardo = ritardoDi(dip.id, oggi)
-      if (!turno || !ritardo) return []
+      // Entro la flessibilità dell'orario di lavoro (Configurazione HR › Orari) non è un ritardo.
+      if (!turno || !ritardo || ritardo <= flessibilitaDi(dip.id)) return []
       const g = giornata(dip.id, oggiIso)
       // Chi oggi è in ferie o assente non ha un turno da rispettare.
       if (!g.segmenti.some((s) => s.tipo === 'presente') && !g.timbrature.length && minutiOra > turno.inizio) return []

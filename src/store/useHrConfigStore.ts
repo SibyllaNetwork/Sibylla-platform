@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { softwarePaghe, type CanalePaghe, type SoftwarePagheId } from './pagheCatalogo'
 import { persist } from 'zustand/middleware'
 import type { RepartoOp } from '../modules/appop/opCatalogo'
+import STRUTTURA_RICETTIVA from './data/hr-struttura-ricettiva.json'
 
 // ─── HUMAN RESOURCES › CONFIGURATORE HR ──────────────────────────────────────
 //  Fonte unica dei dati con cui si inquadra un dipendente: reparti, orari di
@@ -253,36 +254,17 @@ export const DOCUMENTI_ESTERNI = [
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────
 
-const SEED_REPARTI: RepartoHr[] = [
-  { id: 'rep-fo',   nome: 'Front office',    codice: 'FO',  responsabile: 'Piero Aragona',  centroCosto: 'CDC-01 Ricevimento',   colore: 1, repartoOp: 'frontOffice',  attivo: true },
-  { id: 'rep-fb',   nome: 'F&B',             codice: 'FB',  responsabile: 'Andrea Grimaudo', centroCosto: 'CDC-02 Ristorazione',  colore: 2, repartoOp: 'foodBeverage', attivo: true },
-  { id: 'rep-hk',   nome: 'Housekeeping',    codice: 'HK',  responsabile: 'Marco Campo',    centroCosto: 'CDC-03 Piani',         colore: 3, repartoOp: 'pulizie',      attivo: true },
-  { id: 'rep-man',  nome: 'Manutenzione',    codice: 'MAN', responsabile: '',               centroCosto: 'CDC-04 Manutenzione',  colore: 4, repartoOp: 'manutenzione', attivo: true },
-  { id: 'rep-cuc',  nome: 'Cucina',          codice: 'CUC', responsabile: '',               centroCosto: 'CDC-02 Ristorazione',  colore: 5, repartoOp: 'foodBeverage', attivo: true },
-  { id: 'rep-amm',  nome: 'Amministrazione', codice: 'AMM', responsabile: 'Ruggero Novi',   centroCosto: 'CDC-05 Sede',          colore: 6, repartoOp: 'risorseUmane', attivo: true },
-  { id: 'rep-dir',  nome: 'Direzione',       codice: 'DIR', responsabile: 'Piero Aragona',  centroCosto: 'CDC-05 Sede',          colore: 7, attivo: true },
-  { id: 'rep-mkt',  nome: 'Marketing',       codice: 'MKT', responsabile: '',               centroCosto: 'CDC-05 Sede',          colore: 8, attivo: false },
-]
+// Configurazione tipo di una struttura ricettiva (reparti, orari, turni, schemi,
+// regole di pianificazione): fonte unica in data/hr-struttura-ricettiva.json,
+// la stessa che il back end carica per precompilare una nuova struttura
+// (docs/human-resources/17-turni-e-turnistica-v2.md § 6).
+// Nella demo i responsabili dei reparti sono valorizzati a parte.
+const RESPONSABILI_DEMO: Record<string, string> = {
+  'rep-dir': 'Piero Aragona', 'rep-fo': 'Piero Aragona', 'rep-fb': 'Andrea Grimaudo', 'rep-hk': 'Marco Campo', 'rep-amm': 'Ruggero Novi',
+}
+const SEED_REPARTI: RepartoHr[] = (STRUTTURA_RICETTIVA.reparti as RepartoHr[]).map(r => ({ ...r, responsabile: RESPONSABILI_DEMO[r.id] ?? r.responsabile }))
 
-const g = (...fasce: [string, string][]): FasciaGiorno => ({ attivo: true, fasce: fasce.map(([inizio, fine]) => ({ inizio, fine })), pausaMin: 0 })
-const gp = (pausaMin: number, inizio: string, fine: string): FasciaGiorno => ({ attivo: true, fasce: [{ inizio, fine }], pausaMin })
-const OFF: FasciaGiorno = { attivo: false, fasce: [], pausaMin: 0 }
-
-const SPEZZATO = g(['09:00', '13:00'], ['14:00', '18:00'])
-const SEED_ORARI: OrarioHr[] = [
-  { id: 'ora-ft5', nome: 'Full time 40 h · 5 giorni', regime: 'full-time', aTurni: false, oreSettimanali: 40, giorniSettimana: 5, flessibilitaMin: 15,
-    giorni: [SPEZZATO, SPEZZATO, SPEZZATO, SPEZZATO, SPEZZATO, OFF, OFF] },
-  { id: 'ora-ft6', nome: 'Full time 40 h · 6 giorni', regime: 'full-time', aTurni: false, oreSettimanali: 40, giorniSettimana: 6, flessibilitaMin: 10,
-    giorni: [...Array.from({ length: 6 }, () => gp(30, '08:00', '15:10')), OFF] },
-  { id: 'ora-ftsab', nome: 'Full time 40 h · sabato mattina', regime: 'full-time', aTurni: false, oreSettimanali: 40, giorniSettimana: 6, flessibilitaMin: 10,
-    giorni: [...Array.from({ length: 5 }, () => g(['08:30', '12:30'], ['13:30', '17:00'])), g(['08:30', '11:00']), OFF] },
-  { id: 'ora-tur', nome: 'Turnista 40 h · 6 giorni', regime: 'full-time', aTurni: true, oreSettimanali: 40, giorniSettimana: 6, flessibilitaMin: 0,
-    giorni: Array.from({ length: 7 }, () => ({ ...OFF })) },
-  { id: 'ora-pt30', nome: 'Part time 30 h orizzontale', regime: 'part-time-orizzontale', aTurni: false, oreSettimanali: 30, giorniSettimana: 5, flessibilitaMin: 10,
-    giorni: [...Array.from({ length: 5 }, () => g(['09:00', '15:00'])), OFF, OFF] },
-  { id: 'ora-pt24', nome: 'Part time 24 h verticale', regime: 'part-time-verticale', aTurni: false, oreSettimanali: 24, giorniSettimana: 3, flessibilitaMin: 10,
-    giorni: [...Array.from({ length: 3 }, () => gp(30, '08:00', '16:30')), OFF, OFF, OFF, OFF] },
-]
+const SEED_ORARI: OrarioHr[] = STRUTTURA_RICETTIVA.orari as OrarioHr[]
 
 /** Giornata nel formato attuale (gli orari salvati prima avevano entrata/uscita singole). */
 export function normalizzaGiorno(d: any): FasciaGiorno {
@@ -295,57 +277,14 @@ export function normalizzaGiorno(d: any): FasciaGiorno {
 // ciclo continuo con portiere di notte, intermedio per i check-in, colazioni,
 // pranzo e cena in sala e cucina, piani con couverture serale, uffici centrali.
 // Ore nette = durata delle fasce − pausa (pausa non retribuita).
-const SEED_TURNI: TurnoHr[] = [
-  { id: 'tur-m',  sigla: 'M',  nome: 'Mattina',              inizio: '07:00', fine: '15:00', pausaMin: 30, colore: 1, reparti: [] },
-  { id: 'tur-p',  sigla: 'P',  nome: 'Pomeriggio',           inizio: '15:00', fine: '23:00', pausaMin: 30, colore: 3, reparti: [] },
-  { id: 'tur-n',  sigla: 'N',  nome: 'Notte',                inizio: '23:00', fine: '07:00', pausaMin: 30, colore: 6, reparti: ['rep-fo'] },
-  { id: 'tur-i',  sigla: 'I',  nome: 'Intermedio check-in',  inizio: '11:00', fine: '19:00', pausaMin: 30, colore: 7, reparti: ['rep-fo'] },
-  { id: 'tur-co', sigla: 'CO', nome: 'Colazioni',            inizio: '06:00', fine: '14:00', pausaMin: 30, colore: 4, reparti: ['rep-fb', 'rep-cuc'] },
-  { id: 'tur-s',  sigla: 'S',  nome: 'Spezzato pranzo e cena', inizio: '10:00', fine: '14:00', inizio2: '18:00', fine2: '22:00', pausaMin: 0, colore: 5, reparti: ['rep-fb', 'rep-cuc'] },
-  { id: 'tur-ce', sigla: 'CE', nome: 'Cena',                 inizio: '16:00', fine: '00:00', pausaMin: 30, colore: 8, reparti: ['rep-fb', 'rep-cuc'] },
-  { id: 'tur-c',  sigla: 'C',  nome: 'Centrale',             inizio: '09:00', fine: '17:00', pausaMin: 60, colore: 2, reparti: ['rep-hk', 'rep-amm'] },
-  { id: 'tur-hk', sigla: 'HK', nome: 'Rifacimento camere',   inizio: '08:00', fine: '16:00', pausaMin: 30, colore: 2, reparti: ['rep-hk'] },
-  { id: 'tur-cv', sigla: 'CV', nome: 'Couverture serale',    inizio: '17:00', fine: '22:00', pausaMin: 0,  colore: 6, reparti: ['rep-hk'] },
-  { id: 'tur-u',  sigla: 'U',  nome: 'Ufficio',              inizio: '09:00', fine: '13:00', inizio2: '14:00', fine2: '18:00', pausaMin: 0, colore: 1, reparti: ['rep-amm'] },
-]
+const SEED_TURNI: TurnoHr[] = STRUTTURA_RICETTIVA.turni as TurnoHr[]
 
-const SEED_SCHEMI: SchemaTurniHr[] = [
-  { id: 'sch-cc',  nome: 'Ciclo continuo 3 turni', descrizione: 'Due mattine, due pomeriggi, due notti, due riposi: copre le 24 ore del ricevimento.',
-    sequenza: ['tur-m', 'tur-m', 'tur-p', 'tur-p', 'tur-n', 'tur-n', RIPOSO, RIPOSO] },
-  { id: 'sch-61',  nome: 'Rotazione 6+1 M/P', descrizione: 'Settimana di mattine e settimana di pomeriggi alternate, un riposo a settimana.',
-    sequenza: ['tur-m', 'tur-m', 'tur-m', 'tur-m', 'tur-m', 'tur-m', RIPOSO, 'tur-p', 'tur-p', 'tur-p', 'tur-p', 'tur-p', 'tur-p', RIPOSO] },
-  { id: 'sch-52',  nome: 'Centrale 5+2', descrizione: 'Cinque giorni sul turno centrale, sabato e domenica di riposo.',
-    sequenza: ['tur-c', 'tur-c', 'tur-c', 'tur-c', 'tur-c', RIPOSO, RIPOSO] },
-  { id: 'sch-fo52', nome: 'Ricevimento 5+2 M/I/P', descrizione: 'Ricevimento senza notte: mattine, intermedio sui check-in e pomeriggi, due riposi consecutivi.',
-    sequenza: ['tur-m', 'tur-m', 'tur-i', 'tur-p', 'tur-p', RIPOSO, RIPOSO] },
-  { id: 'sch-sala', nome: 'Sala colazioni e cena', descrizione: 'Due colazioni, uno spezzato, due cene, due riposi: alterna apertura e chiusura del ristorante.',
-    sequenza: ['tur-co', 'tur-co', 'tur-s', 'tur-ce', 'tur-ce', RIPOSO, RIPOSO] },
-  { id: 'sch-piani', nome: 'Piani 5+2 con couverture', descrizione: 'Quattro giorni di rifacimento camere e una couverture serale, due riposi.',
-    sequenza: ['tur-hk', 'tur-hk', 'tur-hk', 'tur-hk', 'tur-cv', RIPOSO, RIPOSO] },
-]
+const SEED_SCHEMI: SchemaTurniHr[] = STRUTTURA_RICETTIVA.schemi as SchemaTurniHr[]
 
-const pf = (M: number, P = 0, N = 0): PersonePerFascia => ({ M, P, N })
-export const PIANIFICAZIONE_DEFAULT: PianificazioneTurniHr = {
-  fasce: [
-    { id: 'M', nome: 'Mattina',    inizio: '07:00', fine: '15:00', attiva: true },
-    { id: 'P', nome: 'Pomeriggio', inizio: '15:00', fine: '23:00', attiva: true },
-    { id: 'N', nome: 'Notte',      inizio: '23:00', fine: '07:00', attiva: true },
-  ],
-  coperturaMinOre: 3,
-  riposoMinOre: 11,
-  tolleranzaSottoOre: 4,
-  fabbisogni: [
-    { id: 'rep-fo',  modalita: 'occupazione', turnoPredefinito: 'tur-m', base: pf(1, 1), rinforzo: pf(1),    sogliaOccupazione: 85, giorniChiusura: [] },
-    { id: 'rep-fb',  modalita: 'occupazione', turnoPredefinito: 'tur-s', base: pf(1, 1), rinforzo: pf(0, 1), sogliaOccupazione: 80, giorniChiusura: [] },
-    { id: 'rep-hk',  modalita: 'occupazione', turnoPredefinito: 'tur-hk', base: pf(1),    rinforzo: pf(1),    sogliaOccupazione: 85, giorniChiusura: [] },
-    { id: 'rep-man', modalita: 'fisso',       turnoPredefinito: 'tur-m', base: pf(1),    rinforzo: pf(0),    sogliaOccupazione: 85, giorniChiusura: [6] },
-    { id: 'rep-cuc', modalita: 'occupazione', turnoPredefinito: 'tur-s', base: pf(1, 1), rinforzo: pf(0, 1), sogliaOccupazione: 80, giorniChiusura: [] },
-    { id: 'rep-amm', modalita: 'fisso',       turnoPredefinito: 'tur-c', base: pf(1),    rinforzo: pf(0),    sogliaOccupazione: 85, giorniChiusura: [5, 6] },
-  ],
-}
+export const PIANIFICAZIONE_DEFAULT: PianificazioneTurniHr = STRUTTURA_RICETTIVA.pianificazione as PianificazioneTurniHr
 /** Fabbisogno di un reparto senza regole: minimo fisso a zero (nessuna copertura richiesta). */
 export const fabbisognoVuoto = (id: string): FabbisognoRepartoHr =>
-  ({ id, modalita: 'fisso', base: pf(0), rinforzo: pf(0), sogliaOccupazione: 85, giorniChiusura: [] })
+  ({ id, modalita: 'fisso', base: { M: 0, P: 0, N: 0 }, rinforzo: { M: 0, P: 0, N: 0 }, sogliaOccupazione: 85, giorniChiusura: [] })
 
 const SEED_TIPOLOGIE: TipologiaContrattoHr[] = [
   { id: 'tip-ind',  nome: 'Tempo indeterminato',          codice: 'A.01.00', conScadenza: false, periodoProva: true,  attiva: true },
@@ -436,6 +375,52 @@ export const giorniLavorativiOrario = (o: OrarioHr) =>
 /** Ore nette di un turno (fasce − pausa). */
 export const oreTurno = (t: TurnoHr) =>
   Math.max(0, durataMin(t.inizio, t.fine) + durataMin(t.inizio2 ?? '', t.fine2 ?? '') - t.pausaMin) / 60
+
+// ─── Coerenza fra orari di lavoro, turni e schemi ───────────────────────────
+//  L'orario dice QUANTO lavora il dipendente (ore e giorni a settimana), la
+//  Turnistica COME si compone la giornata. Un orario «a turni» chiede turni
+//  della durata media giornaliera (ore ÷ giorni) e schemi con lo stesso monte ore.
+/** Ore medie al giorno dell'orario. */
+export const oreMedieGiorno = (o: OrarioHr) => {
+  const g = giorniLavorativiOrario(o)
+  return g ? oreSettimanaliOrario(o) / g : 0
+}
+/**
+ * Turni con cui, ripetuti nei giorni dell'orario, il monte ore si raggiunge
+ * senza superarlo e senza scendere sotto la tolleranza delle Regole di
+ * pianificazione (stessa soglia che Turni del personale usa per «da completare»).
+ */
+export const turniCompatibili = (o: OrarioHr, turni: TurnoHr[], tolleranza = useHrConfigStore.getState().pianificazione?.tolleranzaSottoOre ?? 4) => {
+  const ore = oreSettimanaliOrario(o), gg = giorniLavorativiOrario(o)
+  return turni.filter(t => { const sett = oreTurno(t) * gg; return sett <= ore + 0.01 && sett >= ore - tolleranza - 0.01 })
+}
+/** Ore medie a settimana di uno schema di rotazione (ciclo riportato a 7 giorni). */
+export const oreSettimanaliSchema = (s: SchemaTurniHr, turni: TurnoHr[]) => {
+  if (!s.sequenza.length) return 0
+  const ore = s.sequenza.reduce((a, id) => a + (id === RIPOSO ? 0 : (() => { const t = turni.find(x => x.id === id); return t ? oreTurno(t) : 0 })()), 0)
+  return (ore / s.sequenza.length) * 7
+}
+/** Giorni lavorati medi a settimana di uno schema. */
+export const giorniSettimanaliSchema = (s: SchemaTurniHr) =>
+  s.sequenza.length ? (s.sequenza.filter(x => x !== RIPOSO).length / s.sequenza.length) * 7 : 0
+/** Schemi con monte ore entro ± 2,5 h e giorni entro ± 0,5 rispetto all'orario. */
+export const schemiCompatibili = (o: OrarioHr, schemi: SchemaTurniHr[], turni: TurnoHr[]) =>
+  schemi.filter(s => Math.abs(oreSettimanaliSchema(s, turni) - oreSettimanaliOrario(o)) <= 2.5
+    && Math.abs(giorniSettimanaliSchema(s) - giorniLavorativiOrario(o)) <= 0.5)
+/** Limite di legge sull'orario settimanale (D.Lgs. 66/2003, art. 4). */
+export const ORE_MAX_SETTIMANA = 48
+/** Avvisi sull'orario: limiti di legge e, per gli orari a turni, turni adatti in Turnistica. */
+export function avvisiOrario(o: OrarioHr, turni: TurnoHr[]): string[] {
+  const out: string[] = []
+  const ore = oreSettimanaliOrario(o), gg = giorniLavorativiOrario(o)
+  if (ore > ORE_MAX_SETTIMANA) out.push(`Supera le ${ORE_MAX_SETTIMANA} ore settimanali consentite (D.Lgs. 66/2003).`)
+  if (gg >= 7) out.push('Nessun giorno di riposo: serve almeno un riposo settimanale di 24 ore consecutive.')
+  if (o.aTurni && gg > 0 && !turniCompatibili(o, turni).length) {
+    const m = oreMedieGiorno(o)
+    out.push(`In Turnistica non c'è un turno adatto (circa ${Number.isInteger(m) ? m : m.toFixed(1).replace('.', ',')} h al giorno): con i turni esistenti in ${gg} giorni il monte di ${ore} h si supera o non si raggiunge.`)
+  }
+  return out
+}
 
 /** Minuti di una fascia che cadono tra le 22 e le 6 (a passi di 15 minuti). */
 const minutiNotturni = (inizio: string, fine: string) => {
@@ -585,6 +570,21 @@ export const HR_CONFIG_SEED: HrConfigData = {
   integrazionePaghe: INTEGRAZIONE_PAGHE_DEFAULT,
 }
 
+/** Aggiunge (per id) gli elementi della configurazione tipo che mancano nei dati salvati. */
+function migraV11(d: HrConfigData, version: number): HrConfigData {
+  if (version >= 11) return d
+  const unisci = <T extends { id: string }>(cur: T[], seed: T[], stessa?: (a: T, b: T) => boolean) =>
+    [...cur, ...seed.filter(x => !cur.some(y => y.id === x.id || (stessa ? stessa(x, y) : false)))]
+  return {
+    ...d,
+    reparti: unisci(d.reparti, SEED_REPARTI, (a, b) => a.nome.toLowerCase() === b.nome.toLowerCase()),
+    orari: unisci(d.orari, SEED_ORARI),
+    turni: unisci(d.turni, SEED_TURNI, (a, b) => a.sigla.toUpperCase() === b.sigla.toUpperCase()),
+    schemi: unisci(d.schemi, SEED_SCHEMI),
+    pianificazione: { ...d.pianificazione, fabbisogni: unisci(d.pianificazione.fabbisogni, PIANIFICAZIONE_DEFAULT.fabbisogni) },
+  }
+}
+
 export const useHrConfigStore = create<HrConfigState>()(
   persist(
     (set) => ({
@@ -600,12 +600,15 @@ export const useHrConfigStore = create<HrConfigState>()(
     }),
     {
       name: 'sibylla.hr-config',
-      version: 9,
+      version: 11,
       // v2: categorie dei collaboratori esterni; v3: badge; v4: orari con più fasce al giorno;
       // v5: il DUVRI esce dai documenti dei singoli addetti (è dell'appalto); v6–7: integrazione paghe (profili per software)
       // v8: regole di pianificazione dei turni (fasce, fabbisogno per reparto, riposo minimo)
       // v9: turni e schemi standard da hotel (aggiunti a quelli salvati se mancano)
-      migrate: (persisted: any, version: number) => ({
+      // v10: orari «a turni» di esempio (Turnista 5 giorni, part time, a chiamata) aggiunti se mancano
+      // v11: configurazione tipo struttura ricettiva: reparti, orari, turni, schemi e fabbisogni mancanti aggiunti per id
+      //      (in fondo; da v8 a v10 restano le migrazioni precedenti)
+      migrate: (persisted: any, version: number) => migraV11(({
         ...HR_CONFIG_SEED, ...(persisted ?? {}),
         orari: ((persisted?.orari ?? HR_CONFIG_SEED.orari) as any[]).map(o => ({ ...o, giorni: (o.giorni ?? []).map(normalizzaGiorno) })),
         categorieEsterni: ((persisted?.categorieEsterni ?? SEED_CATEGORIE_ESTERNI) as CategoriaEsterniHr[])
@@ -613,11 +616,15 @@ export const useHrConfigStore = create<HrConfigState>()(
         badge: { ...BADGE_DEFAULT, ...(persisted?.badge ?? {}) },
         integrazionePaghe: integrazioneValida(persisted?.integrazionePaghe),
         pianificazione: { ...PIANIFICAZIONE_DEFAULT, ...(persisted?.pianificazione ?? {}) },
+        ...(version < 10 && persisted?.orari ? {
+          orari: [...((persisted.orari as any[]).map(o => ({ ...o, giorni: (o.giorni ?? []).map(normalizzaGiorno) }))),
+            ...SEED_ORARI.filter(o => !(persisted.orari as OrarioHr[]).some(x => x.id === o.id))],
+        } : {}),
         ...(version < 9 && persisted?.turni ? {
           turni: [...persisted.turni, ...SEED_TURNI.filter(t => !persisted.turni.some((x: TurnoHr) => x.id === t.id || x.sigla === t.sigla))],
           schemi: [...(persisted.schemi ?? []), ...SEED_SCHEMI.filter(t => !(persisted.schemi ?? []).some((x: SchemaTurniHr) => x.id === t.id))],
         } : {}),
-      }) as any,
+      }) as any, version) as any,
     },
   ),
 )

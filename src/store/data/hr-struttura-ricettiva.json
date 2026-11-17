@@ -1,0 +1,1392 @@
+{
+  "_descrizione": "Configurazione HR tipo di una struttura ricettiva (hotel 3-4 stelle con ristorante, bar e spa). Precompila Configurazione HR › Reparti, Orari di lavoro e Turnistica (turni, schemi, regole di pianificazione). Fonte unica della configurazione precompilata; lo script SQL per il back end è in docs/human-resources/seed/hr-struttura-ricettiva.sql.",
+  "versione": "2026-11-17",
+  "reparti": [
+    {
+      "id": "rep-dir",
+      "nome": "Direzione",
+      "codice": "DIR",
+      "responsabile": "",
+      "centroCosto": "CDC-05 Sede",
+      "colore": 7,
+      "attivo": true,
+      "descrizione": "Direzione della struttura e qualità."
+    },
+    {
+      "id": "rep-fo",
+      "nome": "Front office",
+      "codice": "FO",
+      "responsabile": "",
+      "centroCosto": "CDC-01 Ricevimento",
+      "colore": 1,
+      "repartoOp": "frontOffice",
+      "attivo": true,
+      "descrizione": "Ricevimento, check-in e check-out, portiere di notte e night audit."
+    },
+    {
+      "id": "rep-port",
+      "nome": "Portineria e facchinaggio",
+      "codice": "PORT",
+      "responsabile": "",
+      "centroCosto": "CDC-01 Ricevimento",
+      "colore": 8,
+      "repartoOp": "frontOffice",
+      "attivo": true,
+      "descrizione": "Concierge, bagagli, navette e parcheggio."
+    },
+    {
+      "id": "rep-hk",
+      "nome": "Housekeeping",
+      "codice": "HK",
+      "responsabile": "",
+      "centroCosto": "CDC-03 Piani",
+      "colore": 3,
+      "repartoOp": "pulizie",
+      "attivo": true,
+      "descrizione": "Pulizia e rifacimento delle camere, aree comuni, couverture."
+    },
+    {
+      "id": "rep-lav",
+      "nome": "Lavanderia e guardaroba",
+      "codice": "LAV",
+      "responsabile": "",
+      "centroCosto": "CDC-03 Piani",
+      "colore": 6,
+      "repartoOp": "pulizie",
+      "attivo": true,
+      "descrizione": "Biancheria, divise e lavanderia ospiti."
+    },
+    {
+      "id": "rep-fb",
+      "nome": "F&B",
+      "codice": "FB",
+      "responsabile": "",
+      "centroCosto": "CDC-02 Ristorazione",
+      "colore": 2,
+      "repartoOp": "foodBeverage",
+      "attivo": true,
+      "descrizione": "Sala ristorante: colazioni, pranzo e cena."
+    },
+    {
+      "id": "rep-bar",
+      "nome": "Bar",
+      "codice": "BAR",
+      "responsabile": "",
+      "centroCosto": "CDC-02 Ristorazione",
+      "colore": 4,
+      "repartoOp": "foodBeverage",
+      "attivo": true,
+      "descrizione": "Bar, lounge e servizio in camera serale."
+    },
+    {
+      "id": "rep-cuc",
+      "nome": "Cucina",
+      "codice": "CUC",
+      "responsabile": "",
+      "centroCosto": "CDC-02 Ristorazione",
+      "colore": 5,
+      "repartoOp": "foodBeverage",
+      "attivo": true,
+      "descrizione": "Brigata di cucina e pasticceria."
+    },
+    {
+      "id": "rep-spa",
+      "nome": "Spa e benessere",
+      "codice": "SPA",
+      "responsabile": "",
+      "centroCosto": "CDC-06 Servizi",
+      "colore": 7,
+      "attivo": true,
+      "descrizione": "Centro benessere, piscina e palestra."
+    },
+    {
+      "id": "rep-man",
+      "nome": "Manutenzione",
+      "codice": "MAN",
+      "responsabile": "",
+      "centroCosto": "CDC-04 Manutenzione",
+      "colore": 4,
+      "repartoOp": "manutenzione",
+      "attivo": true,
+      "descrizione": "Manutenzione ordinaria, impianti e reperibilità."
+    },
+    {
+      "id": "rep-mag",
+      "nome": "Magazzino",
+      "codice": "MAG",
+      "responsabile": "",
+      "centroCosto": "CDC-04 Manutenzione",
+      "colore": 6,
+      "repartoOp": "magazzino",
+      "attivo": true,
+      "descrizione": "Ricevimento merci, scorte e inventari."
+    },
+    {
+      "id": "rep-amm",
+      "nome": "Amministrazione",
+      "codice": "AMM",
+      "responsabile": "",
+      "centroCosto": "CDC-05 Sede",
+      "colore": 6,
+      "repartoOp": "risorseUmane",
+      "attivo": true,
+      "descrizione": "Contabilità, personale e acquisti."
+    },
+    {
+      "id": "rep-com",
+      "nome": "Commerciale e booking",
+      "codice": "COM",
+      "responsabile": "",
+      "centroCosto": "CDC-05 Sede",
+      "colore": 8,
+      "attivo": true,
+      "descrizione": "Vendite, revenue, gruppi ed eventi."
+    }
+  ],
+  "orari": [
+    {
+      "id": "ora-ft5",
+      "nome": "Full time 40 h · 5 giorni",
+      "regime": "full-time",
+      "aTurni": false,
+      "oreSettimanali": 40,
+      "giorniSettimana": 5,
+      "flessibilitaMin": 15,
+      "giorni": [
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "13:00"
+            },
+            {
+              "inizio": "14:00",
+              "fine": "18:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "13:00"
+            },
+            {
+              "inizio": "14:00",
+              "fine": "18:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "13:00"
+            },
+            {
+              "inizio": "14:00",
+              "fine": "18:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "13:00"
+            },
+            {
+              "inizio": "14:00",
+              "fine": "18:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "13:00"
+            },
+            {
+              "inizio": "14:00",
+              "fine": "18:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    },
+    {
+      "id": "ora-ft6",
+      "nome": "Full time 40 h · 6 giorni",
+      "regime": "full-time",
+      "aTurni": false,
+      "oreSettimanali": 40,
+      "giorniSettimana": 6,
+      "flessibilitaMin": 10,
+      "giorni": [
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:00",
+              "fine": "15:10"
+            }
+          ],
+          "pausaMin": 30
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:00",
+              "fine": "15:10"
+            }
+          ],
+          "pausaMin": 30
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:00",
+              "fine": "15:10"
+            }
+          ],
+          "pausaMin": 30
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:00",
+              "fine": "15:10"
+            }
+          ],
+          "pausaMin": 30
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:00",
+              "fine": "15:10"
+            }
+          ],
+          "pausaMin": 30
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:00",
+              "fine": "15:10"
+            }
+          ],
+          "pausaMin": 30
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    },
+    {
+      "id": "ora-ftsab",
+      "nome": "Full time 40 h · sabato mattina",
+      "regime": "full-time",
+      "aTurni": false,
+      "oreSettimanali": 40,
+      "giorniSettimana": 6,
+      "flessibilitaMin": 10,
+      "giorni": [
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:30",
+              "fine": "12:30"
+            },
+            {
+              "inizio": "13:30",
+              "fine": "17:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:30",
+              "fine": "12:30"
+            },
+            {
+              "inizio": "13:30",
+              "fine": "17:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:30",
+              "fine": "12:30"
+            },
+            {
+              "inizio": "13:30",
+              "fine": "17:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:30",
+              "fine": "12:30"
+            },
+            {
+              "inizio": "13:30",
+              "fine": "17:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:30",
+              "fine": "12:30"
+            },
+            {
+              "inizio": "13:30",
+              "fine": "17:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:30",
+              "fine": "11:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    },
+    {
+      "id": "ora-tur",
+      "nome": "Turnista 40 h · 6 giorni",
+      "regime": "full-time",
+      "aTurni": true,
+      "oreSettimanali": 40,
+      "giorniSettimana": 6,
+      "flessibilitaMin": 0,
+      "giorni": [
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    },
+    {
+      "id": "ora-tur5",
+      "nome": "Turnista 40 h · 5 giorni",
+      "regime": "full-time",
+      "aTurni": true,
+      "oreSettimanali": 40,
+      "giorniSettimana": 5,
+      "flessibilitaMin": 5,
+      "giorni": [
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    },
+    {
+      "id": "ora-tur32",
+      "nome": "Turnista part time 32 h · 4 giorni",
+      "regime": "part-time-verticale",
+      "aTurni": true,
+      "oreSettimanali": 32,
+      "giorniSettimana": 4,
+      "flessibilitaMin": 5,
+      "giorni": [
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    },
+    {
+      "id": "ora-tur16",
+      "nome": "Turnista part time 16 h · 2 giorni",
+      "regime": "part-time-verticale",
+      "aTurni": true,
+      "oreSettimanali": 16,
+      "giorniSettimana": 2,
+      "flessibilitaMin": 5,
+      "giorni": [
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    },
+    {
+      "id": "ora-chi24",
+      "nome": "A chiamata fino a 24 h · 3 giorni",
+      "regime": "part-time-misto",
+      "aTurni": true,
+      "oreSettimanali": 24,
+      "giorniSettimana": 3,
+      "flessibilitaMin": 5,
+      "giorni": [
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    },
+    {
+      "id": "ora-pt30",
+      "nome": "Part time 30 h orizzontale",
+      "regime": "part-time-orizzontale",
+      "aTurni": false,
+      "oreSettimanali": 30,
+      "giorniSettimana": 5,
+      "flessibilitaMin": 10,
+      "giorni": [
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "15:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "15:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "15:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "15:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "09:00",
+              "fine": "15:00"
+            }
+          ],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    },
+    {
+      "id": "ora-pt24",
+      "nome": "Part time 24 h verticale",
+      "regime": "part-time-verticale",
+      "aTurni": false,
+      "oreSettimanali": 24,
+      "giorniSettimana": 3,
+      "flessibilitaMin": 10,
+      "giorni": [
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:00",
+              "fine": "16:30"
+            }
+          ],
+          "pausaMin": 30
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:00",
+              "fine": "16:30"
+            }
+          ],
+          "pausaMin": 30
+        },
+        {
+          "attivo": true,
+          "fasce": [
+            {
+              "inizio": "08:00",
+              "fine": "16:30"
+            }
+          ],
+          "pausaMin": 30
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        },
+        {
+          "attivo": false,
+          "fasce": [],
+          "pausaMin": 0
+        }
+      ]
+    }
+  ],
+  "turni": [
+    {
+      "id": "tur-m",
+      "sigla": "M",
+      "nome": "Mattina",
+      "inizio": "07:00",
+      "fine": "15:00",
+      "pausaMin": 30,
+      "colore": 1,
+      "reparti": []
+    },
+    {
+      "id": "tur-p",
+      "sigla": "P",
+      "nome": "Pomeriggio",
+      "inizio": "15:00",
+      "fine": "23:00",
+      "pausaMin": 30,
+      "colore": 3,
+      "reparti": []
+    },
+    {
+      "id": "tur-n",
+      "sigla": "N",
+      "nome": "Notte",
+      "inizio": "23:00",
+      "fine": "07:00",
+      "pausaMin": 30,
+      "colore": 6,
+      "reparti": [
+        "rep-fo"
+      ]
+    },
+    {
+      "id": "tur-i",
+      "sigla": "I",
+      "nome": "Intermedio check-in",
+      "inizio": "11:00",
+      "fine": "19:00",
+      "pausaMin": 30,
+      "colore": 7,
+      "reparti": [
+        "rep-fo",
+        "rep-port"
+      ]
+    },
+    {
+      "id": "tur-m6",
+      "sigla": "M6",
+      "nome": "Mattina 6 giorni",
+      "inizio": "07:00",
+      "fine": "14:00",
+      "pausaMin": 20,
+      "colore": 1,
+      "reparti": []
+    },
+    {
+      "id": "tur-p6",
+      "sigla": "P6",
+      "nome": "Pomeriggio 6 giorni",
+      "inizio": "15:00",
+      "fine": "22:00",
+      "pausaMin": 20,
+      "colore": 3,
+      "reparti": []
+    },
+    {
+      "id": "tur-co",
+      "sigla": "CO",
+      "nome": "Colazioni",
+      "inizio": "06:00",
+      "fine": "14:00",
+      "pausaMin": 30,
+      "colore": 4,
+      "reparti": [
+        "rep-fb",
+        "rep-cuc",
+        "rep-bar"
+      ]
+    },
+    {
+      "id": "tur-s",
+      "sigla": "S",
+      "nome": "Spezzato pranzo e cena",
+      "inizio": "10:00",
+      "fine": "14:00",
+      "pausaMin": 0,
+      "colore": 5,
+      "reparti": [
+        "rep-fb",
+        "rep-cuc",
+        "rep-bar"
+      ],
+      "inizio2": "18:00",
+      "fine2": "22:00"
+    },
+    {
+      "id": "tur-ce",
+      "sigla": "CE",
+      "nome": "Cena",
+      "inizio": "16:00",
+      "fine": "00:00",
+      "pausaMin": 30,
+      "colore": 8,
+      "reparti": [
+        "rep-fb",
+        "rep-cuc"
+      ]
+    },
+    {
+      "id": "tur-bs",
+      "sigla": "BS",
+      "nome": "Bar sera",
+      "inizio": "18:00",
+      "fine": "02:00",
+      "pausaMin": 30,
+      "colore": 8,
+      "reparti": [
+        "rep-bar"
+      ]
+    },
+    {
+      "id": "tur-c",
+      "sigla": "C",
+      "nome": "Centrale",
+      "inizio": "09:00",
+      "fine": "17:00",
+      "pausaMin": 60,
+      "colore": 2,
+      "reparti": [
+        "rep-hk",
+        "rep-lav",
+        "rep-mag",
+        "rep-amm",
+        "rep-man"
+      ]
+    },
+    {
+      "id": "tur-hk",
+      "sigla": "HK",
+      "nome": "Rifacimento camere",
+      "inizio": "08:00",
+      "fine": "16:00",
+      "pausaMin": 30,
+      "colore": 2,
+      "reparti": [
+        "rep-hk"
+      ]
+    },
+    {
+      "id": "tur-cv",
+      "sigla": "CV",
+      "nome": "Couverture serale",
+      "inizio": "17:00",
+      "fine": "22:00",
+      "pausaMin": 0,
+      "colore": 6,
+      "reparti": [
+        "rep-hk"
+      ]
+    },
+    {
+      "id": "tur-sm",
+      "sigla": "SM",
+      "nome": "Spa mattina",
+      "inizio": "09:00",
+      "fine": "17:00",
+      "pausaMin": 30,
+      "colore": 5,
+      "reparti": [
+        "rep-spa"
+      ]
+    },
+    {
+      "id": "tur-sp",
+      "sigla": "SP",
+      "nome": "Spa pomeriggio",
+      "inizio": "13:00",
+      "fine": "21:00",
+      "pausaMin": 30,
+      "colore": 7,
+      "reparti": [
+        "rep-spa"
+      ]
+    },
+    {
+      "id": "tur-u",
+      "sigla": "U",
+      "nome": "Ufficio",
+      "inizio": "09:00",
+      "fine": "13:00",
+      "pausaMin": 0,
+      "colore": 1,
+      "reparti": [
+        "rep-amm",
+        "rep-dir",
+        "rep-com"
+      ],
+      "inizio2": "14:00",
+      "fine2": "18:00"
+    }
+  ],
+  "schemi": [
+    {
+      "id": "sch-cc",
+      "nome": "Ciclo continuo 3 turni",
+      "descrizione": "Due mattine, due pomeriggi, due notti, due riposi: copre le 24 ore del ricevimento.",
+      "sequenza": [
+        "tur-m",
+        "tur-m",
+        "tur-p",
+        "tur-p",
+        "tur-n",
+        "tur-n",
+        "R",
+        "R"
+      ]
+    },
+    {
+      "id": "sch-61",
+      "nome": "Rotazione 6+1 M/P",
+      "descrizione": "Settimana di mattine e settimana di pomeriggi alternate, un riposo a settimana.",
+      "sequenza": [
+        "tur-m",
+        "tur-m",
+        "tur-m",
+        "tur-m",
+        "tur-m",
+        "tur-m",
+        "R",
+        "tur-p",
+        "tur-p",
+        "tur-p",
+        "tur-p",
+        "tur-p",
+        "tur-p",
+        "R"
+      ]
+    },
+    {
+      "id": "sch-52",
+      "nome": "Centrale 5+2",
+      "descrizione": "Cinque giorni sul turno centrale, sabato e domenica di riposo.",
+      "sequenza": [
+        "tur-c",
+        "tur-c",
+        "tur-c",
+        "tur-c",
+        "tur-c",
+        "R",
+        "R"
+      ]
+    },
+    {
+      "id": "sch-fo52",
+      "nome": "Ricevimento 5+2 M/I/P",
+      "descrizione": "Ricevimento senza notte: mattine, intermedio sui check-in e pomeriggi, due riposi consecutivi.",
+      "sequenza": [
+        "tur-m",
+        "tur-m",
+        "tur-i",
+        "tur-p",
+        "tur-p",
+        "R",
+        "R"
+      ]
+    },
+    {
+      "id": "sch-sala",
+      "nome": "Sala colazioni e cena",
+      "descrizione": "Due colazioni, uno spezzato, due cene, due riposi: alterna apertura e chiusura del ristorante.",
+      "sequenza": [
+        "tur-co",
+        "tur-co",
+        "tur-s",
+        "tur-ce",
+        "tur-ce",
+        "R",
+        "R"
+      ]
+    },
+    {
+      "id": "sch-piani",
+      "nome": "Piani 5+2 con couverture",
+      "descrizione": "Quattro giorni di rifacimento camere e una couverture serale, due riposi.",
+      "sequenza": [
+        "tur-hk",
+        "tur-hk",
+        "tur-hk",
+        "tur-hk",
+        "tur-cv",
+        "R",
+        "R"
+      ]
+    },
+    {
+      "id": "sch-6c",
+      "nome": "Turnista 6+1 a turni corti",
+      "descrizione": "Tre mattine e tre pomeriggi da 6 h 40, un riposo: 40 ore su 6 giorni.",
+      "sequenza": [
+        "tur-m6",
+        "tur-m6",
+        "tur-m6",
+        "tur-p6",
+        "tur-p6",
+        "tur-p6",
+        "R"
+      ]
+    },
+    {
+      "id": "sch-bar",
+      "nome": "Bar giorno e sera",
+      "descrizione": "Due colazioni, uno spezzato, due serate, due riposi.",
+      "sequenza": [
+        "tur-co",
+        "tur-co",
+        "tur-s",
+        "tur-bs",
+        "tur-bs",
+        "R",
+        "R"
+      ]
+    },
+    {
+      "id": "sch-spa",
+      "nome": "Spa 5+2",
+      "descrizione": "Mattine e pomeriggi alternati sulla Spa, due riposi.",
+      "sequenza": [
+        "tur-sm",
+        "tur-sm",
+        "tur-sp",
+        "tur-sp",
+        "tur-sm",
+        "R",
+        "R"
+      ]
+    },
+    {
+      "id": "sch-uff",
+      "nome": "Ufficio 5+2",
+      "descrizione": "Cinque giorni d'ufficio, sabato e domenica di riposo.",
+      "sequenza": [
+        "tur-u",
+        "tur-u",
+        "tur-u",
+        "tur-u",
+        "tur-u",
+        "R",
+        "R"
+      ]
+    }
+  ],
+  "pianificazione": {
+    "fasce": [
+      {
+        "id": "M",
+        "nome": "Mattina",
+        "inizio": "07:00",
+        "fine": "15:00",
+        "attiva": true
+      },
+      {
+        "id": "P",
+        "nome": "Pomeriggio",
+        "inizio": "15:00",
+        "fine": "23:00",
+        "attiva": true
+      },
+      {
+        "id": "N",
+        "nome": "Notte",
+        "inizio": "23:00",
+        "fine": "07:00",
+        "attiva": true
+      }
+    ],
+    "coperturaMinOre": 3,
+    "riposoMinOre": 11,
+    "tolleranzaSottoOre": 4,
+    "fabbisogni": [
+      {
+        "id": "rep-dir",
+        "modalita": "fisso",
+        "turnoPredefinito": "tur-u",
+        "base": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 0,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 85,
+        "giorniChiusura": [
+          5,
+          6
+        ]
+      },
+      {
+        "id": "rep-fo",
+        "modalita": "occupazione",
+        "turnoPredefinito": "tur-m",
+        "base": {
+          "M": 1,
+          "P": 1,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 85,
+        "giorniChiusura": []
+      },
+      {
+        "id": "rep-port",
+        "modalita": "occupazione",
+        "turnoPredefinito": "tur-m",
+        "base": {
+          "M": 1,
+          "P": 1,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 85,
+        "giorniChiusura": []
+      },
+      {
+        "id": "rep-hk",
+        "modalita": "occupazione",
+        "turnoPredefinito": "tur-hk",
+        "base": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 85,
+        "giorniChiusura": []
+      },
+      {
+        "id": "rep-lav",
+        "modalita": "occupazione",
+        "turnoPredefinito": "tur-c",
+        "base": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 90,
+        "giorniChiusura": [
+          6
+        ]
+      },
+      {
+        "id": "rep-fb",
+        "modalita": "occupazione",
+        "turnoPredefinito": "tur-s",
+        "base": {
+          "M": 1,
+          "P": 1,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 0,
+          "P": 1,
+          "N": 0
+        },
+        "sogliaOccupazione": 80,
+        "giorniChiusura": []
+      },
+      {
+        "id": "rep-bar",
+        "modalita": "occupazione",
+        "turnoPredefinito": "tur-s",
+        "base": {
+          "M": 1,
+          "P": 1,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 0,
+          "P": 1,
+          "N": 0
+        },
+        "sogliaOccupazione": 80,
+        "giorniChiusura": []
+      },
+      {
+        "id": "rep-cuc",
+        "modalita": "occupazione",
+        "turnoPredefinito": "tur-s",
+        "base": {
+          "M": 1,
+          "P": 1,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 0,
+          "P": 1,
+          "N": 0
+        },
+        "sogliaOccupazione": 80,
+        "giorniChiusura": []
+      },
+      {
+        "id": "rep-spa",
+        "modalita": "fisso",
+        "turnoPredefinito": "tur-sm",
+        "base": {
+          "M": 1,
+          "P": 1,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 0,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 85,
+        "giorniChiusura": []
+      },
+      {
+        "id": "rep-man",
+        "modalita": "fisso",
+        "turnoPredefinito": "tur-m",
+        "base": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 0,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 85,
+        "giorniChiusura": [
+          6
+        ]
+      },
+      {
+        "id": "rep-mag",
+        "modalita": "fisso",
+        "turnoPredefinito": "tur-c",
+        "base": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 0,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 85,
+        "giorniChiusura": [
+          5,
+          6
+        ]
+      },
+      {
+        "id": "rep-amm",
+        "modalita": "fisso",
+        "turnoPredefinito": "tur-c",
+        "base": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 0,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 85,
+        "giorniChiusura": [
+          5,
+          6
+        ]
+      },
+      {
+        "id": "rep-com",
+        "modalita": "fisso",
+        "turnoPredefinito": "tur-u",
+        "base": {
+          "M": 1,
+          "P": 0,
+          "N": 0
+        },
+        "rinforzo": {
+          "M": 0,
+          "P": 0,
+          "N": 0
+        },
+        "sogliaOccupazione": 85,
+        "giorniChiusura": [
+          5,
+          6
+        ]
+      }
+    ]
+  }
+}
