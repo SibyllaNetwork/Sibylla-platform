@@ -455,9 +455,6 @@ $reparti: (1: var(--chart-1), 2: var(--chart-2), 3: var(--chart-5), 4: var(--cha
   &--we
     background: $primary-700
 
-  &--past
-    background: $text-disabled
-
 .tpe__badge-wd
   font-family: $font-heading
   font-size: 13px
@@ -1218,7 +1215,22 @@ $reparti: (1: var(--chart-1), 2: var(--chart-2), 3: var(--chart-5), 4: var(--cha
     position: static
     max-height: 340px
 
-// Lucchetto dei giorni passati nel badge del giorno.
-.tpe__badge-wd i
-  margin-right: 2px
-  font-size: 9px
+// Lucchetto dei giorni passati: cerchietto sull'angolo del badge, non dentro il testo.
+.tpe__badge
+  position: relative
+
+.tpe__badge-lock
+  position: absolute
+  top: -6px
+  right: -6px
+  width: 18px
+  height: 18px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 2px solid var(--color-surface)
+  border-radius: 50%
+  background: $text-inactive
+  color: #fff
+  font-size: 8px
+  cursor: help

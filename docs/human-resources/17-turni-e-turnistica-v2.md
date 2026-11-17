@@ -308,7 +308,7 @@ Struttura▾  Reparto▾  Settimana [<] 16 – 22 nov 2026 [>] [Questa settimana
 
 VISTA PER GIORNO
 ┌ Personale         Ore · riposi ┐ ┌ Giorno  Occupazione  Personale in turno          Copertura per reparto ┐
-│ 🔍 Cerca dipendente…           │ │ 🔒LUN  62% ▬▬▬░      [M] G. Conti ×  [P] D. Marini ×   ✓FO ✓FB ✓HK     │
+│ 🔍 Cerca dipendente…           │ │ LUN🔒 62% ▬▬▬░      [M] G. Conti ×  [P] D. Marini ×   ✓FO ✓FB ✓HK     │
 │ ⋮ Giulia Conti      37,5/40 h  │ │ 16 nov               [A. Grimaudo · Ferie]              ✓MAN ✓CUC ✓AMM  │
 │   Front office · Full time      │ │ …7 righe…                                                               │
 │               2 riposi          │ │ Legenda: turni · reparti · assente · da approvare · giorno passato ·    │
@@ -416,8 +416,10 @@ separatore · «Assente (non conta in copertura)» · «Richiesta da approvare»
 lavoro ▬ basso ▬ medio ▬ alto» (tooltip «La barra indica il carico di lavoro che l'occupazione prevista porta ai
 reparti, non un giudizio sull'occupazione: un'occupazione alta è positiva, ma richiede più personale.»).
 
-**Giorno passato**: badge grigio (`--color-text-disabled`) con `fa-lock` 9 px prima del giorno, riga con sfondo
-surface e bordo; tooltip «Giorno passato: ha timbrature collegate, si modifica solo dopo conferma».
+**Giorno passato**: badge del giorno **identico** agli altri (stesso colore e dimensione); sull'angolo in alto a destra
+un cerchietto 18 px (`top/right: -6px`, sfondo `--color-text-inactive`, bordo 2 px `--color-surface`, `fa-solid fa-lock`
+8 px bianco) con tooltip «Giorno passato: ha timbrature collegate, si modifica solo dopo conferma». La riga ha sfondo
+surface e bordo 1 px invece dello sfondo `--color-bg`.
 
 **Vista per dipendente** (`.sib-table`, `table-layout: fixed`, colgroup 19% / 7×9,5% / 14,5%; sotto 1180 px
 17% / 7×9,75% / 14,75% e si nasconde l'orario nelle celle):

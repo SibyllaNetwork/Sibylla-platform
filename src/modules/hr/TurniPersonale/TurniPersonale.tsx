@@ -465,8 +465,15 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
   )
 
   const badgeGiorno = (g: string, i: number) => (
-    <span className={clsx('tpe__badge', i >= 5 && 'tpe__badge--we', g < oggi && 'tpe__badge--past')}>
-      <span className="tpe__badge-wd">{g < oggi && <i className="fa-solid fa-lock" aria-hidden="true" />} {GIORNI_BREVI[i]}</span>
+    <span className={clsx('tpe__badge', i >= 5 && 'tpe__badge--we')}>
+      <span className="tpe__badge-wd">{GIORNI_BREVI[i]}</span>
+      {g < oggi && (
+        <span className="tpe__badge-lock">
+          <Tooltip text="Giorno passato: ha timbrature collegate, si modifica solo dopo conferma">
+            <i className="fa-solid fa-lock" aria-label="Giorno passato" />
+          </Tooltip>
+        </span>
+      )}
       <span className="tpe__badge-dm">{giornoMese(g)}</span>
     </span>
   )
@@ -673,9 +680,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
                   onDrop={e => onDrop(e, g)}
                   onClick={() => { if (sel) void clicGiorno(g) }}
                 >
-                  {g < oggi
-                    ? <Tooltip text="Giorno passato: ha timbrature collegate, si modifica solo dopo conferma">{badgeGiorno(g, i)}</Tooltip>
-                    : badgeGiorno(g, i)}
+                  {badgeGiorno(g, i)}
 
                   <span className="tpe__occ">
                     <Tooltip text={`Occupazione prevista ${occ}%: carico di lavoro ${liv}${liv === 'alto' ? ', servono più persone nei reparti che seguono l\'occupazione' : ''}`}>
