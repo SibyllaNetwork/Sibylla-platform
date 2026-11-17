@@ -134,8 +134,10 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
     }] : []),
     ...(ultimaPubbl ? [{
       id: 6001, sev: 'info' as Sev, origin: 'platform' as Origin,
-      title: 'Turno settimanale pubblicato',
-      text: `È disponibile il turno della settimana ${etichettaSettimana(ultimaPubbl.lunedi)}.`,
+      title: ultimaPubbl.aggiornamento ? 'Turno settimanale aggiornato' : 'Turno settimanale pubblicato',
+      text: ultimaPubbl.aggiornamento
+        ? `Il turno della settimana ${etichettaSettimana(ultimaPubbl.lunedi)} è cambiato per ${ultimaPubbl.destinatari} ${ultimaPubbl.destinatari === 1 ? 'dipendente coinvolto' : 'dipendenti coinvolti'}.`
+        : `È disponibile il turno della settimana ${etichettaSettimana(ultimaPubbl.lunedi)}.`,
       ref: '', date: new Date(ultimaPubbl.at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
       read: turniLetti.has(6001), reportPage: 'centro-notifiche', reportLabel: 'Apri nel Centro notifiche',
     }] : []),

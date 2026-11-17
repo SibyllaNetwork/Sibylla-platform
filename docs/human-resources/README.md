@@ -50,7 +50,8 @@ Ad esempio Registro presenze, Timbrature e Cedolini leggono le stesse giornate. 
 | 13 | [13-profile-analysis.md](13-profile-analysis.md) | Profile analysis | `profile-analysis`, `profile-analysis:<id>` | … › Gestione delle anagrafiche › Profile analysis |
 | 06 | [06-registro-presenze.md](06-registro-presenze.md) | Registro presenze | `registro-presenze` | Human Resources › Gestione delle presenze › Registro presenze |
 | 07 | [07-timbrature.md](07-timbrature.md) | Timbrature | `hr-timbrature` | … › Gestione delle presenze › Timbrature |
-| 11 | [11-turni-personale.md](11-turni-personale.md) | Turni del personale | `turni-personale` | … › Gestione delle presenze › Turni del personale |
+| 17 | [17-turni-e-turnistica-v2.md](17-turni-e-turnistica-v2.md) | **Turni del personale e Turnistica v2** (17/11/2026: turno per assegnazione, regole di pianificazione, backend). Prevale su 11 e su 02 § B.3 | `turni-personale`, `hr-configurazione:hr-turnistica` | — |
+| 11 | [11-turni-personale.md](11-turni-personale.md) | Turni del personale (v1, vedi 17) | `turni-personale` | … › Gestione delle presenze › Turni del personale |
 | 12 | [12-nota-spese.md](12-nota-spese.md) | Nota spese | `hr-note-spese` | … › Gestione delle presenze › Nota spese |
 | 08 | [08-cedolini.md](08-cedolini.md) | Cedolini | `hr-cedolini` | … › Gestione delle presenze › Cedolini |
 | 09 | [09-richieste.md](09-richieste.md) | Richieste | `hr-richieste-ferie` | … › Gestione delle presenze › Gestione ferie e permessi › Richieste |

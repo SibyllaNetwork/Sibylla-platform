@@ -85,6 +85,42 @@ export interface SchemaTurniHr {
   sequenza: string[]
 }
 
+// ── Regole di pianificazione (lette da Turni del personale) ─────────────────
+export type FasciaId = 'M' | 'P' | 'N'
+export const FASCE_ID: FasciaId[] = ['M', 'P', 'N']
+export type PersonePerFascia = Record<FasciaId, number>
+
+/** Fascia della giornata su cui si misura la copertura (Mattina, Pomeriggio, Notte). */
+export interface FasciaCoperturaHr { id: FasciaId; nome: string; inizio: string; fine: string; attiva: boolean }
+
+/** Fabbisogno di personale di un reparto, per fascia. */
+export interface FabbisognoRepartoHr {
+  /** Reparto (id di RepartoHr). */
+  id: string
+  /** 'occupazione' = cresce con l'occupazione (rinforzo oltre la soglia); 'fisso' = minimo costante. */
+  modalita: 'occupazione' | 'fisso'
+  /** Turno proposto quando si trascina un dipendente del reparto (id di TurnoHr). */
+  turnoPredefinito?: string
+  /** Persone sempre necessarie per fascia nei giorni di apertura. */
+  base: PersonePerFascia
+  /** Con 'occupazione': persone in più per fascia quando l'occupazione raggiunge la soglia. */
+  rinforzo: PersonePerFascia
+  sogliaOccupazione: number
+  /** Giorni senza fabbisogno (0 = lunedì … 6 = domenica). */
+  giorniChiusura: number[]
+}
+
+export interface PianificazioneTurniHr {
+  fasce: FasciaCoperturaHr[]
+  /** Ore minime lavorate dentro una fascia perché il turno la copra. */
+  coperturaMinOre: number
+  /** Riposo minimo fra la fine di un turno e l'inizio del successivo (D.Lgs. 66/2003: 11 h). */
+  riposoMinOre: number
+  /** Ore sotto il monte ore settimanale oltre cui il dipendente risulta da completare. */
+  tolleranzaSottoOre: number
+  fabbisogni: FabbisognoRepartoHr[]
+}
+
 // ── Tipologie di rapporto ────────────────────────────────────────────────────
 export interface TipologiaContrattoHr {
   id: string
@@ -255,12 +291,22 @@ export function normalizzaGiorno(d: any): FasciaGiorno {
   return { attivo: !!d?.attivo, fasce, pausaMin: Number(d?.pausaMin) || 0 }
 }
 
+// Turni standard di un hotel (CCNL Turismo, 40 h su 5 giorni): ricevimento a
+// ciclo continuo con portiere di notte, intermedio per i check-in, colazioni,
+// pranzo e cena in sala e cucina, piani con couverture serale, uffici centrali.
+// Ore nette = durata delle fasce − pausa (pausa non retribuita).
 const SEED_TURNI: TurnoHr[] = [
-  { id: 'tur-m', sigla: 'M', nome: 'Mattina',    inizio: '07:00', fine: '15:00', pausaMin: 30, colore: 1, reparti: [] },
-  { id: 'tur-p', sigla: 'P', nome: 'Pomeriggio', inizio: '15:00', fine: '23:00', pausaMin: 30, colore: 3, reparti: [] },
-  { id: 'tur-n', sigla: 'N', nome: 'Notte',      inizio: '23:00', fine: '07:00', pausaMin: 30, colore: 6, reparti: ['rep-fo'] },
-  { id: 'tur-s', sigla: 'S', nome: 'Spezzato',   inizio: '10:00', fine: '14:00', inizio2: '18:00', fine2: '22:00', pausaMin: 0, colore: 5, reparti: ['rep-fb', 'rep-cuc'] },
-  { id: 'tur-c', sigla: 'C', nome: 'Centrale',   inizio: '09:00', fine: '17:00', pausaMin: 60, colore: 2, reparti: ['rep-hk', 'rep-amm'] },
+  { id: 'tur-m',  sigla: 'M',  nome: 'Mattina',              inizio: '07:00', fine: '15:00', pausaMin: 30, colore: 1, reparti: [] },
+  { id: 'tur-p',  sigla: 'P',  nome: 'Pomeriggio',           inizio: '15:00', fine: '23:00', pausaMin: 30, colore: 3, reparti: [] },
+  { id: 'tur-n',  sigla: 'N',  nome: 'Notte',                inizio: '23:00', fine: '07:00', pausaMin: 30, colore: 6, reparti: ['rep-fo'] },
+  { id: 'tur-i',  sigla: 'I',  nome: 'Intermedio check-in',  inizio: '11:00', fine: '19:00', pausaMin: 30, colore: 7, reparti: ['rep-fo'] },
+  { id: 'tur-co', sigla: 'CO', nome: 'Colazioni',            inizio: '06:00', fine: '14:00', pausaMin: 30, colore: 4, reparti: ['rep-fb', 'rep-cuc'] },
+  { id: 'tur-s',  sigla: 'S',  nome: 'Spezzato pranzo e cena', inizio: '10:00', fine: '14:00', inizio2: '18:00', fine2: '22:00', pausaMin: 0, colore: 5, reparti: ['rep-fb', 'rep-cuc'] },
+  { id: 'tur-ce', sigla: 'CE', nome: 'Cena',                 inizio: '16:00', fine: '00:00', pausaMin: 30, colore: 8, reparti: ['rep-fb', 'rep-cuc'] },
+  { id: 'tur-c',  sigla: 'C',  nome: 'Centrale',             inizio: '09:00', fine: '17:00', pausaMin: 60, colore: 2, reparti: ['rep-hk', 'rep-amm'] },
+  { id: 'tur-hk', sigla: 'HK', nome: 'Rifacimento camere',   inizio: '08:00', fine: '16:00', pausaMin: 30, colore: 2, reparti: ['rep-hk'] },
+  { id: 'tur-cv', sigla: 'CV', nome: 'Couverture serale',    inizio: '17:00', fine: '22:00', pausaMin: 0,  colore: 6, reparti: ['rep-hk'] },
+  { id: 'tur-u',  sigla: 'U',  nome: 'Ufficio',              inizio: '09:00', fine: '13:00', inizio2: '14:00', fine2: '18:00', pausaMin: 0, colore: 1, reparti: ['rep-amm'] },
 ]
 
 const SEED_SCHEMI: SchemaTurniHr[] = [
@@ -270,7 +316,36 @@ const SEED_SCHEMI: SchemaTurniHr[] = [
     sequenza: ['tur-m', 'tur-m', 'tur-m', 'tur-m', 'tur-m', 'tur-m', RIPOSO, 'tur-p', 'tur-p', 'tur-p', 'tur-p', 'tur-p', 'tur-p', RIPOSO] },
   { id: 'sch-52',  nome: 'Centrale 5+2', descrizione: 'Cinque giorni sul turno centrale, sabato e domenica di riposo.',
     sequenza: ['tur-c', 'tur-c', 'tur-c', 'tur-c', 'tur-c', RIPOSO, RIPOSO] },
+  { id: 'sch-fo52', nome: 'Ricevimento 5+2 M/I/P', descrizione: 'Ricevimento senza notte: mattine, intermedio sui check-in e pomeriggi, due riposi consecutivi.',
+    sequenza: ['tur-m', 'tur-m', 'tur-i', 'tur-p', 'tur-p', RIPOSO, RIPOSO] },
+  { id: 'sch-sala', nome: 'Sala colazioni e cena', descrizione: 'Due colazioni, uno spezzato, due cene, due riposi: alterna apertura e chiusura del ristorante.',
+    sequenza: ['tur-co', 'tur-co', 'tur-s', 'tur-ce', 'tur-ce', RIPOSO, RIPOSO] },
+  { id: 'sch-piani', nome: 'Piani 5+2 con couverture', descrizione: 'Quattro giorni di rifacimento camere e una couverture serale, due riposi.',
+    sequenza: ['tur-hk', 'tur-hk', 'tur-hk', 'tur-hk', 'tur-cv', RIPOSO, RIPOSO] },
 ]
+
+const pf = (M: number, P = 0, N = 0): PersonePerFascia => ({ M, P, N })
+export const PIANIFICAZIONE_DEFAULT: PianificazioneTurniHr = {
+  fasce: [
+    { id: 'M', nome: 'Mattina',    inizio: '07:00', fine: '15:00', attiva: true },
+    { id: 'P', nome: 'Pomeriggio', inizio: '15:00', fine: '23:00', attiva: true },
+    { id: 'N', nome: 'Notte',      inizio: '23:00', fine: '07:00', attiva: true },
+  ],
+  coperturaMinOre: 3,
+  riposoMinOre: 11,
+  tolleranzaSottoOre: 4,
+  fabbisogni: [
+    { id: 'rep-fo',  modalita: 'occupazione', turnoPredefinito: 'tur-m', base: pf(1, 1), rinforzo: pf(1),    sogliaOccupazione: 85, giorniChiusura: [] },
+    { id: 'rep-fb',  modalita: 'occupazione', turnoPredefinito: 'tur-s', base: pf(1, 1), rinforzo: pf(0, 1), sogliaOccupazione: 80, giorniChiusura: [] },
+    { id: 'rep-hk',  modalita: 'occupazione', turnoPredefinito: 'tur-hk', base: pf(1),    rinforzo: pf(1),    sogliaOccupazione: 85, giorniChiusura: [] },
+    { id: 'rep-man', modalita: 'fisso',       turnoPredefinito: 'tur-m', base: pf(1),    rinforzo: pf(0),    sogliaOccupazione: 85, giorniChiusura: [6] },
+    { id: 'rep-cuc', modalita: 'occupazione', turnoPredefinito: 'tur-s', base: pf(1, 1), rinforzo: pf(0, 1), sogliaOccupazione: 80, giorniChiusura: [] },
+    { id: 'rep-amm', modalita: 'fisso',       turnoPredefinito: 'tur-c', base: pf(1),    rinforzo: pf(0),    sogliaOccupazione: 85, giorniChiusura: [5, 6] },
+  ],
+}
+/** Fabbisogno di un reparto senza regole: minimo fisso a zero (nessuna copertura richiesta). */
+export const fabbisognoVuoto = (id: string): FabbisognoRepartoHr =>
+  ({ id, modalita: 'fisso', base: pf(0), rinforzo: pf(0), sogliaOccupazione: 85, giorniChiusura: [] })
 
 const SEED_TIPOLOGIE: TipologiaContrattoHr[] = [
   { id: 'tip-ind',  nome: 'Tempo indeterminato',          codice: 'A.01.00', conScadenza: false, periodoProva: true,  attiva: true },
@@ -485,6 +560,7 @@ export interface HrConfigData {
   orari: OrarioHr[]
   turni: TurnoHr[]
   schemi: SchemaTurniHr[]
+  pianificazione: PianificazioneTurniHr
   tipologie: TipologiaContrattoHr[]
   ccnl: CcnlHr[]
   categorieEsterni: CategoriaEsterniHr[]
@@ -495,7 +571,7 @@ export interface HrConfigData {
 interface HrConfigState extends HrConfigData {
   setReparti: (v: RepartoHr[]) => void
   setOrari: (v: OrarioHr[]) => void
-  setTurnistica: (turni: TurnoHr[], schemi: SchemaTurniHr[]) => void
+  setTurnistica: (turni: TurnoHr[], schemi: SchemaTurniHr[], pianificazione?: PianificazioneTurniHr) => void
   setTipologie: (v: TipologiaContrattoHr[]) => void
   setCcnl: (v: CcnlHr[]) => void
   setCategorieEsterni: (v: CategoriaEsterniHr[]) => void
@@ -504,7 +580,7 @@ interface HrConfigState extends HrConfigData {
 }
 
 export const HR_CONFIG_SEED: HrConfigData = {
-  reparti: SEED_REPARTI, orari: SEED_ORARI, turni: SEED_TURNI, schemi: SEED_SCHEMI,
+  reparti: SEED_REPARTI, orari: SEED_ORARI, turni: SEED_TURNI, schemi: SEED_SCHEMI, pianificazione: PIANIFICAZIONE_DEFAULT,
   tipologie: SEED_TIPOLOGIE, ccnl: SEED_CCNL, categorieEsterni: SEED_CATEGORIE_ESTERNI, badge: BADGE_DEFAULT,
   integrazionePaghe: INTEGRAZIONE_PAGHE_DEFAULT,
 }
@@ -515,7 +591,7 @@ export const useHrConfigStore = create<HrConfigState>()(
       ...HR_CONFIG_SEED,
       setReparti: (reparti) => set({ reparti }),
       setOrari: (orari) => set({ orari }),
-      setTurnistica: (turni, schemi) => set({ turni, schemi }),
+      setTurnistica: (turni, schemi, pianificazione) => set(pianificazione ? { turni, schemi, pianificazione } : { turni, schemi }),
       setTipologie: (tipologie) => set({ tipologie }),
       setCcnl: (ccnl) => set({ ccnl }),
       setCategorieEsterni: (categorieEsterni) => set({ categorieEsterni }),
@@ -524,16 +600,23 @@ export const useHrConfigStore = create<HrConfigState>()(
     }),
     {
       name: 'sibylla.hr-config',
-      version: 7,
+      version: 9,
       // v2: categorie dei collaboratori esterni; v3: badge; v4: orari con più fasce al giorno;
       // v5: il DUVRI esce dai documenti dei singoli addetti (è dell'appalto); v6–7: integrazione paghe (profili per software)
-      migrate: (persisted: any) => ({
+      // v8: regole di pianificazione dei turni (fasce, fabbisogno per reparto, riposo minimo)
+      // v9: turni e schemi standard da hotel (aggiunti a quelli salvati se mancano)
+      migrate: (persisted: any, version: number) => ({
         ...HR_CONFIG_SEED, ...(persisted ?? {}),
         orari: ((persisted?.orari ?? HR_CONFIG_SEED.orari) as any[]).map(o => ({ ...o, giorni: (o.giorni ?? []).map(normalizzaGiorno) })),
         categorieEsterni: ((persisted?.categorieEsterni ?? SEED_CATEGORIE_ESTERNI) as CategoriaEsterniHr[])
           .map(c => ({ ...c, documenti: c.documenti.filter(d => d !== 'DUVRI') })),
         badge: { ...BADGE_DEFAULT, ...(persisted?.badge ?? {}) },
         integrazionePaghe: integrazioneValida(persisted?.integrazionePaghe),
+        pianificazione: { ...PIANIFICAZIONE_DEFAULT, ...(persisted?.pianificazione ?? {}) },
+        ...(version < 9 && persisted?.turni ? {
+          turni: [...persisted.turni, ...SEED_TURNI.filter(t => !persisted.turni.some((x: TurnoHr) => x.id === t.id || x.sigla === t.sigla))],
+          schemi: [...(persisted.schemi ?? []), ...SEED_SCHEMI.filter(t => !(persisted.schemi ?? []).some((x: SchemaTurniHr) => x.id === t.id))],
+        } : {}),
       }) as any,
     },
   ),

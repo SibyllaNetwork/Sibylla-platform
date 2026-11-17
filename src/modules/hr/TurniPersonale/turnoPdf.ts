@@ -4,8 +4,9 @@
 import { jsPDF } from 'jspdf'
 import { logoPng } from '../../notifiche/CentroNotifiche/reportPickupPdf'
 import { DIPENDENTI_HR, REPARTI_HR, useHrGestioneStore } from '../../../store/useHrGestioneStore'
+import { oreTurno, useHrConfigStore } from '../../../store/useHrConfigStore'
 import {
-  GIORNI_BREVI, assenzaDi, etichettaSettimana, giorniSettimana, giornoMese, type PubblicazioneTurno,
+  GIORNI_BREVI, assenzaDi, etichettaSettimana, fmtOre, giorniSettimana, giornoMese, turnoDel, type PubblicazioneTurno,
 } from '../../../store/useTurniPersonaleStore'
 
 const NAVY = '#204769'
@@ -22,6 +23,7 @@ const rgb = (hex: string): [number, number, number] => {
 
 export async function scaricaTurnoPdf(p: PubblicazioneTurno, struttura?: string) {
   const richieste = useHrGestioneStore.getState().richieste
+  const catalogo = useHrConfigStore.getState().turni
   const giorni = giorniSettimana(p.lunedi)
   const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
   const pw = pdf.internal.pageSize.getWidth()
@@ -56,7 +58,7 @@ export async function scaricaTurnoPdf(p: PubblicazioneTurno, struttura?: string)
       const cx = m + wDip + wDay * i + wDay / 2
       pdf.text(`${GIORNI_BREVI[i]} ${giornoMese(g)}`, cx, y + 16, { align: 'center' })
     })
-    pdf.text('Giorni', m + wDip + wDay * 7 + wTot / 2, y + 16, { align: 'center' })
+    pdf.text('Ore', m + wDip + wDay * 7 + wTot / 2, y + 16, { align: 'center' })
     return y + rowH + 6
   }
 
@@ -75,11 +77,12 @@ export async function scaricaTurnoPdf(p: PubblicazioneTurno, struttura?: string)
       let tot = 0
       giorni.forEach((g, i) => {
         const cx = m + wDip + wDay * i + wDay / 2
-        const inTurno = (p.assegnazioni[g] ?? []).includes(d.id)
+        const t = turnoDel(p.assegnazioni, p.turni ?? {}, g, d.id, catalogo)
         const a = assenzaDi(richieste, d.id, g)
-        if (inTurno) {
-          tot++
-          pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...rgb(NAVY)); pdf.text('In turno', cx, y + 14, { align: 'center' })
+        if (t) {
+          tot += oreTurno(t)
+          pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...rgb(NAVY))
+          pdf.text(`${t.sigla} ${t.inizio}-${t.fine2 ?? t.fine}`, cx, y + 14, { align: 'center' })
         } else if (a && !a.inAttesa) {
           pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...rgb(AMBER)); pdf.text(a.tipo, cx, y + 14, { align: 'center' })
         } else {
@@ -87,7 +90,7 @@ export async function scaricaTurnoPdf(p: PubblicazioneTurno, struttura?: string)
         }
       })
       pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...rgb(INK))
-      pdf.text(String(tot), m + wDip + wDay * 7 + wTot / 2, y + 14, { align: 'center' })
+      pdf.text(`${fmtOre(Math.round(tot * 10) / 10)} h`, m + wDip + wDay * 7 + wTot / 2, y + 14, { align: 'center' })
       y += rowH
     }
   }

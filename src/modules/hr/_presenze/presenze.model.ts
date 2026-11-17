@@ -6,6 +6,8 @@
 //  Vista giornaliera (timeline 24h) e vista dettagliata (mese per dipendente)
 //  leggono le stesse funzioni: una modifica si vede in entrambe.
 
+
+import { turnoPianificato } from '../../../store/useTurniPersonaleStore'
 export type SegmentoTipo = 'presente' | 'assenza' | 'permesso' | 'ferie' | 'pausa'
 
 export interface SegmentoPresenza {
@@ -61,7 +63,11 @@ export const giornataStandard = (): SegmentoPresenza[] => [
 ]
 
 /** Turno previsto del giorno (mock deterministico): mattina 7–16 o pomeriggio 13–22, domenica riposo. */
-export function turnoPrevisto(dipId: number, d: Date): { inizio: number; fine: number } | null {
+export function turnoPrevisto(dipId: number, d: Date): { inizio: number; fine: number; stacco?: { da: number; a: number } } | null {
+  // Settimana pianificata in Turni del personale: vale il turno assegnato
+  // (orario atteso per timbrature e ritardi); altrimenti il turno simulato.
+  const pianificato = turnoPianificato(dipId, isoDi(d))
+  if (pianificato !== undefined) return pianificato
   if (d.getDay() === 0) return null
   const seed = (dipId * 7 + d.getDate() * 3 + d.getMonth()) % 14
   const mattina = seed % 2 === 0
@@ -83,11 +89,12 @@ export function segmentiGiorno(dipId: number, d: Date): SegmentoPresenza[] {
   // Qualche minuto di anticipo o ritardo, e ogni tanto un'ora di straordinario a fine turno.
   const ingresso = turno.inizio + scarto(s0, 6) + ritardoDi(dipId, d)
   const uscita = turno.fine + scarto(s0 + 1, 5) + (seed === 9 ? 75 : 0)
-  const pausa = turno.inizio + 5 * 60
+  // Turno spezzato: lo stacco fra le due fasce prende il posto della pausa.
+  const pausa = turno.stacco ? { da: turno.stacco.da, a: turno.stacco.a } : { da: turno.inizio + 5 * 60, a: turno.inizio + 6 * 60 }
   return [
-    { tipo: 'presente', start_min: ingresso,   end_min: pausa },
-    { tipo: 'pausa',    start_min: pausa,      end_min: pausa + 60 },
-    { tipo: 'presente', start_min: pausa + 60, end_min: uscita },
+    { tipo: 'presente', start_min: ingresso, end_min: pausa.da },
+    { tipo: 'pausa',    start_min: pausa.da, end_min: pausa.a },
+    { tipo: 'presente', start_min: pausa.a,  end_min: uscita },
   ]
 }
 

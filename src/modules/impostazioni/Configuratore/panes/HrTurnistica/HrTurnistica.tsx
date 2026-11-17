@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { InputField, ToggleSwitch, DatePickerField, TextareaField } from '../../../../../core/components/form'
+import { InputField, ToggleSwitch, DatePickerField, TextareaField, SelectField, RadioGroup } from '../../../../../core/components/form'
 import TruncatedText from '../../../../../core/components/TruncatedText'
 import Tooltip from '../../../../../core/components/Tooltip'
 import { CfgToolbar, CfgTable, CfgSaveBar, CfgMultiSelect } from '../../../../../core/cfg'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import {
-  useHrConfigStore, nuovoId, oreTurno, turnoNotturno, RIPOSO,
-  type TurnoHr, type SchemaTurniHr,
+  useHrConfigStore, nuovoId, oreTurno, turnoNotturno, RIPOSO, FASCE_ID, GIORNI_SETTIMANA, fabbisognoVuoto,
+  type TurnoHr, type SchemaTurniHr, type PianificazioneTurniHr, type FabbisognoRepartoHr, type FasciaId, type RepartoHr,
 } from '../../../../../store/useHrConfigStore'
 import { useHrDraft, diffCount } from '../_hr/useHrDraft'
 import HrFormModal from '../_hr/HrFormModal'
@@ -18,17 +18,44 @@ import './HrTurnistica.sass'
 //  1) Turni di servizio: sigla, fasce (anche spezzate), pausa, colore e reparti
 //     in cui si usano; notturno riconosciuto da solo (almeno 3 ore tra le 22 e le 6,
 //     sommando le due fasce del turno spezzato).
-//  2) Schemi di rotazione: la sequenza ciclica di turni e riposi assegnabile
+//  2) Regole di pianificazione, lette da HR › Turni del personale:
+//     - fasce di copertura (Mattina/Pomeriggio/Notte) su cui si misura la
+//       copertura del giorno, e ore minime in fascia perché un turno la copra;
+//     - riposo minimo fra due turni (11 h) e tolleranza sul monte ore;
+//     - fabbisogno per reparto: persone per fascia, minimo fisso o che segue
+//       l'occupazione (rinforzo oltre una soglia), giorni senza fabbisogno e
+//       turno proposto quando si trascina un dipendente del reparto.
+//  3) Schemi di rotazione: la sequenza ciclica di turni e riposi assegnabile
 //     al dipendente in Crea anagrafica (es. ciclo continuo M-M-P-P-N-N-R-R).
 
-interface Turnistica { turni: TurnoHr[]; schemi: SchemaTurniHr[] }
+interface Turnistica { turni: TurnoHr[]; schemi: SchemaTurniHr[]; pianificazione: PianificazioneTurniHr }
 
 const turnoVuoto = (): TurnoHr => ({ id: '', sigla: '', nome: '', inizio: '08:00', fine: '16:00', pausaMin: 30, colore: 1, reparti: [] })
 const schemaVuoto = (): SchemaTurniHr => ({ id: '', nome: '', descrizione: '', sequenza: [] })
-const countT = (a: Turnistica, b: Turnistica) => diffCount(a.turni, b.turni) + diffCount(a.schemi, b.schemi)
+const countP = (a: PianificazioneTurniHr, b: PianificazioneTurniHr) => {
+  const { fabbisogni: fa, ...ra } = a
+  const { fabbisogni: fb, ...rb } = b
+  return diffCount(fa, fb) + (JSON.stringify(ra) === JSON.stringify(rb) ? 0 : 1)
+}
+const countT = (a: Turnistica, b: Turnistica) => diffCount(a.turni, b.turni) + diffCount(a.schemi, b.schemi) + countP(a.pianificazione, b.pianificazione)
 const completion = (v: Turnistica) => (v.turni.length && v.schemi.length ? 'configured' as const : v.turni.length ? 'partial' as const : 'empty' as const)
 const fmtOre = (h: number) => (Number.isInteger(h) ? `${h}` : h.toFixed(1).replace('.', ','))
+const GIORNI_LUNGHI = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
+const perFascia = (p: Record<FasciaId, number>, attive: FasciaId[]) =>
+  attive.map(f => `${f} ${p[f] ?? 0}`).join(' · ')
+const turnoValido = (t: TurnoHr, repId: string) => !t.reparti.length || t.reparti.includes(repId)
 const fasce = (t: TurnoHr) => `${t.inizio}–${t.fine}${t.inizio2 && t.fine2 ? ` / ${t.inizio2}–${t.fine2}` : ''}`
+
+const hhmm = (x: string) => { const m = x.match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1]) * 60 + Number(m[2]) : 0 }
+/** Il turno lavora almeno `minOre` dentro la fascia (fasce e turni possono passare la mezzanotte). */
+function coperta(t: TurnoHr, f: { inizio: string; fine: string }, minOre: number) {
+  const iv = (a: string, b: string): [number, number] => { const x = hhmm(a), y = hhmm(b); return [x, y <= x ? y + 1440 : y] }
+  const turno = [iv(t.inizio, t.fine), ...(t.inizio2 && t.fine2 ? [iv(t.inizio2, t.fine2)] : [])]
+  const fa = iv(f.inizio, f.fine)
+  const ov = (a: [number, number], b: [number, number]) => Math.max(0, Math.min(a[1], b[1]) - Math.max(a[0], b[0]))
+  const tot = turno.reduce((s, x) => s + ov(x, fa) + ov(x, [fa[0] - 1440, fa[1] - 1440]) + ov(x, [fa[0] + 1440, fa[1] + 1440]), 0)
+  return tot >= minOre * 60
+}
 
 function TurnoChip({ turno, small }: { turno?: TurnoHr; small?: boolean }) {
   const cls = `cfg-hrtur__chip${small ? ' cfg-hrtur__chip--sm' : ''}`
@@ -39,16 +66,32 @@ function TurnoChip({ turno, small }: { turno?: TurnoHr; small?: boolean }) {
 export default function HrTurnistica() {
   const turni = useHrConfigStore(s => s.turni)
   const schemi = useHrConfigStore(s => s.schemi)
+  const pianificazione = useHrConfigStore(s => s.pianificazione)
   const reparti = useHrConfigStore(s => s.reparti)
   const setTurnistica = useHrConfigStore(s => s.setTurnistica)
   const confirm = useConfirmStore(s => s.confirm)
 
-  const saved = useMemo(() => ({ turni, schemi }), [turni, schemi])
-  const commit = useCallback((v: Turnistica) => setTurnistica(v.turni, v.schemi), [setTurnistica])
+  const saved = useMemo(() => ({ turni, schemi, pianificazione }), [turni, schemi, pianificazione])
+  const commit = useCallback((v: Turnistica) => setTurnistica(v.turni, v.schemi, v.pianificazione), [setTurnistica])
   const { draft, setDraft, dirty, save, cancel } = useHrDraft('hr-turnistica', saved, countT, commit, completion)
 
   const [turno, setTurno] = useState<(TurnoHr & { spezzato: boolean }) | null>(null)
   const [schema, setSchema] = useState<SchemaTurniHr | null>(null)
+  const [regola, setRegola] = useState<FabbisognoRepartoHr | null>(null)
+  const pian = draft.pianificazione
+  const setPian = (p: Partial<PianificazioneTurniHr>) => setDraft(d => ({ ...d, pianificazione: { ...d.pianificazione, ...p } }))
+  const fasceAttive = pian.fasce.filter(f => f.attiva).map(f => f.id)
+  const regolaDi = (r: RepartoHr) => pian.fabbisogni.find(f => f.id === r.id) ?? fabbisognoVuoto(r.id)
+  const setFascia = (id: FasciaId, patch: Partial<PianificazioneTurniHr['fasce'][number]>) =>
+    setPian({ fasce: pian.fasce.map(f => (f.id === id ? { ...f, ...patch } : f)) })
+  const salvaRegola = () => {
+    if (!regola) return
+    const r = { ...regola, giorniChiusura: [...regola.giorniChiusura].sort((a, b) => a - b) }
+    setPian({ fabbisogni: pian.fabbisogni.some(f => f.id === r.id) ? pian.fabbisogni.map(f => (f.id === r.id ? r : f)) : [...pian.fabbisogni, r] })
+    setRegola(null)
+  }
+  const setReg = <K extends keyof FabbisognoRepartoHr>(k: K, v: FabbisognoRepartoHr[K]) => setRegola(f => (f ? { ...f, [k]: v } : f))
+  const setPers = (k: 'base' | 'rinforzo', f: FasciaId, n: number) => setRegola(r => (r ? { ...r, [k]: { ...r[k], [f]: Math.max(0, Math.min(20, n || 0)) } } : r))
   const setT = <K extends keyof TurnoHr | 'spezzato'>(k: K, v: any) => setTurno(f => (f ? { ...f, [k]: v } : f))
   const turnoById = (id: string) => draft.turni.find(t => t.id === id)
   const nomeReparto = (id: string) => reparti.find(r => r.id === id)?.nome ?? id
@@ -79,6 +122,8 @@ export default function HrTurnistica() {
     if (ok) setDraft(d => ({
       turni: d.turni.filter(x => x.id !== t.id),
       schemi: d.schemi.map(s => (s.sequenza.includes(t.id) ? { ...s, sequenza: s.sequenza.filter(x => x !== t.id) } : s)),
+      // Il turno non è più proposto come predefinito: Turni del personale userà il primo valido.
+      pianificazione: { ...d.pianificazione, fabbisogni: d.pianificazione.fabbisogni.map(f => (f.turnoPredefinito === t.id ? { ...f, turnoPredefinito: undefined } : f)) },
     }))
   }
   const eliminaSchema = async (s: SchemaTurniHr) => {
@@ -130,6 +175,108 @@ export default function HrTurnistica() {
               </td>
             </tr>
           ))}
+        </CfgTable>
+      </section>
+
+      {/* ── Regole di pianificazione (Turni del personale) ────────────────── */}
+      <section className="cfg-hrtur__section">
+        <CfgToolbar>
+          <div>
+            <h3 className="cfg-hrtur__title">Regole di pianificazione</h3>
+            <p className="cfg-hrtur__desc">Le usa Turni del personale per misurare la copertura per fascia, controllare ore e riposi e proporre il turno con Sibylla.</p>
+          </div>
+        </CfgToolbar>
+        <div className="cfg-hrtur__params">
+          <InputField name="pian-riposo" label="Riposo minimo fra due turni (ore)" type="number" min={0} max={24} step={0.5}
+            value={pian.riposoMinOre} onChange={(e) => setPian({ riposoMinOre: Math.max(0, Number(e.target.value) || 0) })}
+            hint="11 h per legge (D.Lgs. 66/2003): sotto la soglia il turno viene segnalato." />
+          <InputField name="pian-copertura" label="Ore minime per coprire una fascia" type="number" min={1} max={8} step={0.5}
+            value={pian.coperturaMinOre} onChange={(e) => setPian({ coperturaMinOre: Math.max(0.5, Number(e.target.value) || 0) })}
+            hint="Un turno conta nella fascia se ci lavora almeno queste ore (lo spezzato può coprirne due)." />
+          <InputField name="pian-tolleranza" label="Tolleranza sul monte ore (ore)" type="number" min={0} max={20} step={0.5}
+            value={pian.tolleranzaSottoOre} onChange={(e) => setPian({ tolleranzaSottoOre: Math.max(0, Number(e.target.value) || 0) })}
+            hint="Sotto le ore da contratto meno la tolleranza, il dipendente risulta da completare." />
+        </div>
+
+        <span className="hrcfg-modal__label">Fasce di copertura</span>
+        <CfgTable
+          columns={[
+            { key: 'sigla', label: 'Sigla', width: '8%' },
+            { key: 'nome', label: 'Fascia', width: '22%' },
+            { key: 'inizio', label: 'Inizio', width: '17%' },
+            { key: 'fine', label: 'Fine', width: '17%' },
+            { key: 'turni', label: 'Turni che la coprono', width: '24%' },
+            { key: 'attiva', label: 'Attiva', width: '12%', align: 'right' },
+          ]}
+        >
+          {pian.fasce.map(f => {
+            const copre = draft.turni.filter(t => coperta(t, f, pian.coperturaMinOre))
+            return (
+              <tr key={f.id} className={f.attiva ? undefined : 'cfg-hrtur__row--off'}>
+                <td><span className="cfg-hrtur__fascia">{f.id}</span></td>
+                <td><InputField name={`fascia-nome-${f.id}`} ariaLabel={`Nome fascia ${f.id}`} value={f.nome} onChange={(e) => setFascia(f.id, { nome: e.target.value })} /></td>
+                <td><DatePickerField name={`fascia-in-${f.id}`} type="time" value={f.inizio} onChange={(e) => setFascia(f.id, { inizio: e.target.value })} /></td>
+                <td><DatePickerField name={`fascia-out-${f.id}`} type="time" value={f.fine} onChange={(e) => setFascia(f.id, { fine: e.target.value })} /></td>
+                <td>
+                  <span className="cfg-hrtur__seq">
+                    {copre.length ? copre.map(t => <Tooltip key={t.id} text={`${t.nome} ${fasce(t)}`}><span><TurnoChip turno={t} small /></span></Tooltip>) : <span className="cfg-hrtur__desc">Nessun turno</span>}
+                  </span>
+                </td>
+                <td className="cfg-hrtur__actions">
+                  <ToggleSwitch checked={f.attiva} onChange={(v) => setFascia(f.id, { attiva: v })} />
+                </td>
+              </tr>
+            )
+          })}
+        </CfgTable>
+
+        <span className="hrcfg-modal__label">Fabbisogno per reparto</span>
+        <CfgTable
+          columns={[
+            { key: 'reparto', label: 'Reparto', width: '17%' },
+            { key: 'calcolo', label: 'Calcolo', width: '15%' },
+            { key: 'predef', label: 'Turno proposto', width: '13%' },
+            { key: 'base', label: 'Persone per fascia', width: '16%' },
+            { key: 'rinforzo', label: 'Rinforzo', width: '18%' },
+            { key: 'chiuso', label: 'Senza fabbisogno', width: '13%' },
+            { key: 'azioni', label: 'Azioni', width: '8%', align: 'right' },
+          ]}
+        >
+          {reparti.filter(r => r.attivo).map(r => {
+            const reg = regolaDi(r)
+            const pred = turnoById(reg.turnoPredefinito ?? '')
+            const predValido = pred && turnoValido(pred, r.id)
+            return (
+              <tr key={r.id}>
+                <td><TruncatedText text={r.nome} className="cfg-hrtur__name" /></td>
+                <td>
+                  {reg.modalita === 'occupazione'
+                    ? <span className="cfg-hrtur__tag"><i className="fa-solid fa-chart-line" aria-hidden="true" /> Segue l'occupazione</span>
+                    : <span className="cfg-hrtur__tag cfg-hrtur__tag--fisso"><i className="fa-solid fa-equals" aria-hidden="true" /> Minimo fisso</span>}
+                </td>
+                <td>
+                  {predValido
+                    ? <Tooltip text={`${pred!.nome} ${fasce(pred!)}`}><span className="cfg-hrtur__pred"><TurnoChip turno={pred} small /><TruncatedText text={pred!.nome} /></span></Tooltip>
+                    : <span className="cfg-hrtur__desc">Primo turno valido</span>}
+                </td>
+                <td><TruncatedText text={perFascia(reg.base, fasceAttive)} /></td>
+                <td>
+                  <TruncatedText text={reg.modalita === 'occupazione' && FASCE_ID.some(f => reg.rinforzo[f])
+                    ? `da ${reg.sogliaOccupazione}%: ${fasceAttive.filter(f => reg.rinforzo[f]).map(f => `+${reg.rinforzo[f]} ${f}`).join(', ')}`
+                    : '—'} />
+                </td>
+                <td><TruncatedText text={reg.giorniChiusura.length ? reg.giorniChiusura.map(g => GIORNI_SETTIMANA[g]).join(', ') : 'Nessuno'} /></td>
+                <td className="cfg-hrtur__actions">
+                  <Tooltip text="Modifica il fabbisogno">
+                    <button type="button" className="sib-btn sib-btn--icon cfg-hrtur__edit" aria-label={`Modifica il fabbisogno di ${r.nome}`}
+                      onClick={() => setRegola({ ...reg, base: { ...reg.base }, rinforzo: { ...reg.rinforzo }, giorniChiusura: [...reg.giorniChiusura] })}>
+                      <i className="fa-solid fa-pen" aria-hidden="true" />
+                    </button>
+                  </Tooltip>
+                </td>
+              </tr>
+            )
+          })}
         </CfgTable>
       </section>
 
@@ -266,6 +413,77 @@ export default function HrTurnistica() {
             </div>
           </>
         )}
+      </HrFormModal>
+      {/* ── Modale fabbisogno del reparto ─────────────────────────────────── */}
+      <HrFormModal
+        open={regola !== null}
+        size="lg"
+        title={`Fabbisogno · ${reparti.find(r => r.id === regola?.id)?.nome ?? ''}`}
+        onClose={() => setRegola(null)}
+        onSubmit={salvaRegola}
+        submitLabel="Applica"
+        canSubmit
+      >
+        {regola && (() => {
+          const validi = draft.turni.filter(t => turnoValido(t, regola.id))
+          const esempio = (occ: number) => fasceAttive.map(f => `${f} ${(regola.base[f] ?? 0) + (regola.modalita === 'occupazione' && occ >= regola.sogliaOccupazione ? regola.rinforzo[f] ?? 0 : 0)}`).join(' · ')
+          return (
+            <>
+              <RadioGroup name="reg-modalita" label="Come si calcola" value={regola.modalita}
+                onChange={(v) => setReg('modalita', v as FabbisognoRepartoHr['modalita'])}
+                options={[
+                  { value: 'occupazione', label: 'Segue l’occupazione (housekeeping, ricevimento, ristorazione)' },
+                  { value: 'fisso', label: 'Minimo fisso (manutenzione, amministrazione, magazzino)' },
+                ]} />
+              <SelectField name="reg-predef" label="Turno proposto quando si trascina un dipendente del reparto"
+                value={regola.turnoPredefinito && validi.some(t => t.id === regola.turnoPredefinito) ? regola.turnoPredefinito : ''}
+                onChange={(e) => setReg('turnoPredefinito', e.target.value || undefined)}
+                options={[{ value: '', label: validi.length ? `Primo valido (${validi[0].nome})` : 'Nessun turno valido per il reparto' }, ...validi.map(t => ({ value: t.id, label: `${t.sigla} · ${t.nome} ${fasce(t)}` }))]} />
+              <div>
+                <span className="hrcfg-modal__label">Persone sempre necessarie per fascia</span>
+                <div className="cfg-hrtur__pers">
+                  {pian.fasce.filter(f => f.attiva).map(f => (
+                    <InputField key={f.id} name={`reg-base-${f.id}`} label={`${f.id} · ${f.nome}`} type="number" min={0} max={20}
+                      value={regola.base[f.id] ?? 0} onChange={(e) => setPers('base', f.id, Number(e.target.value))} />
+                  ))}
+                </div>
+              </div>
+              {regola.modalita === 'occupazione' && (
+                <div>
+                  <span className="hrcfg-modal__label">Rinforzo quando l'occupazione è alta</span>
+                  <div className="cfg-hrtur__pers">
+                    <InputField name="reg-soglia" label="Da occupazione (%)" type="number" min={0} max={100} step={5}
+                      value={regola.sogliaOccupazione} onChange={(e) => setReg('sogliaOccupazione', Math.max(0, Math.min(100, Number(e.target.value) || 0)))} />
+                    {pian.fasce.filter(f => f.attiva).map(f => (
+                      <InputField key={f.id} name={`reg-rinf-${f.id}`} label={`+ persone ${f.id}`} type="number" min={0} max={20}
+                        value={regola.rinforzo[f.id] ?? 0} onChange={(e) => setPers('rinforzo', f.id, Number(e.target.value))} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div>
+                <span className="hrcfg-modal__label">Giorni senza fabbisogno (reparto chiuso)</span>
+                <div className="cfg-hrtur__giorni">
+                  {GIORNI_SETTIMANA.map((g, i) => {
+                    const on = regola.giorniChiusura.includes(i)
+                    return (
+                      <Tooltip key={g} text={`${GIORNI_LUNGHI[i]}: ${on ? 'chiuso, nessuna copertura richiesta' : 'aperto'}`}>
+                        <button type="button" aria-pressed={on} className={`cfg-hrtur__giorno${on ? ' cfg-hrtur__giorno--on' : ''}`}
+                          onClick={() => setReg('giorniChiusura', on ? regola.giorniChiusura.filter(x => x !== i) : [...regola.giorniChiusura, i])}>
+                          {g}
+                        </button>
+                      </Tooltip>
+                    )
+                  })}
+                </div>
+              </div>
+              <p className="hrcfg-modal__hint">
+                Copertura richiesta nei giorni aperti: <strong>{esempio(0)}</strong>
+                {regola.modalita === 'occupazione' && <> · con occupazione da {regola.sogliaOccupazione}%: <strong>{esempio(100)}</strong></>}
+              </p>
+            </>
+          )
+        })()}
       </HrFormModal>
     </div>
   )

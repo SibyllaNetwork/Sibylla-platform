@@ -165,3 +165,95 @@
 
   &__builder .cfg-hrtur__clear
     align-self: flex-start
+
+  // ── Regole di pianificazione ───────────────────────────────────────────────
+  &__params
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 14px
+
+  &__fascia
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 28px
+    height: 24px
+    border: 1px solid $border
+    border-radius: $radius-sm
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+
+  &__row--off td
+    opacity: .55
+
+  // Calcolo del fabbisogno: icona + testo colorato (niente pillola)
+  &__tag
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    white-space: nowrap
+
+    &--fisso
+      color: $text-inactive
+
+  // Icona azione in tabella: blu Platform, 16px, senza bordo (standard tabelle)
+  &__edit i
+    font-size: 16px
+    color: var(--color-primary)
+
+  &__pers
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 10px
+    margin-top: 6px
+
+  &__giorni
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+    margin-top: 6px
+
+  &__giorno
+    min-width: 46px
+    height: 30px
+    padding: 0 10px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: var(--color-surface)
+    font-family: $font-body
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+    cursor: pointer
+    transition: border-color $motion-fast $motion-ease, background $motion-fast $motion-ease
+
+    &:hover
+      border-color: $primary-300
+
+    &--on
+      border-color: $warning
+      background: $warning-light
+      color: $text-active
+
+@container (max-width: 900px)
+  .cfg-hrtur__params
+    grid-template-columns: 1fr
+
+.cfg-hrtur__pred
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  max-width: 100%
+  min-width: 0
+  vertical-align: middle
+
+  > :last-child
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap

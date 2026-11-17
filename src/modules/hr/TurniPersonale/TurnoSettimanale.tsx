@@ -2,8 +2,9 @@ import React from 'react'
 import clsx from 'clsx'
 import TruncatedText from '../../../core/components/TruncatedText'
 import { DIPENDENTI_HR, REPARTI_HR, useHrGestioneStore } from '../../../store/useHrGestioneStore'
+import { oreTurno, useHrConfigStore } from '../../../store/useHrConfigStore'
 import {
-  GIORNI_BREVI, assenzaDi, giorniSettimana, giornoMese, type Assegnazioni,
+  GIORNI_BREVI, assenzaDi, fmtOre, giorniSettimana, giornoMese, orarioTurno, turnoDel, type Assegnazioni, type TurniAssegnati,
 } from '../../../store/useTurniPersonaleStore'
 import './TurnoSettimanale.sass'
 
@@ -11,9 +12,11 @@ import './TurnoSettimanale.sass'
  * Turno settimanale in sola lettura: dipendenti per reparto × giorni.
  * È la "visualizzazione digitale" aperta dal pulsante "Visualizza turno" della
  * notifica che ricevono i dipendenti (nessun download: il PDF ha il suo pulsante).
+ * Ogni casella mostra il turno (sigla e orario); in fondo le ore della settimana.
  */
-export default function TurnoSettimanale({ lunedi, assegnazioni }: { lunedi: string; assegnazioni: Assegnazioni }) {
+export default function TurnoSettimanale({ lunedi, assegnazioni, turni = {} }: { lunedi: string; assegnazioni: Assegnazioni; turni?: TurniAssegnati }) {
   const richieste = useHrGestioneStore(s => s.richieste)
+  const catalogo = useHrConfigStore(s => s.turni)
   const giorni = giorniSettimana(lunedi)
 
   return (
@@ -33,7 +36,7 @@ export default function TurnoSettimanale({ lunedi, assegnazioni }: { lunedi: str
                 <span className="tsv__dm">{giornoMese(g)}</span>
               </th>
             ))}
-            <th className="tsv__c">Giorni</th>
+            <th className="tsv__c">Ore</th>
           </tr>
         </thead>
         <tbody>
@@ -43,21 +46,23 @@ export default function TurnoSettimanale({ lunedi, assegnazioni }: { lunedi: str
               <React.Fragment key={rep}>
                 <tr className="tsv__group"><td colSpan={9}>{rep}</td></tr>
                 {staff.map(d => {
-                  const tot = giorni.filter(g => (assegnazioni[g] ?? []).includes(d.id)).length
+                  const tot = giorni.reduce((n, g) => { const t = turnoDel(assegnazioni, turni, g, d.id, catalogo); return n + (t ? oreTurno(t) : 0) }, 0)
                   return (
                     <tr key={d.id}>
                       <td><TruncatedText text={`${d.nome} ${d.cognome}`} className="tsv__name" /></td>
                       {giorni.map(g => {
-                        const inTurno = (assegnazioni[g] ?? []).includes(d.id)
+                        const t = turnoDel(assegnazioni, turni, g, d.id, catalogo)
                         const a = assenzaDi(richieste, d.id, g)
                         const assente = a && !a.inAttesa
                         return (
-                          <td key={g} className={clsx('tsv__c', inTurno && 'tsv__on', !inTurno && assente && 'tsv__abs')}>
-                            {inTurno ? <i className="fa-solid fa-check" aria-label="In turno" /> : assente ? a!.tipo : <span className="tsv__riposo">Riposo</span>}
+                          <td key={g} className={clsx('tsv__c', t && 'tsv__on', !t && assente && 'tsv__abs')}>
+                            {t
+                              ? <><span className="tsv__sigla" data-col={t.colore}>{t.sigla}</span><TruncatedText text={orarioTurno(t)} className="tsv__orario" /></>
+                              : assente ? a!.tipo : <span className="tsv__riposo">Riposo</span>}
                           </td>
                         )
                       })}
-                      <td className="tsv__c tsv__tot">{tot}</td>
+                      <td className="tsv__c tsv__tot">{fmtOre(Math.round(tot * 10) / 10)} h</td>
                     </tr>
                   )
                 })}

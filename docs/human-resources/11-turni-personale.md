@@ -2,6 +2,8 @@
 
 Scheda di riproduzione della pagina **Turni del personale** di Human Resources. Segue `_SCHEMA.md`. Componenti condivisi (PageHead, SelectField, SearchField, Tooltip, TruncatedText, Modal, ConfirmDialog/useConfirmStore, toast, `.sib-btn`, `.sib-table`) e token sono descritti in `00-fondamenta.md`; entità trasversali (dipendenti, reparti, richieste di assenza) in `01-modello-dati-e-api.md`. Qui c'è tutto ciò che è specifico della pagina.
 
+
+> **Aggiornamento 17/11/2026:** la pagina è stata rifatta (turno per assegnazione, ore e riposi, copertura per reparto e fascia, stati di pubblicazione, giorni passati). Dove differisce, vale **[17-turni-e-turnistica-v2.md](17-turni-e-turnistica-v2.md)**.
 ---
 
 ## 1. Scopo e utenti

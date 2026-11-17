@@ -1242,6 +1242,8 @@ Copia su… e piede:
 
 ## B.3 · Turnistica (`hr-turnistica`)
 
+> **Aggiornamento 17/11/2026:** la scheda ha una nuova sezione «Regole di pianificazione» (fasce di copertura, fabbisogno per reparto, riposo minimo, tolleranza), 11 turni e 6 schemi standard da hotel, e il PUT comprende `pianificazione`. Vale **[17-turni-e-turnistica-v2.md](17-turni-e-turnistica-v2.md) § 2**.
+
 ### B.3.1 Scopo e utenti
 
 La scheda ha due parti:

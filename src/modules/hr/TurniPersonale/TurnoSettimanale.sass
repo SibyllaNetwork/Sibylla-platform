@@ -11,11 +11,11 @@
   +table-fit
 
 .tsv__col-dip
-  width: 23%
+  width: 20%
 .tsv__col-day
-  width: 10%
+  width: 10.5%
 .tsv__col-tot
-  width: 7%
+  width: 6.5%
 
 // Due classi: a pari specificità vincerebbe l'allineamento di .sib-table th/td.
 .tsv .tsv__c
@@ -43,8 +43,31 @@
   min-width: 0
 
 .tsv .tsv__on
-  color: var(--color-primary)
-  font-size: 16px
+  color: $text-active
+  font-size: 11px
+
+.tsv__sigla
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  min-width: 18px
+  height: 18px
+  padding: 0 3px
+  border-radius: 4px
+  background: $text-disabled
+  color: #fff
+  font-family: $font-heading
+  font-size: 10px
+  font-weight: 800
+
+  @for $i from 1 through 8
+    &[data-col="#{$i}"]
+      background: var(--chart-#{$i})
+
+.tsv__orario
+  display: block
+  min-width: 0
+  margin-top: 2px
 
 .tsv .tsv__abs
   color: $warning

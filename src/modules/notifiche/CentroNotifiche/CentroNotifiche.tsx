@@ -15,7 +15,7 @@ import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useNotifPrefsStore } from '../../../store/useNotifPrefsStore'
 import { toast } from '../../../core/components/Toast/useToast'
 import { exportReportPickupPdf } from './reportPickupPdf'
-import { useHrGestioneStore } from '../../../store/useHrGestioneStore'
+import { useHrGestioneStore, nomeDipendente, isoOf as isoOfHr } from '../../../store/useHrGestioneStore'
 import { useAvvisiRitardoOggi, testoAvvisoRitardo } from '../../hr/_presenze/avvisiRitardo'
 import { minToHHMM } from '../../hr/_presenze/presenze.model'
 import {
@@ -421,8 +421,10 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
       return {
         id: 945000 + i,
         sev: 'info' as const,
-        title: 'Turno settimanale pubblicato',
-        text: `È disponibile il turno della settimana ${etichettaSettimana(p.lunedi)}: scaricalo in PDF o visualizzalo online.`,
+        title: p.aggiornamento ? 'Turno settimanale aggiornato' : 'Turno settimanale pubblicato',
+        text: p.aggiornamento
+          ? `Il turno della settimana ${etichettaSettimana(p.lunedi)} è cambiato per ${p.destinatari} ${p.destinatari === 1 ? 'dipendente' : 'dipendenti'}${p.coinvolti?.length ? ` (${p.coinvolti.map(nomeDipendente).join(', ')})` : ''}: scaricalo in PDF o visualizzalo online.`
+          : `È disponibile il turno della settimana ${etichettaSettimana(p.lunedi)}: scaricalo in PDF o visualizzalo online.`,
         ref: '',
         date: `${WEEKDAYS[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MONTHS[d.getMonth()]}`,
         time: d.toTimeString().slice(0, 5),
@@ -449,6 +451,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   const applicaSuggerimentoTurni = useTurniPersonaleStore((s) => s.applicaSuggerimento)
   const setFocusTurni = useTurniPersonaleStore((s) => s.setFocus)
   const assegnazioniTurni = useTurniPersonaleStore((s) => s.assegnazioni)
+  const turniAssegnatiTurni = useTurniPersonaleStore((s) => s.turni)
   const [turnoVistaId, setTurnoVistaId] = useState<string | null>(null)
   const apriTurni = (lunedi: string) => { setFocusTurni(lunedi); navigate('turni-personale') }
   const applicaTurni = async (lunedi: string) => {
@@ -461,7 +464,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
       })
       if (!ok) return
     }
-    applicaSuggerimentoTurni(suggerisciTurni(lunedi, richiesteHr))
+    applicaSuggerimentoTurni(suggerisciTurni(lunedi, richiesteHr, { esistenti: { assegnazioni: assegnazioniTurni, turni: turniAssegnatiTurni }, daGiorno: isoOfHr(new Date()) }))
     toast.success(`Turno della settimana ${etichettaSettimana(lunedi)} generato da Sibylla.`, 'Turni del personale')
     apriTurni(lunedi)
   }
@@ -705,7 +708,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                       <div className="notifiche__detail-list-row"><dt>Settimana</dt><dd>{etichettaSettimana(lun)}</dd></div>
                       <div className="notifiche__detail-list-row"><dt>Occupazione media</dt><dd>{sg.occupazioneMedia}%</dd></div>
                       <div className="notifiche__detail-list-row"><dt>Picco</dt><dd>{GIORNI_LUNGHI[giorniSettimana(lun).indexOf(sg.picco.iso)]} {giornoMese(sg.picco.iso)} · {sg.picco.occ}%</dd></div>
-                      <div className="notifiche__detail-list-row"><dt>Turni proposti</dt><dd>{sg.turni} su {sg.fabbisognoTot} necessari</dd></div>
+                      <div className="notifiche__detail-list-row"><dt>Turni proposti</dt><dd>{sg.turni} · fasce coperte {sg.fasceCoperte} su {sg.fasceTot}</dd></div>
                       <div className="notifiche__detail-list-row"><dt>Assenze considerate</dt><dd>{sg.assenzeConsiderate.length}</dd></div>
                     </dl>
                     <ul className="notifiche__detail-notes">
@@ -731,7 +734,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                     <dl className="notifiche__detail-list">
                       <div className="notifiche__detail-list-row"><dt>Settimana</dt><dd>{etichettaSettimana(p.lunedi)}</dd></div>
                       <div className="notifiche__detail-list-row"><dt>Pubblicato il</dt><dd>{at.toLocaleDateString('it-IT')} · {at.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</dd></div>
-                      <div className="notifiche__detail-list-row"><dt>Dipendenti in turno</dt><dd>{p.destinatari}</dd></div>
+                      <div className="notifiche__detail-list-row"><dt>{p.aggiornamento ? 'Dipendenti coinvolti' : 'Dipendenti in turno'}</dt><dd>{p.aggiornamento && p.coinvolti?.length ? p.coinvolti.map(nomeDipendente).join(', ') : p.destinatari}</dd></div>
                     </dl>
                     <div className="notifiche__detail-actions">
                       <button
@@ -925,7 +928,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
         const p = turnoVistaId ? pubblicazioniTurni.find(x => x.id === turnoVistaId) : null
         return (
           <Modal open={!!p} onClose={() => setTurnoVistaId(null)} title={p ? `Turno della settimana ${etichettaSettimana(p.lunedi)}` : ''} size="xl">
-            {p && <TurnoSettimanale lunedi={p.lunedi} assegnazioni={p.assegnazioni} />}
+            {p && <TurnoSettimanale lunedi={p.lunedi} assegnazioni={p.assegnazioni} turni={p.turni} />}
           </Modal>
         )
       })()}
