@@ -92,6 +92,29 @@ $reparti: (1: var(--chart-1), 2: var(--chart-2), 3: var(--chart-5), 4: var(--cha
   gap: 6px
   white-space: nowrap
 
+// ── Azioni (Piano ferie | Suggerimento, Pubblica) ──
+.tpe__actions
+  margin-left: auto
+  display: flex
+  align-items: center
+  gap: 8px
+
+.tpe__actions-sep
+  width: 1px
+  height: 24px
+  margin: 0 4px
+  background: $border
+
+// ── Vista + status bar sulla stessa riga ──
+.tpe__bar
+  display: flex
+  align-items: stretch
+  gap: 12px
+
+  .tpe__statusbar
+    flex: 1 1 auto
+    min-width: 0
+
 // ── Status bar ──
 .tpe__statusbar
   display: flex
@@ -1146,6 +1169,21 @@ $reparti: (1: var(--chart-1), 2: var(--chart-2), 3: var(--chart-5), 4: var(--cha
   gap: 8px
 
 // ── Responsività (container query sul root pagina) ──
+@container turni (max-width: 1240px)
+  .tpe__field
+    width: 170px
+
+    &--struttura
+      width: 190px
+
+  .tpe__btn--ferie
+    width: 34px
+    padding: 0
+    justify-content: center
+
+  .tpe__btn-txt
+    display: none
+
 @container turni (max-width: 1180px)
   .tpe__col-dip
     width: 17%
@@ -1169,6 +1207,10 @@ $reparti: (1: var(--chart-1), 2: var(--chart-2), 3: var(--chart-5), 4: var(--cha
     max-width: 140px
 
 @container turni (max-width: 900px)
+  .tpe__bar
+    flex-direction: column
+    align-items: flex-start
+
   .tpe__layout
     grid-template-columns: 1fr
 

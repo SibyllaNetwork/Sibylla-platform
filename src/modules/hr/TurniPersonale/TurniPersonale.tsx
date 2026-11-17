@@ -517,17 +517,6 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
       <PageHead
         title="Turni del personale"
         subtitle="Assegna a ogni dipendente il turno di ogni giorno, oppure fatti proporre la settimana da Sibylla"
-        actions={
-          <>
-            <VistaSwitch ariaLabel="Vista dei turni" value={vista} onChange={v => { setVista(v); setPicker(null) }} options={[
-              { value: 'giorni', label: 'Per giorno', icon: 'fa-calendar-week', hint: 'Copertura giorno per giorno' },
-              { value: 'dipendenti', label: 'Per dipendente', icon: 'fa-table-cells', hint: 'Settimana di ogni persona' },
-            ]} />
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('hr-piano-ferie')}>
-              <i className="fa-solid fa-calendar-days" aria-hidden="true" /> Piano ferie
-            </button>
-          </>
-        }
       />
 
       {/* ── Filtri e azioni ── */}
@@ -566,6 +555,13 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
 
         <div className="tpe__spacer" aria-hidden="true" />
 
+        <div className="tpe__actions">
+        <Tooltip text="Apri il Piano ferie">
+          <button type="button" className="sib-btn sib-btn--secondary tpe__btn tpe__btn--ferie" onClick={() => navigate('hr-piano-ferie')} aria-label="Piano ferie">
+            <i className="fa-solid fa-calendar-days" aria-hidden="true" /><span className="tpe__btn-txt">Piano ferie</span>
+          </button>
+        </Tooltip>
+        <span className="tpe__actions-sep" aria-hidden="true" />
         <button type="button" className="sib-btn sib-btn--secondary tpe__btn" onClick={apriSuggerimento}>
           <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" /> Suggerimento Sibylla
         </button>
@@ -581,9 +577,15 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
             {statoPubbl === 'da-ripubblicare' ? ' Ripubblica turno' : ' Pubblica turno'}
           </button>
         )}
+        </div>
       </div>
 
-      {/* ── Status bar ── */}
+      {/* ── Vista + status bar ── */}
+      <div className="tpe__bar">
+      <VistaSwitch ariaLabel="Vista dei turni" value={vista} onChange={v => { setVista(v); setPicker(null) }} options={[
+        { value: 'giorni', label: 'Per giorno', icon: 'fa-calendar-week' },
+        { value: 'dipendenti', label: 'Per dipendente', icon: 'fa-table-cells' },
+      ]} />
       <div className={clsx('tpe__statusbar', statoPubbl === 'da-ripubblicare' && 'tpe__statusbar--warn')} role="status">
         {sel && vista === 'giorni' ? (
           <>
@@ -614,6 +616,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
           </>
         )}
         {statoEl}
+      </div>
       </div>
 
       {vista === 'giorni' ? (

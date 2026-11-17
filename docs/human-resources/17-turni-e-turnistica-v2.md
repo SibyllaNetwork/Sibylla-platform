@@ -300,11 +300,11 @@ PUT /Sibylla/hr/config/turnistica
 Root `.tpe` (colonna, gap 12 px, font 13 px, container `turni`).
 
 ```
-PageHead «Turni del personale»                [Per giorno | Per dipendente] [📅 Piano ferie]
+PageHead «Turni del personale» (senza azioni)
 «Assegna a ogni dipendente il turno di ogni giorno, oppure fatti proporre la settimana da Sibylla»
 Struttura▾  Reparto▾  Settimana [<] 16 – 22 nov 2026 [>] [Questa settimana]  (Dipendente🔍 solo vista per dipendente)
-                                               [✨ Suggerimento Sibylla] [✈ Pubblica turno | ⟳ Ripubblica turno | ✓ Pubblicato]
-Barra di stato: istruzioni o turno da assegnare           ·  stato della settimana (a destra)
+                    →  [📅 Piano ferie] │ [✨ Suggerimento Sibylla] [✈ Pubblica turno | ⟳ Ripubblica turno | ✓ Pubblicato]
+[Per giorno | Per dipendente]  [Barra di stato: istruzioni o turno da assegnare   ·   stato della settimana]
 
 VISTA PER GIORNO
 ┌ Personale         Ore · riposi ┐ ┌ Giorno  Occupazione  Personale in turno          Copertura per reparto ┐
@@ -331,8 +331,13 @@ Rispetto alla v1: **tolto il pulsante «Salva»** e il cerchietto dei giorni; il
 
 ### 3.2 Elementi e testi (nuovi o cambiati)
 
-**Header**: `VistaSwitch` (aria-label «Vista dei turni») con «Per giorno» (`fa-calendar-week`, hint «Copertura giorno
-per giorno») e «Per dipendente» (`fa-table-cells`, hint «Settimana di ogni persona»), poi «Piano ferie».
+**Header e barra azioni**: il PageHead non ha azioni. I pulsanti stanno a destra sulla riga dei filtri
+(`.tpe__actions`, `margin-left: auto`, gap 8 px): «Piano ferie» (`fa-solid fa-calendar-days`, secondario, tooltip «Apri
+il Piano ferie»), separatore verticale 1×24 px `--color-border`, «Suggerimento Sibylla», pulsante di pubblicazione.
+Sotto 1240 px di container «Piano ferie» diventa solo icona (34×34) e i campi Struttura/Reparto passano a 190/170 px,
+così la riga non va a capo a 1366 px con la sidenav. Il `VistaSwitch` (aria-label «Vista dei turni», «Per giorno»
+`fa-calendar-week`, «Per dipendente» `fa-table-cells`, senza hint) sta a sinistra della barra di stato sulla stessa
+riga (`.tpe__bar`, flex, gap 12 px; la barra occupa il resto; sotto 900 px vanno in colonna).
 
 **Pulsante di pubblicazione** (a destra dei filtri), per stato:
 
