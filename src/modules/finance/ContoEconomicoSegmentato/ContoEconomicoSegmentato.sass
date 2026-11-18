@@ -1,0 +1,271 @@
+@use '../../../styles/tokens' as *
+
+.ces
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  // ── Toolbar ──────────────────────────────────────────────────────
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
+
+  &__actions
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+    .sib-btn--icon i
+      color: $primary
+      font-size: 16px
+
+    .sib-btn i
+      margin-right: 6px
+
+  &__btn-sub
+    margin-left: 4px
+    font-weight: 400
+    color: $text-inactive
+
+  // ── Percorso gruppo → struttura ──────────────────────────────────
+  &__crumbs
+    display: flex
+    align-items: center
+    gap: 10px
+    font-size: 13px
+    min-height: 22px
+
+  &__crumb-link
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  &__crumb-sep
+    font-size: 10px
+    color: $text-inactive
+
+  &__crumb-cur
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    color: $text-active
+
+  &__crumb-hint
+    color: $text-inactive
+
+  // ── Tabella ──────────────────────────────────────────────────────
+  &__wrap
+    margin-bottom: 0
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+  &__col-voce
+    width: 26%
+
+  &__col-tot
+    width: 13%
+
+  // Due classi nel selettore: devono vincere su .sib-table th/td
+  &__table th.ces__num,
+  &__table td.ces__num
+    text-align: right
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
+
+  &__table td.ces__voce
+    white-space: nowrap
+
+  &__voce-txt,
+  &__seg-txt
+    max-width: 100%
+
+  // Colonna Totale: blu platform chiaro, come Cabina di controllo
+  &__table th.ces__tot,
+  &__table td.ces__tot
+    background: $primary-50
+    border-left: 1px solid $primary-200
+    font-weight: 700
+
+  // Riga pesi dei costi comuni (prima riga, sopra i nomi dei segmenti)
+  &__table .ces__pesi th
+    padding-top: 8px
+    padding-bottom: 8px
+    background: var(--color-surface)
+    font-weight: 700
+    color: $primary
+
+  &__pesi-btn
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    color: $primary
+    cursor: pointer
+
+    span
+      font-weight: 400
+      color: $text-inactive
+
+    &:hover
+      text-decoration: underline
+
+  &__peso
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  &__peso-bar
+    display: inline-block
+    width: 48px
+    height: 4px
+    border-radius: 2px
+    background: $border
+    overflow: hidden
+
+  &__peso-fill
+    display: block
+    height: 100%
+    background: $primary
+
+  @for $i from 0 through 20
+    &__w#{$i}
+      width: $i * 5%
+
+  // Nomi dei segmenti: nel gruppo sono link al drill-down della struttura
+  &__seg-link
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 6px
+    max-width: 100%
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    font-weight: 700
+    color: $primary
+    cursor: pointer
+
+    i
+      font-size: 10px
+      opacity: .6
+
+    &:hover
+      text-decoration: underline
+
+      i
+        opacity: 1
+
+  &__seg
+    color: $text-active
+
+  // Righe di dettaglio (voci di costo)
+  &__table .ces__row-voce td
+    padding-top: 6px
+    padding-bottom: 6px
+    font-size: 12px
+    color: $text-inactive
+
+  &__table td.ces__voce--det
+    padding-left: 30px
+
+  // Subtotali dei costi (comprimono il dettaglio)
+  &__table .ces__row-sub td
+    font-weight: 600
+    color: $text-active
+
+  &__sub-toggle
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    color: inherit
+    cursor: pointer
+
+    i
+      width: 10px
+      font-size: 10px
+      color: $text-inactive
+
+  // Righe dei margini (e Ricavi): evidenziate
+  &__table .ces__row-mrg td
+    background: $primary-50
+    font-weight: 700
+    color: $primary
+
+  &__table .ces__row-mrg--forte td
+    background: $primary-100
+
+  &__mrg-lbl
+    font-family: 'Poppins', sans-serif
+    cursor: default
+
+  &__inc
+    display: block
+    font-size: 10px
+    font-weight: 500
+    color: $text-inactive
+
+  &__table td.ces__neg
+    color: var(--color-error-dark)
+
+  // Spazio tra i blocchi del conto
+  &__table .ces__spazio td
+    height: 6px
+    padding: 0
+    border-bottom: 0
+    background: var(--color-surface)
+
+  // ── Fonte e collegamenti ─────────────────────────────────────────
+  &__fonte
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 8px
+    font-size: 12px
+    color: $text-inactive
+
+    > i
+      color: $primary
+
+  &__link
+    margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline

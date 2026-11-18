@@ -1,0 +1,170 @@
+@use '../../../styles/tokens' as *
+
+// Modale "Analisi segmentata" del Conto economico segmentato
+
+// Box più largo della taglia xl (2 classi: vince su .modal__box--xl)
+.modal__box.cesa-box
+  width: min(1040px, 94vw)
+  max-width: none
+
+.cesa
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 4px 24px 20px
+  max-height: 78vh
+  overflow-y: auto
+
+  // Nel flex con altezza massima le card non devono restringersi (scorre la modale)
+  > *,
+  &__grid > *
+    flex-shrink: 0
+
+  // Card una sotto l'altra: le colonne dei segmenti restano leggibili
+  &__grid
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  // Card con tabella interna
+  &__card
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__card-head
+    display: flex
+    align-items: flex-start
+    gap: 12px
+    padding: 14px 16px 10px
+
+    > i
+      flex: none
+      width: 32px
+      height: 32px
+      border-radius: 8px
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      font-size: 14px
+      color: $primary
+      background: $primary-50
+
+    h3
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 14px
+      font-weight: 700
+      color: $primary
+
+    p
+      margin: 2px 0 0
+      font-size: 12px
+      color: $text-inactive
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th:first-child,
+    td:first-child
+      width: 32%
+
+  // Due classi: devono vincere su .sib-table th/td
+  &__table th.cesa__num,
+  &__table td.cesa__num
+    text-align: right
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
+
+  &__seg
+    max-width: 100%
+
+  &__unit
+    display: block
+    font-size: 10px
+    font-weight: 500
+    color: $text-inactive
+
+  &__lbl
+    font-weight: 600
+    color: $text-active
+    cursor: default
+
+  &__voce
+    max-width: 100%
+
+  &__formula
+    display: block
+    margin-top: 2px
+    font-size: 10px
+    color: $text-inactive
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace
+
+  &__strong
+    font-weight: 700
+    color: $text-active
+
+  // Percentuale + barra
+  &__pct
+    display: inline-flex
+    flex-direction: column
+    align-items: flex-end
+    gap: 3px
+    font-weight: 700
+
+  &__bar
+    display: block
+    width: 64px
+    height: 4px
+    border-radius: 2px
+    background: $border
+    overflow: hidden
+
+  &__fill
+    display: block
+    height: 100%
+    background: $primary
+
+    &--neg
+      background: var(--color-error)
+
+  @for $i from 0 through 20
+    &__w#{$i}
+      width: $i * 5%
+
+  &__neg
+    color: var(--color-error-dark)
+
+  // Margine di sicurezza: icona + testo colorato (niente pillole)
+  &__semaforo
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-weight: 700
+
+    &--pos
+      color: var(--color-success-dark)
+
+    &--warn
+      color: var(--color-warning)
+
+    &--neg
+      color: var(--color-error-dark)
+
+  &__ns
+    color: $text-inactive
+    font-style: italic
+    cursor: help
+
+  &__nota
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $primary

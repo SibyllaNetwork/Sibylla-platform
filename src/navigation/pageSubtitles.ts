@@ -32,7 +32,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "calendario-master": "Visione d'insieme delle strategie applicate alle tariffe, alla distribuzione delle camere e alle prenotazioni di gruppo",
   "calendario-strategie": "Dalla visione all'azione: il tuo piano strategico si applica al mercato in tempo reale. Meno tempo e più risultati",
   "cashflow": "Controlla entrate e uscite di cassa",
-  "conto-economico-segmentato": "Conto economico scomposto per segmento di business, reparto e centro di ricavo",
+  "conto-economico-segmentato": "Margini per segmento: contribuzione, margine specifico, EBIT ed EBITDA",
   "analisi-indici": "Indici di redditività, liquidità e solidità per leggere lo stato di salute dell'impresa",
   "margin-waterfall": "Dai ricavi al margine: come ogni voce di costo erode il risultato",
   "cassa": "Controllo e gestione centralizzata della cassa e dei movimenti",
