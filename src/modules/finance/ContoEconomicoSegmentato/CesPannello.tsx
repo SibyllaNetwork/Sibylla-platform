@@ -11,7 +11,7 @@ import './CesPannello.sass'
  * Pannello laterale del Conto economico segmentato (dal disegno di Matteo):
  *  - card Ricavi: totale, ripartizione per segmento (barre + torta);
  *  - card Costi comuni: totale da allocare e criterio di riparto
- *    (Ricavi %, Margine %, N. hotel) con le quote per segmento.
+ *    (Ricavi %, Margine %, N. camere) con le quote per segmento.
  */
 interface Props {
   evidenza: 'ricavi' | 'comuni' | null
@@ -35,7 +35,7 @@ const CesPannello = forwardRef<HTMLDivElement, Props>(function CesPannello(
   const still = reducedMotion()
   const opzioni = BASI.map(b => ({
     value: b.value,
-    label: b.value === 'uguale' && vistaStruttura ? 'Parti uguali' : b.breve,
+    label: b.breve,
     tooltip: b.desc,
   }))
 
@@ -91,6 +91,12 @@ const CesPannello = forwardRef<HTMLDivElement, Props>(function CesPannello(
         <div className="cesp__big">{fmtCompatto(totComuni)}</div>
         <div className="cesp__sub">da allocare ai segmenti</div>
         <RadioGroup name="ces-base" label="Criterio di riparto" options={opzioni} value={base} onChange={v => onBase(v as BaseRiparto)} className="cesp__radio" />
+        {vistaStruttura && base === 'camere' && (
+          <p className="cesp__nota">
+            <i className="fa-solid fa-circle-info" aria-hidden="true" />
+            Soggiorno, F&amp;B e SPA non hanno camere proprie: fra le linee si usa il peso sui ricavi, le camere ripartiscono la quota di sede dell'hotel.
+          </p>
+        )}
         <ul className="cesp__quote">
           {segmenti.map((s, i) => (
             <li key={s.id}>

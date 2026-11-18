@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
@@ -36,6 +36,13 @@ const FONTI: VistaOpzione<Fonte>[] = [
 ]
 
 type Sezione = 'var' | 'fix' | 'com'
+type NomeEbitda = 'EBITDA' | 'MOL'
+
+// Denominazione scelta col tasto destro: preferenza del singolo utente
+const CHIAVE_NOME = 'sibylla.ces.nome-ebitda'
+function leggiNome(): NomeEbitda {
+  try { return localStorage.getItem(CHIAVE_NOME) === 'MOL' ? 'MOL' : 'EBITDA' } catch { return 'EBITDA' }
+}
 type Card = 'ricavi' | 'comuni'
 
 export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: string) => void }) {
@@ -52,6 +59,27 @@ export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: s
   // Card del pannello evidenziata dal clic sulla voce corrispondente in tabella
   const [evidenza, setEvidenza] = useState<Card | null>(null)
   const pannelloRef = useRef<HTMLDivElement>(null)
+  // EBITDA ↔ MOL: menu contestuale sull'etichetta della riga
+  const [nomeEbitda, setNomeEbitda] = useState<NomeEbitda>(leggiNome)
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null)
+  useEffect(() => {
+    if (!menu) return
+    const chiudi = () => setMenu(null)
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') chiudi() }
+    window.addEventListener('click', chiudi)
+    window.addEventListener('scroll', chiudi, true)
+    window.addEventListener('keydown', esc)
+    return () => {
+      window.removeEventListener('click', chiudi)
+      window.removeEventListener('scroll', chiudi, true)
+      window.removeEventListener('keydown', esc)
+    }
+  }, [menu])
+  function scegliNome(n: NomeEbitda) {
+    setNomeEbitda(n)
+    setMenu(null)
+    try { localStorage.setItem(CHIAVE_NOME, n) } catch { /* preferenza non salvata */ }
+  }
 
   const conto = useMemo(
     () => (struttura ? contoStruttura(struttura, anno, fonte, base, gruppo ? elenco : undefined) : contoGruppo(elenco, anno, fonte)),
@@ -87,7 +115,7 @@ export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: s
     { tipo: 'sub', label: 'Costi comuni allocati al segmento', valori: c.totComuni, sez: 'com', card: 'comuni' },
     ...dettaglio(conto.vociComuni, c.comuni, 'com'),
     { tipo: 'margine', label: 'Margine netto', valori: c.ebit, netto: true, hint: 'EBIT: Margine specifico − Costi comuni allocati al segmento' },
-    { tipo: 'margine', label: 'EBITDA', valori: c.ebitda, secondario: true, hint: 'Margine netto + ammortamenti (specifici e comuni allocati)' },
+    { tipo: 'margine', label: nomeEbitda, valori: c.ebitda, secondario: true, hint: `${nomeEbitda === 'MOL' ? 'Margine operativo lordo' : 'EBITDA'}: margine netto + ammortamenti (specifici e comuni allocati) · tasto destro per chiamarlo ${nomeEbitda === 'MOL' ? 'EBITDA' : 'MOL'}` },
   ]
   const visibili = righe.filter(r => r.tipo !== 'voce' || !chiuse[r.sez])
 
@@ -266,7 +294,10 @@ export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: s
                 )
                 return (
                   <tr key={r.label} className={`ces__row-mrg ${r.netto ? 'ces__row-mrg--netto' : ''} ${r.secondario ? 'ces__row-mrg--sec' : ''}`}>
-                    <td className="ces__voce">{etichetta(r)}</td>
+                    <td className="ces__voce"
+                      onContextMenu={r.secondario ? e => { e.preventDefault(); setMenu({ x: e.clientX, y: e.clientY }) } : undefined}>
+                      {etichetta(r)}
+                    </td>
                     {cellaMargine(t, totRicavi, r, 'tot', true)}
                     {r.valori.map((v, i) => cellaMargine(v, c.ricavi[i], r, i))}
                   </tr>
@@ -298,6 +329,20 @@ export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: s
           Classificazione dei costi <i className="fa-solid fa-arrow-right" aria-hidden="true" />
         </button>
       </div>
+
+      {menu && (
+        <div className="ces__menu" role="menu" aria-label="Denominazione della riga"
+          style={{ '--mx': `${menu.x}px`, '--my': `${menu.y}px` } as React.CSSProperties}
+          onClick={e => e.stopPropagation()}>
+          <span className="ces__menu-tit">Denominazione</span>
+          {(['EBITDA', 'MOL'] as NomeEbitda[]).map(n => (
+            <button key={n} type="button" role="menuitemradio" aria-checked={nomeEbitda === n} className="ces__menu-item" onClick={() => scegliNome(n)}>
+              <i className={`fa-solid fa-check ${nomeEbitda === n ? '' : 'ces__menu-off'}`} aria-hidden="true" />
+              {n === 'MOL' ? 'MOL · Margine operativo lordo' : 'EBITDA'}
+            </button>
+          ))}
+        </div>
+      )}
 
       <CostiComuniModal
         open={modal === 'comuni'}

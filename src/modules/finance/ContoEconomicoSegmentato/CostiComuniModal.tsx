@@ -6,7 +6,7 @@ import './CostiComuniModal.sass'
 
 /**
  * "Costi comuni": sceglie il criterio con cui i costi fissi comuni vengono
- * allocati ai segmenti (peso % ricavi, peso % margine, numero di hotel) e
+ * allocati ai segmenti (peso % ricavi, peso % margine, numero di camere) e
  * mostra subito l'effetto: pesi e quote per voce e per segmento.
  */
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
   onClose: () => void
   base: BaseRiparto
   onChange: (b: BaseRiparto) => void
-  /** Vista della singola struttura: "per numero di hotel" diventa "in parti uguali". */
+  /** Vista della singola struttura (linee di ricavo). */
   vistaStruttura: boolean
   voci: Voce[]
   comuni: Record<string, number>
@@ -23,7 +23,7 @@ interface Props {
   pesi: number[]
 }
 
-export default function CostiComuniModal({ open, onClose, base, onChange, vistaStruttura, voci, comuni, segmenti, quote, pesi }: Props) {
+export default function CostiComuniModal({ open, onClose, base, onChange, voci, comuni, segmenti, quote, pesi }: Props) {
   const totale = voci.reduce((a, v) => a + (comuni[v.key] ?? 0), 0)
   return (
     <Modal open={open} onClose={onClose} title="Costi comuni" size="lg">
@@ -36,13 +36,12 @@ export default function CostiComuniModal({ open, onClose, base, onChange, vistaS
         <div className="cesc__basi" role="radiogroup" aria-label="Criterio di riparto">
           {BASI.map(b => {
             const on = b.value === base
-            const label = b.value === 'uguale' && vistaStruttura ? 'In parti uguali' : b.label
             return (
               <button key={b.value} type="button" role="radio" aria-checked={on}
                 className={`cesc__base ${on ? 'cesc__base--on' : ''}`} onClick={() => onChange(b.value)}>
                 <span className="cesc__base-head">
                   <i className={`fa-${on ? 'solid' : 'regular'} fa-circle${on ? '-dot' : ''}`} aria-hidden="true" />
-                  {label}
+                  {b.label}
                 </span>
                 <span className="cesc__base-desc">{b.desc}</span>
               </button>

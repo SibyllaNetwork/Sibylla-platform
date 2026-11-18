@@ -19,7 +19,7 @@
 import { schedaDemo, hashNome } from '../../../core/demo/struttureDemo'
 
 export type Fonte = 'consuntivo' | 'preventivo'
-export type BaseRiparto = 'ricavi' | 'margine' | 'uguale'
+export type BaseRiparto = 'ricavi' | 'margine' | 'camere'
 
 /** Voce di costo: `amm` = ammortamento (si somma all'EBIT per l'EBITDA). */
 export interface Voce { key: string; label: string; amm?: boolean }
@@ -30,6 +30,8 @@ export interface Segmento {
   /** Unità degli indicatori: ospite (presenze) o coperto. */
   unita: 'ospite' | 'coperto'
   volume: number
+  /** Camere dell'hotel (vista di gruppo); le linee di ricavo non ne hanno. */
+  camere?: number
   ricavi: number
   variabili: Record<string, number>
   fissiSpecifici: Record<string, number>
@@ -156,10 +158,12 @@ const sommaSeg = (s: Segmento) => ({ variabili: somma(s.variabili), fissi: somma
 
 // ── Riparto dei costi comuni ───────────────────────────────────────────────
 export function pesi(segmenti: Segmento[], base: BaseRiparto): number[] {
+  // Per camere solo fra hotel: le linee di ricavo non hanno camere → peso sui ricavi
+  const perCamere = base === 'camere' && segmenti.some(s => s.camere)
   const basi = segmenti.map(s =>
-    base === 'ricavi' ? s.ricavi
+    perCamere ? s.camere ?? 0
     : base === 'margine' ? Math.max(0, s.ricavi - sommaSeg(s).variabili)
-    : 1)
+    : s.ricavi)
   const tot = basi.reduce((a, b) => a + b, 0) || 1
   return basi.map(b => b / tot)
 }
@@ -181,7 +185,7 @@ export function contoGruppo(strutture: string[], anno: string, fonte: Fonte): Co
       serv:  fl('comm') + com.serv,
     }
     const room = linee.find(l => l.id === 'room')
-    return { id: nome, nome, unita: 'ospite', volume: room?.volume ?? 0, ricavi, variabili, fissiSpecifici }
+    return { id: nome, nome, unita: 'ospite', volume: room?.volume ?? 0, camere: schedaDemo(nome).camere || 40, ricavi, variabili, fissiSpecifici }
   })
   return { segmenti, vociVariabili: V_VAR, vociFisse: V_FIX_GRUPPO, vociComuni: V_COM_GRUPPO, comuni: costiSede(strutture, anno, fonte) }
 }
@@ -263,7 +267,7 @@ export const fmtPct = (v: number, dec = 1) => `${(v * 100).toLocaleString('it-IT
 export const BASI: { value: BaseRiparto; label: string; breve: string; desc: string }[] = [
   { value: 'ricavi',  label: 'Peso % sui ricavi',   breve: 'Ricavi %',   desc: 'Ogni segmento riceve i costi comuni in proporzione ai ricavi che genera.' },
   { value: 'margine', label: 'Peso % sul margine',  breve: 'Margine %',  desc: 'In proporzione al margine di contribuzione: chi crea più margine sostiene più costi comuni.' },
-  { value: 'uguale',  label: 'Per numero di hotel', breve: 'N. hotel',        desc: 'In parti uguali fra le strutture del gruppo (fra le linee di ricavo, nella vista della singola struttura).' },
+  { value: 'camere',  label: 'Per numero di camere', breve: 'N. camere',      desc: 'In proporzione alle camere di ogni hotel. Fra Soggiorno, F&B e SPA (che non hanno camere proprie) si usa il peso sui ricavi; la quota di sede dell\'hotel resta calcolata sulle camere.' },
 ]
 
 /** Importo compatto per le card: 1,7 mln € / 200k €. */
