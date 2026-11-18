@@ -20,14 +20,14 @@ import './AnalisiIndici.sass'
 const TONO_COLOR: Record<Tono, string> = { pos: CHART.good, neg: CHART.bad, neutral: 'var(--chart-1)' }
 
 export default function AnalisiIndici({ navigate }: { navigate: (p: string) => void }) {
-  const [anno, setAnno] = useState('2026')
+  const [anno, setAnno] = useState('2024')
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [chiuse, setChiuse] = useState<Record<string, boolean>>({})
   const [aperto, setAperto] = useState<Indice | null>(null)
 
-  const fino = Number(anno)
+  // X = anno scelto: le colonne sono X, X+1, X+2
+  const fino = Number(anno) + 2
   const bil = useMemo(() => bilanci(struttura, fino), [struttura, fino])
-  // Le tre colonne X, X+1, X+2: l'ultimo esercizio è l'anno scelto
   const idx = [bil.length - 3, bil.length - 2, bil.length - 1]
   const anni = idx.map(i => bil[i].anno)
 
@@ -73,7 +73,7 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
 
       <div className="aind__toolbar">
         <div className="aind__filters">
-          <SelectField name="anno" label="Ultimo esercizio" value={anno} onChange={e => setAnno(e.target.value)} options={ANNI.map(a => ({ value: a, label: a }))} className="w-36" />
+          <SelectField name="anno" label="Anno" value={anno} onChange={e => setAnno(e.target.value)} options={ANNI.map(a => ({ value: a, label: a }))} className="w-24" />
           <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={opzioniStrutture} className="w-56" />
         </div>
         <div className="aind__actions">

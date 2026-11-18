@@ -48,7 +48,7 @@ export type SezioneId = 'crescita' | 'redditivita' | 'liquidita' | 'solidita'
 export interface Sezione { id: SezioneId; titolo: string; icona: string; desc: string; indici: Indice[] }
 
 export const ANNO_MIN = 2019
-export const ANNI = ['2024', '2025', '2026', '2027']
+export const ANNI = ['2022', '2023', '2024', '2025']
 
 // ── Generazione del bilancio ───────────────────────────────────────────────
 // Rumore deterministico in [-1, 1] per struttura/anno/grandezza
