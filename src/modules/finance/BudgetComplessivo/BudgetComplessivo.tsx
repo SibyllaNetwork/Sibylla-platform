@@ -149,11 +149,11 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
       {modo === 'Simulato' && scenarioSalvato && (
         <p className="bc__scen-nota">
           <i className="fa-solid fa-flask" aria-hidden="true" />
-          Scenario dalla BEP analysis ({scenarioSalvato.struttura}): ricavi obiettivo{' '}
+          Scenario dalla Break-even point analysis ({scenarioSalvato.struttura}): ricavi obiettivo{' '}
           <strong>{fmtEuro(scenarioSalvato.ricaviObiettivo)}</strong>, margine obiettivo <strong>{fmtEuro(scenarioSalvato.margineObiettivo)}</strong>,
           ripartiti sui mesi con la stagionalità dell'anno.
           <button type="button" className="bc__scen-link" onClick={() => navigate('break-even')}>
-            Apri BEP analysis <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+            Apri Break-even point analysis <i className="fa-solid fa-arrow-right" aria-hidden="true" />
           </button>
         </p>
       )}

@@ -132,7 +132,7 @@ export default function BreakEvenPoint({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="bep">
-      <PageHead title="BEP analysis" subtitle="Break-even point: quante camere servono per coprire i costi, oggi e negli scenari simulati" />
+      <PageHead title="Break-even point analysis" subtitle="Quante camere servono per coprire i costi, oggi e negli scenari simulati" />
 
       <div className="bep__toolbar">
         <button type="button" className="sib-btn sib-btn--primary bep__simula" onClick={() => setSimOpen(true)}>
