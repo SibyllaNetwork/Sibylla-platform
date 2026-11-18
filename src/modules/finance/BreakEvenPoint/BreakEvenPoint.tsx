@@ -61,7 +61,7 @@ export default function BreakEvenPoint({ navigate }: { navigate: (p: string) => 
   const aggiungiScenario = useScenariBudgetStore(st => st.aggiungi)
   const ricaviAttuali = useMemo(() => data.mesi.reduce((a, m) => a + m.ricaviTotali, 0), [data])
   const margineAttuale = bep.camereVendute * bep.mcu - bep.costiFissi
-  const scenario = useMemo(() => (obiettivi ? simula(bep, obiettivi) : null), [bep, obiettivi])
+  const scenario = useMemo(() => (obiettivi ? simula(bep, obiettivi, ricaviAttuali, margineAttuale) : null), [bep, obiettivi, ricaviAttuali, margineAttuale])
   const nomeStruttura = data.strutture.find(s => s.id === strutturaId)?.nome ?? 'Tutte le strutture'
   useEffect(() => { setObiettivi(null) }, [strutturaId, anno])
 
@@ -98,32 +98,30 @@ export default function BreakEvenPoint({ navigate }: { navigate: (p: string) => 
         ricavi: camere * bep.ricavoPerCamera,
         costi: bep.costiFissi + camere * bep.cvu,
         fissi: bep.costiFissi,
-        ...(scenario ? { costiScen: scenario.costiFissi + camere * scenario.cvu } : {}),
       }
     })
   }, [bep, scenario])
 
   const still = reducedMotion()
-  const camereDisp = data.mesi.reduce((a, m) => a + m.camereDisponibili, 0)
 
-  // Indicatori (colonna sinistra): oggi → scenario
+  // Indicatori (colonna sinistra): il pareggio non cambia (stessi costi);
+  // lo scenario sposta volumi, ricavi, margine e margine di sicurezza
   const indicatori = [
     { key: 'camere', icona: 'fa-scale-balanced', label: 'Camere di pareggio', oggi: fmtInt(Math.round(bep.camereBep)),
-      scen: scenario && fmtInt(Math.round(scenario.camereBep)), info: "Camere da vendere nell'anno perché il margine di contribuzione copra i costi fissi." },
+      scen: null, info: "Camere da vendere nell'anno perché il margine di contribuzione copra i costi fissi." },
     { key: 'ricavi', icona: 'fa-euro-sign', label: 'Ricavi di pareggio', oggi: fmtEurK(bep.ricaviBep),
-      scen: scenario && fmtEurK(scenario.ricaviBep), info: 'Ricavo totale corrispondente alle camere di pareggio.' },
+      scen: null, info: 'Ricavo totale corrispondente alle camere di pareggio.' },
     { key: 'occ', icona: 'fa-door-open', label: 'Occupazione minima', oggi: fmtPct(bep.occBep),
-      scen: scenario && fmtPct(camereDisp ? (scenario.camereBep / camereDisp) * 100 : 0), info: 'Occupazione media annua sotto la quale la gestione è in perdita.' },
+      scen: null, info: 'Occupazione media annua sotto la quale la gestione è in perdita.' },
     { key: 'sic', icona: 'fa-shield-halved', label: 'Margine di sicurezza', oggi: fmtPct(bep.margineSicurezza),
-      scen: scenario && fmtPct(scenario.camere ? ((scenario.camere - scenario.camereBep) / scenario.camere) * 100 : 0),
+      scen: scenario && fmtPct(scenario.sicurezza * 100),
       info: 'Di quanto possono scendere le vendite prima di tornare in perdita.' },
   ]
-
   const numeri = [
-    { label: "Costi fissi dell'anno", oggi: fmtEurK(bep.costiFissi), scen: scenario && fmtEurK(scenario.costiFissi) },
+    { label: "Costi fissi dell'anno", oggi: fmtEurK(bep.costiFissi), scen: null },
     { label: 'Ricavo per camera venduta', oggi: fmtEur(bep.ricavoPerCamera, 0), scen: null },
-    { label: 'Costo variabile per camera', oggi: fmtEur(bep.cvu, 0), scen: scenario && fmtEur(scenario.cvu, 0) },
-    { label: 'Margine di contribuzione per camera', oggi: fmtEur(bep.mcu, 0), scen: scenario && fmtEur(scenario.mcu, 0) },
+    { label: 'Costo variabile per camera', oggi: fmtEur(bep.cvu, 0), scen: null },
+    { label: 'Margine di contribuzione per camera', oggi: fmtEur(bep.mcu, 0), scen: null },
     { label: "Camere vendute nell'anno", oggi: fmtInt(bep.camereVendute), scen: scenario && fmtInt(Math.round(scenario.camere)) },
     { label: 'Ricavi', oggi: fmtEurK(ricaviAttuali), scen: scenario && fmtEurK(scenario.ricavi) },
     { label: 'Margine', oggi: fmtEurK(margineAttuale), scen: scenario && fmtEurK(scenario.margine) },
@@ -151,7 +149,7 @@ export default function BreakEvenPoint({ navigate }: { navigate: (p: string) => 
         {scenario && (
           <span className="bep__scen-tag">
             <i className="fa-solid fa-flask" aria-hidden="true" />
-            Scenario: ricavi {fmtEurK(scenario.ricavi)} · margine {fmtEurK(scenario.margine)}
+            Scenario {scenario.parametro === 'ricavi' ? 'ricavi' : 'margine'} {fmtEurK(scenario.valore)}
           </span>
         )}
       </div>
@@ -216,7 +214,7 @@ export default function BreakEvenPoint({ navigate }: { navigate: (p: string) => 
                   <button type="button" className="sib-btn sib-btn--icon" aria-label="Togli lo scenario" onClick={() => setObiettivi(null)}><i className="fa-solid fa-xmark" /></button>
                 </Tooltip>
                 <button type="button" className="sib-btn sib-btn--secondary bep__usa"
-                  onClick={() => { setNomeScenario(`BEP · ricavi ${fmtEurK(scenario.ricavi)}`); setUsaOpen(true) }}>
+                  onClick={() => { setNomeScenario(`Break-even · ${scenario.parametro === 'ricavi' ? 'ricavi' : 'margine'} ${fmtEurK(scenario.valore)}`); setUsaOpen(true) }}>
                   <i className="fa-solid fa-file-import" aria-hidden="true" /> Usa come budget complessivo
                 </button>
               </span>
@@ -225,8 +223,8 @@ export default function BreakEvenPoint({ navigate }: { navigate: (p: string) => 
 
           <ul className="bep__legend" aria-label="Legenda">
             <li><i className="bep__sw bep__sw--ric" aria-hidden="true" />Ricavi</li>
-            <li><i className="bep__sw bep__sw--cos" aria-hidden="true" />{scenario ? 'Costi totali oggi' : 'Costi totali'}</li>
-            {scenario && <li><i className="bep__sw bep__sw--scen" aria-hidden="true" />Costi totali scenario</li>}
+            <li><i className="bep__sw bep__sw--cos" aria-hidden="true" />Costi totali</li>
+            {scenario && <li><i className="bep__sw bep__sw--scen" aria-hidden="true" />Obiettivo dello scenario</li>}
             <li><i className="bep__sw bep__sw--cf" aria-hidden="true" />Costi fissi</li>
           </ul>
 
@@ -248,7 +246,7 @@ export default function BreakEvenPoint({ navigate }: { navigate: (p: string) => 
                     <ChartTooltip
                       {...props}
                       title={`${fmtInt(Number(props.label))} camere vendute`}
-                      names={{ ricavi: 'Ricavi', costi: scenario ? 'Costi totali oggi' : 'Costi totali', costiScen: 'Costi totali scenario', fissi: 'Costi fissi' }}
+                      names={{ ricavi: 'Ricavi', costi: 'Costi totali', fissi: 'Costi fissi' }}
                       format={(v: number) => fmtEur(v, 0)}
                     />
                   )}
@@ -266,16 +264,16 @@ export default function BreakEvenPoint({ navigate }: { navigate: (p: string) => 
                   isAnimationActive={!still} animationBegin={ANIM.begin(2)} animationDuration={ANIM.duration} animationEasing={ANIM.easing} />
                 {scenario && (
                   <>
-                    <Line type="monotone" dataKey="costiScen" stroke={series(2)} strokeWidth={2.4} dot={false}
-                      isAnimationActive={!still} animationBegin={ANIM.begin(3)} animationDuration={ANIM.duration} animationEasing={ANIM.easing} />
                     <ReferenceLine
-                      x={Math.round(scenario.camereBep)} stroke={series(2)} strokeDasharray="4 3"
-                      label={{ value: `scenario ${fmtInt(Math.round(scenario.camereBep))}`, position: 'insideBottomRight', fill: series(2), fontSize: 11 }}
+                      x={Math.round(scenario.camere)} stroke={series(2)} strokeDasharray="4 3"
+                      label={{ value: `${fmtInt(Math.round(scenario.camere))} camere`, position: 'insideBottomRight', fill: series(2), fontSize: 11 }}
                     />
-                    <ReferenceDot x={Math.round(scenario.camereBep)} y={scenario.ricaviBep} r={4} fill={series(2)} stroke={CHART.surface} strokeWidth={2} />
                     <ReferenceDot
                       x={Math.round(scenario.camere)} y={scenario.ricavi} r={5} fill={series(2)} stroke={CHART.surface} strokeWidth={2}
-                      label={{ value: 'obiettivo', position: 'top', fill: CHART.ink, fontSize: 11 }}
+                      label={{ value: `obiettivo ${scenario.parametro === 'ricavi' ? 'ricavi' : 'margine'}`, position: 'top', fill: CHART.ink, fontSize: 11 }}
+                    />
+                    <ReferenceDot
+                      x={Math.round(scenario.camere)} y={scenario.costiFissi + scenario.camere * scenario.cvu} r={4} fill={series(5)} stroke={CHART.surface} strokeWidth={2}
                     />
                   </>
                 )}
@@ -286,19 +284,20 @@ export default function BreakEvenPoint({ navigate }: { navigate: (p: string) => 
           <p className="bep__foot">
             {scenario ? (
               <>
-                Per <strong>{fmtEurK(scenario.ricavi)}</strong> di ricavi e <strong>{fmtEurK(scenario.margine)}</strong> di margine servono{' '}
-                <strong>{fmtInt(Math.round(scenario.camere))}</strong> camere e{' '}
-                {scenario.leva === 'fissi'
-                  ? <>costi fissi entro <strong>{fmtEurK(scenario.costiFissi)}</strong></>
-                  : <>un costo variabile entro <strong>{fmtEur(scenario.cvu, 0)}</strong> a camera</>}{' '}
-                ({scenario.variazioneLeva > 0 ? '+' : '−'}{fmtPct(Math.abs(scenario.variazioneLeva) * 100)} rispetto a oggi): il pareggio passa da{' '}
-                <strong>{fmtInt(Math.round(bep.camereBep))}</strong> a <strong>{fmtInt(Math.round(scenario.camereBep))}</strong> camere.
+                {scenario.parametro === 'ricavi'
+                  ? <>Con ricavi di <strong>{fmtEurK(scenario.ricavi)}</strong> e i costi di oggi il margine è <strong>{fmtEurK(scenario.margine)}</strong></>
+                  : <>Per un margine di <strong>{fmtEurK(scenario.margine)}</strong> con i costi di oggi servono ricavi per <strong>{fmtEurK(scenario.ricavi)}</strong></>}
+                : <strong>{fmtInt(Math.round(scenario.camere))}</strong> camere vendute,{' '}
+                {scenario.sicurezza >= 0
+                  ? <><strong>{fmtInt(Math.round(scenario.camere - scenario.camereBep))}</strong> oltre il pareggio (margine di sicurezza {fmtPct(scenario.sicurezza * 100)}).</>
+                  : <>ancora <strong>{fmtInt(Math.round(scenario.camereBep - scenario.camere))}</strong> sotto il pareggio.</>}
+                {' '}La distanza fra le due rette, sulla linea tratteggiata, è il margine.
               </>
             ) : (
               <>
                 Nel {data.anno} le camere vendute sono <strong>{fmtInt(bep.camereVendute)}</strong>,{' '}
                 <strong>{fmtInt(Math.max(0, Math.round(bep.camereVendute - bep.camereBep)))}</strong> oltre la soglia di pareggio.
-                Con <strong>Simula</strong> imposti ricavi e margine obiettivo e vedi il pareggio dello scenario.
+                Con <strong>Simula</strong> scegli un obiettivo di ricavi o di margine e vedi dove si colloca rispetto al pareggio.
               </>
             )}
           </p>

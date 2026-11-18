@@ -1,56 +1,60 @@
 import type { Bep, MeseFinance } from '../_data/financeMock'
 
 /**
- * Simulazione di scenario sul BEP: dati un ricavo e un margine obiettivo, quali
- * costi servono per centrarli tenendo fermo il ricavo per camera.
+ * Simulazione di scenario sul BEP. Si sceglie UN parametro obiettivo, Ricavi
+ * oppure Margine; l'altro si ricava dalla struttura dei costi di oggi
+ * (ricavo per camera, costo variabile per camera, costi fissi):
  *
- *   camere obiettivo = Ricavi obiettivo / ricavo per camera
- *   leva "costi fissi":     costi fissi massimi = Ricavi − costi variabili − Margine
- *   leva "costo variabile": costo variabile max per camera = (Ricavi − Margine − costi fissi) / camere
+ *   Ricavi obiettivo  → camere = Ricavi / ricavo per camera
+ *                       margine = camere × margine unitario − costi fissi
+ *   Margine obiettivo → camere = (Margine + costi fissi) / margine unitario
+ *                       ricavi = camere × ricavo per camera
  *
- * Lo scenario ha un nuovo punto di pareggio (costi fissi / margine unitario).
+ * Il punto di pareggio resta quello di oggi: lo scenario mostra dove si
+ * colloca l'obiettivo rispetto al pareggio e quanto margine di sicurezza dà.
  */
-export type Leva = 'fissi' | 'variabili'
+export type Parametro = 'ricavi' | 'margine'
 
-export interface Obiettivi { ricavi: number; margine: number; leva: Leva }
+export interface Obiettivi { parametro: Parametro; valore: number }
 
 export interface Scenario extends Obiettivi {
   camere: number
+  ricavi: number
+  margine: number
   costiFissi: number
   cvu: number
   mcu: number
   camereBep: number
   ricaviBep: number
-  /** Margine che si avrebbe ai ricavi obiettivo con i costi di oggi. */
-  margineCostiAttuali: number
-  /** Variazione richiesta sulla leva, rispetto a oggi (es. −0,12 = −12%). */
-  variazioneLeva: number
+  /** Margine di sicurezza dello scenario (0-1). */
+  sicurezza: number
+  /** Variazione dei ricavi e del margine rispetto a oggi (es. 0,1 = +10%). */
+  varRicavi: number
+  varMargine: number
   fattibile: boolean
 }
 
-export function simula(bep: Bep, o: Obiettivi): Scenario {
+export function simula(bep: Bep, o: Obiettivi, ricaviOggi: number, margineOggi: number): Scenario {
   const p = bep.ricavoPerCamera
-  const camere = p > 0 ? o.ricavi / p : 0
-  const margineCostiAttuali = o.ricavi - camere * bep.cvu - bep.costiFissi
-  let costiFissi = bep.costiFissi
-  let cvu = bep.cvu
-  if (o.leva === 'fissi') costiFissi = o.ricavi - camere * bep.cvu - o.margine
-  else cvu = camere > 0 ? (o.ricavi - o.margine - bep.costiFissi) / camere : 0
-  const mcu = p - cvu
-  const camereBep = mcu > 0 ? Math.max(0, costiFissi) / mcu : 0
-  const base = o.leva === 'fissi' ? bep.costiFissi : bep.cvu
-  const nuovo = o.leva === 'fissi' ? costiFissi : cvu
+  const camere = o.parametro === 'ricavi'
+    ? (p > 0 ? o.valore / p : 0)
+    : (bep.mcu > 0 ? (o.valore + bep.costiFissi) / bep.mcu : 0)
+  const ricavi = o.parametro === 'ricavi' ? o.valore : camere * p
+  const margine = o.parametro === 'margine' ? o.valore : camere * bep.mcu - bep.costiFissi
   return {
     ...o,
     camere,
-    costiFissi,
-    cvu,
-    mcu,
-    camereBep,
-    ricaviBep: camereBep * p,
-    margineCostiAttuali,
-    variazioneLeva: base ? (nuovo - base) / base : 0,
-    fattibile: costiFissi >= 0 && cvu >= 0 && mcu > 0,
+    ricavi,
+    margine,
+    costiFissi: bep.costiFissi,
+    cvu: bep.cvu,
+    mcu: bep.mcu,
+    camereBep: bep.camereBep,
+    ricaviBep: bep.ricaviBep,
+    sicurezza: camere ? (camere - bep.camereBep) / camere : 0,
+    varRicavi: ricaviOggi ? (ricavi - ricaviOggi) / ricaviOggi : 0,
+    varMargine: margineOggi ? (margine - margineOggi) / Math.abs(margineOggi) : 0,
+    fattibile: o.valore > 0 && bep.mcu > 0 && camere > 0,
   }
 }
 
