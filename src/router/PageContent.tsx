@@ -204,6 +204,7 @@ import SibyllaHr                   from '../modules/hr/SibyllaHr/SibyllaHr';
 import type { SibyllaHrView }      from '../modules/hr/SibyllaHr/SibyllaHr';
 import CabinaControllo             from '../modules/finance/CabinaControllo/CabinaControllo';
 import ContoEconomicoSegmentato    from '../modules/finance/ContoEconomicoSegmentato/ContoEconomicoSegmentato';
+import AnalisiIndici               from '../modules/finance/AnalisiIndici/AnalisiIndici';
 import BudgetComplessivo           from '../modules/finance/BudgetComplessivo/BudgetComplessivo';
 import BudgetCosti                 from '../modules/finance/BudgetCosti/BudgetCosti';
 import SimulatoriScenari           from '../modules/finance/SimulatoriScenari/SimulatoriScenari';
@@ -534,6 +535,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'budget-costi')          return <BudgetCosti navigate={navigate}/>;
   if (page === 'cabina-controllo')      return <CabinaControllo navigate={navigate}/>;
   if (page === 'conto-economico-segmentato') return <ContoEconomicoSegmentato navigate={navigate}/>;
+  if (page === 'analisi-indici') return <AnalisiIndici navigate={navigate}/>;
   if (page === 'budget-cabina')         return <CabinaControllo navigate={navigate}/>;
   if (page === 'budget-complessivo')    return <BudgetComplessivo navigate={navigate}/>;
   if (page === 'simulatore')            return <SimulatoriScenari navigate={navigate}/>;

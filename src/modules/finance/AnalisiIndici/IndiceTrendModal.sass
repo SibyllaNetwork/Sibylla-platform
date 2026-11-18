@@ -1,0 +1,114 @@
+@use '../../../styles/tokens' as *
+
+// Box più largo della taglia xl (2 classi: vince su .modal__box--xl)
+.modal__box.aindm-box
+  width: min(960px, 94vw)
+  max-width: none
+
+.aindm
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 4px 24px 20px
+  max-height: 80vh
+  overflow-y: auto
+
+  > *
+    flex-shrink: 0
+
+  &__head
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    flex-wrap: wrap
+    gap: 6px 16px
+    margin: 0
+
+  &__formula
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace
+    font-size: 12px
+    color: $primary
+
+  &__sub
+    font-size: 12px
+    color: $text-inactive
+
+  &__chart
+    padding: 8px 4px 0
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+
+  &__letture
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 8px 26px
+    font-size: 13px
+    color: $text-active
+
+    strong
+      font-weight: 700
+
+  &__k
+    color: $text-inactive
+
+  &__tono--pos
+    color: var(--color-success)
+
+  &__tono--neg
+    color: var(--color-error-dark)
+
+  &__fascia
+    margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-inactive
+
+  &__media-sw
+    display: inline-block
+    width: 16px
+    margin-right: 6px
+    vertical-align: middle
+    border-top: 1px dashed var(--chart-ink-muted)
+
+  &__fascia-sw
+    display: inline-block
+    width: 14px
+    height: 10px
+    border-radius: 2px
+    background: var(--chart-grid)
+
+  &__nota
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $primary
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+  &__col-lbl
+    width: 26%
+
+  &__table th.aindm__num,
+  &__table td.aindm__num
+    text-align: right
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
+
+  &__lbl
+    max-width: 100%
+
+  &__table .aindm__row-ind td
+    background: $primary-50
+    font-weight: 700
+    color: $primary

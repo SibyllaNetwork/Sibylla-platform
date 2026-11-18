@@ -1,0 +1,257 @@
+@use '../../../styles/tokens' as *
+
+.aind
+  display: flex
+  flex-direction: column
+  gap: 14px
+  container-type: inline-size
+
+  // ── Toolbar ──────────────────────────────────────────────────────
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
+
+  &__actions
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+    .sib-btn--icon i
+      color: $primary
+      font-size: 16px
+
+  // ── Tabella ──────────────────────────────────────────────────────
+  &__wrap
+    margin-bottom: 0
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+  &__col-ind
+    width: 24%
+
+  &__col-formula
+    width: 25%
+
+  &__col-trend
+    width: 16%
+
+  // Due classi nel selettore: devono vincere su .sib-table th/td
+  &__table th.aind__num,
+  &__table td.aind__num
+    text-align: right
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
+
+  &__table td.aind__num
+    font-size: 13px
+    color: $text-active
+
+  // Ultimo esercizio (X+2): blu platform chiaro, come la colonna Totale della Cabina
+  &__table th.aind__last,
+  &__table td.aind__last
+    background: $primary-50
+    border-left: 1px solid $primary-200
+    font-weight: 700
+
+  &__table td.aind__neg
+    color: var(--color-error-dark)
+
+  &__xlbl
+    display: block
+    font-size: 10px
+    font-weight: 500
+    color: $text-inactive
+
+  &__trend-head
+    max-width: 100%
+
+  // Prima colonna: nome indice + icona grafico
+  &__ind-cell
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+    > :first-child
+      min-width: 0
+
+  &__ind-txt
+    max-width: 100%
+    font-weight: 600
+    color: $text-active
+    cursor: default
+
+  &__chart-btn
+    flex: none
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 26px
+    height: 26px
+    padding: 0
+    border: 0
+    border-radius: 6px
+    background: none
+    color: $primary
+    font-size: 16px
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      background: $primary-50
+
+  &__table td.aind__formula
+    white-space: nowrap
+
+  &__formula-txt
+    max-width: 100%
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace
+    font-size: 11px
+    color: $text-inactive
+
+  // Andamento: sparkline + variazione ultimo anno
+  &__trend
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 10px
+    width: 100%
+
+  &__spark
+    flex: none
+    width: 84px
+
+  &__delta
+    display: inline-flex
+    align-items: center
+    gap: 3px
+    justify-content: flex-end
+    min-width: 66px
+    font-size: 12px
+    font-weight: 700
+    cursor: default
+
+    i
+      font-size: 10px
+
+    &--pos
+      color: var(--color-success)
+
+    &--neg
+      color: var(--color-error-dark)
+
+    &--neutral
+      color: $text-inactive
+
+  // Righe di sezione (banda bianca, titolo + descrizione)
+  &__table td.aind__section-cell
+    padding: 12px 14px
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+    background: var(--color-surface)
+
+  &__sec-toggle
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    max-width: 100%
+    padding: 0
+    border: 0
+    background: none
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    color: $primary
+    cursor: pointer
+
+  &__sec-chev
+    width: 10px
+    font-size: 10px
+    color: $text-inactive
+
+  &__sec-desc
+    margin-left: 6px
+    overflow: hidden
+    text-overflow: ellipsis
+    font-family: 'Inter', sans-serif
+    font-size: 12px
+    font-weight: 400
+    letter-spacing: 0
+    text-transform: none
+    color: $text-inactive
+
+  &__row:hover .aind__ind-txt
+    color: $primary
+
+  // ── Letture (sotto la tabella) ───────────────────────────────────
+  &__insights
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 10px 28px
+    padding: 10px 2px 0
+    border-top: 1px solid $border
+    font-size: 13px
+    color: $text-active
+
+  &__insight
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+    strong
+      font-weight: 700
+
+  &__insight-ico
+    font-size: 15px
+    color: $primary
+
+    &--pos
+      color: var(--color-success)
+
+    &--neg
+      color: var(--color-error-dark)
+
+  &__link
+    margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+// Laptop con sidebar aperta: formula più stretta, sparkline più corta
+@container (max-width: 1240px)
+  .aind__col-ind
+    width: 25%
+
+  .aind__col-formula
+    width: 20%
+
+  .aind__col-trend
+    width: 18%
+
+  .aind__spark
+    width: 64px

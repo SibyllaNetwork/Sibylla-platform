@@ -33,7 +33,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "calendario-strategie": "Dalla visione all'azione: il tuo piano strategico si applica al mercato in tempo reale. Meno tempo e più risultati",
   "cashflow": "Controlla entrate e uscite di cassa",
   "conto-economico-segmentato": "Margini per segmento: contribuzione, margine specifico, EBIT ed EBITDA",
-  "analisi-indici": "Indici di redditività, liquidità e solidità per leggere lo stato di salute dell'impresa",
+  "analisi-indici": "Crescita, redditività, liquidità e solidità: lo stato di salute dell'impresa esercizio per esercizio",
   "margin-waterfall": "Dai ricavi al margine: come ogni voce di costo erode il risultato",
   "cassa": "Controllo e gestione centralizzata della cassa e dei movimenti",
   "centro-costo": "Definisci i centri di costo e organizza le spese aziendali",
