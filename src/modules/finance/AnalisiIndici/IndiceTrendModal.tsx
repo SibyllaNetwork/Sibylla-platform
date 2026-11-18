@@ -3,7 +3,7 @@ import { Area, Bar, CartesianGrid, ComposedChart, ReferenceArea, ReferenceLine, 
 import Modal from '../../../core/components/Modal'
 import TruncatedText from '../../../core/components/TruncatedText'
 import { ANIM, CHART, ChartTooltip, cursorProps, fmtAxisNum, gridProps, reducedMotion, series, xAxisProps, yAxisProps } from '../../../core/bi'
-import { Bilancio, Indice, fmtDelta, fmtEuro, fmtValore, serie, tono, unitaLbl } from './indiciData'
+import { Bilancio, Indice, Parametri, fmtDelta, fmtEuro, fmtValore, formulaDi, serie, statoEsercizio, tono, unitaLbl } from './indiciData'
 import './IndiceTrendModal.sass'
 
 /**
@@ -15,6 +15,7 @@ interface Props {
   indice: Indice | null
   bilanci: Bilancio[]
   struttura: string
+  parametri: Parametri
   onClose: () => void
 }
 
@@ -25,8 +26,8 @@ const tick = (v: number, u: Indice['unita']) => {
   return fmtAxisNum(v)
 }
 
-export default function IndiceTrendModal({ indice, bilanci, struttura, onClose }: Props) {
-  const dati = useMemo(() => (indice ? serie(indice, bilanci) : []), [indice, bilanci])
+export default function IndiceTrendModal({ indice, bilanci, struttura, parametri, onClose }: Props) {
+  const dati = useMemo(() => (indice ? serie(indice, bilanci, parametri) : []), [indice, bilanci, parametri])
   if (!indice || !dati.length) return null
 
   const u = indice.unita
@@ -47,7 +48,7 @@ export default function IndiceTrendModal({ indice, bilanci, struttura, onClose }
     <Modal open onClose={onClose} title={`${indice.label} · andamento storico`} size="xl" className="aindm-box">
       <div className="aindm">
         <p className="aindm__head">
-          <span className="aindm__formula">{indice.formula}</span>
+          <span className="aindm__formula">{formulaDi(indice, parametri)}{indice.provvisoria && <em className="aindm__provv"> · formula provvisoria</em>}</span>
           <span className="aindm__sub">{struttura} · {primo.anno}–{ultimo.anno} · {unitaLbl[u]}</span>
         </p>
 
@@ -98,7 +99,7 @@ export default function IndiceTrendModal({ indice, bilanci, struttura, onClose }
           <thead>
             <tr>
               <th>Componenti (€)</th>
-              {dati.map(d => <th key={d.anno} className="aindm__num">{d.anno}</th>)}
+              {dati.map(d => <th key={d.anno} className="aindm__num">{d.anno}{statoEsercizio(d.anno) !== 'chiuso' && <span className="aindm__stato">{statoEsercizio(d.anno) === 'in-corso' ? 'in corso' : 'prev.'}</span>}</th>)}
             </tr>
           </thead>
           <tbody>

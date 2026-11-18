@@ -25,6 +25,27 @@ export interface Bilancio {
   finanziamentiLungo: number
 }
 
+/**
+ * Parametri configurabili degli indici: fattore IVA applicato al fatturato
+ * (DSO) e agli acquisti di materie (DPO). Default 1,2 come nel documento.
+ */
+export interface Parametri { ivaVendite: number; ivaAcquisti: number }
+export const PARAMETRI_DEFAULT: Parametri = { ivaVendite: 1.2, ivaAcquisti: 1.2 }
+const fmtFatt = (v: number) => v.toLocaleString('it-IT', { maximumFractionDigits: 3 })
+
+export const formulaDi = (ind: Indice, p: Parametri) => (typeof ind.formula === 'function' ? ind.formula(p) : ind.formula)
+
+/** Stato dell'esercizio rispetto all'anno in corso. */
+export const ANNO_CORRENTE = new Date().getFullYear()
+export type StatoEsercizio = 'chiuso' | 'in-corso' | 'previsionale'
+export const statoEsercizio = (anno: number): StatoEsercizio =>
+  anno < ANNO_CORRENTE ? 'chiuso' : anno === ANNO_CORRENTE ? 'in-corso' : 'previsionale'
+export const STATO_LBL: Record<StatoEsercizio, { breve: string; full: string }> = {
+  'chiuso': { breve: 'chiuso', full: 'Bilancio chiuso (Business Central)' },
+  'in-corso': { breve: 'in corso', full: 'Esercizio in corso: valori a oggi, non ancora a bilancio' },
+  'previsionale': { breve: 'previsionale', full: 'Esercizio futuro: valori del bilancio preventivo' },
+}
+
 export type Unita = 'pct' | 'gg' | 'eur' | 'x'
 /** Direzione favorevole: 'up' = meglio se sale, 'down' = meglio se scende. */
 export type Polarita = 'up' | 'down' | 'neutral'
@@ -35,10 +56,13 @@ export interface Indice {
   key: string
   label: string
   breve?: string
-  formula: string
+  /** Testo della formula; funzione quando dipende dai parametri (fattore IVA). */
+  formula: string | ((p: Parametri) => string)
   unita: Unita
   polarita: Polarita
-  calc: (b: Bilancio, prev?: Bilancio) => number
+  calc: (b: Bilancio, prev: Bilancio | undefined, p: Parametri) => number
+  /** Formula non ancora definita nel documento: quella mostrata è provvisoria. */
+  provvisoria?: boolean
   componenti: Componente[]
   /** Lettura dell'indice per l'utente (tooltip e modale). */
   nota: string
@@ -134,13 +158,13 @@ export const SEZIONI: Sezione[] = [
       { key: 'crescitaRicavi', label: 'Crescita ricavi', formula: '(Ricavi X − Ricavi X−1) / Ricavi X−1', unita: 'pct', polarita: 'up',
         calc: (b, p) => varPct(b.ricavi, p?.ricavi), componenti: [C.ricavi],
         nota: 'Quanto sono aumentati i ricavi rispetto all\'anno precedente.' },
-      { key: 'crescitaCapitale', label: 'Crescita capitale investito', breve: 'Crescita cap. investito', formula: '(Tot. attivo X − Tot. attivo X−1) / Tot. attivo X−1', unita: 'pct', polarita: 'neutral',
+      { key: 'crescitaCapitale', provvisoria: true, label: 'Crescita capitale investito', breve: 'Crescita cap. investito', formula: '(Tot. attivo X − Tot. attivo X−1) / Tot. attivo X−1', unita: 'pct', polarita: 'neutral',
         calc: (b, p) => varPct(b.totaleAttivo, p?.totaleAttivo), componenti: [C.attivo],
         nota: 'Variazione del totale attivo: misura quanto l\'impresa ha investito in più (o in meno).' },
-      { key: 'varTerzi', label: 'Variazione mezzi di terzi', formula: '(Mezzi di terzi X − X−1) / Mezzi di terzi X−1', unita: 'pct', polarita: 'down',
+      { key: 'varTerzi', provvisoria: true, label: 'Variazione mezzi di terzi', formula: '(Mezzi di terzi X − X−1) / Mezzi di terzi X−1', unita: 'pct', polarita: 'down',
         calc: (b, p) => varPct(mezziTerzi(b), p && mezziTerzi(p)), componenti: [C.terzi],
         nota: 'Variazione delle fonti esterne (debiti): se cresce più dei mezzi propri aumenta la dipendenza da terzi.' },
-      { key: 'varPropri', label: 'Variazione mezzi propri', formula: '(Patrimonio netto X − X−1) / Patrimonio netto X−1', unita: 'pct', polarita: 'up',
+      { key: 'varPropri', provvisoria: true, label: 'Variazione mezzi propri', formula: '(Patrimonio netto X − X−1) / Patrimonio netto X−1', unita: 'pct', polarita: 'up',
         calc: (b, p) => varPct(b.patrimonioNetto, p?.patrimonioNetto), componenti: [C.pn],
         nota: 'Variazione del patrimonio netto: utili trattenuti, aumenti o riduzioni di capitale.' },
     ],
@@ -167,15 +191,15 @@ export const SEZIONI: Sezione[] = [
     id: 'liquidita', titolo: 'Liquidità', icona: 'fa-droplet',
     desc: 'Tempi del ciclo commerciale: incasso dei crediti, rotazione del magazzino, pagamento dei fornitori',
     indici: [
-      { key: 'dso', label: 'DSO · tempo incasso crediti', formula: 'Crediti × 360 / (Fatturato × 1,2)', unita: 'gg', polarita: 'down',
-        calc: b => (b.crediti * 360) / (b.ricavi * 1.2), componenti: [C.crediti, C.ricavi],
-        nota: 'Giorni medi per incassare dai clienti (fatturato IVA inclusa).' },
+      { key: 'dso', label: 'DSO · tempo incasso crediti', formula: p => `Crediti × 360 / (Fatturato × ${fmtFatt(p.ivaVendite)})`, unita: 'gg', polarita: 'down',
+        calc: (b, _, p) => (b.crediti * 360) / (b.ricavi * p.ivaVendite), componenti: [C.crediti, C.ricavi],
+        nota: 'Giorni medi per incassare dai clienti: il fatturato è maggiorato del fattore IVA configurato.' },
       { key: 'dsi', label: 'DSI · durata magazzino', formula: 'Magazzino × 360 / Costo materie', unita: 'gg', polarita: 'down',
         calc: b => (b.magazzino * 360) / b.costoMaterie, componenti: [C.magazzino, C.materie],
         nota: 'Giorni medi di giacenza delle scorte.' },
-      { key: 'dpo', label: 'DPO · tempo pagamento fornitori', formula: 'Fornitori × 360 / (Costo materie e mat. cons. × 1,2)', unita: 'gg', polarita: 'up',
-        calc: b => (b.fornitori * 360) / (b.costoMaterie * 1.2), componenti: [C.fornitori, C.materie],
-        nota: 'Giorni medi per pagare i fornitori (acquisti IVA inclusa): più è lungo, più il ciclo è finanziato dai fornitori.' },
+      { key: 'dpo', label: 'DPO · tempo pagamento fornitori', formula: p => `Fornitori × 360 / (Costo materie e mat. cons. × ${fmtFatt(p.ivaAcquisti)})`, unita: 'gg', polarita: 'up',
+        calc: (b, _, p) => (b.fornitori * 360) / (b.costoMaterie * p.ivaAcquisti), componenti: [C.fornitori, C.materie],
+        nota: 'Giorni medi per pagare i fornitori (acquisti maggiorati del fattore IVA configurato): più è lungo, più il ciclo è finanziato dai fornitori.' },
     ],
   },
   {
@@ -234,8 +258,8 @@ export function fmtDelta(d: number, u: Unita): string {
 export const unitaLbl: Record<Unita, string> = { pct: '%', gg: 'giorni', x: 'volte', eur: '€' }
 
 /** Serie storica dell'indice (dal secondo anno disponibile, per le variazioni). */
-export function serie(ind: Indice, bil: Bilancio[]): { anno: number; v: number }[] {
-  return bil.map((b, i) => ({ anno: b.anno, v: ind.calc(b, bil[i - 1]) })).filter(p => isFinite(p.v))
+export function serie(ind: Indice, bil: Bilancio[], par: Parametri): { anno: number; v: number }[] {
+  return bil.map((b, i) => ({ anno: b.anno, v: ind.calc(b, bil[i - 1], par) })).filter(p => isFinite(p.v))
 }
 
 export type Tono = 'pos' | 'neg' | 'neutral'

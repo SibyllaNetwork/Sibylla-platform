@@ -7,7 +7,9 @@ import { Sparkline, CHART } from '../../../core/bi'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 import IndiceTrendModal from './IndiceTrendModal'
-import { ANNI, Indice, SEZIONI, Tono, bilanci, fmtDelta, fmtValore, serie, tono, unitaLbl } from './indiciData'
+import ParametriIndiciModal from './ParametriIndiciModal'
+import { useIndiciParametriStore } from '../../../store/useIndiciParametriStore'
+import { ANNI, Indice, SEZIONI, STATO_LBL, Tono, bilanci, fmtDelta, fmtValore, formulaDi, serie, statoEsercizio, tono, unitaLbl } from './indiciData'
 import './AnalisiIndici.sass'
 
 /**
@@ -24,6 +26,11 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [chiuse, setChiuse] = useState<Record<string, boolean>>({})
   const [aperto, setAperto] = useState<Indice | null>(null)
+  const [parametriAperti, setParametriAperti] = useState(false)
+  const ivaVendite = useIndiciParametriStore(s => s.ivaVendite)
+  const ivaAcquisti = useIndiciParametriStore(s => s.ivaAcquisti)
+  const par = useMemo(() => ({ ivaVendite, ivaAcquisti }), [ivaVendite, ivaAcquisti])
+  const fmtF = (v: number) => v.toLocaleString('it-IT', { maximumFractionDigits: 3 })
 
   // X = anno scelto: le colonne sono X, X+1, X+2
   const fino = Number(anno) + 2
@@ -34,12 +41,12 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
   const righe = useMemo(() => SEZIONI.map(sez => ({
     sez,
     indici: sez.indici.map(ind => {
-      const valori = idx.map(i => ind.calc(bil[i], bil[i - 1]))
+      const valori = idx.map(i => ind.calc(bil[i], bil[i - 1], par))
       const delta = valori[2] - valori[1]
-      return { ind, valori, delta, tono: tono(delta, ind.polarita, ind.unita), storia: serie(ind, bil).map(p => p.v) }
+      return { ind, valori, delta, tono: tono(delta, ind.polarita, ind.unita), storia: serie(ind, bil, par).map(p => p.v) }
     }),
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  })), [bil])
+  })), [bil, par])
 
   // ── Letture dell'ultimo esercizio (sotto la tabella) ─────────────────
   const letture = useMemo(() => {
@@ -59,7 +66,7 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
     const rows: (string | number)[][] = []
     righe.forEach(({ sez, indici }) => {
       rows.push([sez.titolo.toUpperCase()])
-      indici.forEach(r => rows.push([r.ind.label, r.ind.formula, ...r.valori.map(v => fmtValore(v, r.ind.unita)), fmtDelta(r.delta, r.ind.unita)]))
+      indici.forEach(r => rows.push([r.ind.label, formulaDi(r.ind, par) + (r.ind.provvisoria ? ' (provvisoria)' : ''), ...r.valori.map(v => fmtValore(v, r.ind.unita)), fmtDelta(r.delta, r.ind.unita)]))
     })
     exportTableToXls(`analisi-indici-${anno}.xls`, header, rows, titoloExport)
   }
@@ -77,6 +84,12 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
           <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={opzioniStrutture} className="w-56" />
         </div>
         <div className="aind__actions">
+          <Tooltip text="Fattore IVA usato nel calcolo di DSO e DPO">
+            <button type="button" className="sib-btn sib-btn--secondary aind__param-btn" onClick={() => setParametriAperti(true)}>
+              <i className="fa-solid fa-sliders" aria-hidden="true" />Parametri
+              <span className="aind__btn-sub">IVA {fmtF(ivaVendite)}{ivaAcquisti !== ivaVendite ? ` / ${fmtF(ivaAcquisti)}` : ''}</span>
+            </button>
+          </Tooltip>
           <Tooltip text="Esporta PDF"><button className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={exportPdf}><i className="fa-regular fa-file-pdf" /></button></Tooltip>
           <Tooltip text="Esporta Excel"><button className="sib-btn sib-btn--icon" aria-label="Esporta Excel" onClick={exportXls}><i className="fa-regular fa-file-xls" /></button></Tooltip>
         </div>
@@ -94,12 +107,22 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
             <tr>
               <th>Indice</th>
               <th>Formula</th>
-              {anni.map((a, i) => (
-                <th key={a} className={`aind__num ${i === 2 ? 'aind__last' : ''}`}>
-                  {a}
-                  <span className="aind__xlbl">{i === 0 ? 'X' : `X+${i}`}</span>
-                </th>
-              ))}
+              {anni.map((a, i) => {
+                const st = statoEsercizio(a)
+                return (
+                  <th key={a} className={`aind__num ${i === 2 ? 'aind__last' : ''}`}>
+                    <Tooltip text={STATO_LBL[st].full}>
+                      <span className="aind__yhead">
+                        <span className="aind__ylbl">
+                          {st !== 'chiuso' && <i className={`fa-solid ${st === 'in-corso' ? 'fa-hourglass-half' : 'fa-crystal-ball'} aind__stato-ico`} aria-hidden="true" />}
+                          {a}
+                        </span>
+                        <span className={`aind__xlbl aind__xlbl--${st}`}>{i === 0 ? 'X' : `X+${i}`} · {STATO_LBL[st].breve}</span>
+                      </span>
+                    </Tooltip>
+                  </th>
+                )
+              })}
               <th className="aind__num">
                 <TruncatedText text={`Andamento ${bil[0].anno + 1}–${anni[2]}`} full={`Andamento storico ${bil[0].anno + 1}–${anni[2]} e variazione ${anni[2]} vs ${anni[1]}`} className="aind__trend-head" />
               </th>
@@ -135,7 +158,16 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
                           </Tooltip>
                         </span>
                       </td>
-                      <td className="aind__formula"><TruncatedText text={r.ind.formula} className="aind__formula-txt" /></td>
+                      <td className="aind__formula">
+                        <span className="aind__formula-cell">
+                          <TruncatedText text={formulaDi(r.ind, par)} className="aind__formula-txt" />
+                          {r.ind.provvisoria && (
+                            <Tooltip text="Formula provvisoria: quella definitiva è in arrivo">
+                              <i className="fa-solid fa-hourglass-half aind__provv" aria-label="Formula provvisoria" />
+                            </Tooltip>
+                          )}
+                        </span>
+                      </td>
                       {r.valori.map((v, i) => (
                         <td key={anni[i]} className={`aind__num ${i === 2 ? 'aind__last' : ''} ${v < 0 ? 'aind__neg' : ''}`}>
                           {fmtValore(v, r.ind.unita)}
@@ -183,7 +215,16 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
         </button>
       </div>
 
-      <IndiceTrendModal indice={aperto} bilanci={bil} struttura={struttura} onClose={() => setAperto(null)} />
+      <p className="aind__fonte">
+        <i className="fa-solid fa-database" aria-hidden="true" />
+        Stato patrimoniale e conto economico da Business Central: bilanci chiusi per gli esercizi passati, valori a oggi per l'anno in corso.
+        <button type="button" className="aind__fonte-link" onClick={() => navigate('configuratore:business-central')}>
+          Collegamento Business Central <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+        </button>
+      </p>
+
+      <IndiceTrendModal indice={aperto} bilanci={bil} struttura={struttura} parametri={par} onClose={() => setAperto(null)} />
+      <ParametriIndiciModal open={parametriAperti} onClose={() => setParametriAperti(false)} />
     </div>
   )
 }
