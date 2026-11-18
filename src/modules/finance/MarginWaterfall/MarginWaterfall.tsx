@@ -6,7 +6,7 @@ import VistaSwitch, { VistaOpzione } from '../../../core/components/VistaSwitch'
 import { SelectField } from '../../../core/components/form'
 import { exportTableToXls } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
-import MwfImbuto, { Mattoncino } from './MwfImbuto'
+import MwfFlusso from './MwfFlusso'
 import MwfCascata from './MwfCascata'
 import { CAMERE, Prospettiva, SEGMENTI, Voce, conto, fmtCompatto, fmtEuro, fmtPct, genera } from './mwfData'
 import './MarginWaterfall.sass'
@@ -15,12 +15,12 @@ import './MarginWaterfall.sass'
  * Margin waterfall (disegno del CEO): dai ricavi si tolgono i costi variabili,
  * resta il margine di contribuzione, si tolgono i costi fissi, resta l'utile.
  *
- * Imbuto interattivo: i ricavi di ogni segmento (o tipologia di camera) sono
- * mattoncini nell'elenco a destra; trascinati nell'imbuto, fanno uscire i costi
- * variabili nella loro scatola e scendere margine, costi fissi e utile nei
- * contenitori in fondo. Il carosello in basso filtra sull'altra dimensione; lo
- * switch inverte la prospettiva. Forma "cascata" in alternativa (non ancora
- * decisa).
+ * Flusso del denaro (Sankey animato): i ricavi di ogni segmento (o tipologia
+ * di camera) sono mattoncini nell'elenco a destra; quelli attivi entrano nel
+ * flusso, che si divide in costi variabili, margine di contribuzione, costi
+ * fissi e utile. Si tolgono e rimettono con un clic o trascinandoli sul
+ * grafico. Il carosello in basso filtra sull'altra dimensione; lo switch
+ * inverte la prospettiva. Forma "cascata" in alternativa.
  */
 
 const ANNI = [2024, 2025, 2026]
@@ -29,9 +29,9 @@ const PROSPETTIVE: VistaOpzione<Prospettiva>[] = [
   { value: 'segmento', label: 'Segmenti → camere', icon: 'fa-users', hint: 'Mattoncini per segmento' },
   { value: 'camera', label: 'Camere → segmenti', icon: 'fa-bed', hint: 'Mattoncini per tipologia' },
 ]
-type Forma = 'imbuto' | 'cascata'
+type Forma = 'flusso' | 'cascata'
 const FORME: VistaOpzione<Forma>[] = [
-  { value: 'imbuto', label: 'Imbuto', icon: 'fa-filter', hint: 'Trascina i ricavi' },
+  { value: 'flusso', label: 'Flusso', icon: 'fa-water', hint: 'Dove va ogni euro' },
   { value: 'cascata', label: 'Cascata', icon: 'fa-chart-waterfall', hint: 'Waterfall' },
 ]
 
@@ -39,10 +39,10 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [anno, setAnno] = useState(2026)
   const [prospettiva, setProspettiva] = useState<Prospettiva>('segmento')
-  const [forma, setForma] = useState<Forma>('imbuto')
-  // Mattoncini versati nell'imbuto (voci dell'elenco a destra) e filtro del carosello
-  const [dentro, setDentro] = useState<string[]>([])
-  const [cadendo, setCadendo] = useState<string | null>(null)
+  const [forma, setForma] = useState<Forma>('flusso')
+  // Mattoncini attivi nel flusso (voci dell'elenco a destra) e filtro del carosello
+  const [dentro, setDentro] = useState<string[]>(SEGMENTI.map(v => v.id))
+  const [sopra, setSopra] = useState(false)
   const [selCarosello, setSelCarosello] = useState<string | null>(null)
 
   const d = useMemo(() => genera(struttura, anno), [struttura, anno])
@@ -55,23 +55,18 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
   type F = string | string[] | null
   const filtro = (el: F, ca: F) => (prospettiva === 'segmento' ? conto(d, ca, el) : conto(d, el, ca))
 
-  const mattoncini: Mattoncino[] = elenco.map(v => ({ ...v, ricavi: filtro(v.id, selCarosello).ricavi }))
+  const mattoncini = elenco.map(v => ({ ...v, ricavi: filtro(v.id, selCarosello).ricavi }))
   const cTutti = filtro(null, selCarosello)
   const cImbuto = filtro(dentro, selCarosello)
   const nome = (lista: Voce[], id: string | null) => lista.find(v => v.id === id)?.nome
 
-  function versa(id: string) {
-    if (dentro.includes(id)) return
-    setDentro(x => [...x, id])
-    setCadendo(id)
-    window.setTimeout(() => setCadendo(c => (c === id ? null : c)), 700)
-  }
+  const versa = (id: string) => setDentro(x => (x.includes(id) ? x : [...x, id]))
   const togli = (id: string) => setDentro(x => x.filter(v => v !== id))
   const versaTutti = () => setDentro(elenco.map(v => v.id))
 
   function cambiaProspettiva(p: Prospettiva) {
     setProspettiva(p)
-    setDentro([])
+    setDentro((p === 'segmento' ? SEGMENTI : CAMERE).map(v => v.id))
     setSelCarosello(null)
   }
 
@@ -112,33 +107,39 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
 
       <div className="mwf__layout">
         {/* ── Grafico ───────────────────────────────────────────────── */}
-        <section className="mwf__card mwf__graf">
+        <section
+          className={`mwf__card mwf__graf ${sopra ? 'mwf__graf--sopra' : ''}`}
+          onDragOver={e => { e.preventDefault(); setSopra(true) }}
+          onDragLeave={() => setSopra(false)}
+          onDrop={e => { e.preventDefault(); setSopra(false); const id = e.dataTransfer.getData('text/plain'); if (id) versa(id) }}
+        >
           <header className="mwf__graf-head">
             <div>
               <h2>{titoloGraf}</h2>
               <p>
-                {forma === 'imbuto'
-                  ? (dentro.length ? `${dentro.length} di ${elenco.length} mattoncini nell'imbuto` : `Trascina nell'imbuto i ricavi per ${nomeElenco}`)
-                  : (dentro.length ? `Cascata dei ricavi versati nell'imbuto` : 'Cascata di tutti i ricavi')} · {struttura} {anno}
+                {dentro.length === elenco.length
+                  ? `Tutti i ricavi per ${nomeElenco}`
+                  : `${dentro.length} di ${elenco.length} voci di ricavo nel ${forma === 'flusso' ? 'flusso' : 'grafico'}`} · {struttura} {anno}
               </p>
             </div>
-            {forma === 'imbuto' && (
-              <span className="mwf__graf-actions">
-                <button type="button" className="sib-btn sib-btn--secondary" onClick={versaTutti} disabled={dentro.length === elenco.length}>
-                  <i className="fa-solid fa-fill-drip" aria-hidden="true" /> Versa tutti
+            <span className="mwf__graf-actions">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={versaTutti} disabled={dentro.length === elenco.length}>
+                <i className="fa-solid fa-layer-group" aria-hidden="true" /> Tutti
+              </button>
+              <Tooltip text="Togli tutti i ricavi">
+                <button type="button" className="sib-btn sib-btn--icon" aria-label="Togli tutti i ricavi" onClick={() => setDentro([])} disabled={!dentro.length}>
+                  <i className="fa-solid fa-eraser" />
                 </button>
-                <Tooltip text="Svuota l'imbuto">
-                  <button type="button" className="sib-btn sib-btn--icon" aria-label="Svuota l'imbuto" onClick={() => setDentro([])} disabled={!dentro.length}>
-                    <i className="fa-solid fa-trash-can-arrow-up" />
-                  </button>
-                </Tooltip>
-              </span>
-            )}
+              </Tooltip>
+            </span>
           </header>
-          {forma === 'imbuto' ? (
-            <MwfImbuto c={cImbuto} scala={cTutti.ricavi} dentro={mattoncini.filter(m => dentro.includes(m.id))} cadendo={cadendo} onVersa={versa} onTogli={togli} />
+          {forma === 'flusso' ? (
+            <MwfFlusso
+              sorgenti={elenco.filter(v => dentro.includes(v.id)).map(v => ({ id: v.id, nome: v.nome, conto: filtro(v.id, selCarosello) }))}
+              totale={cImbuto}
+            />
           ) : (
-            <MwfCascata c={dentro.length ? cImbuto : cTutti} />
+            <MwfCascata c={cImbuto} />
           )}
         </section>
 
@@ -155,15 +156,15 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
                 <li key={m.id}>
                   <button
                     type="button"
-                    className={`mwf__brick ${versato ? 'mwf__brick--versato' : ''}`}
-                    draggable={!versato}
+                    className={`mwf__brick ${versato ? 'mwf__brick--versato' : 'mwf__brick--fuori'}`}
+                    draggable
                     onDragStart={e => { e.dataTransfer.setData('text/plain', m.id); e.dataTransfer.effectAllowed = 'move' }}
                     onClick={() => (versato ? togli(m.id) : versa(m.id))}
                     aria-pressed={versato}
-                    aria-label={`${m.nome}: ${versato ? "nell'imbuto, clic per toglierlo" : "trascina o clicca per versarlo nell'imbuto"}`}
+                    aria-label={`${m.nome}: ${versato ? 'nel flusso, clic per toglierlo' : 'trascina sul grafico o clicca per aggiungerlo'}`}
                   >
                     <span className="mwf__brick-top">
-                      <i className={`fa-solid ${versato ? 'fa-check' : 'fa-grip-dots-vertical'} mwf__brick-grip`} aria-hidden="true" />
+                      <i className={`fa-solid ${versato ? 'fa-check' : 'fa-plus'} mwf__brick-grip`} aria-hidden="true" />
                       <i className={`fa-solid ${m.icona}`} aria-hidden="true" />
                       <TruncatedText text={m.nome} className="mwf__brick-nome" />
                       <span className="mwf__brick-val">{fmtCompatto(m.ricavi)}</span>
@@ -179,7 +180,7 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
               )
             })}
           </ul>
-          <span className="mwf__hint"><i className="fa-solid fa-hand-pointer" aria-hidden="true" /> Trascina un mattoncino nell'imbuto (o cliccalo). La barra è la quota dei ricavi.</span>
+          <span className="mwf__hint"><i className="fa-solid fa-hand-pointer" aria-hidden="true" /> Clicca un mattoncino per toglierlo o rimetterlo nel flusso (o trascinalo sul grafico). La barra è la quota dei ricavi.</span>
         </aside>
       </div>
 
