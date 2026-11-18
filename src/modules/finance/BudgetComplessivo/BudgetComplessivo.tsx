@@ -1,5 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
+import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
 import { SelectField, RadioGroup } from '../../../core/components/form'
 import './BudgetComplessivo.sass'
 import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
@@ -9,7 +11,9 @@ import { useScenariBudgetStore } from '../../../store/useScenariBudgetStore'
  * Budget complessivo — pianificazione strategica del conto economico, per voce
  * e per mese (vista annuale, 12 mesi). I mesi già trascorsi sono in sola
  * lettura; i mesi futuri sono editabili. Totali e MOL sono calcolati.
- * Prima colonna fissa + slider in stile Cabina di controllo.
+ * Tutti i 12 mesi e il Totale stanno nella pagina, senza scroll orizzontale:
+ * tabella a larghezze fisse, importi interi (unità in testata) e, sui
+ * contenitori stretti, importi in migliaia con il valore completo nel tooltip.
  */
 
 const ANNI = ['2024', '2025', '2026', '2027']
@@ -36,6 +40,21 @@ const SEZIONI: SectionCfg[] = [
     { key: 'totCosti',  label: 'Totale costi', totale: true },
   ] },
 ]
+
+// Importi delle celle: interi con punto delle migliaia (unità "€" in testata)
+const INT = new Intl.NumberFormat('it-IT', { useGrouping: 'always', maximumFractionDigits: 0 } as unknown as Intl.NumberFormatOptions)
+const fmtInt = (v: number) => `${v < 0 ? '−' : ''}${INT.format(Math.abs(Math.round(v)))}`
+const fmtK = (v: number) => (Math.abs(v) >= 1000 ? `${v < 0 ? '−' : ''}${INT.format(Math.round(Math.abs(v) / 1000))}k` : fmtInt(v))
+
+/** Importo che passa in migliaia quando la colonna è stretta (container query). */
+function Importo({ v }: { v: number }) {
+  return (
+    <>
+      <span className="bc__v-full">{fmtInt(v)}</span>
+      <Tooltip text={fmtEuro(v)}><span className="bc__v-k">{fmtK(v)}</span></Tooltip>
+    </>
+  )
+}
 
 function fmtEuro(v: number): string {
   return `${v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
@@ -87,24 +106,6 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
     }
   }, [vals])
 
-  // ── Slider (12 mesi): prima colonna sempre fissa ─────────────────────
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const [nav, setNav] = useState({ prev: false, next: false })
-  const updateNav = useCallback(() => {
-    const el = wrapRef.current
-    if (!el) return
-    setNav({ prev: el.scrollLeft > 4, next: el.scrollLeft < el.scrollWidth - el.clientWidth - 4 })
-  }, [])
-  useEffect(() => {
-    updateNav()
-    window.addEventListener('resize', updateNav)
-    return () => window.removeEventListener('resize', updateNav)
-  }, [updateNav])
-  const scrollX = (dir: number) => {
-    const el = wrapRef.current
-    if (el) el.scrollBy({ left: dir * Math.max(360, el.clientWidth * 0.7), behavior: 'smooth' })
-  }
-
   const months = useMemo(() => MESI.map((_, m) => m), [])
 
   // Totale di riga: somma dei 12 mesi (colonna "Totale" dopo i mesi)
@@ -115,13 +116,13 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
 
   const renderRow = (r: RowCfg, variant: 'ricavi' | 'costi' | 'margine') => (
     <tr key={r.key} className={`bc__row bc__row--${variant} ${r.totale ? 'bc__row--totale' : ''}`}>
-      <td className="bc__voce">{r.label}</td>
+      <td className="bc__voce"><TruncatedText text={r.label} className="bc__voce-txt" /></td>
       {months.map(m => {
         // Valori a sola lettura; i mesi già trascorsi sono sbiaditi
         const pastCls = isPast(m) ? 'bc__cell--past' : ''
-        return <td key={m} className={`bc__num bc__cell ${pastCls}`}>{fmtEuro(monthVal(r.key, m))}</td>
+        return <td key={m} className={`bc__num bc__cell ${pastCls}`}><Importo v={monthVal(r.key, m)} /></td>
       })}
-      <td className="bc__num bc__tot">{fmtEuro(rowTotal(r.key))}</td>
+      <td className="bc__num bc__tot"><Importo v={rowTotal(r.key)} /></td>
     </tr>
   )
 
@@ -158,19 +159,21 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
         </p>
       )}
 
-      {/* Tabella annuale — prima colonna fissa, mesi scorrevoli con lo slider */}
+      {/* Tabella annuale: 12 mesi + Totale nella larghezza della pagina */}
       <div className="bc__timeline">
-        {nav.prev && (
-          <button type="button" className="bc__nav bc__nav--prev" onClick={() => scrollX(-1)} aria-label="Mesi precedenti"><i className="fa-solid fa-chevron-left" /></button>
-        )}
-        {nav.next && (
-          <button type="button" className="bc__nav bc__nav--next" onClick={() => scrollX(1)} aria-label="Mesi successivi"><i className="fa-solid fa-chevron-right" /></button>
-        )}
-        <div className="sib-table-wrap bc__wrap" ref={wrapRef} onScroll={updateNav}>
+        <div className="sib-table-wrap bc__wrap">
           <table className="sib-table bc__pl">
+            <colgroup>
+              <col className="bc__col-voce" />
+              {months.map(m => <col key={m} />)}
+              <col className="bc__col-tot" />
+            </colgroup>
             <thead>
               <tr>
-                <th className="bc__voce bc__voce--head">{anno}</th>
+                <th className="bc__voce bc__voce--head">
+                  {anno}
+                  <span className="bc__unit">Valori in €</span>
+                </th>
                 {months.map(m => (
                   <th key={m} className={`bc__num bc__colhead ${isPast(m) ? 'bc__colhead--past' : ''}`}>{MESI[m]}</th>
                 ))}

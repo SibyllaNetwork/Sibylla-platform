@@ -27,53 +27,43 @@
     align-items: flex-end
     gap: 8px
 
-  // ── Slider orizzontale ───────────────────────────────────────────
+  // ── Tabella: tutto nella pagina, niente scroll orizzontale ────────
   &__timeline
     position: relative
-
-  &__wrap
-    scrollbar-width: none
-    -ms-overflow-style: none
-
-    &::-webkit-scrollbar
-      display: none
-
-  &__nav
-    position: absolute
-    top: 50%
-    transform: translateY(-50%)
-    z-index: 20
-    width: 34px
-    height: 34px
-    border-radius: 50%
-    border: 1px solid $primary-200
-    background: $white
-    color: $primary
-    box-shadow: $shadow-lg
-    cursor: pointer
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    transition: $transition-fast
-
-    &:hover
-      background: $primary
-      color: $white
-
-    &--prev
-      left: 238px
-
-    &--next
-      right: 6px
+    container-type: inline-size
 
   // ── Tabella ──────────────────────────────────────────────────────
   &__pl
-    min-width: max-content
+    table-layout: fixed
+    width: 100%
 
     th.bc__num,
     td.bc__num
       text-align: right
       white-space: nowrap
+      padding-left: 6px
+      padding-right: 8px
+      font-size: 12px
+      font-variant-numeric: tabular-nums
+
+  &__col-voce
+    width: 16%
+
+  &__col-tot
+    width: 9%
+
+  &__voce-txt
+    max-width: 100%
+
+  &__unit
+    display: block
+    font-size: 10px
+    font-weight: 500
+    color: $text-inactive
+
+  // Importo intero o in migliaia secondo la larghezza disponibile
+  &__v-k
+    display: none
 
   &__colhead
     text-align: center
@@ -81,7 +71,6 @@
     font-weight: 700
     color: $primary
     background: var(--color-surface)
-    min-width: 110px
 
   // Mesi già trascorsi: testo sbiadito, come nella tabella del Budget dei ricavi
   // (selettori con elemento + !important per vincere su `.sib-table th/td`)
@@ -95,7 +84,6 @@
     background: #d6e6f5
     color: $primary
     font-weight: 700
-    min-width: 130px
     border-left: 1px solid $primary-200
 
   &__pl th.bc__tot--head
@@ -105,12 +93,8 @@
   &__row--totale td.bc__tot
     background: #bcd4e9
 
-  // Prima colonna (voci) — sempre fissa
+  // Prima colonna (voci)
   &__voce
-    position: sticky
-    left: 0
-    z-index: 3
-    min-width: 230px
     text-align: left
     background: var(--color-surface)
 
@@ -121,12 +105,7 @@
       color: $primary
       background: var(--color-surface)
 
-  // Angolo "Anno": forza lo sticky in alto-a-sinistra (vince su .sib-table th)
   &__pl thead th.bc__voce
-    position: sticky
-    left: 0
-    top: 0
-    z-index: 6
     background: var(--color-surface)
 
   // Righe di sezione (titolo navy, normal case)
@@ -170,3 +149,33 @@
 
   &:hover
     text-decoration: underline
+
+// Contenitore stretto (laptop con sidebar): importi in migliaia, celle più strette
+@container (max-width: 1240px)
+  .bc__pl .bc__v-full
+    display: none
+
+  .bc__pl .bc__v-k
+    display: inline
+
+  .bc__pl th.bc__num,
+  .bc__pl td.bc__num
+    padding-left: 4px
+    padding-right: 6px
+
+  .bc__pl .bc__colhead
+    font-size: 11px
+
+  .bc__col-voce
+    width: 17%
+
+// Contenitore molto stretto: colonna voci più stretta e intestazioni più compatte
+// (i nomi dei mesi restano interi)
+@container (max-width: 1000px)
+  .bc__col-voce
+    width: 14%
+
+  .bc__pl th.bc__colhead
+    padding-left: 2px
+    padding-right: 3px
+    font-size: 10.5px
