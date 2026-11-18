@@ -273,6 +273,9 @@ const MENU_MAP: Record<string, string> = {
   'finance-overview':           'fa-eye',
   'verifiche-analitiche':       'fa-magnifying-glass-chart',
   'break-even':                 'fa-scale-balanced',
+  'conto-economico-segmentato': 'fa-layer-group',
+  'analisi-indici':             'fa-percent',
+  'margin-waterfall':           'fa-chart-column',
   'profit-analysis':            'fa-circle-dollar',
 
   // Finance — Revisione budget

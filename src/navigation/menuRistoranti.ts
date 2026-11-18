@@ -255,27 +255,22 @@ const MENU_RISTORANTI:any[]=[
       {id:"hr-overview",label:"HR Overview",page:"hr-overview"},
     ]},
     {id:"finance",label:"Finance",color:"#5C9CD4",children:[
+      {id:"controllo-gestione",label:"Controllo di gestione",children:[
+        {id:"cabina-controllo",label:"Cabina di controllo",page:"cabina-controllo"},
+        {id:"conto-economico-segmentato",label:"Conto economico segmentato",page:"conto-economico-segmentato"},
+        {id:"break-even",label:"BEP analysis",page:"break-even"},
+        {id:"analisi-indici",label:"Analisi per indici",page:"analisi-indici"},
+        {id:"margin-waterfall",label:"Margin waterfall",page:"margin-waterfall"},
+        {id:"decision-tree",label:"Decision Tree",page:"decision-tree"},
+        {id:"cashflow",label:"Cashflow",page:"cashflow"},
+      ]},
       {id:"gest-costi",label:"Gestione dei costi",children:[
         {id:"budget-costi",label:"Budget dei costi",page:"budget-costi"},
         {id:"centro-costo",label:"Imposta centro di costo",page:"centro-costo"},
         {id:"cost-analysis",label:"Cost analysis",page:"cost-analysis"},
       ]},
-      {id:"controllo-gestione",label:"Controllo di gestione",children:[
-        {id:"finance-overview",label:"Finance overview",page:"finance-overview"},
-        {id:"verifiche-analitiche",label:"Verifiche analitiche",children:[
-          {id:"decision-tree",label:"Decision Tree",page:"decision-tree"},
-          {id:"incoming-analysis",label:"Incoming analysis",page:"incoming-analysis"},
-          {id:"ledger-analysis",label:"Ledger analysis",page:"ledger-analysis"},
-        ]},
-        {id:"break-even",label:"Break even point analysis",page:"break-even"},
-        {id:"profit-analysis",label:"Profit analysis",children:[
-          {id:"cashflow",label:"Cashflow",page:"cashflow"},
-          {id:"profit-trend",label:"Profit trend",page:"profit-trend"},
-        ]},
-      ]},
-      {id:"cabina-controllo",label:"Cabina di controllo",page:"cabina-controllo"},
-      {id:"budget-complessivo",label:"Budget complessivo",page:"budget-complessivo"},
       {id:"revisione-budget",label:"Revisione budget",children:[
+        {id:"budget-complessivo",label:"Budget complessivo",page:"budget-complessivo"},
         {id:"simulatore",label:"Simulatore di scenari",page:"simulatore"},
         {id:"wif-analysis",label:"WIF analysis",page:"wif-analysis"},
       ]},
@@ -284,6 +279,7 @@ const MENU_RISTORANTI:any[]=[
         {id:"monitoraggio-cassa",label:"Monitoraggio cassa",page:"monitoraggio-cassa"},
       ]},
       {id:"archivio-contratti",label:"Archivio contratti",page:"archivio-contratti"},
+      {id:"finance-overview",label:"Finance overview",page:"finance-overview"},
     ]},
   ]},
   {id:"impostazioni",label:"Impostazioni",icon:"gear",children:[
