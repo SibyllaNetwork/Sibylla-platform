@@ -32,7 +32,7 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
   const par = useMemo(() => ({ ivaVendite, ivaAcquisti }), [ivaVendite, ivaAcquisti])
   const fmtF = (v: number) => v.toLocaleString('it-IT', { maximumFractionDigits: 3 })
 
-  // X = anno scelto: le colonne sono X, X+1, X+2
+  // Le colonne partono dall'anno scelto: anno, anno+1, anno+2
   const fino = Number(anno) + 2
   const bil = useMemo(() => bilanci(struttura, fino), [struttura, fino])
   const idx = [bil.length - 3, bil.length - 2, bil.length - 1]
@@ -117,7 +117,7 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
                           {st !== 'chiuso' && <i className={`fa-solid ${st === 'in-corso' ? 'fa-hourglass-half' : 'fa-crystal-ball'} aind__stato-ico`} aria-hidden="true" />}
                           {a}
                         </span>
-                        <span className={`aind__xlbl aind__xlbl--${st}`}>{i === 0 ? 'X' : `X+${i}`} · {STATO_LBL[st].breve}</span>
+                        <span className={`aind__xlbl aind__xlbl--${st}`}>{STATO_LBL[st].breve}</span>
                       </span>
                     </Tooltip>
                   </th>
