@@ -7,22 +7,25 @@ import { SelectField } from '../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 import {
-  BaseRiparto, Fonte, Voce, BASI, calcola, contoGruppo, contoStruttura, fmtNum, fmtPct, tot,
+  BaseRiparto, Fonte, Voce, calcola, contoGruppo, contoStruttura, fmtNum, fmtPct, tot,
 } from './cesData'
 import CostiComuniModal from './CostiComuniModal'
 import AnalisiSegmentataModal from './AnalisiSegmentataModal'
+import CesPannello from './CesPannello'
 import './ContoEconomicoSegmentato.sass'
 
 /**
  * Conto economico segmentato — riclassifica il conto economico (bilancio o
  * preventivo da Business Central) per segmento:
  * Ricavi − Costi variabili → Margine di contribuzione − Costi fissi specifici
- * → Margine di segmento specifico − Costi comuni allocati → EBIT; EBITDA.
+ * → Margine specifico − Costi comuni allocati al segmento → Margine netto.
  *
- * Multi-struttura: i segmenti sono le strutture del gruppo; cliccando il nome
- * di una struttura si apre il suo conto segmentato per linee di ricavo (Room
- * department, F&B, SPA, Servizi ancillari). Struttura singola: si parte dalle
- * linee di ricavo.
+ * Impianto dal disegno di Matteo: colonna del totale (gruppo o struttura) in
+ * testa, poi i segmenti; "Analisi segmentata" sopra le voci apre la modale a
+ * card; a destra le card Ricavi (totale + ripartizione) e Costi comuni
+ * (totale + criterio di riparto); il margine netto chiude ogni colonna in un
+ * riquadro. Multi-struttura: cliccando un hotel si apre il suo conto per linee
+ * di ricavo (Soggiorno, F&B, SPA).
  */
 
 const ANNI = ['2024', '2025', '2026', '2027']
@@ -33,6 +36,7 @@ const FONTI: VistaOpzione<Fonte>[] = [
 ]
 
 type Sezione = 'var' | 'fix' | 'com'
+type Card = 'ricavi' | 'comuni'
 
 export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: string) => void }) {
   const { elenco } = useStrutturaCorrente()
@@ -43,8 +47,11 @@ export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: s
   // Struttura aperta (drill-down); con struttura singola è sempre quella
   const [aperta, setAperta] = useState<string | null>(null)
   const struttura = gruppo ? aperta : elenco[0] ?? null
-  const [chiuse, setChiuse] = useState<Record<Sezione, boolean>>({ var: false, fix: false, com: false })
+  const [chiuse, setChiuse] = useState<Record<Sezione, boolean>>({ var: true, fix: true, com: true })
   const [modal, setModal] = useState<null | 'comuni' | 'analisi'>(null)
+  // Card del pannello evidenziata dal clic sulla voce corrispondente in tabella
+  const [evidenza, setEvidenza] = useState<Card | null>(null)
+  const pannelloRef = useRef<HTMLDivElement>(null)
 
   const conto = useMemo(
     () => (struttura ? contoStruttura(struttura, anno, fonte, base, gruppo ? elenco : undefined) : contoGruppo(elenco, anno, fonte)),
@@ -52,35 +59,35 @@ export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: s
   )
   const c = useMemo(() => calcola(conto, base), [conto, base])
   const seg = conto.segmenti
-  const baseInfo = BASI.find(b => b.value === base)!
-  // "Per numero di hotel" ha senso solo fra strutture: fra le linee è "in parti uguali"
-  const baseBreve = base === 'uguale' && struttura ? 'parti uguali' : baseInfo.breve
+  const nomeTotale = struttura ?? 'Gruppo'
   const titoloVista = struttura ? `${struttura} · linee di ricavo` : 'Gruppo · strutture'
 
-  // ── Righe della tabella ─────────────────────────────────────────────────
+  function mostraCard(card: Card) {
+    setEvidenza(card)
+    pannelloRef.current?.querySelector(`[data-card="${card}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    window.setTimeout(() => setEvidenza(e => (e === card ? null : e)), 1600)
+  }
+
+  // ── Righe della tabella (ordine del disegno) ────────────────────────────
   type Riga =
     | { tipo: 'voce'; label: string; valori: number[]; sez: Sezione }
-    | { tipo: 'sub'; label: string; valori: number[]; sez?: Sezione; costo?: boolean }
-    | { tipo: 'margine'; label: string; valori: number[]; forte?: boolean; hint?: string }
-    | { tipo: 'spazio' }
+    | { tipo: 'sub'; label: string; valori: number[]; sez: Sezione; card?: Card }
+    | { tipo: 'margine'; label: string; valori: number[]; hint?: string; card?: Card; netto?: boolean; secondario?: boolean }
   const dettaglio = (voci: Voce[], src: Record<string, number[]>, sez: Sezione): Riga[] =>
     voci.filter(v => src[v.key].some(x => x !== 0)).map(v => ({ tipo: 'voce', label: v.label, valori: src[v.key], sez }))
 
   const righe: Riga[] = [
-    { tipo: 'margine', label: 'Ricavi', valori: c.ricavi },
-    { tipo: 'spazio' },
+    { tipo: 'margine', label: 'Ricavi', valori: c.ricavi, card: 'ricavi' },
+    { tipo: 'sub', label: 'Costi variabili', valori: c.totVariabili, sez: 'var' },
     ...dettaglio(conto.vociVariabili, c.variabili, 'var'),
-    { tipo: 'sub', label: 'Costi variabili', valori: c.totVariabili, sez: 'var', costo: true },
     { tipo: 'margine', label: 'Margine di contribuzione', valori: c.mdc, hint: 'Ricavi − Costi variabili' },
-    { tipo: 'spazio' },
+    { tipo: 'sub', label: 'Costi fissi specifici', valori: c.totFissi, sez: 'fix' },
     ...dettaglio(conto.vociFisse, c.fissi, 'fix'),
-    { tipo: 'sub', label: 'Costi fissi specifici', valori: c.totFissi, sez: 'fix', costo: true },
-    { tipo: 'margine', label: 'Margine di segmento specifico', valori: c.mss, hint: 'Margine di contribuzione − Costi fissi specifici' },
-    { tipo: 'spazio' },
+    { tipo: 'margine', label: 'Margine specifico', valori: c.mss, hint: 'Margine di contribuzione − Costi fissi specifici' },
+    { tipo: 'sub', label: 'Costi comuni allocati al segmento', valori: c.totComuni, sez: 'com', card: 'comuni' },
     ...dettaglio(conto.vociComuni, c.comuni, 'com'),
-    { tipo: 'sub', label: `Costi comuni allocati`, valori: c.totComuni, sez: 'com', costo: true },
-    { tipo: 'margine', label: 'EBIT', valori: c.ebit, forte: true, hint: 'Margine netto: Margine di segmento specifico − Costi comuni allocati' },
-    { tipo: 'margine', label: 'EBITDA', valori: c.ebitda, forte: true, hint: 'EBIT + ammortamenti (specifici e comuni allocati)' },
+    { tipo: 'margine', label: 'Margine netto', valori: c.ebit, netto: true, hint: 'EBIT: Margine specifico − Costi comuni allocati al segmento' },
+    { tipo: 'margine', label: 'EBITDA', valori: c.ebitda, secondario: true, hint: 'Margine netto + ammortamenti (specifici e comuni allocati)' },
   ]
   const visibili = righe.filter(r => r.tipo !== 'voce' || !chiuse[r.sez])
 
@@ -89,19 +96,58 @@ export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: s
   const nomeFile = `conto-economico-segmentato-${struttura ? struttura.toLowerCase().replace(/\s+/g, '-') : 'gruppo'}-${anno}-${fonte}`
   const titoloExport = `Conto economico segmentato — ${titoloVista} · ${fonte === 'consuntivo' ? 'Bilancio' : 'Preventivo'} ${anno}`
   function exportXls() {
-    const header = ['Voce', ...seg.map(s => s.nome), 'Totale']
-    const rows: (string | number)[][] = [['Peso costi comuni', ...c.pesi.map(p => fmtPct(p, 0)), '100%']]
-    righe.forEach(r => { if (r.tipo !== 'spazio') rows.push([r.label, ...r.valori, tot(r.valori)]) })
+    const header = ['Voce', nomeTotale, ...seg.map(s => s.nome)]
+    const rows: (string | number)[][] = [['Peso costi comuni', '100%', ...c.pesi.map(p => fmtPct(p, 0))]]
+    righe.forEach(r => rows.push([r.label, tot(r.valori), ...r.valori]))
     exportTableToXls(`${nomeFile}.xls`, header, rows, titoloExport)
   }
   const exportPdf = () => exportElementToPdf(tableRef.current, `${nomeFile}.pdf`, titoloExport)
 
   const toggle = (s: Sezione) => setChiuse(x => ({ ...x, [s]: !x[s] }))
-  const tono = (v: number) => (v < 0 ? 'ces__neg' : '')
+  const neg = (v: number) => (v < 0 ? 'ces__neg' : '')
+  const totRicavi = tot(c.ricavi)
+
+  // Etichetta con collegamento alla card del pannello (Ricavi, Costi comuni)
+  const etichetta = (r: Riga) => {
+    const testo = r.tipo === 'margine' && r.hint
+      ? <Tooltip text={r.hint}><span className="ces__mrg-lbl">{r.label}</span></Tooltip>
+      : <TruncatedText text={r.label} className="ces__voce-txt" />
+    if (!('card' in r) || !r.card) return testo
+    const card = r.card
+    return (
+      <span className="ces__lbl-card">
+        {testo}
+        <Tooltip text={card === 'ricavi' ? 'Ripartizione dei ricavi' : 'Criterio di riparto dei costi comuni'}>
+          <button type="button" className="ces__card-link" aria-label={card === 'ricavi' ? 'Mostra la card Ricavi' : 'Mostra la card Costi comuni'}
+            onClick={e => { e.stopPropagation(); mostraCard(card) }}>
+            <i className={`fa-solid ${card === 'ricavi' ? 'fa-chart-pie' : 'fa-sliders'}`} aria-hidden="true" />
+          </button>
+        </Tooltip>
+      </span>
+    )
+  }
+
+  // Valore di margine con incidenza % sui ricavi
+  const cellaMargine = (v: number, ricavi: number, r: Extract<Riga, { tipo: 'margine' }>, key: React.Key, totale = false) => (
+    <td key={key} className={`ces__num ${totale ? 'ces__tot' : ''} ${neg(v)}`}>
+      {r.netto ? (
+        <span className={`ces__box ${v < 0 ? 'ces__box--neg' : ''}`}>
+          {fmtNum(v)}
+          {ricavi > 0 && <span className="ces__inc">{fmtPct(v / ricavi)}</span>}
+        </span>
+      ) : (
+        <>
+          {fmtNum(v)}
+          {r.label !== 'Ricavi' && ricavi > 0 && <span className="ces__inc">{fmtPct(v / ricavi)}</span>}
+          {r.label === 'Ricavi' && !totale && totRicavi > 0 && <span className="ces__inc">{fmtPct(v / totRicavi, 0)} del totale</span>}
+        </>
+      )}
+    </td>
+  )
 
   return (
     <div className="ces">
-      <PageHead title="Conto economico segmentato" subtitle="Margini per segmento: contribuzione, margine specifico, EBIT ed EBITDA" />
+      <PageHead title="Conto economico segmentato" subtitle="Margini per segmento: contribuzione, margine specifico e margine netto" />
 
       <div className="ces__toolbar">
         <div className="ces__filters">
@@ -109,15 +155,6 @@ export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: s
           <VistaSwitch value={fonte} options={FONTI} onChange={setFonte} ariaLabel="Fonte del conto economico" />
         </div>
         <div className="ces__actions">
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModal('comuni')}>
-            <i className="fa-solid fa-scale-balanced" aria-hidden="true" />
-            Costi comuni
-            <span className="ces__btn-sub">· {baseBreve}</span>
-          </button>
-          <button type="button" className="sib-btn sib-btn--primary" onClick={() => setModal('analisi')}>
-            <i className="fa-solid fa-chart-mixed" aria-hidden="true" />
-            Analisi segmentata
-          </button>
           <Tooltip text="Esporta PDF"><button className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={exportPdf}><i className="fa-regular fa-file-pdf" /></button></Tooltip>
           <Tooltip text="Esporta Excel"><button className="sib-btn sib-btn--icon" aria-label="Esporta Excel" onClick={exportXls}><i className="fa-regular fa-file-xls" /></button></Tooltip>
         </div>
@@ -132,116 +169,131 @@ export default function ContoEconomicoSegmentato({ navigate }: { navigate: (p: s
             </button>
             <i className="fa-solid fa-chevron-right ces__crumb-sep" aria-hidden="true" />
             <span className="ces__crumb-cur">{struttura}</span>
-            <span className="ces__crumb-hint">linee di ricavo</span>
+            <span className="ces__crumb-hint">Soggiorno, F&amp;B e SPA</span>
           </>
         ) : gruppo ? (
           <>
             <span className="ces__crumb-cur"><i className="fa-solid fa-hotel" aria-hidden="true" /> Gruppo</span>
-            <span className="ces__crumb-hint">{seg.length} strutture · clicca il nome di una struttura per vederne le linee di ricavo</span>
+            <span className="ces__crumb-hint">{seg.length} hotel · clicca un hotel per vederne Soggiorno, F&amp;B e SPA</span>
           </>
         ) : (
           <>
             <span className="ces__crumb-cur">{struttura}</span>
-            <span className="ces__crumb-hint">linee di ricavo</span>
+            <span className="ces__crumb-hint">Soggiorno, F&amp;B e SPA</span>
           </>
         )}
       </div>
 
-      <div className="sib-table-wrap ces__wrap">
-        <table className="sib-table ces__table" ref={tableRef}>
-          <colgroup>
-            <col className="ces__col-voce" />
-            {seg.map(s => <col key={s.id} />)}
-            <col className="ces__col-tot" />
-          </colgroup>
-          <thead>
-            {/* Pesi dei costi comuni (criterio scelto con "Costi comuni") */}
-            <tr className="ces__pesi">
-              <th className="ces__voce">
-                <button type="button" className="ces__pesi-btn" onClick={() => setModal('comuni')}>
-                  Peso costi comuni <span>· {baseBreve}</span>
-                </button>
-              </th>
-              {c.pesi.map((p, i) => (
-                <th key={seg[i].id} className="ces__num">
-                  <span className="ces__peso">
-                    <span className="ces__peso-bar"><span className={`ces__peso-fill ces__w${Math.round(p * 20)}`} /></span>
-                    {fmtPct(p, 0)}
-                  </span>
+      <div className="ces__layout">
+        <div className="sib-table-wrap ces__wrap">
+          <table className="sib-table ces__table" ref={tableRef}>
+            <colgroup>
+              <col className="ces__col-voce" />
+              <col className="ces__col-tot" />
+              {seg.map(s => <col key={s.id} />)}
+            </colgroup>
+            <thead>
+              {/* Pesi dei costi comuni (criterio scelto nella card Costi comuni) */}
+              <tr className="ces__pesi">
+                <th className="ces__voce">
+                  <button type="button" className="ces__pesi-btn" onClick={() => mostraCard('comuni')}>
+                    Peso costi comuni
+                  </button>
                 </th>
-              ))}
-              <th className="ces__num ces__tot">100%</th>
-            </tr>
-            <tr>
-              <th className="ces__voce">Valori in €</th>
-              {seg.map(s => (
-                <th key={s.id} className="ces__num ces__seg">
-                  {!struttura ? (
-                    <Tooltip text={`Apri il conto segmentato di ${s.nome} per linee di ricavo`}>
-                      <button type="button" className="ces__seg-link" onClick={() => setAperta(s.nome)}>
+                <th className="ces__num ces__tot">100%</th>
+                {c.pesi.map((p, i) => (
+                  <th key={seg[i].id} className="ces__num">
+                    <span className="ces__peso">
+                      <span className="ces__peso-bar"><span className={`ces__peso-fill ces__w${Math.round(p * 20)}`} /></span>
+                      {fmtPct(p, 0)}
+                    </span>
+                  </th>
+                ))}
+              </tr>
+              <tr className="ces__head">
+                <th className="ces__voce">
+                  <button type="button" className="ces__analisi-btn" onClick={() => setModal('analisi')}>
+                    <i className="fa-solid fa-grid-2" aria-hidden="true" />
+                    Analisi segmentata
+                  </button>
+                </th>
+                <th className="ces__num ces__tot">
+                  <span className="ces__tot-name"><TruncatedText text={nomeTotale} className="ces__seg-txt" /></span>
+                </th>
+                {seg.map((s, i) => (
+                  <th key={s.id} className="ces__num ces__seg">
+                    {!struttura ? (
+                      <Tooltip text={`Apri ${s.nome}: Soggiorno, F&B e SPA`}>
+                        <button type="button" className="ces__seg-link" onClick={() => setAperta(s.nome)}>
+                          <i className={`ces__dot ces__dot--${i}`} aria-hidden="true" />
+                          <TruncatedText text={s.nome} className="ces__seg-txt" />
+                          <i className="fa-solid fa-arrow-down-right ces__seg-go" aria-hidden="true" />
+                        </button>
+                      </Tooltip>
+                    ) : (
+                      <span className="ces__seg-name">
+                        <i className={`ces__dot ces__dot--${i}`} aria-hidden="true" />
                         <TruncatedText text={s.nome} className="ces__seg-txt" />
-                        <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
-                      </button>
-                    </Tooltip>
-                  ) : (
-                    <TruncatedText text={s.nome} className="ces__seg-txt" />
-                  )}
-                </th>
-              ))}
-              <th className="ces__num ces__tot">Totale</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visibili.map((r, idx) => {
-              if (r.tipo === 'spazio') return <tr key={`sp-${idx}`} className="ces__spazio"><td colSpan={seg.length + 2} /></tr>
-              const t = tot(r.valori)
-              if (r.tipo === 'voce') return (
-                <tr key={`${r.sez}-${r.label}`} className="ces__row-voce">
-                  <td className="ces__voce ces__voce--det"><TruncatedText text={r.label} className="ces__voce-txt" /></td>
-                  {r.valori.map((v, i) => <td key={i} className="ces__num">{v ? fmtNum(v) : '—'}</td>)}
-                  <td className="ces__num ces__tot">{fmtNum(t)}</td>
-                </tr>
-              )
-              if (r.tipo === 'sub') return (
-                <tr key={r.label} className="ces__row-sub">
-                  <td className="ces__voce">
-                    <button type="button" className="ces__sub-toggle" aria-expanded={!chiuse[r.sez!]} onClick={() => toggle(r.sez!)}>
-                      <i className={`fa-solid fa-chevron-${chiuse[r.sez!] ? 'right' : 'down'}`} aria-hidden="true" />
-                      {r.label}
-                    </button>
-                  </td>
-                  {r.valori.map((v, i) => <td key={i} className="ces__num">{fmtNum(v)}</td>)}
-                  <td className="ces__num ces__tot">{fmtNum(t)}</td>
-                </tr>
-              )
-              // margine / ricavi
-              return (
-                <tr key={r.label} className={`ces__row-mrg ${r.forte ? 'ces__row-mrg--forte' : ''}`}>
-                  <td className="ces__voce">
-                    {r.hint ? (
-                      <Tooltip text={r.hint}><span className="ces__mrg-lbl">{r.label}</span></Tooltip>
-                    ) : <span className="ces__mrg-lbl">{r.label}</span>}
-                  </td>
-                  {r.valori.map((v, i) => (
-                    <td key={i} className={`ces__num ${tono(v)}`}>
-                      {fmtNum(v)}
-                      {r.label !== 'Ricavi' && c.ricavi[i] > 0 && <span className="ces__inc">{fmtPct(v / c.ricavi[i])}</span>}
+                      </span>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {visibili.map(r => {
+                const t = tot(r.valori)
+                if (r.tipo === 'voce') return (
+                  <tr key={`${r.sez}-${r.label}`} className="ces__row-voce">
+                    <td className="ces__voce ces__voce--det"><TruncatedText text={r.label} className="ces__voce-txt" /></td>
+                    <td className="ces__num ces__tot">{fmtNum(t)}</td>
+                    {r.valori.map((v, i) => <td key={i} className="ces__num">{v ? fmtNum(v) : '—'}</td>)}
+                  </tr>
+                )
+                if (r.tipo === 'sub') return (
+                  <tr key={r.label} className="ces__row-sub">
+                    <td className="ces__voce">
+                      <span className="ces__sub-cell">
+                        <button type="button" className="ces__sub-toggle" aria-expanded={!chiuse[r.sez]} aria-label={`${chiuse[r.sez] ? 'Mostra' : 'Nascondi'} il dettaglio`} onClick={() => toggle(r.sez)}>
+                          <i className={`fa-solid fa-chevron-${chiuse[r.sez] ? 'right' : 'down'}`} aria-hidden="true" />
+                        </button>
+                        {etichetta(r)}
+                      </span>
                     </td>
-                  ))}
-                  <td className={`ces__num ces__tot ${tono(t)}`}>
-                    {fmtNum(t)}
-                    {r.label !== 'Ricavi' && tot(c.ricavi) > 0 && <span className="ces__inc">{fmtPct(t / tot(c.ricavi))}</span>}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    <td className="ces__num ces__tot">{fmtNum(t)}</td>
+                    {r.valori.map((v, i) => <td key={i} className="ces__num">{fmtNum(v)}</td>)}
+                  </tr>
+                )
+                return (
+                  <tr key={r.label} className={`ces__row-mrg ${r.netto ? 'ces__row-mrg--netto' : ''} ${r.secondario ? 'ces__row-mrg--sec' : ''}`}>
+                    <td className="ces__voce">{etichetta(r)}</td>
+                    {cellaMargine(t, totRicavi, r, 'tot', true)}
+                    {r.valori.map((v, i) => cellaMargine(v, c.ricavi[i], r, i))}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <CesPannello
+          ref={pannelloRef}
+          evidenza={evidenza}
+          titolo={nomeTotale}
+          segmenti={seg}
+          calcolo={c}
+          comuni={conto.comuni}
+          base={base}
+          onBase={setBase}
+          vistaStruttura={!!struttura}
+          onDettaglioComuni={() => setModal('comuni')}
+          sottotitolo={`${fonte === 'consuntivo' ? 'Bilancio' : 'Preventivo'} ${anno}`}
+        />
       </div>
 
       <div className="ces__fonte">
         <i className="fa-solid fa-plug" aria-hidden="true" />
-        <span>Fonte: Business Central · {fonte === 'consuntivo' ? 'bilancio' : 'bilancio preventivo'} {anno}. Le % sotto i margini sono l'incidenza sui ricavi del segmento.</span>
+        <span>Valori in € · fonte Business Central, {fonte === 'consuntivo' ? 'bilancio' : 'bilancio preventivo'} {anno}. Le % sotto i margini sono l'incidenza sui ricavi della colonna.</span>
         <button type="button" className="ces__link" onClick={() => navigate('configuratore:costi-mapping')}>
           Classificazione dei costi <i className="fa-solid fa-arrow-right" aria-hidden="true" />
         </button>

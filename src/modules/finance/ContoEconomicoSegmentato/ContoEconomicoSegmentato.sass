@@ -4,6 +4,7 @@
   display: flex
   flex-direction: column
   gap: 14px
+  container-type: inline-size
 
   // ── Toolbar ──────────────────────────────────────────────────────
   &__toolbar
@@ -74,7 +75,13 @@
   &__crumb-hint
     color: $text-inactive
 
-  // ── Tabella ──────────────────────────────────────────────────────
+  // ── Tabella + pannello laterale ──────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 260px
+    gap: 16px
+    align-items: start
+
   &__wrap
     margin-bottom: 0
 
@@ -83,10 +90,10 @@
     width: 100%
 
   &__col-voce
-    width: 26%
+    width: 27%
 
   &__col-tot
-    width: 13%
+    width: 15%
 
   // Due classi nel selettore: devono vincere su .sib-table th/td
   &__table th.ces__num,
@@ -101,13 +108,68 @@
   &__voce-txt,
   &__seg-txt
     max-width: 100%
+    min-width: 0
+    flex: 0 1 auto
 
-  // Colonna Totale: blu platform chiaro, come Cabina di controllo
+  // Colonna del totale (gruppo / hotel), subito dopo le voci: blu platform chiaro
   &__table th.ces__tot,
   &__table td.ces__tot
     background: $primary-50
     border-left: 1px solid $primary-200
+    border-right: 1px solid $primary-200
     font-weight: 700
+
+  &__tot-name
+    display: inline-flex
+    max-width: 100%
+    padding: 3px 8px
+    border: 1.5px solid $primary
+    border-radius: 6px
+    color: $primary
+
+  // "Analisi segmentata": in testa alla colonna delle voci (come nel disegno)
+  &__analisi-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    max-width: 100%
+    padding: 6px 14px
+    border: 1.5px solid $primary
+    border-radius: 8px
+    background: var(--color-surface)
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+    white-space: nowrap
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      background: $primary
+      color: $white
+
+  &__table .ces__head th
+    vertical-align: middle
+
+  &__seg-name
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 6px
+    max-width: 100%
+
+  // Puntino colore del segmento (stessi slot della torta nel pannello)
+  &__dot
+    flex: none
+    display: inline-block
+    width: 8px
+    height: 8px
+    border-radius: 2px
+
+  @for $i from 0 through 7
+    &__dot--#{$i}
+      background: var(--chart-#{$i + 1})
 
   // Riga pesi dei costi comuni (prima riga, sopra i nomi dei segmenti)
   &__table .ces__pesi th
@@ -169,14 +231,14 @@
     color: $primary
     cursor: pointer
 
-    i
+    .ces__seg-go
       font-size: 10px
       opacity: .6
 
     &:hover
       text-decoration: underline
 
-      i
+      .ces__seg-go
         opacity: 1
 
   &__seg
@@ -197,7 +259,14 @@
     font-weight: 600
     color: $text-active
 
+  &__sub-cell
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    max-width: 100%
+
   &__sub-toggle
+    flex: none
     display: inline-flex
     align-items: center
     gap: 8px
@@ -219,8 +288,63 @@
     font-weight: 700
     color: $primary
 
-  &__table .ces__row-mrg--forte td
-    background: $primary-100
+  // Margine netto: riquadro in fondo a ogni colonna (X, Y, Z del disegno)
+  &__table .ces__row-mrg--netto td
+    padding-top: 10px
+    padding-bottom: 10px
+    background: var(--color-surface)
+
+  &__box
+    display: inline-flex
+    flex-direction: column
+    align-items: flex-end
+    min-width: 84%
+    padding: 6px 10px
+    border: 1.5px solid $primary
+    border-radius: 8px
+    background: $primary-50
+    color: $primary
+    font-size: 14px
+
+    &--neg
+      border-color: var(--color-error)
+      background: var(--color-error-light)
+      color: var(--color-error-dark)
+
+  // EBITDA: riga di servizio sotto il margine netto
+  &__table .ces__row-mrg--sec td
+    background: var(--color-surface)
+    font-weight: 600
+    color: $text-active
+
+  // Voci collegate a una card del pannello (Ricavi, Costi comuni)
+  &__lbl-card
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+    max-width: 100%
+
+    > :first-child
+      min-width: 0
+
+  &__card-link
+    flex: none
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 22px
+    height: 22px
+    padding: 0
+    border: 0
+    border-radius: 5px
+    background: none
+    color: $primary
+    font-size: 12px
+    cursor: pointer
+
+    &:hover
+      background: $primary-100
 
   &__mrg-lbl
     font-family: 'Poppins', sans-serif
@@ -234,13 +358,6 @@
 
   &__table td.ces__neg
     color: var(--color-error-dark)
-
-  // Spazio tra i blocchi del conto
-  &__table .ces__spazio td
-    height: 6px
-    padding: 0
-    border-bottom: 0
-    background: var(--color-surface)
 
   // ── Fonte e collegamenti ─────────────────────────────────────────
   &__fonte
@@ -269,3 +386,39 @@
 
     &:hover
       text-decoration: underline
+
+// Contenitore stretto (laptop con sidebar): il pannello va sotto la tabella,
+// con le due card affiancate
+@container (max-width: 980px)
+  .ces__layout
+    grid-template-columns: minmax(0, 1fr)
+
+  .ces__layout .cesp
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    align-items: start
+
+// Laptop con sidebar aperta (pannello affiancato): celle più compatte
+@container (max-width: 1240px)
+  .ces__table th.ces__num,
+  .ces__table td.ces__num
+    padding-left: 8px
+    padding-right: 10px
+
+  .ces__peso-bar
+    width: 26px
+
+  .ces__peso
+    gap: 5px
+
+  .ces__analisi-btn
+    padding: 6px 10px
+
+// Il wrapper del Tooltip attorno al link dell'hotel deve poter restringersi
+.ces__table th.ces__seg > span
+  display: inline-flex
+  max-width: 100%
+  min-width: 0
+
+.ces__seg-link
+  min-width: 0

@@ -4,119 +4,112 @@
 
 // Box più largo della taglia xl (2 classi: vince su .modal__box--xl)
 .modal__box.cesa-box
-  width: min(1040px, 94vw)
+  width: min(1080px, 94vw)
   max-width: none
 
 .cesa
   display: flex
   flex-direction: column
-  gap: 14px
+  gap: 16px
   padding: 4px 24px 20px
-  max-height: 78vh
+  max-height: 80vh
   overflow-y: auto
 
-  // Nel flex con altezza massima le card non devono restringersi (scorre la modale)
-  > *,
-  &__grid > *
+  > *
     flex-shrink: 0
 
-  // Card una sotto l'altra: le colonne dei segmenti restano leggibili
+  // Sei card: 3 per riga (Margini sopra, Pareggio e rischio sotto)
   &__grid
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 12px
+
+  &__card
     display: flex
     flex-direction: column
-    gap: 14px
-
-  // Card con tabella interna
-  &__card
+    gap: 10px
+    padding: 14px 16px
     border: 1px solid $border
-    border-radius: 10px
+    border-radius: 12px
     background: var(--color-surface)
-    overflow: hidden
 
   &__card-head
     display: flex
     align-items: flex-start
-    gap: 12px
-    padding: 14px 16px 10px
+    gap: 10px
 
     > i
       flex: none
-      width: 32px
-      height: 32px
+      width: 30px
+      height: 30px
       border-radius: 8px
       display: inline-flex
       align-items: center
       justify-content: center
-      font-size: 14px
+      font-size: 13px
       color: $primary
       background: $primary-50
 
     h3
       margin: 0
       font-family: 'Poppins', sans-serif
-      font-size: 14px
+      font-size: 13px
       font-weight: 700
       color: $primary
 
-    p
-      margin: 2px 0 0
-      font-size: 12px
-      color: $text-inactive
+  &__card-tit
+    display: flex
+    flex-direction: column
+    min-width: 0
 
-  &__table
-    table-layout: fixed
-    width: 100%
-
-    th:first-child,
-    td:first-child
-      width: 32%
-
-  // Due classi: devono vincere su .sib-table th/td
-  &__table th.cesa__num,
-  &__table td.cesa__num
-    text-align: right
-    white-space: nowrap
-    font-variant-numeric: tabular-nums
-
-  &__seg
-    max-width: 100%
-
-  &__unit
-    display: block
-    font-size: 10px
-    font-weight: 500
-    color: $text-inactive
-
-  &__lbl
-    font-weight: 600
-    color: $text-active
-    cursor: default
-
-  &__voce
+  &__card-h
     max-width: 100%
 
   &__formula
-    display: block
+    max-width: 100%
     margin-top: 2px
     font-size: 10px
     color: $text-inactive
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace
 
-  &__strong
-    font-weight: 700
+  &__vals
+    display: flex
+    flex-direction: column
+    gap: 8px
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__val
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+  &__val-row
+    display: flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+
+  &__seg
+    flex: 1 1 auto
+    min-width: 0
+    max-width: 100%
     color: $text-active
 
-  // Percentuale + barra
-  &__pct
-    display: inline-flex
-    flex-direction: column
-    align-items: flex-end
-    gap: 3px
+  &__num
     font-weight: 700
+    color: $text-active
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
+
+  &__per
+    font-weight: 400
+    font-size: 11px
+    color: $text-inactive
 
   &__bar
     display: block
-    width: 64px
     height: 4px
     border-radius: 2px
     background: $border
@@ -134,6 +127,17 @@
     &__w#{$i}
       width: $i * 5%
 
+  &__dot
+    flex: none
+    display: inline-block
+    width: 8px
+    height: 8px
+    border-radius: 2px
+
+  @for $i from 0 through 7
+    &__dot--#{$i}
+      background: var(--chart-#{$i + 1})
+
   &__neg
     color: var(--color-error-dark)
 
@@ -142,7 +146,6 @@
     display: inline-flex
     align-items: center
     gap: 5px
-    font-weight: 700
 
     &--pos
       color: var(--color-success)
@@ -156,7 +159,62 @@
   &__ns
     color: $text-inactive
     font-style: italic
+    font-weight: 400
     cursor: help
+
+  // Dati per ospite / coperto
+  &__dati
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__dati-tit
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+    span
+      font-family: 'Inter', sans-serif
+      font-size: 12px
+      font-weight: 400
+      color: $text-inactive
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th:first-child,
+    td:first-child
+      width: 30%
+
+  // Due classi: devono vincere su .sib-table th/td
+  &__table th.cesa__num,
+  &__table td.cesa__num
+    text-align: right
+    white-space: nowrap
+    font-weight: 400
+
+  &__table td.cesa__strong
+    font-weight: 700
+
+  &__th-seg
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 6px
+    max-width: 100%
+
+  &__lbl
+    font-weight: 600
+    color: $text-active
+
+  &__voce
+    max-width: 100%
 
   &__nota
     display: flex
@@ -168,3 +226,8 @@
 
     i
       color: $primary
+
+// Modale stretta: due card per riga
+@media (max-width: 900px)
+  .cesa__grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))

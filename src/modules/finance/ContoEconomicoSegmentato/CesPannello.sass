@@ -1,0 +1,189 @@
+@use '../../../styles/tokens' as *
+
+// Pannello laterale: card Ricavi e Costi comuni
+.cesp
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  &__card
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 14px 16px 16px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    transition: box-shadow .3s ease, border-color .3s ease
+
+    // Evidenziata dal clic sulla voce in tabella
+    &--on
+      border-color: $primary
+      box-shadow: 0 0 0 3px var(--color-focus-ring)
+
+  &__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+
+  &__title
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+    i
+      font-size: 13px
+
+  &__info
+    font-size: 16px
+    color: $primary
+    cursor: help
+
+  &__big
+    margin-top: 6px
+    font-family: 'Poppins', sans-serif
+    font-size: 26px
+    font-weight: 700
+    line-height: 1.1
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+  &__sub
+    font-size: 12px
+    color: $text-inactive
+
+  // Ricavi: elenco a sinistra, torta a destra
+  &__ricavi
+    display: flex
+    align-items: center
+    gap: 14px
+    margin-top: 10px
+
+  &__list
+    flex: 1 1 auto
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 8px
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__item
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+  &__item-row
+    display: flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+
+  &__name
+    flex: 1 1 auto
+    min-width: 0
+    max-width: 100%
+    color: $text-active
+
+  &__pct
+    font-weight: 700
+    color: $text-active
+    font-variant-numeric: tabular-nums
+    cursor: default
+
+  &__bar
+    display: block
+    height: 5px
+    border-radius: 3px
+    background: $border
+    overflow: hidden
+
+  &__fill
+    display: block
+    height: 100%
+    border-radius: 3px
+
+  @for $i from 0 through 20
+    &__w#{$i}
+      width: $i * 5%
+
+  &__pie
+    flex: none
+    width: 84px
+    height: 84px
+
+  // Colore per segmento: stessi slot della palette grafici (torta e puntini)
+  @for $i from 0 through 7
+    &__dot--#{$i},
+    &__fill--#{$i}
+      background: var(--chart-#{$i + 1})
+
+  &__dot
+    flex: none
+    display: inline-block
+    width: 8px
+    height: 8px
+    border-radius: 2px
+
+  // Costi comuni
+  &__radio
+    margin-top: 10px
+
+  // Opzioni in colonna, come le caselle del disegno (2 classi: vince sulle utility del RadioGroup)
+  .cesp__radio > div
+    flex-direction: column
+    align-items: flex-start
+    gap: 6px
+    height: auto
+
+  .cesp__radio label
+    white-space: nowrap
+
+  &__quote
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin: 4px 0 0
+    padding: 8px 0 0
+    border-top: 1px solid $border
+    list-style: none
+
+    li
+      display: flex
+      align-items: center
+      gap: 6px
+      font-size: 12px
+
+  &__quota
+    font-weight: 600
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+  &__peso
+    width: 34px
+    text-align: right
+    color: $text-inactive
+    font-variant-numeric: tabular-nums
+
+  &__link
+    align-self: flex-end
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-top: 8px
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline

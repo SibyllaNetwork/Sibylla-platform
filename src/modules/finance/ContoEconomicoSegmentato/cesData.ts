@@ -10,8 +10,7 @@
 //  Due livelli:
 //   - gruppo (multi-struttura): un segmento per struttura; i costi comuni sono
 //     i costi di sede, allocati alle strutture;
-//   - struttura: un segmento per linea di ricavo (Room department, F&B, SPA,
-//     Servizi ancillari); i costi comuni sono quelli della struttura più la
+//   - struttura: un segmento per linea di ricavo (Soggiorno, F&B, SPA); i costi comuni sono quelli della struttura più la
 //     sua quota dei costi di sede (così l'EBIT della struttura coincide fra i
 //     due livelli).
 //  Linee di ricavo e classificazione dei costi arriveranno dal Configuratore
@@ -96,7 +95,7 @@ interface LineaDef {
 }
 
 const LINEE: LineaDef[] = [
-  { id: 'room', nome: 'Room department', unita: 'ospite', volume: c => c * 365 * 0.68 * 1.8, prezzo: 86,
+  { id: 'room', nome: 'Soggiorno', unita: 'ospite', volume: c => c * 365 * 0.68 * 1.8, prezzo: 86,
     var: { lav: 0.045, amen: 0.03, comm: 0.12 },
     fix: { pers: 0.17, sup: 0.025, amm: 0.06, manut: 0.025, comm: 0.02 } },
   { id: 'fb', nome: 'F&B', unita: 'coperto', volume: c => c * 365 * 0.95, prezzo: 36,
@@ -105,9 +104,6 @@ const LINEE: LineaDef[] = [
   { id: 'spa', nome: 'SPA', unita: 'ospite', volume: c => c * 120, prezzo: 58,
     var: { amen: 0.13, lav: 0.05, comm: 0.04 },
     fix: { pers: 0.42, sup: 0.05, amm: 0.09, manut: 0.04, comm: 0.03 } },
-  { id: 'anc', nome: 'Servizi ancillari', unita: 'ospite', volume: c => c * 210, prezzo: 13,
-    var: { amen: 0.16, comm: 0.03 },
-    fix: { pers: 0.22, amm: 0.07, manut: 0.05, comm: 0.01 } },
 ]
 
 function fattore(anno: string, fonte: Fonte) {
@@ -117,13 +113,10 @@ function fattore(anno: string, fonte: Fonte) {
 
 /** Linee di ricavo di una struttura (con i loro costi variabili e fissi specifici). */
 function lineeStruttura(nome: string, anno: string, fonte: Fonte): Segmento[] {
-  const s = schedaDemo(nome)
-  const camere = s.camere || 40
+  const camere = schedaDemo(nome).camere || 40
   const f = fattore(anno, fonte)
   const seme = hashNome(nome + anno)
-  // Le strutture piccole (< 4★) non hanno la SPA
-  const linee = LINEE.filter(l => l.id !== 'spa' || s.stelle >= 4 || /resort/i.test(s.tipo))
-  return linee.map((l, i) => {
+  return LINEE.map((l, i) => {
     const volume = Math.round(l.volume(camere) * (1 + jit(seme, i, 0.08)))
     const ricavi = r100(volume * l.prezzo * (1 + jit(seme, i + 10, 0.06)) * f.ric)
     const variabili: Record<string, number> = {}
@@ -268,7 +261,15 @@ export const fmtEuro2 = (v: number) => `${v < 0 ? '-' : ''}${DEC.format(Math.abs
 export const fmtPct = (v: number, dec = 1) => `${(v * 100).toLocaleString('it-IT', { minimumFractionDigits: dec, maximumFractionDigits: dec })}%`
 
 export const BASI: { value: BaseRiparto; label: string; breve: string; desc: string }[] = [
-  { value: 'ricavi',  label: 'Peso % sui ricavi',   breve: 'peso % ricavi',   desc: 'Ogni segmento riceve i costi comuni in proporzione ai ricavi che genera.' },
-  { value: 'margine', label: 'Peso % sul margine',  breve: 'peso % margine',  desc: 'In proporzione al margine di contribuzione: chi crea più margine sostiene più costi comuni.' },
-  { value: 'uguale',  label: 'Per numero di hotel', breve: 'n. hotel',        desc: 'In parti uguali fra le strutture del gruppo (fra le linee di ricavo, nella vista della singola struttura).' },
+  { value: 'ricavi',  label: 'Peso % sui ricavi',   breve: 'Ricavi %',   desc: 'Ogni segmento riceve i costi comuni in proporzione ai ricavi che genera.' },
+  { value: 'margine', label: 'Peso % sul margine',  breve: 'Margine %',  desc: 'In proporzione al margine di contribuzione: chi crea più margine sostiene più costi comuni.' },
+  { value: 'uguale',  label: 'Per numero di hotel', breve: 'N. hotel',        desc: 'In parti uguali fra le strutture del gruppo (fra le linee di ricavo, nella vista della singola struttura).' },
 ]
+
+/** Importo compatto per le card: 1,7 mln € / 200k €. */
+export function fmtCompatto(v: number): string {
+  const a = Math.abs(v), sg = v < 0 ? '−' : ''
+  if (a >= 1e6) return `${sg}${(a / 1e6).toLocaleString('it-IT', { maximumFractionDigits: 1 })} mln €`
+  if (a >= 1e3) return `${sg}${Math.round(a / 1e3).toLocaleString('it-IT')}k €`
+  return `${sg}${Math.round(a)} €`
+}
