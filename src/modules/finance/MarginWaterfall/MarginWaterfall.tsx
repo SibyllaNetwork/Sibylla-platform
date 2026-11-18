@@ -137,6 +137,7 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
             <MwfFlusso
               sorgenti={elenco.filter(v => dentro.includes(v.id)).map(v => ({ id: v.id, nome: v.nome, conto: filtro(v.id, selCarosello) }))}
               totale={cImbuto}
+              riproduci={`${struttura}|${anno}|${prospettiva}|${selCarosello ?? ''}`}
             />
           ) : (
             <MwfCascata c={cImbuto} />
