@@ -4,6 +4,7 @@
   display: flex
   flex-direction: column
   gap: 14px
+  container-type: inline-size
 
   > .sib-btn--back
     align-self: flex-start
@@ -64,7 +65,7 @@
       color: $white
 
     &--prev
-      left: 238px
+      left: 228px
 
     &--next
       right: 6px
@@ -73,57 +74,55 @@
   &__pl
     min-width: max-content
 
-  // Intestazione colonna (mese / trimestre / anno)
-  &__colhead
+  // Intestazione periodo (mese / totale) — 1° livello, sopra le 4 metriche
+  &__pl thead th.cabina__colhead
     text-align: center
     border-left: 1px solid $border
     font-size: 12px
     font-weight: 700
     color: $text-active
     background: $bg
-    min-width: 150px
+    padding: 6px 8px
 
-  // Cella con le 4 voci in verticale
-  &__cell
+  // 2° livello: LY | Budget | Actual | Scost.
+  &__pl thead th.cabina__subhead
+    text-align: right
+    font-size: 11px
+    padding: 5px 8px
+    max-width: 90px
+
+  // Bordo di separazione tra un periodo e il successivo
+  &__pl .cabina__grp-start
     border-left: 1px solid $border
-    vertical-align: top
 
-  &__metric
-    display: flex
-    align-items: baseline
-    justify-content: space-between
-    gap: 10px
-    font-size: 12px
-    padding: 1px 0
-
-    & + &
-      border-top: 1px dashed $border
-      padding-top: 3px
-      margin-top: 2px
-
-  &__metric-lbl
-    font-size: 10px
-    font-weight: 700
-    text-transform: uppercase
-    letter-spacing: 0.03em
-    color: $text-inactive
-
-  &__metric-val
+  // Celle numeriche: una metrica per cella
+  &__pl td.cabina__num
+    text-align: right
     white-space: nowrap
+    font-size: 12px
+    padding: 8px 8px
+    font-variant-numeric: tabular-nums
     color: $text-active
 
-    &--ly
-      color: $text-inactive
+  &__num--ly
+    color: $text-inactive !important
 
-    &--actual
-      font-weight: 700
+  &__num--actual
+    font-weight: 700
+
+  &__unit
+    display: block
+    font-size: 10px
+    font-weight: 500
+    color: $text-inactive
 
   // Prima colonna (voci) — sempre fissa
   &__pl-voce
     position: sticky
     left: 0
     z-index: 3
-    min-width: 230px
+    min-width: 200px
+    max-width: 220px
     text-align: left
     background: var(--color-surface)
 
@@ -150,8 +149,11 @@
   &__pl tr.cabina__row--margine td.cabina__col-tot
     background: #bcd4e9
 
-  &__col-tot
+  &__pl .cabina__col-tot.cabina__grp-start
     border-left: 1px solid $primary-200
+
+  &__voce-txt
+    max-width: 200px
 
   // Scostamento colorato
   &__scost
@@ -175,8 +177,12 @@
 
   // Righe di sezione: banda bianca che attraversa la tabella, come nel
   // Budget complessivo (prima era off-white come gli header)
+  // nowrap + overflow visibile: il titolo di sezione deborda sulla cella
+  // vuota accanto (la prima colonna è sticky, quindi sta sopra) senza andare a capo.
   &__section-cell
     padding: 12px 14px
+    white-space: nowrap
+    overflow: visible
     font-family: 'Poppins', sans-serif
     font-weight: 700
     font-size: 12px
@@ -203,3 +209,21 @@
 
   &__row--margine td
     background: $primary-50
+
+// Laptop con sidebar aperta: compatta paddings e colonna voci perché il
+// trimestre (3 mesi + totale × 4 metriche) stia senza scroll orizzontale.
+@container (max-width: 1360px)
+  .cabina__pl td.cabina__num,
+  .cabina__pl thead th.cabina__subhead
+    padding-left: 5px
+    padding-right: 5px
+
+  .cabina__pl-voce
+    min-width: 180px
+    max-width: 180px
+
+  .cabina__voce-txt
+    max-width: 160px
+
+  .cabina__nav--prev
+    left: 188px

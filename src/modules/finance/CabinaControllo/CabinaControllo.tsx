@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
 import { SelectField } from '../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import './CabinaControllo.sass'
@@ -8,8 +9,8 @@ import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
 /**
  * Cabina di controllo — conto economico di gestione. Per ogni periodo (mese o
- * trimestre/anno totale) si vedono 4 valori: LY (anno precedente), Budget,
- * Actual e Scostamento. Consultabile a trimestri (3 mesi) o per l'intero anno
+ * trimestre/anno totale) si vedono 4 colonne affiancate: LY (anno precedente),
+ * Budget, Actual e Scostamento (intestazione su due livelli: periodo → metrica). Consultabile a trimestri (3 mesi) o per l'intero anno
  * (12 mesi con slider). La prima colonna (voci) resta sempre fissa.
  */
 
@@ -76,10 +77,22 @@ const SEZIONI: SectionCfg[] = [
   ] },
 ]
 
-function fmtEuro(v: number): string {
+// Valori in euro senza simbolo: l'unità è dichiarata nell'intestazione
+// ("Valori in €") per tenere le 4 colonne per periodo compatte.
+// useGrouping 'always': in it-IT i numeri a 4 cifre (es. 3.000) non avrebbero
+// il punto delle migliaia e la colonna risulterebbe disomogenea.
+const NUM_FMT = new Intl.NumberFormat('it-IT', { useGrouping: 'always' } as unknown as Intl.NumberFormatOptions)
+function fmtNum(v: number): string {
   const sign = v < 0 ? '-' : ''
-  return `${sign}${Math.abs(v).toLocaleString('it-IT')} €`
+  return `${sign}${NUM_FMT.format(Math.abs(v))}`
 }
+
+const METRICHE = [
+  { key: 'ly',     label: 'LY',     full: 'LY — anno precedente' },
+  { key: 'budget', label: 'Budget', full: 'Budget' },
+  { key: 'actual', label: 'Actual', full: 'Actual' },
+  { key: 'scost',  label: 'Scost.', full: 'Scostamento (Actual − Budget)' },
+] as const
 
 interface Col { label: string; months: number[]; totale?: boolean }
 
@@ -179,7 +192,7 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
         </div>
       </div>
 
-      {/* Conto economico — per ogni periodo: LY / Budget / Actual / Scostamento.
+      {/* Conto economico — per ogni periodo 4 colonne: LY | Budget | Actual | Scost.
           Prima colonna (voci) sempre fissa; mesi scorrevoli con lo slider. */}
       <div className="cabina__timeline">
         {nav.prev && (
@@ -192,10 +205,20 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
           <table className="sib-table cabina__pl" ref={tableRef}>
             <thead>
               <tr>
-                <th className="cabina__pl-voce cabina__pl-voce--head">Anno {anno}</th>
+                <th rowSpan={2} className="cabina__pl-voce cabina__pl-voce--head">
+                  Anno {anno}
+                  <span className="cabina__unit">Valori in €</span>
+                </th>
                 {cols.map(c => (
-                  <th key={c.label} className={`cabina__colhead ${c.totale ? 'cabina__col-tot' : ''}`}>{c.label}</th>
+                  <th key={c.label} colSpan={METRICHE.length} className={`cabina__colhead ${c.totale ? 'cabina__col-tot' : ''}`}>{c.label}</th>
                 ))}
+              </tr>
+              <tr>
+                {cols.map(c => METRICHE.map((m, i) => (
+                  <th key={`${c.label}-${m.key}`} className={`cabina__subhead ${i === 0 ? 'cabina__grp-start' : ''} ${c.totale ? 'cabina__col-tot' : ''}`}>
+                    <TruncatedText text={m.label} full={m.full} />
+                  </th>
+                )))}
               </tr>
             </thead>
             <tbody>
@@ -203,26 +226,27 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
                 <React.Fragment key={sez.variant}>
                   <tr className="cabina__section">
                     <td className={`cabina__pl-voce cabina__section-cell cabina__section-cell--${sez.variant}`}>{sez.title}</td>
-                    <td colSpan={cols.length} className={`cabina__section-cell cabina__section-cell--${sez.variant}`} />
+                    <td colSpan={cols.length * METRICHE.length} className={`cabina__section-cell cabina__section-cell--${sez.variant}`} />
                   </tr>
                   {sez.rows.map(r => (
                     <tr key={r.key} className={`cabina__row cabina__row--${sez.variant} ${r.totale ? 'cabina__row--totale' : ''}`}>
-                      <td className="cabina__pl-voce">{r.label}</td>
+                      <td className="cabina__pl-voce"><TruncatedText text={r.label} className="cabina__voce-txt" /></td>
                       {cols.map(c => {
                         const a = agg(r.key, c.months)
                         const tone = a.scost === 0 ? 'neutral' : (r.polarity === 'pos' ? a.scost >= 0 : a.scost <= 0) ? 'pos' : 'neg'
+                        const tot = c.totale ? 'cabina__col-tot' : ''
                         return (
-                          <td key={c.label} className={`cabina__cell ${c.totale ? 'cabina__col-tot' : ''}`}>
-                            <div className="cabina__metric"><span className="cabina__metric-lbl">LY</span><span className="cabina__metric-val cabina__metric-val--ly">{fmtEuro(a.ly)}</span></div>
-                            <div className="cabina__metric"><span className="cabina__metric-lbl">Budget</span><span className="cabina__metric-val">{fmtEuro(a.budget)}</span></div>
-                            <div className="cabina__metric"><span className="cabina__metric-lbl">Actual</span><span className="cabina__metric-val cabina__metric-val--actual">{fmtEuro(a.actual)}</span></div>
-                            <div className="cabina__metric"><span className="cabina__metric-lbl">Scost.</span>
-                              <span className={`cabina__metric-val cabina__scost cabina__scost--${tone}`}>
+                          <React.Fragment key={c.label}>
+                            <td className={`cabina__num cabina__num--ly cabina__grp-start ${tot}`}>{fmtNum(a.ly)}</td>
+                            <td className={`cabina__num ${tot}`}>{fmtNum(a.budget)}</td>
+                            <td className={`cabina__num cabina__num--actual ${tot}`}>{fmtNum(a.actual)}</td>
+                            <td className={`cabina__num ${tot}`}>
+                              <span className={`cabina__scost cabina__scost--${tone}`}>
                                 {tone !== 'neutral' && <i className={`fa-solid fa-caret-${a.scost >= 0 ? 'up' : 'down'}`} />}
-                                {fmtEuro(a.scost)}
+                                {fmtNum(a.scost)}
                               </span>
-                            </div>
-                          </td>
+                            </td>
+                          </React.Fragment>
                         )
                       })}
                     </tr>
