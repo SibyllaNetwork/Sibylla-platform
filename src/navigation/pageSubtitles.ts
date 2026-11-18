@@ -34,7 +34,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "cashflow": "Controlla entrate e uscite di cassa",
   "conto-economico-segmentato": "Margini per segmento: contribuzione, margine specifico e margine netto",
   "analisi-indici": "Crescita, redditività, liquidità e solidità: lo stato di salute dell'impresa esercizio per esercizio",
-  "margin-waterfall": "Dai ricavi al margine: come ogni voce di costo erode il risultato",
+  "margin-waterfall": "Dai ricavi al margine: costi variabili, margine di contribuzione, costi fissi e utile per segmento e tipologia di camera",
   "cassa": "Controllo e gestione centralizzata della cassa e dei movimenti",
   "centro-costo": "Definisci i centri di costo e organizza le spese aziendali",
   "componi-annunci": "Componi annunci di vendita e configura contratti per generare opportunità di business",

@@ -1,0 +1,665 @@
+@use '../../../styles/tokens' as *
+
+// ─── MARGIN WATERFALL ────────────────────────────────────────────────────────
+// Disegno: switch in alto, imbuto al centro con il riquadro di selezione a
+// sinistra e l'elenco (ricavi + segmenti) a destra, carosello in basso.
+.mwf
+  display: flex
+  flex-direction: column
+  gap: 14px
+  container-type: inline-size
+
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
+
+  &__switch
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__lbl
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__actions
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+    .sib-btn--icon i
+      color: $primary
+      font-size: 16px
+
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 300px
+    gap: 14px
+    align-items: stretch
+
+  &__card
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 0
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+
+  &__card-tit
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+  // ── Grafico ────────────────────────────────────────────────────────
+  &__graf
+    align-items: stretch
+
+  &__graf-head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+
+    h2
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 14px
+      font-weight: 700
+      color: $primary
+
+    p
+      margin: 2px 0 0
+      font-size: 12px
+      color: $text-inactive
+
+  &__graf-actions
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+    .sib-btn i
+      margin-right: 6px
+
+    .sib-btn--icon i
+      margin-right: 0
+      color: $primary
+      font-size: 15px
+
+  // ── Elenco a destra ────────────────────────────────────────────────
+  &__big
+    font-family: 'Poppins', sans-serif
+    font-size: 26px
+    font-weight: 700
+    line-height: 1.1
+    color: $text-active
+
+  &__sub
+    font-size: 12px
+    color: $text-inactive
+
+  &__righe
+    display: flex
+    flex-direction: column
+    gap: 8px
+    margin: 8px 0 0
+    padding: 0
+    list-style: none
+
+  // Mattoncini dei ricavi (trascinabili nell'imbuto)
+  &__brick
+    display: flex
+    flex-direction: column
+    gap: 5px
+    width: 100%
+    padding: 8px 10px
+    border: 1px solid $primary-200
+    border-left: 4px solid var(--chart-1)
+    border-radius: 6px
+    background: var(--color-surface)
+    box-shadow: 0 1px 0 $primary-100
+    font: inherit
+    text-align: left
+    cursor: grab
+    transition: $transition-fast
+
+    &:hover
+      transform: translateY(-1px)
+      box-shadow: $shadow-lg
+
+    &:active
+      cursor: grabbing
+
+    &--versato
+      border-left-color: var(--color-success)
+      background: $primary-50
+      opacity: .7
+      cursor: pointer
+
+      &:hover
+        transform: none
+        box-shadow: none
+
+  &__brick-top
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    color: $text-active
+
+    i
+      color: $primary
+
+  &__brick-grip
+    width: 10px
+    font-size: 11px
+    color: $text-inactive !important
+
+  &__brick--versato &__brick-grip
+    color: var(--color-success) !important
+
+  &__brick-nome
+    flex: 1 1 auto
+    min-width: 0
+    max-width: 100%
+    font-weight: 600
+
+  &__brick-val
+    font-weight: 700
+    font-variant-numeric: tabular-nums
+
+  &__brick-bot
+    display: flex
+    align-items: center
+    gap: 8px
+    padding-left: 18px
+
+  &__brick-pct
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    white-space: nowrap
+    cursor: default
+
+  &__hint
+    margin-top: 6px
+    font-size: 11px
+    line-height: 1.4
+    color: $text-inactive
+
+    i
+      color: $primary
+
+  &__bar
+    flex: 1 1 auto
+    display: block
+    height: 5px
+    border-radius: 3px
+    background: $border
+    overflow: hidden
+
+  &__fill
+    display: block
+    height: 100%
+    border-radius: 3px
+    background: var(--chart-1)
+
+  @for $i from 0 through 20
+    &__w#{$i}
+      width: $i * 5%
+
+  &__neg
+    color: var(--color-error-dark) !important
+
+  // ── Carosello ──────────────────────────────────────────────────────
+  &__car
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__car-tit
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+  &__car-row
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__car-nav
+    flex: none
+    width: 32px
+    height: 32px
+    border: 1px solid $primary-200
+    border-radius: 50%
+    background: var(--color-surface)
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      background: $primary
+      color: $white
+
+  &__car-track
+    flex: 1 1 auto
+    display: flex
+    gap: 12px
+    min-width: 0
+    overflow: hidden
+    scroll-behavior: smooth
+    padding: 2px
+
+  &__tile
+    flex: 0 0 196px
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 12px 14px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    font: inherit
+    text-align: left
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      border-color: $primary-200
+
+    &--on
+      border-color: $primary
+      box-shadow: inset 0 0 0 1px $primary
+      background: $primary-50
+
+  &__tile-head
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+  &__tile-nome
+    min-width: 0
+    max-width: 100%
+
+  &__tile-big
+    margin-top: 4px
+    font-family: 'Poppins', sans-serif
+    font-size: 20px
+    font-weight: 700
+    color: $text-active
+
+  &__tile-sub
+    font-size: 11px
+    color: $text-inactive
+
+  &__tile-dl
+    display: flex
+    justify-content: space-between
+    gap: 6px
+    font-size: 12px
+    color: $text-inactive
+
+    strong
+      color: $text-active
+
+  // ── Fonte ──────────────────────────────────────────────────────────
+  &__fonte
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+    > i
+      color: $primary
+
+  &__link
+    margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+// ─── Imbuto interattivo ──────────────────────────────────────────────────────
+.mwf-imb
+  display: grid
+  grid-template-columns: 170px minmax(0, 1fr)
+  grid-template-rows: auto auto
+  column-gap: 0
+  row-gap: 8px
+  padding-top: 4px
+
+  &__cv
+    grid-column: 1
+    grid-row: 1
+    align-self: start
+    padding-top: 150px
+
+  &__centro
+    grid-column: 2
+    grid-row: 1
+    display: flex
+    flex-direction: column
+    align-items: center
+    min-width: 0
+
+  // Bocca: zona di rilascio con i mattoncini versati
+  &__bocca
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
+    justify-content: center
+    gap: 4px
+    width: min(100%, 440px)
+    min-height: 58px
+    padding: 6px 8px
+    border: 2px dashed transparent
+    border-radius: 10px 10px 0 0
+    transition: background .2s ease, border-color .2s ease
+
+    &--vuota
+      border-color: $primary-200
+
+    &--sopra
+      border-color: $primary
+      background: $primary-50
+
+  &__invito
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    align-self: center
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+    animation: mwf-invito 1.6s ease-in-out infinite
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 4px 9px
+    border: 1px solid $primary-200
+    border-left: 3px solid var(--color-success)
+    border-radius: 4px
+    background: var(--color-surface)
+    font: inherit
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+    cursor: pointer
+
+    i
+      color: $primary
+
+    &:hover
+      border-color: var(--color-error)
+
+    &--cade
+      animation: mwf-cade .6s cubic-bezier(.3, 1.4, .5, 1)
+
+  // Larghezza piena della colonna: il tubo laterale arriva fino alla scatola
+  &__svg
+    display: block
+    width: 100%
+    max-width: 640px
+    height: auto
+    overflow: visible
+
+  &__corpo
+    fill: var(--chart-1)
+    opacity: .92
+    transition: opacity .3s ease
+
+    &--vuoto
+      opacity: .25
+
+  &__orlo
+    fill: color-mix(in srgb, var(--chart-1) 65%, white)
+
+  &__becco
+    fill: var(--chart-1)
+
+  // Tubi: il flusso scorre (tratteggio animato) quando c'è valore
+  &__tubo
+    fill: none
+    stroke: $border
+    stroke-width: 10
+    stroke-linecap: round
+    stroke-linejoin: round
+
+    &--on
+      stroke: var(--chart-6)
+      stroke-dasharray: 10 8
+      animation: mwf-flusso .8s linear infinite
+
+    &--giu.mwf-imb__tubo--on
+      stroke: var(--chart-5)
+
+  &__t
+    font-family: 'Poppins', sans-serif
+    font-size: 15px
+    font-weight: 700
+    fill: $white
+    text-anchor: middle
+
+  &__v
+    font-family: 'Poppins', sans-serif
+    font-size: 20px
+    font-weight: 700
+    fill: $white
+    text-anchor: middle
+
+  &__s
+    font-size: 11px
+    font-weight: 600
+    fill: $white
+    opacity: .9
+    text-anchor: middle
+
+  // Fondo: costi fissi ← margine → utile
+  // Sotto l'imbuto (stessa colonna): la vasca è centrata sul becco
+  &__fondo
+    grid-column: 2
+    grid-row: 2
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1.1fr) 34px minmax(0, 1fr)
+    align-items: center
+
+  &__vasca
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 2px
+    padding: 12px 10px
+    border: 2px solid var(--chart-5)
+    border-top-width: 0
+    border-radius: 0 0 18px 18px
+    background: color-mix(in srgb, var(--chart-5) 12%, var(--color-surface))
+    text-align: center
+
+  &__vasca-tit
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 700
+    color: var(--chart-5)
+
+  &__vasca-val
+    font-family: 'Poppins', sans-serif
+    font-size: 20px
+    font-weight: 700
+    color: $text-active
+
+  &__vasca-sub
+    font-size: 11px
+    color: $text-inactive
+
+  &__freccia
+    justify-self: center
+    font-size: 18px
+    color: $border
+
+    &.mwf-imb__tubo--on
+      animation: none
+      color: var(--chart-6)
+
+// Scatole (costi variabili, costi fissi, utile): si riempiono in scala sui ricavi
+.mwf-box
+  display: flex
+  flex-direction: column
+  gap: 3px
+  min-width: 0
+
+  &__tit
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 700
+    cursor: default
+
+  &__val
+    font-family: 'Poppins', sans-serif
+    font-size: 17px
+    font-weight: 700
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+  &__vaso
+    position: relative
+    display: block
+    height: 92px
+    border: 2px solid $border
+    border-top: 0
+    border-radius: 0 0 10px 10px
+    background: repeating-linear-gradient(0deg, transparent 0 17px, $border 17px 18px)
+    overflow: hidden
+
+  &__liquido
+    position: absolute
+    left: 0
+    right: 0
+    bottom: 0
+    transition: height .7s cubic-bezier(.3, 1.2, .5, 1)
+
+  @for $i from 0 through 20
+    &__h#{$i}
+      height: $i * 5%
+
+  &--cv
+    .mwf-box__tit
+      color: var(--chart-6)
+
+    .mwf-box__liquido
+      background: color-mix(in srgb, var(--chart-6) 75%, white)
+
+    .mwf-box__vaso
+      border-color: var(--chart-6)
+
+  &--cf
+    .mwf-box__tit
+      color: var(--chart-4)
+
+    .mwf-box__liquido
+      background: color-mix(in srgb, var(--chart-4) 75%, white)
+
+    .mwf-box__vaso
+      border-color: var(--chart-4)
+
+  &--utile
+    .mwf-box__tit
+      color: var(--color-success)
+
+    .mwf-box__liquido
+      background: color-mix(in srgb, var(--color-success) 70%, white)
+
+    .mwf-box__vaso
+      border-color: var(--color-success)
+
+  &--perdita
+    .mwf-box__tit,
+    .mwf-box__val
+      color: var(--color-error-dark)
+
+    .mwf-box__liquido
+      background: var(--color-error-light)
+
+    .mwf-box__vaso
+      border-color: var(--color-error)
+
+@keyframes mwf-flusso
+  to
+    stroke-dashoffset: -18
+
+@keyframes mwf-cade
+  0%
+    transform: translateY(-60px) scale(1.15)
+    opacity: 0
+  60%
+    opacity: 1
+  100%
+    transform: none
+
+@keyframes mwf-invito
+  0%, 100%
+    transform: translateY(0)
+  50%
+    transform: translateY(4px)
+
+@media (prefers-reduced-motion: reduce)
+  .mwf-imb__tubo--on,
+  .mwf-imb__chip--cade,
+  .mwf-imb__invito
+    animation: none
+
+// Cascata
+.mwf-casc
+  width: 100%
+  height: 400px
+
+  &__lbl
+    font-size: 11px
+    font-weight: 600
+    fill: var(--chart-ink)
+
+// Laptop con sidebar: elenco dei ricavi più stretto
+@container (max-width: 1180px)
+  .mwf__layout
+    grid-template-columns: minmax(0, 1fr) 250px
+
+  .mwf-imb
+    grid-template-columns: 130px minmax(0, 1fr)
