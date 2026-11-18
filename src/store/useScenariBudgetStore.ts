@@ -3,14 +3,14 @@ import { persist } from 'zustand/middleware'
 
 /**
  * Scenari simulati da trasportare nel Budget complessivo (modalità "Simulato").
- * Oggi li produce la simulazione della BEP analysis; ogni scenario porta i 12
+ * Li producono la Break-even point analysis e il Simulatore di scenari; ogni scenario porta i 12
  * mesi già ripartiti per le voci del budget. `daAprire` è lo scenario da
  * mostrare subito all'arrivo nel Budget complessivo.
  */
 export interface ScenarioBudget {
   id: string
   nome: string
-  origine: 'bep'
+  origine: 'bep' | 'simulatore'
   struttura: string
   anno: number
   creatoIl: string

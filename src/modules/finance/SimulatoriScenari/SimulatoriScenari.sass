@@ -1,13 +1,585 @@
 @use '../../../styles/tokens' as *
 
-// ─── Swatch legenda (colore segmento dinamico) ───────────────────────────────
-.sim-scenari__swatch
-  background: var(--swatch-color)
+// ─── SIMULATORE DI SCENARI ───────────────────────────────────────────────────
+// Leve dello scenario attivo a sinistra, risultati vivi a destra, barra di
+// salvataggio in fondo. Colore per scenario: I chart-1, II chart-2, III chart-3.
+.sim
+  display: flex
+  flex-direction: column
+  gap: 14px
+  container-type: inline-size
 
-// ─── Asse Y del grafico a barre ───────────────────────────────────────────────
-.sim-scenari__yaxis
-  width: 18px
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
 
-.sim-scenari__yaxis-label
-  transform: rotate(-90deg)
-  transform-origin: center
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 18px
+    flex-wrap: wrap
+
+  &__base-info
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding-bottom: 8px
+    font-size: 13px
+    color: $text-inactive
+
+    i
+      color: $primary
+
+  &__actions
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+    .sib-btn i
+      margin-right: 6px
+
+    .sib-btn--icon i
+      margin-right: 0
+      color: $primary
+      font-size: 16px
+
+  &__layout
+    display: grid
+    grid-template-columns: 420px minmax(0, 1fr)
+    gap: 16px
+    align-items: start
+
+  &__card
+    display: flex
+    flex-direction: column
+    gap: 10px
+    min-width: 0
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+
+  &__card-head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+
+    h2
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 14px
+      font-weight: 700
+      color: $primary
+
+    p
+      margin: 2px 0 0
+      font-size: 12px
+      color: $text-inactive
+
+  &__lbl
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  // ── Colore per scenario (variabile usata da tab, card, barre) ───────
+  &__tab--s0, &__scen--s0, &__leve--s0
+    --sc: var(--chart-1)
+
+  &__tab--s1, &__scen--s1, &__leve--s1
+    --sc: var(--chart-2)
+
+  &__tab--s2, &__scen--s2, &__leve--s2
+    --sc: var(--chart-3)
+
+  // ── Leve ────────────────────────────────────────────────────────────
+  &__leve
+    position: sticky
+    top: 12px
+    gap: 14px
+    border-top: 4px solid var(--sc)
+    transition: border-color .3s ease
+
+  &__tabs
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 6px
+
+  &__tab
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+    padding: 8px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    font: inherit
+    text-align: left
+    cursor: pointer
+    transition: border-color .2s ease, background .2s ease, transform .2s ease
+
+    &:hover
+      border-color: var(--sc)
+
+    &--on
+      border-color: var(--sc)
+      background: color-mix(in srgb, var(--sc) 10%, var(--color-surface))
+      transform: translateY(-1px)
+
+  &__tab-n
+    flex: none
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 24px
+    height: 24px
+    border-radius: 7px
+    background: var(--sc)
+    color: $white
+    font-family: 'Poppins', sans-serif
+    font-size: 11px
+    font-weight: 700
+
+  &__tab-txt
+    display: flex
+    flex-direction: column
+    min-width: 0
+    line-height: 1.2
+
+  &__tab-nome
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    font-size: 12px
+    font-weight: 700
+    color: $text-active
+
+  &__tab-val
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    font-variant-numeric: tabular-nums
+
+  &__modelli
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 5px 10px
+    border: 1px solid $primary-200
+    border-radius: 8px
+    background: var(--color-surface)
+    font: inherit
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      background: $primary-50
+      border-color: $primary
+
+    &--reset
+      border-style: dashed
+      color: $text-inactive
+
+  &__sez
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding-top: 12px
+    border-top: 1px solid $border
+
+  &__sez-tit
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+  &__tutti
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 10px 12px
+    border-radius: 10px
+    background: color-mix(in srgb, var(--sc) 8%, var(--color-surface))
+
+  &__tutti-lbl
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    font-weight: 700
+    color: $text-active
+
+  &__pair
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px
+
+  &__seg
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__seg-head
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    color: $text-active
+
+    i
+      width: 16px
+      color: var(--sc)
+
+  &__seg-base
+    font-size: 11px
+    color: $text-inactive
+
+  &__seg-delta
+    margin-left: auto
+    font-size: 12px
+    font-weight: 700
+    color: $text-inactive
+    font-variant-numeric: tabular-nums
+
+  &__nota
+    display: flex
+    gap: 6px
+    margin: 0
+    font-size: 11px
+    line-height: 1.4
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+
+  &__pos
+    color: var(--color-success) !important
+
+  &__neg
+    color: var(--color-error-dark) !important
+
+  // ── Confronto scenari ───────────────────────────────────────────────
+  &__main
+    display: flex
+    flex-direction: column
+    gap: 14px
+    min-width: 0
+
+  &__confronto
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 10px
+
+  &__scen
+    display: flex
+    flex-direction: column
+    gap: 3px
+    min-width: 0
+    padding: 12px 14px
+    border: 1px solid $border
+    border-top: 4px solid var(--sc)
+    border-radius: 12px
+    background: var(--color-surface)
+    font: inherit
+    text-align: left
+    cursor: pointer
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease
+
+    &:hover:not(:disabled)
+      transform: translateY(-2px)
+      box-shadow: $shadow-lg
+
+    &--base
+      --sc: var(--chart-ly)
+      background: $bg
+      cursor: default
+
+    &--on
+      border-color: var(--sc)
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--sc) 35%, transparent)
+
+  &__scen-head
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+  &__scen-n
+    flex: none
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 20px
+    height: 20px
+    border-radius: 6px
+    background: var(--sc)
+    color: $white
+    font-size: 10px
+    font-weight: 700
+
+  &__scen-nome
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+
+  &__trofeo
+    margin-left: auto
+    color: var(--chart-4)
+    animation: sim-brilla 2.4s ease-in-out infinite
+
+  &__scen-lbl
+    margin-top: 6px
+    font-size: 11px
+    color: $text-inactive
+
+  &__scen-big
+    font-family: 'Poppins', sans-serif
+    font-size: 24px
+    font-weight: 700
+    line-height: 1.1
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+  &__scen-delta
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__scen-bar
+    display: block
+    height: 5px
+    margin: 6px 0 4px
+    border-radius: 3px
+    background: $border
+    overflow: hidden
+
+  &__scen-fill
+    display: block
+    height: 100%
+    border-radius: 3px
+    background: var(--sc)
+    transition: width .6s cubic-bezier(.3, 1.2, .5, 1)
+
+  @for $i from 0 through 20
+    &__w#{$i}
+      width: $i * 5%
+
+  &__scen-dl
+    display: flex
+    flex-direction: column
+    gap: 2px
+    font-size: 11px
+    color: $text-inactive
+
+    span
+      display: flex
+      justify-content: space-between
+      gap: 6px
+
+    strong
+      color: $text-active
+      font-variant-numeric: tabular-nums
+
+  // ── Grafici ─────────────────────────────────────────────────────────
+  &__chart
+    height: 300px
+
+    &--basso
+      height: 260px
+
+  &__chart-lbl
+    font-size: 11px
+    font-weight: 600
+    fill: var(--chart-ink)
+
+  &__insight
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    padding: 10px 12px
+    border-radius: 10px
+    background: color-mix(in srgb, var(--chart-4) 10%, var(--color-surface))
+    font-size: 13px
+    color: $text-active
+
+    i
+      color: var(--chart-4)
+
+  &__legend
+    display: flex
+    flex-wrap: wrap
+    gap: 6px 14px
+    margin: 0
+    padding: 0
+    list-style: none
+    font-size: 12px
+    color: $text-active
+
+    li
+      display: inline-flex
+      align-items: center
+      gap: 6px
+
+  &__sw
+    display: inline-block
+    width: 10px
+    height: 10px
+    border-radius: 3px
+
+    &--base
+      background: var(--chart-ly)
+
+    &--s0
+      background: var(--chart-1)
+
+    &--s1
+      background: var(--chart-2)
+
+    &--s2
+      background: var(--chart-3)
+
+  // ── Barra di salvataggio ───────────────────────────────────────────
+  &__barra
+    position: sticky
+    bottom: 0
+    z-index: 5
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+    padding: 12px 16px
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+    box-shadow: 0 -6px 18px rgba(15, 44, 74, .06)
+
+    .sib-btn i
+      margin-right: 6px
+
+  &__barra-txt
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
+    font-size: 14px
+    color: $text-active
+
+// Modale "Porta nel Budget complessivo"
+.sim-salva
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 4px 24px 20px
+
+  &__scelte
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 10px
+
+  &__scelta
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 12px
+    border: 1px solid $border
+    border-top: 4px solid var(--sc)
+    border-radius: 12px
+    background: var(--color-surface)
+    font: inherit
+    text-align: left
+    cursor: pointer
+
+    > .sim__scen-head i:first-child
+      color: var(--sc)
+
+    &--on
+      border-color: var(--sc)
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--sc) 35%, transparent)
+
+  &__dl
+    display: flex
+    flex-direction: column
+    gap: 2px
+    font-size: 12px
+    color: $text-inactive
+
+    span
+      display: flex
+      justify-content: space-between
+
+    strong
+      color: $text-active
+
+  &__nota
+    display: flex
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 3px
+      color: $primary
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+
+    .sib-btn i
+      margin-right: 6px
+
+@keyframes sim-brilla
+  0%, 100%
+    transform: scale(1)
+  50%
+    transform: scale(1.18) rotate(-8deg)
+
+@media (prefers-reduced-motion: reduce)
+  .sim__trofeo
+    animation: none
+
+// Laptop con sidebar: leve più strette, confronto su 2 colonne
+@container (max-width: 1240px)
+  .sim__layout
+    grid-template-columns: 360px minmax(0, 1fr)
+
+  .sim__confronto
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+  .sim__pair
+    gap: 10px

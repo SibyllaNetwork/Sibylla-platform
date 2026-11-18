@@ -150,11 +150,12 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
       {modo === 'Simulato' && scenarioSalvato && (
         <p className="bc__scen-nota">
           <i className="fa-solid fa-flask" aria-hidden="true" />
-          Scenario dalla Break-even point analysis ({scenarioSalvato.struttura}): ricavi obiettivo{' '}
-          <strong>{fmtEuro(scenarioSalvato.ricaviObiettivo)}</strong>, margine obiettivo <strong>{fmtEuro(scenarioSalvato.margineObiettivo)}</strong>,
+          {scenarioSalvato.origine === 'simulatore' ? 'Scenario dal Simulatore di scenari' : 'Scenario dalla Break-even point analysis'} ({scenarioSalvato.struttura}):{' '}
+          {scenarioSalvato.origine === 'simulatore' ? 'ricavi' : 'ricavi obiettivo'} <strong>{fmtEuro(scenarioSalvato.ricaviObiettivo)}</strong>,{' '}
+          {scenarioSalvato.origine === 'simulatore' ? 'profitto' : 'margine obiettivo'} <strong>{fmtEuro(scenarioSalvato.margineObiettivo)}</strong>,
           ripartiti sui mesi con la stagionalità dell'anno.
-          <button type="button" className="bc__scen-link" onClick={() => navigate('break-even')}>
-            Apri Break-even point analysis <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+          <button type="button" className="bc__scen-link" onClick={() => navigate(scenarioSalvato.origine === 'simulatore' ? 'simulatore' : 'break-even')}>
+            {scenarioSalvato.origine === 'simulatore' ? 'Apri Simulatore di scenari' : 'Apri Break-even point analysis'} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
           </button>
         </p>
       )}

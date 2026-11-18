@@ -1,538 +1,379 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
+import {
+  Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis,
+} from 'recharts'
 import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
-import { InputField, SelectField } from '../../../core/components/form'
+import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
+import { InputField, RangeField, SelectField } from '../../../core/components/form'
+import {
+  ANIM, CHART, ChartTooltip, fmtAxisNum, gridProps, reducedMotion, series, useCountUp, xAxisProps, yAxisProps,
+} from '../../../core/bi'
 import { apiFetchSibylla } from '../../../services/api'
-import './SimulatoriScenari.sass'
 import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
+import { useScenariBudgetStore } from '../../../store/useScenariBudgetStore'
+import { exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
+import {
+  Base, Esito, Leve, MODELLI, SEGMENTI, Scenario, SegKey, baseStruttura, calcola, fmtEuro, fmtK, fmtNum, fmtPct,
+  leveVuote, levaMigliore, ponte, scenariIniziali, segno,
+} from './simData'
+import './SimulatoriScenari.sass'
 
 /**
- * Simulatori scenari — replica `Views/Budget/SimulatoreScenari.cshtml`.
- * BE: `BudgetController.SaveSimulazione` → catch-all
- * `/Sibylla/budget/SaveSimulazioneScenari`.
+ * Simulatore di scenari — "prova oggi la decisione di domani".
+ * A sinistra le leve dello scenario attivo (ADR e notti per segmento, costi
+ * fissi e variabili, leve generali e modelli rapidi); a destra il confronto
+ * vivo fra base e tre scenari (profitto con contatore, scenario migliore), il
+ * ponte del profitto (da dove viene la differenza) e i ricavi per segmento.
+ * "Porta nel Budget complessivo" salva lo scenario scelto (BE:
+ * budget/SaveSimulazioneScenari) e lo apre nel Budget complessivo in modalità
+ * Simulato, ripartito sui mesi.
  */
 
+// Stagionalità per la ripartizione mensile nel Budget complessivo
+const STAGIONE = [0.58, 0.6, 0.74, 0.9, 1.06, 1.28, 1.5, 1.55, 1.16, 0.94, 0.68, 0.82]
+const SOMMA_STAGIONE = STAGIONE.reduce((a, b) => a + b, 0)
 
-const SEGMENTI = [
-  { key: 'diretto',   label: 'Diretto',   color: '#0F2C4A' },
-  { key: 'corporate', label: 'Corporate', color: '#E94B4B' },
-  { key: 'b2b',       label: 'B2B',       color: '#2EB85C' },
-  { key: 'b2c',       label: 'B2C',       color: '#F1B33F' },
-  { key: 'gruppi',    label: 'Gruppi',    color: '#9C5BD2' },
-] as const
-type SegKey = typeof SEGMENTI[number]['key']
+const COL = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)']
 
-interface ValoreBase { adr: number; rn: number }
-interface Variazione { adrPct: number; rnPct: number }
-
-const ZERO_BASE: Record<SegKey, ValoreBase> = {
-  diretto:   { adr: 0, rn: 0 },
-  corporate: { adr: 0, rn: 0 },
-  b2b:       { adr: 0, rn: 0 },
-  b2c:       { adr: 0, rn: 0 },
-  gruppi:    { adr: 0, rn: 0 },
-}
-
-const ZERO_VAR: Record<SegKey, Variazione> = {
-  diretto:   { adrPct: 0, rnPct: 0 },
-  corporate: { adrPct: 0, rnPct: 0 },
-  b2b:       { adrPct: 0, rnPct: 0 },
-  b2c:       { adrPct: 0, rnPct: 0 },
-  gruppi:    { adrPct: 0, rnPct: 0 },
-}
-
-interface CostiBase { fissi: number; variabili: number }
-interface CostiVar  { fissiPct: number; variabiliPct: number }
-
-const ZERO_COSTI_BASE: CostiBase = { fissi: 0, variabili: 0 }
-const ZERO_COSTI_VAR:  CostiVar  = { fissiPct: 0, variabiliPct: 0 }
-
-function fmtEuro(v: number): string {
-  return v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
-}
-
-function applicaVariazione(base: ValoreBase, v: Variazione): { adr: number; rn: number; revenue: number } {
-  const adr = base.adr * (1 + v.adrPct / 100)
-  const rn  = base.rn  * (1 + v.rnPct / 100)
-  return { adr, rn, revenue: adr * rn }
+function Contatore({ v, f }: { v: number; f: (x: number) => string }) {
+  const x = useCountUp(v, 700)
+  return <>{f(x)}</>
 }
 
 export default function SimulatoriScenari({ navigate }: { navigate: (p: string) => void }) {
-  // Parte dalla struttura selezionata in alto (strutture del cliente corrente).
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
-  const [base] = useState<Record<SegKey, ValoreBase>>(ZERO_BASE)
-  const [costiBase] = useState<CostiBase>(ZERO_COSTI_BASE)
+  const annoBase = new Date().getFullYear() - 1
+  const base: Base = useMemo(() => baseStruttura(struttura, annoBase), [struttura, annoBase])
+  const [scenari, setScenari] = useState<Scenario[]>(scenariIniziali)
+  const [attivo, setAttivo] = useState(1)
+  const [salvaOpen, setSalvaOpen] = useState(false)
+  const [daSalvare, setDaSalvare] = useState(1)
+  const [nome, setNome] = useState('')
+  const aggiungi = useScenariBudgetStore(s => s.aggiungi)
+  const mainRef = useRef<HTMLDivElement>(null)
+  const still = reducedMotion()
 
-  const [scenari, setScenari] = useState<Record<SegKey, Variazione>[]>([
-    { ...ZERO_VAR }, { ...ZERO_VAR }, { ...ZERO_VAR },
-  ])
-  const [costiScenari, setCostiScenari] = useState<CostiVar[]>([
-    { ...ZERO_COSTI_VAR }, { ...ZERO_COSTI_VAR }, { ...ZERO_COSTI_VAR },
-  ])
+  const e0 = useMemo(() => calcola(base, leveVuote()), [base])
+  const esiti: Esito[] = useMemo(() => scenari.map(s => calcola(base, s.leve)), [base, scenari])
+  const migliore = esiti.reduce((bi, e, i) => (e.profitto > esiti[bi].profitto ? i : bi), 0)
+  const sc = scenari[attivo]
+  const p = useMemo(() => ponte(base, sc.leve), [base, sc])
+  const leva = useMemo(() => levaMigliore(base), [base])
 
-  const [openSave, setOpenSave] = useState(false)
-  const [saveScenarioIdx, setSaveScenarioIdx] = useState(0)
-  const [nomeSimulazione, setNomeSimulazione] = useState('')
-
-  const [ricaviOpen, setRicaviOpen] = useState(true)
-  const [costiOpen,  setCostiOpen]  = useState(true)
-
-  const setVarSegmento = (idxScenario: number, seg: SegKey, patch: Partial<Variazione>) =>
-    setScenari((prev) => {
-      const next = prev.map((s) => ({ ...s }))
-      next[idxScenario] = { ...next[idxScenario], [seg]: { ...next[idxScenario][seg], ...patch } }
-      return next
-    })
-
-  const setVarCosti = (idxScenario: number, patch: Partial<CostiVar>) =>
-    setCostiScenari((prev) => {
-      const next = prev.map((s) => ({ ...s }))
-      next[idxScenario] = { ...next[idxScenario], ...patch }
-      return next
-    })
-
-  const totaleCostiBase = costiBase.fissi + costiBase.variabili
-
-  const profittoAtteso = useMemo(() => {
-    // Profitto = ricavi totali (scenario1) − costi totali (scenario1)
-    const ricaviTot = SEGMENTI.reduce((acc, s) => acc + applicaVariazione(base[s.key], scenari[0][s.key]).revenue, 0)
-    const costiTot  = costiBase.fissi * (1 + costiScenari[0].fissiPct / 100) + costiBase.variabili * (1 + costiScenari[0].variabiliPct / 100)
-    return ricaviTot - costiTot
-  }, [base, scenari, costiBase, costiScenari])
-
-  function ripristina() {
-    setScenari([{ ...ZERO_VAR }, { ...ZERO_VAR }, { ...ZERO_VAR }])
-    setCostiScenari([{ ...ZERO_COSTI_VAR }, { ...ZERO_COSTI_VAR }, { ...ZERO_COSTI_VAR }])
+  // ── Modifica delle leve dello scenario attivo ─────────────────────────────
+  const setLeve = (f: (l: Leve) => Leve) =>
+    setScenari(prev => prev.map((s, i) => (i === attivo ? { ...s, leve: f(s.leve) } : s)))
+  const setSeg = (k: SegKey, campo: 'adr' | 'rn', v: number) =>
+    setLeve(l => ({ ...l, seg: { ...l.seg, [k]: { ...l.seg[k], [campo]: v } } }))
+  const setTutti = (campo: 'adr' | 'rn', v: number) =>
+    setLeve(l => ({ ...l, seg: Object.fromEntries(SEGMENTI.map(s => [s.key, { ...l.seg[s.key], [campo]: v }])) as Leve['seg'] }))
+  // Leva generale: mostra il valore comune se tutti i segmenti coincidono
+  const comune = (campo: 'adr' | 'rn') => {
+    const vals = SEGMENTI.map(s => sc.leve.seg[s.key][campo])
+    return vals.every(v => v === vals[0]) ? vals[0] : null
   }
 
-  async function salvaSimulazione() {
-    try {
-      await apiFetchSibylla('budget/SaveSimulazioneScenari', {
-        method: 'POST',
-        body: { nome: nomeSimulazione, struttura, scenarioIdx: saveScenarioIdx, scenari, costiScenari },
-      })
-    } catch (e) {
-      // ignore — fallback locale
-    } finally {
-      setOpenSave(false)
-      navigate('budget-complessivo')
-    }
+  // ── Porta nel Budget complessivo ───────────────────────────────────────────
+  function apriSalva() {
+    setDaSalvare(attivo)
+    setNome(`Scenario ${scenari[attivo].nome} · ${struttura}`)
+    setSalvaOpen(true)
   }
+  function salva() {
+    const s = scenari[daSalvare], e = esiti[daSalvare]
+    const n = nome.trim() || `Scenario ${s.nome}`
+    aggiungi({
+      id: `sim-${Date.now()}`,
+      nome: n,
+      origine: 'simulatore',
+      struttura,
+      anno: annoBase + 1,
+      creatoIl: new Date().toISOString(),
+      ricaviObiettivo: e.ricavi,
+      margineObiettivo: e.profitto,
+      mesi: {
+        vendite: STAGIONE.map(k => Math.round(e.ricavi * k / SOMMA_STAGIONE)),
+        proventi: STAGIONE.map(() => 0),
+        fisso: STAGIONE.map(() => Math.round(e.fissi / 12)),
+        variabile: STAGIONE.map(k => Math.round(e.variabili * k / SOMMA_STAGIONE)),
+      },
+    })
+    apiFetchSibylla('budget/SaveSimulazioneScenari', {
+      method: 'POST', body: { nome: n, struttura, scenario: s.nome, leve: s.leve },
+    }).catch(() => { /* resta lo scenario locale */ })
+    setSalvaOpen(false)
+    navigate('budget-complessivo')
+  }
+
+  // ── Grafici ────────────────────────────────────────────────────────────────
+  const datiPonte = [
+    { nome: `Base ${annoBase}`, range: [0, p.base], v: p.base, tipo: 'tot' },
+    { nome: 'Prezzo (ADR)', range: [p.base, p.base + p.prezzo], v: p.prezzo, tipo: 'delta' },
+    { nome: 'Volumi (notti)', range: [p.base + p.prezzo, p.base + p.prezzo + p.volumi], v: p.volumi, tipo: 'delta' },
+    { nome: 'Costi variabili', range: [p.base + p.prezzo + p.volumi, p.base + p.prezzo + p.volumi + p.variabili], v: p.variabili, tipo: 'delta' },
+    { nome: 'Costi fissi', range: [p.scenario - p.fissi, p.scenario], v: p.fissi, tipo: 'delta' },
+    { nome: sc.nome, range: [0, p.scenario], v: p.scenario, tipo: 'scen' },
+  ].map(d => ({ ...d, range: [Math.min(d.range[0], d.range[1]), Math.max(d.range[0], d.range[1])] }))
+  const colorePonte = (d: { tipo: string; v: number }) =>
+    d.tipo === 'tot' ? CHART.ly : d.tipo === 'scen' ? COL[attivo] : d.v >= 0 ? CHART.good : CHART.bad
+
+  const datiSeg = SEGMENTI.map(s => ({
+    nome: s.label,
+    base: e0.ricaviSeg[s.key],
+    ...Object.fromEntries(esiti.map((e, i) => [`s${i}`, e.ricaviSeg[s.key]])),
+  }))
+
+  const deltaBase = (e: Esito) => e.profitto - e0.profitto
 
   return (
-    <div>
-      <PageHead title="Simulatori scenari" subtitle="Prova oggi la decisione di domani, senza alcun rischio" />
+    <div className="sim">
+      <PageHead title="Simulatore di scenari" subtitle="Prova oggi la decisione di domani, senza alcun rischio" />
 
-      <div className="flex items-end gap-3 mb-5 flex-wrap">
-        <div className="w-64">
-          <SelectField name="struttura" label="Strutture" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={opzioniStrutture} />
+      <div className="sim__toolbar">
+        <div className="sim__filters">
+          <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={opzioniStrutture} className="w-56" />
+          <span className="sim__base-info">
+            <i className="fa-solid fa-database" aria-hidden="true" />
+            Base: consuntivo {annoBase} · {fmtNum(e0.notti)} notti · ricavi {fmtK(e0.ricavi)} · profitto {fmtK(e0.profitto)}
+          </span>
         </div>
-        <button className="sib-btn sib-btn--secondary ml-auto" onClick={ripristina}>
-          <i className="fa-duotone fa-eraser" /> Ripristina
-        </button>
-        <button className="sib-btn sib-btn--icon" title="Esporta PDF">
-          <i className="fa-duotone fa-file-pdf" />
-        </button>
+        <div className="sim__actions">
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setScenari(scenariIniziali())}>
+            <i className="fa-solid fa-rotate-left" aria-hidden="true" /> Ripristina
+          </button>
+          <Tooltip text="Esporta PDF">
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={() => exportElementToPdf(mainRef.current, `simulatore-scenari-${struttura}.pdf`, `Simulatore di scenari — ${struttura}`)}>
+              <i className="fa-regular fa-file-pdf" />
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
-      {/* RICAVI */}
-      <SectionCard
-        icon="fa-database"
-        title="Ricavi"
-        open={ricaviOpen}
-        onToggle={() => setRicaviOpen((o) => !o)}
-      >
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-          {/* Periodo attuale */}
-          <div className="bg-white border border-line rounded-field p-4">
-            <h4 className="text-[14px] font-bold mb-3">Periodo attuale</h4>
-            <table className="w-full text-[12px]">
-              <thead>
-                <tr className="text-ink-muted">
-                  <th className="text-left font-semibold py-1">Periodo</th>
-                  <th className="text-left font-semibold py-1">Segmenti</th>
-                  <th className="text-right font-semibold py-1">Adr</th>
-                  <th className="text-right font-semibold py-1">Rn</th>
-                  <th className="text-right font-semibold py-1">Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {SEGMENTI.map((s) => (
-                  <tr key={s.key} className="border-t border-line">
-                    <td className="py-2">2025</td>
-                    <td className="py-2 font-semibold">{s.label}</td>
-                    <td className="py-2 text-right">{fmtEuro(base[s.key].adr)}</td>
-                    <td className="py-2 text-right">{base[s.key].rn}</td>
-                    <td className="py-2 text-right">{fmtEuro(base[s.key].adr * base[s.key].rn)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="grid grid-cols-3 gap-2 mt-4 text-[11px]">
-              {SEGMENTI.map((s) => (
-                <div key={s.key} className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-3 rounded-sm sim-scenari__swatch" style={{ '--swatch-color': s.color } as React.CSSProperties} />
-                  <span>{s.label}</span>
-                </div>
+      <div className="sim__layout">
+        {/* ── Leve dello scenario attivo ─────────────────────────────── */}
+        <aside className={`sim__card sim__leve sim__leve--s${attivo}`}>
+          <div className="sim__tabs" role="tablist" aria-label="Scenari">
+            {scenari.map((s, i) => (
+              <button key={s.id} type="button" role="tab" aria-selected={i === attivo}
+                className={`sim__tab sim__tab--s${i} ${i === attivo ? 'sim__tab--on' : ''}`} onClick={() => setAttivo(i)}>
+                <span className="sim__tab-n">{['I', 'II', 'III'][i]}</span>
+                <span className="sim__tab-txt">
+                  <TruncatedText text={s.nome} className="sim__tab-nome" />
+                  <span className={`sim__tab-val ${esiti[i].profitto < 0 ? 'sim__neg' : ''}`}>{fmtK(esiti[i].profitto)}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="sim__modelli">
+            <span className="sim__lbl">Modelli rapidi</span>
+            <div className="sim__chips">
+              {MODELLI.map(m => (
+                <Tooltip key={m.id} text={m.desc}>
+                  <button type="button" className="sim__chip" onClick={() => setLeve(m.leve)}>
+                    <i className={`fa-solid ${m.icona}`} aria-hidden="true" />{m.label}
+                  </button>
+                </Tooltip>
               ))}
+              <Tooltip text="Riporta a zero tutte le leve dello scenario">
+                <button type="button" className="sim__chip sim__chip--reset" onClick={() => setLeve(leveVuote)}>
+                  <i className="fa-solid fa-eraser" aria-hidden="true" />Azzera
+                </button>
+              </Tooltip>
             </div>
           </div>
 
-          {/* 3 Scenari */}
-          {scenari.map((sc, idx) => (
-            <ScenarioRicaviCard
-              key={idx}
-              idx={idx}
-              base={base}
-              variazioni={sc}
-              onChangeSegmento={(seg, patch) => setVarSegmento(idx, seg, patch)}
-            />
-          ))}
-        </div>
-      </SectionCard>
-
-      {/* COSTI */}
-      <SectionCard
-        icon="fa-gear"
-        title="Costi"
-        open={costiOpen}
-        onToggle={() => setCostiOpen((o) => !o)}
-      >
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-          <div className="bg-white border border-line rounded-field p-4">
-            <h4 className="text-[14px] font-bold mb-3">Periodo attuale</h4>
-            <table className="w-full text-[12px]">
-              <thead>
-                <tr className="text-ink-muted">
-                  <th className="text-left font-semibold py-1">Periodo</th>
-                  <th className="text-right font-semibold py-1">Fissi</th>
-                  <th className="text-right font-semibold py-1">Variabili</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t border-line">
-                  <td className="py-2">2025</td>
-                  <td className="py-2 text-right">{fmtEuro(costiBase.fissi)}</td>
-                  <td className="py-2 text-right">{fmtEuro(costiBase.variabili)}</td>
-                </tr>
-              </tbody>
-            </table>
-            <div className="grid grid-cols-2 gap-2 mt-4 text-[11px]">
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block w-3 h-3 rounded-sm bg-pink-500" />
-                <span>{fmtEuro(costiBase.fissi)}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block w-3 h-3 rounded-sm bg-green-600" />
-                <span>{fmtEuro(costiBase.variabili)}</span>
+          <section className="sim__sez">
+            <h3 className="sim__sez-tit"><i className="fa-solid fa-sack-dollar" aria-hidden="true" />Ricavi</h3>
+            <div className="sim__tutti">
+              <span className="sim__tutti-lbl"><i className="fa-solid fa-layer-group" aria-hidden="true" />Tutti i segmenti</span>
+              <div className="sim__pair">
+                <RangeField name={`tutti-adr-${attivo}`} label="ADR" value={comune('adr') ?? 0} onChange={v => setTutti('adr', v)} min={-20} max={20}
+                  valueLabel={comune('adr') === null ? 'misto' : undefined} hideReset />
+                <RangeField name={`tutti-rn-${attivo}`} label="Notti" value={comune('rn') ?? 0} onChange={v => setTutti('rn', v)} min={-30} max={30}
+                  valueLabel={comune('rn') === null ? 'misto' : undefined} hideReset />
               </div>
             </div>
-            <div className="mt-4 text-[13px] font-bold">Totale costi: {fmtEuro(totaleCostiBase)}</div>
+            {SEGMENTI.map(s => {
+              const b = base.seg[s.key], v = sc.leve.seg[s.key]
+              const e = esiti[attivo]
+              const d = e.ricaviSeg[s.key] - e0.ricaviSeg[s.key]
+              return (
+                <div key={s.key} className="sim__seg">
+                  <div className="sim__seg-head">
+                    <i className={`fa-solid ${s.icona}`} aria-hidden="true" />
+                    <strong>{s.label}</strong>
+                    <span className="sim__seg-base">{fmtEuro(b.adr)} · {fmtNum(b.rn)} notti</span>
+                    <span className={`sim__seg-delta ${d > 0 ? 'sim__pos' : d < 0 ? 'sim__neg' : ''}`}>{d === 0 ? '=' : segno(d, fmtK)}</span>
+                  </div>
+                  <div className="sim__pair">
+                    <RangeField name={`${s.key}-adr-${attivo}`} label="ADR" value={v.adr} onChange={x => setSeg(s.key, 'adr', x)} min={-20} max={20}
+                      hint={fmtEuro(b.adr * (1 + v.adr / 100))} />
+                    <RangeField name={`${s.key}-rn-${attivo}`} label="Notti" value={v.rn} onChange={x => setSeg(s.key, 'rn', x)} min={-30} max={30}
+                      hint={fmtNum(e.nottiSeg[s.key])} />
+                  </div>
+                </div>
+              )
+            })}
+          </section>
+
+          <section className="sim__sez">
+            <h3 className="sim__sez-tit"><i className="fa-solid fa-receipt" aria-hidden="true" />Costi</h3>
+            <div className="sim__pair">
+              <RangeField name={`fissi-${attivo}`} label="Costi fissi" value={sc.leve.fissi} onChange={x => setLeve(l => ({ ...l, fissi: x }))} min={-20} max={20}
+                hint={fmtK(esiti[attivo].fissi)} />
+              <RangeField name={`var-${attivo}`} label="Costo variabile a notte" value={sc.leve.variabili} onChange={x => setLeve(l => ({ ...l, variabili: x }))} min={-20} max={20}
+                hint={`${fmtEuro(base.varPerNotte * (1 + sc.leve.variabili / 100))} · tot. ${fmtK(esiti[attivo].variabili)}`} />
+            </div>
+            <p className="sim__nota"><i className="fa-solid fa-circle-info" aria-hidden="true" /> I costi variabili seguono le notti vendute: più volumi, più pulizie, lavanderia e commissioni.</p>
+          </section>
+        </aside>
+
+        {/* ── Risultati ──────────────────────────────────────────────── */}
+        <div className="sim__main" ref={mainRef}>
+          <div className="sim__confronto">
+            {[{ nome: `Base ${annoBase}`, e: e0, i: -1 }, ...scenari.map((s, i) => ({ nome: s.nome, e: esiti[i], i }))].map(x => {
+              const d = deltaBase(x.e)
+              const scala = Math.max(...[e0, ...esiti].map(e => Math.abs(e.profitto)), 1)
+              return (
+                <button key={x.nome} type="button" disabled={x.i < 0}
+                  className={`sim__scen ${x.i < 0 ? 'sim__scen--base' : `sim__scen--s${x.i}`} ${x.i === attivo ? 'sim__scen--on' : ''}`}
+                  onClick={() => x.i >= 0 && setAttivo(x.i)}>
+                  <span className="sim__scen-head">
+                    {x.i >= 0 && <span className="sim__scen-n">{['I', 'II', 'III'][x.i]}</span>}
+                    <span className="sim__scen-nome">{x.nome}</span>
+                    {x.i === migliore && <Tooltip text="Scenario con il profitto più alto"><i className="fa-solid fa-trophy sim__trofeo" aria-label="Migliore" /></Tooltip>}
+                  </span>
+                  <span className="sim__scen-lbl">Profitto</span>
+                  <span className={`sim__scen-big ${x.e.profitto < 0 ? 'sim__neg' : ''}`}><Contatore v={x.e.profitto} f={fmtK} /></span>
+                  {x.i >= 0 ? (
+                    <span className={`sim__scen-delta ${d > 0 ? 'sim__pos' : d < 0 ? 'sim__neg' : ''}`}>
+                      <i className={`fa-solid fa-arrow-${d >= 0 ? 'trend-up' : 'trend-down'}`} aria-hidden="true" />
+                      {segno(d, fmtK)} vs base
+                    </span>
+                  ) : <span className="sim__scen-delta">punto di partenza</span>}
+                  <span className="sim__scen-bar"><span className={`sim__scen-fill sim__w${Math.round(Math.max(0, x.e.profitto) / scala * 20)}`} /></span>
+                  <span className="sim__scen-dl">
+                    <span>Ricavi <strong>{fmtK(x.e.ricavi)}</strong></span>
+                    <span>Costi <strong>{fmtK(x.e.costi)}</strong></span>
+                    <span>Margine <strong>{fmtPct(x.e.margine)}</strong></span>
+                  </span>
+                </button>
+              )
+            })}
           </div>
 
-          {costiScenari.map((sc, idx) => (
-            <ScenarioCostiCard
-              key={idx}
-              idx={idx}
-              base={costiBase}
-              variazione={sc}
-              onChange={(patch) => setVarCosti(idx, patch)}
-            />
-          ))}
-        </div>
-      </SectionCard>
+          <section className="sim__card sim__ponte">
+            <header className="sim__card-head">
+              <div>
+                <h2>Da dove viene la differenza · {sc.nome}</h2>
+                <p>Ponte del profitto: dalla base allo scenario, quanto vale ogni leva</p>
+              </div>
+            </header>
+            <div className="sim__chart">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={datiPonte} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barCategoryGap="24%">
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="nome" {...xAxisProps} interval={0} />
+                  <YAxis {...yAxisProps} tickFormatter={fmtAxisNum} domain={[(min: number) => Math.min(0, min), 'auto']} />
+                  <RTooltip cursor={{ fill: CHART.grid }}
+                    content={(pr: any) => (
+                      <ChartTooltip {...pr} payload={pr.payload?.map((q: any) => ({ ...q, value: q.payload.v }))}
+                        names={{ range: 'Effetto sul profitto' }} format={(v: number) => fmtEuro(v)} />
+                    )} />
+                  <Bar dataKey="range" radius={[4, 4, 4, 4]} isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}>
+                    {datiPonte.map(d => <Cell key={d.nome} fill={colorePonte(d)} />)}
+                    <LabelList dataKey="v" position="top" formatter={(v: unknown) => (Number(v) === 0 ? '=' : fmtK(Number(v)).replace(/ /g, '\u00a0'))} className="sim__chart-lbl" />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="sim__insight">
+              <i className="fa-solid fa-lightbulb" aria-hidden="true" />
+              La leva più potente per {struttura}: <strong>+1% di {leva.leva} su {leva.seg}</strong> vale circa <strong>{fmtK(leva.valore)}</strong> di profitto in più.
+            </p>
+          </section>
 
-      {/* Footer profitto atteso */}
-      <div className="bg-white border border-line rounded-field px-4 py-3 mt-6 flex items-center justify-between">
-        <div className="text-[15px] font-bold">Profitto atteso: <span className="text-primary">{fmtEuro(profittoAtteso)}</span></div>
-        <button className="sib-btn sib-btn--primary" onClick={() => { setSaveScenarioIdx(0); setOpenSave(true) }}>
-          Salva scenari
+          <section className="sim__card sim__segm">
+            <header className="sim__card-head">
+              <div>
+                <h2>Ricavi per segmento</h2>
+                <p>Base {annoBase} e i tre scenari a confronto</p>
+              </div>
+              <ul className="sim__legend">
+                <li><i className="sim__sw sim__sw--base" aria-hidden="true" />Base</li>
+                {scenari.map((s, i) => <li key={s.id}><i className={`sim__sw sim__sw--s${i}`} aria-hidden="true" />{s.nome}</li>)}
+              </ul>
+            </header>
+            <div className="sim__chart sim__chart--basso">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={datiSeg} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barCategoryGap="18%" barGap={2}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="nome" {...xAxisProps} />
+                  <YAxis {...yAxisProps} tickFormatter={fmtAxisNum} />
+                  <RTooltip cursor={{ fill: CHART.grid }}
+                    content={<ChartTooltip names={{ base: `Base ${annoBase}`, ...Object.fromEntries(scenari.map((s, i) => [`s${i}`, s.nome])) }} format={(v: number) => fmtEuro(v)} />} />
+                  <Bar dataKey="base" fill={CHART.ly} radius={[3, 3, 0, 0]} isAnimationActive={!still} animationDuration={ANIM.duration} />
+                  {scenari.map((s, i) => (
+                    <Bar key={s.id} dataKey={`s${i}`} fill={series(i)} radius={[3, 3, 0, 0]} fillOpacity={i === attivo ? 1 : 0.45}
+                      isAnimationActive={!still} animationBegin={ANIM.begin(i + 1)} animationDuration={ANIM.duration} />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div className="sim__barra">
+        <span className="sim__barra-txt">
+          <span className={`sim__tab-n sim__tab--s${attivo}`}>{['I', 'II', 'III'][attivo]}</span>
+          Scenario <strong>{sc.nome}</strong>: profitto <strong className={esiti[attivo].profitto < 0 ? 'sim__neg' : ''}>{fmtEuro(esiti[attivo].profitto)}</strong>
+          {' '}({segno(deltaBase(esiti[attivo]), fmtK)} rispetto al {annoBase})
+        </span>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={apriSalva}>
+          <i className="fa-solid fa-file-import" aria-hidden="true" /> Porta nel Budget complessivo
         </button>
       </div>
 
-      {/* Modale salva simulazione */}
-      <Modal open={openSave} onClose={() => setOpenSave(false)} title="Salva la simulazione degli scenari" size="lg">
-        <div className="p-5">
-          <div className="flex items-end justify-between mb-5 gap-4 flex-wrap">
-            <div className="flex-1 min-w-[260px]">
-              <InputField name="nomeSim" label="Nome simulazione" value={nomeSimulazione} onChange={(e) => setNomeSimulazione(e.target.value)} />
-            </div>
-            <div className="text-[13px] font-semibold">Profitto atteso: <span className="text-primary">{fmtEuro(profittoAtteso)}</span></div>
+      <Modal open={salvaOpen} onClose={() => setSalvaOpen(false)} title="Porta lo scenario nel Budget complessivo" size="lg">
+        <div className="sim-salva">
+          <span className="sim__lbl">Quale scenario?</span>
+          <div className="sim-salva__scelte" role="radiogroup" aria-label="Scenario da salvare">
+            {scenari.map((s, i) => (
+              <button key={s.id} type="button" role="radio" aria-checked={daSalvare === i}
+                className={`sim-salva__scelta sim__scen--s${i} ${daSalvare === i ? 'sim-salva__scelta--on' : ''}`}
+                onClick={() => { setDaSalvare(i); setNome(`Scenario ${s.nome} · ${struttura}`) }}>
+                <span className="sim__scen-head">
+                  <i className={`fa-${daSalvare === i ? 'solid' : 'regular'} fa-circle${daSalvare === i ? '-dot' : ''}`} aria-hidden="true" />
+                  <span className="sim__scen-n">{['I', 'II', 'III'][i]}</span>
+                  <span className="sim__scen-nome">{s.nome}</span>
+                  {i === migliore && <i className="fa-solid fa-trophy sim__trofeo" aria-label="Migliore" />}
+                </span>
+                <span className="sim-salva__dl">
+                  <span>Ricavi <strong>{fmtK(esiti[i].ricavi)}</strong></span>
+                  <span>Costi <strong>{fmtK(esiti[i].costi)}</strong></span>
+                  <span>Profitto <strong className={esiti[i].profitto < 0 ? 'sim__neg' : ''}>{fmtK(esiti[i].profitto)}</strong></span>
+                </span>
+              </button>
+            ))}
           </div>
-
-          <div className="bg-white border border-line rounded-field p-4 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-[14px] font-bold">Ricavi - Scenario {romano(saveScenarioIdx + 1)}</h4>
-              <div className="text-[12px] font-semibold">Totale ricavi: {fmtEuro(SEGMENTI.reduce((a, s) => a + applicaVariazione(base[s.key], scenari[saveScenarioIdx][s.key]).revenue, 0))}</div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-              <table className="w-full text-[12px]">
-                <tbody>
-                  {SEGMENTI.map((s) => (
-                    <tr key={s.key} className="border-b border-line last:border-0">
-                      <td className="py-1.5 w-12 text-right pr-3">{scenari[saveScenarioIdx][s.key].adrPct}%</td>
-                      <td className="py-1.5 font-bold">{s.label}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <CartesianBarChart
-                dati={SEGMENTI.map((s) => {
-                  const calc = applicaVariazione(base[s.key], scenari[saveScenarioIdx][s.key])
-                  return { label: s.label, costo: calc.revenue, percentuale: scenari[saveScenarioIdx][s.key].adrPct, color: s.color }
-                })}
-              />
-            </div>
-          </div>
-
-          <div className="bg-white border border-line rounded-field p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-[14px] font-bold">Costi - Scenario {romano(saveScenarioIdx + 1)}</h4>
-              <div className="text-[12px] font-semibold">Totale costi: {fmtEuro(costiBase.fissi + costiBase.variabili)}</div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-              <table className="w-full text-[12px]">
-                <tbody>
-                  <tr className="border-b border-line">
-                    <td className="py-1.5 w-12 text-right pr-3">{costiScenari[saveScenarioIdx].fissiPct}%</td>
-                    <td className="py-1.5 font-bold">Fissi</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1.5 w-12 text-right pr-3">{costiScenari[saveScenarioIdx].variabiliPct}%</td>
-                    <td className="py-1.5 font-bold">Variabili</td>
-                  </tr>
-                </tbody>
-              </table>
-              <CartesianBarChart
-                variante="costi"
-                dati={[
-                  { label: 'Fissi',     costo: costiBase.fissi * (1 + costiScenari[saveScenarioIdx].fissiPct / 100),         percentuale: costiScenari[saveScenarioIdx].fissiPct,     color: '#E94B8B' },
-                  { label: 'Variabili', costo: costiBase.variabili * (1 + costiScenari[saveScenarioIdx].variabiliPct / 100), percentuale: costiScenari[saveScenarioIdx].variabiliPct, color: '#2EB85C' },
-                ]}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 mt-6">
-            <button className="sib-btn sib-btn--secondary" onClick={() => setOpenSave(false)}>Annulla</button>
-            <button className="sib-btn sib-btn--primary" onClick={salvaSimulazione}>
-              Salva e simula scenario nel Budget complessivo
+          <InputField name="nomeSim" label="Nome della simulazione" value={nome} onChange={e => setNome(e.target.value)} />
+          <p className="sim-salva__nota">
+            <i className="fa-solid fa-calendar-days" aria-hidden="true" />
+            Ricavi e costi variabili vengono ripartiti sui 12 mesi del {annoBase + 1} con la stagionalità tipica; i costi fissi in quote uguali.
+            Lo scenario si apre nel Budget complessivo in modalità <strong>Simulato</strong>.
+          </p>
+          <div className="sim-salva__foot">
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setSalvaOpen(false)}>Annulla</button>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={salva}>
+              <i className="fa-solid fa-file-import" aria-hidden="true" /> Salva e apri nel Budget complessivo
             </button>
           </div>
         </div>
       </Modal>
     </div>
   )
-}
-
-function SectionCard({
-  icon, title, open, onToggle, children,
-}: {
-  icon: string; title: string; open: boolean; onToggle: () => void; children: React.ReactNode
-}) {
-  return (
-    <div className="mb-5">
-      <div className="flex items-center justify-between border-b-2 border-line pb-2 mb-4">
-        <h3 className="text-[18px] font-bold flex items-center gap-2">
-          <i className={`fa-duotone ${icon} text-primary`} /> {title}
-        </h3>
-        <button className="sib-btn sib-btn--icon" onClick={onToggle} title={open ? 'Chiudi' : 'Espandi'}>
-          <i className={`fa-solid ${open ? 'fa-minus' : 'fa-plus'}`} />
-        </button>
-      </div>
-      {open && children}
-    </div>
-  )
-}
-
-function ScenarioRicaviCard({
-  idx, base, variazioni, onChangeSegmento,
-}: {
-  idx: number
-  base: Record<SegKey, ValoreBase>
-  variazioni: Record<SegKey, Variazione>
-  onChangeSegmento: (seg: SegKey, patch: Partial<Variazione>) => void
-}) {
-  const num = ['I', 'II', 'III'][idx]
-  const totale = SEGMENTI.reduce((a, s) => a + applicaVariazione(base[s.key], variazioni[s.key]).revenue, 0)
-  const isFirst = idx === 0
-  return (
-    <div className={`bg-white border ${isFirst ? 'border-primary' : 'border-line'} rounded-field p-4`}>
-      <h4 className="text-[14px] font-bold mb-3">Scenario {num}</h4>
-      <div className="grid grid-cols-[1fr_1fr_1fr] gap-2 text-[11px] font-semibold text-ink-muted mb-1 px-1">
-        <div>Adr</div>
-        <div>Rn</div>
-        <div>Revenue</div>
-      </div>
-      {SEGMENTI.map((s) => {
-        const v = variazioni[s.key]
-        const calc = applicaVariazione(base[s.key], v)
-        return (
-          <div key={s.key} className="grid grid-cols-[1fr_1fr_1fr] gap-2 mb-1.5">
-            <PctCell value={fmtEuro(calc.adr)} pct={v.adrPct} onChange={(p) => onChangeSegmento(s.key, { adrPct: p })} />
-            <PctCell value={String(Math.round(calc.rn))} pct={v.rnPct} onChange={(p) => onChangeSegmento(s.key, { rnPct: p })} />
-            <div className="bg-success-light text-ink rounded text-[12px] flex items-center justify-center min-h-[40px]">
-              {fmtEuro(calc.revenue)}
-            </div>
-          </div>
-        )
-      })}
-      <div className="mt-4 text-[11px] text-ink-muted">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="inline-block w-3 h-3 rounded-sm bg-primary" />
-          <span>Scenario {idx + 1} Ricavi</span>
-        </div>
-        <CartesianBarChart
-          dati={SEGMENTI.map((s) => {
-            const calc = applicaVariazione(base[s.key], variazioni[s.key])
-            return { label: s.label, costo: calc.revenue, percentuale: variazioni[s.key].adrPct, color: s.color }
-          })}
-        />
-      </div>
-      <div className="mt-2 text-[12px] font-semibold text-right">Totale: {fmtEuro(totale)}</div>
-    </div>
-  )
-}
-
-function ScenarioCostiCard({
-  idx, base, variazione, onChange,
-}: {
-  idx: number
-  base: CostiBase
-  variazione: CostiVar
-  onChange: (patch: Partial<CostiVar>) => void
-}) {
-  const num = ['I', 'II', 'III'][idx]
-  const isFirst = idx === 0
-  const fissi = base.fissi * (1 + variazione.fissiPct / 100)
-  const variabili = base.variabili * (1 + variazione.variabiliPct / 100)
-  return (
-    <div className={`bg-white border ${isFirst ? 'border-primary' : 'border-line'} rounded-field p-4`}>
-      <h4 className="text-[14px] font-bold mb-3">Scenario {num}</h4>
-      <div className="grid grid-cols-2 gap-3 text-[11px] font-semibold text-ink-muted mb-1 px-1">
-        <div>Fissi</div>
-        <div>Variabili</div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <PctCell value={fmtEuro(fissi)}     pct={variazione.fissiPct}     onChange={(p) => onChange({ fissiPct: p })} />
-        <PctCell value={fmtEuro(variabili)} pct={variazione.variabiliPct} onChange={(p) => onChange({ variabiliPct: p })} />
-      </div>
-      <div className="mt-4 text-[11px] text-ink-muted">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="inline-block w-3 h-3 rounded-sm bg-pink-500" />
-          <span>Scenario {num} costi</span>
-        </div>
-        <CartesianBarChart
-          variante="costi"
-          dati={[
-            { label: 'Fissi',     costo: fissi,     percentuale: variazione.fissiPct,     color: '#E94B8B' },
-            { label: 'Variabili', costo: variabili, percentuale: variazione.variabiliPct, color: '#2EB85C' },
-          ]}
-        />
-      </div>
-    </div>
-  )
-}
-
-function PctCell({ value, pct, onChange }: { value: string; pct: number; onChange: (n: number) => void }) {
-  return (
-    <div className="bg-link-light/40 rounded p-1.5">
-      <div className="text-[12px] text-center mb-1">{value}</div>
-      <div className="flex items-center justify-center gap-1">
-        <button type="button" className="w-5 h-5 rounded border border-line bg-white hover:bg-canvas text-[11px] flex items-center justify-center" onClick={() => onChange(pct + 1)}>
-          <i className="fa-solid fa-plus" />
-        </button>
-        <span className="text-[11px] font-semibold w-9 text-center">{pct}%</span>
-        <button type="button" className="w-5 h-5 rounded border border-line bg-white hover:bg-canvas text-[11px] flex items-center justify-center" onClick={() => onChange(pct - 1)}>
-          <i className="fa-solid fa-minus" />
-        </button>
-      </div>
-    </div>
-  )
-}
-
-interface PuntoChart { label: string; costo: number; percentuale: number; color: string }
-
-interface ChartOpts {
-  /** 'ricavi' → label segmento sotto, no tick % visibili. 'costi' → tick % visibili + valore € sotto */
-  variante?: 'ricavi' | 'costi'
-}
-
-function CartesianBarChart({ dati, variante = 'ricavi' }: { dati: PuntoChart[] } & ChartOpts) {
-  const maxAbsPct = Math.max(1, ...dati.map((d) => Math.abs(d.percentuale)))
-  const hasNegative = dati.some((d) => d.percentuale < 0)
-  const yMax = Math.ceil(maxAbsPct)
-  const yMin = hasNegative ? -yMax : 0
-
-  const showYTicks = variante === 'costi'
-  const yTicks = hasNegative
-    ? [yMax, 0, -yMax]
-    : [yMax, 0]
-
-  // Layout SVG
-  const W = 280
-  const H = 120
-  const PAD_L = showYTicks ? 26 : 8
-  const PAD_R = 8
-  const PAD_T = 8
-  const PAD_B = 28
-  const innerW = W - PAD_L - PAD_R
-  const innerH = H - PAD_T - PAD_B
-  const yToPx = (v: number) => PAD_T + innerH - ((v - yMin) / (yMax - yMin)) * innerH
-  const baseY = yToPx(0)
-
-  const barW = Math.max(8, Math.min(20, innerW / dati.length / 2))
-  const slot = innerW / dati.length
-
-  return (
-    <div className="flex items-stretch gap-2">
-      {/* Y-axis label ruotata, fuori dal grafico a sinistra */}
-      <div className="flex items-center justify-center shrink-0 sim-scenari__yaxis">
-        <span className="text-[10px] text-ink-muted whitespace-nowrap sim-scenari__yaxis-label">
-          Percentuale %
-        </span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none">
-          {/* tick orizzontali (solo per costi) */}
-          {showYTicks && yTicks.map((tk) => (
-            <g key={`tk-${tk}`}>
-              <line x1={PAD_L} x2={W - PAD_R} y1={yToPx(tk)} y2={yToPx(tk)} stroke="#E5E7EB" strokeWidth="1" />
-              <text x={PAD_L - 3} y={yToPx(tk) + 3} fontSize="9" textAnchor="end" fill="#6E7175">{tk}%</text>
-            </g>
-          ))}
-          {/* separatori verticali */}
-          {dati.map((_, i) => {
-            const x = PAD_L + slot * i
-            return <line key={`sep-${i}`} x1={x} x2={x} y1={PAD_T} y2={PAD_T + innerH} stroke="#E5E7EB" strokeWidth="1" />
-          })}
-          <line x1={PAD_L + innerW} x2={PAD_L + innerW} y1={PAD_T} y2={PAD_T + innerH} stroke="#E5E7EB" strokeWidth="1" />
-          {/* asse X (base 0) */}
-          <line x1={PAD_L} x2={W - PAD_R} y1={baseY} y2={baseY} stroke="#0F2C4A" strokeWidth="1" />
-
-          {/* barre */}
-          {dati.map((d, i) => {
-            const cx = PAD_L + slot * i + slot / 2
-            const top = d.percentuale >= 0 ? yToPx(d.percentuale) : baseY
-            const bottom = d.percentuale >= 0 ? baseY : yToPx(d.percentuale)
-            const h = Math.max(0, bottom - top)
-            const xLabel = variante === 'costi' ? fmtEuro(d.costo) : d.label
-            return (
-              <g key={i}>
-                {h > 0 && <rect x={cx - barW / 2} y={top} width={barW} height={h} fill={d.color} rx={2} />}
-                <text x={cx} y={H - PAD_B + 14} fontSize="10" textAnchor="middle" fill="#6E7175">
-                  {xLabel}
-                </text>
-              </g>
-            )
-          })}
-        </svg>
-        <div className="text-[10px] text-ink-muted text-center -mt-0.5">Costo (in migliaia)</div>
-      </div>
-    </div>
-  )
-}
-
-function romano(n: number): string {
-  return ['', 'I', 'II', 'III', 'IV', 'V'][n] ?? String(n)
 }
