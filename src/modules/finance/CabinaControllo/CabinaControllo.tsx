@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
+import VistaSwitch, { VistaOpzione } from '../../../core/components/VistaSwitch'
 import { SelectField } from '../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import './CabinaControllo.sass'
@@ -111,30 +112,77 @@ function colonne(ivId: string): Col[] {
   ]
 }
 
+type Confronto = 'budget' | 'ly'
+const CONFRONTI: VistaOpzione<Confronto>[] = [
+  { value: 'budget', label: 'vs Budget', icon: 'fa-bullseye',      hint: 'Actual − Budget' },
+  { value: 'ly',     label: 'vs LY',     icon: 'fa-clock-rotate-left', hint: 'Actual − anno prec.' },
+]
+
+const SEZ_ICON: Record<SectionCfg['variant'], string> = {
+  ricavi:  'fa-arrow-trend-up',
+  costi:   'fa-receipt',
+  margine: 'fa-sack-dollar',
+}
+
+type Tone = 'pos' | 'neg' | 'neutral'
+const pct = (v: number, base: number) => (base ? (v / base) * 100 : 0)
+const fmtPct = (p: number) => `${p > 0 ? '+' : p < 0 ? '−' : ''}${Math.abs(p).toLocaleString('it-IT', { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%`
+// Intensità della tinta dello scostamento: 1 = lieve (<2%), 2 = moderato (<5%), 3 = forte
+const heatLevel = (p: number) => (Math.abs(p) < 2 ? 1 : Math.abs(p) < 5 ? 2 : 3)
+
 export default function CabinaControllo({ navigate }: { navigate: (p: string) => void }) {
   const [anno, setAnno] = useState('2026')
   // Parte dalla struttura selezionata in alto (strutture del cliente corrente).
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [intervallo, setIntervallo] = useState('Q1')
+  const [confronto, setConfronto] = useState<Confronto>('budget')
+  // Sezioni comprimibili: da chiuse resta visibile solo la riga di totale
+  const [chiuse, setChiuse] = useState<Record<string, boolean>>({})
 
   const data = useMemo(() => buildData(anno), [anno])
   const cols = useMemo(() => colonne(intervallo), [intervallo])
 
-  const agg = (key: string, months: number[]) => {
+  const agg = useCallback((key: string, months: number[]) => {
     const s = data[key]
     const ly     = months.reduce((a, m) => a + s.ly[m], 0)
     const budget = months.reduce((a, m) => a + s.budget[m], 0)
     const actual = months.reduce((a, m) => a + s.actual[m], 0)
-    return { ly, budget, actual, scost: actual - budget }
-  }
+    const ref    = confronto === 'budget' ? budget : ly
+    return { ly, budget, actual, ref, scost: actual - ref, pct: pct(actual - ref, ref) }
+  }, [data, confronto])
+
+  const toneOf = (polarity: Polarity, scost: number): Tone =>
+    scost === 0 ? 'neutral' : (polarity === 'pos' ? scost > 0 : scost < 0) ? 'pos' : 'neg'
 
   const periodoLabel = INTERVALLI.find(i => i.id === intervallo)?.label ?? ''
+  const rispettoA = confronto === 'budget' ? 'rispetto al budget' : "rispetto all'anno precedente"
+  const refBreve = confronto === 'budget' ? 'Budget' : 'LY'
+
+  // ── Letture automatiche del periodo (riga sotto la tabella) ──────────────
+  const insights = useMemo(() => {
+    const tot = cols.find(c => c.totale)!
+    const mesi = cols.filter(c => !c.totale)
+    const mol = agg('mol', tot.months)
+    const molTone = toneOf('pos', mol.scost)
+    // Voce di dettaglio (non totale) con lo scostamento più sfavorevole in %
+    const voci = SEZIONI.flatMap(s => s.rows.filter(r => !r.totale))
+    const peggiore = voci
+      .map(r => ({ r, a: agg(r.key, tot.months) }))
+      .map(x => ({ ...x, sfav: x.r.polarity === 'pos' ? -x.a.pct : x.a.pct }))
+      .sort((x, y) => y.sfav - x.sfav)[0]
+    // Mese con la marginalità (MOL / ricavi) più alta
+    const migliore = mesi
+      .map(c => ({ c, m: agg('mol', c.months).actual / (agg('totRic', c.months).actual || 1) }))
+      .sort((x, y) => y.m - x.m)[0]
+    return { mol, molTone, peggiore, migliore }
+  }, [cols, agg])
 
   // ── Export PDF / Excel ───────────────────────────────────────────────
   const tableRef = useRef<HTMLTableElement>(null)
   function buildExport() {
+    const sc = confronto === 'budget' ? 'Scost. vs Budget' : 'Scost. vs LY'
     const header = ['Voce']
-    cols.forEach(c => header.push(`${c.label} LY`, `${c.label} Budget`, `${c.label} Actual`, `${c.label} Scost.`))
+    cols.forEach(c => header.push(`${c.label} LY`, `${c.label} Budget`, `${c.label} Actual`, `${c.label} ${sc}`))
     const rows: (string | number)[][] = []
     SEZIONI.forEach(sez => {
       rows.push([sez.title.toUpperCase()])
@@ -175,6 +223,8 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
     if (el) el.scrollBy({ left: dir * Math.max(360, el.clientWidth * 0.7), behavior: 'smooth' })
   }
 
+  const { mol, molTone, peggiore, migliore } = insights
+
   return (
     <div className="cabina">
       <PageHead title="Cabina di controllo" subtitle="Panoramica di gestione sulle diverse voci di ricavi e costi" />
@@ -187,6 +237,7 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
           <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={opzioniStrutture} className="w-56" />
         </div>
         <div className="cabina__actions">
+          <VistaSwitch value={confronto} options={CONFRONTI} onChange={setConfronto} ariaLabel="Scostamento calcolato rispetto a" />
           <Tooltip text="Esporta PDF"><button className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={exportPdf}><i className="fa-regular fa-file-pdf" /></button></Tooltip>
           <Tooltip text="Esporta Excel"><button className="sib-btn sib-btn--icon" aria-label="Esporta Excel" onClick={exportXls}><i className="fa-regular fa-file-xls" /></button></Tooltip>
         </div>
@@ -207,55 +258,119 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
               <tr>
                 <th rowSpan={2} className="cabina__pl-voce cabina__pl-voce--head">
                   Anno {anno}
-                  <span className="cabina__unit">Valori in €</span>
+                  <span className="cabina__unit">Valori in € · scost. {confronto === 'budget' ? 'vs Budget' : 'vs LY'}</span>
                 </th>
                 {cols.map(c => (
-                  <th key={c.label} colSpan={METRICHE.length} className={`cabina__colhead ${c.totale ? 'cabina__col-tot' : ''}`}>{c.label}</th>
+                  <th key={c.label} colSpan={METRICHE.length} className={`cabina__colhead ${c.totale ? 'cabina__col-tot' : ''}`}>
+                    {c.totale && <i className="fa-solid fa-sigma cabina__colhead-ico" aria-hidden="true" />}
+                    {c.label}
+                  </th>
                 ))}
               </tr>
               <tr>
-                {cols.map(c => METRICHE.map((m, i) => (
-                  <th key={`${c.label}-${m.key}`} className={`cabina__subhead ${i === 0 ? 'cabina__grp-start' : ''} ${c.totale ? 'cabina__col-tot' : ''}`}>
-                    <TruncatedText text={m.label} full={m.full} />
-                  </th>
-                )))}
+                {cols.map(c => METRICHE.map((m, i) => {
+                  const attivo = (m.key === 'budget' && confronto === 'budget') || (m.key === 'ly' && confronto === 'ly')
+                  return (
+                    <th key={`${c.label}-${m.key}`} className={`cabina__subhead ${i === 0 ? 'cabina__grp-start' : ''} ${attivo ? 'cabina__subhead--ref' : ''} ${c.totale ? 'cabina__col-tot' : ''}`}>
+                      <TruncatedText text={m.label} full={m.key === 'scost' ? `Scostamento (Actual − ${confronto === 'budget' ? 'Budget' : 'LY'})` : m.full} />
+                    </th>
+                  )
+                }))}
               </tr>
             </thead>
             <tbody>
-              {SEZIONI.map(sez => (
-                <React.Fragment key={sez.variant}>
-                  <tr className="cabina__section">
-                    <td className={`cabina__pl-voce cabina__section-cell cabina__section-cell--${sez.variant}`}>{sez.title}</td>
-                    <td colSpan={cols.length * METRICHE.length} className={`cabina__section-cell cabina__section-cell--${sez.variant}`} />
-                  </tr>
-                  {sez.rows.map(r => (
-                    <tr key={r.key} className={`cabina__row cabina__row--${sez.variant} ${r.totale ? 'cabina__row--totale' : ''}`}>
-                      <td className="cabina__pl-voce"><TruncatedText text={r.label} className="cabina__voce-txt" /></td>
-                      {cols.map(c => {
-                        const a = agg(r.key, c.months)
-                        const tone = a.scost === 0 ? 'neutral' : (r.polarity === 'pos' ? a.scost >= 0 : a.scost <= 0) ? 'pos' : 'neg'
-                        const tot = c.totale ? 'cabina__col-tot' : ''
-                        return (
-                          <React.Fragment key={c.label}>
-                            <td className={`cabina__num cabina__num--ly cabina__grp-start ${tot}`}>{fmtNum(a.ly)}</td>
-                            <td className={`cabina__num ${tot}`}>{fmtNum(a.budget)}</td>
-                            <td className={`cabina__num cabina__num--actual ${tot}`}>{fmtNum(a.actual)}</td>
-                            <td className={`cabina__num ${tot}`}>
-                              <span className={`cabina__scost cabina__scost--${tone}`}>
-                                {tone !== 'neutral' && <i className={`fa-solid fa-caret-${a.scost >= 0 ? 'up' : 'down'}`} />}
-                                {fmtNum(a.scost)}
-                              </span>
-                            </td>
-                          </React.Fragment>
-                        )
-                      })}
+              {SEZIONI.map(sez => {
+                const chiusa = !!chiuse[sez.variant]
+                const comprimibile = sez.rows.length > 1
+                return (
+                  <React.Fragment key={sez.variant}>
+                    <tr className="cabina__section">
+                      <td className={`cabina__pl-voce cabina__section-cell cabina__section-cell--${sez.variant}`}>
+                        {comprimibile ? (
+                          <button type="button" className="cabina__sec-toggle" aria-expanded={!chiusa}
+                            onClick={() => setChiuse(s => ({ ...s, [sez.variant]: !chiusa }))}>
+                            <i className={`fa-solid fa-chevron-${chiusa ? 'right' : 'down'} cabina__sec-chev`} aria-hidden="true" />
+                            <i className={`fa-solid ${SEZ_ICON[sez.variant]}`} aria-hidden="true" />
+                            {sez.title}
+                          </button>
+                        ) : (
+                          <span className="cabina__sec-toggle cabina__sec-toggle--static">
+                            <i className={`fa-solid ${SEZ_ICON[sez.variant]}`} aria-hidden="true" />
+                            {sez.title}
+                          </span>
+                        )}
+                      </td>
+                      <td colSpan={cols.length * METRICHE.length} className={`cabina__section-cell cabina__section-cell--${sez.variant}`} />
                     </tr>
-                  ))}
-                </React.Fragment>
-              ))}
+                    {sez.rows.filter(r => !chiusa || r.totale).map(r => (
+                      <tr key={r.key} className={`cabina__row cabina__row--${sez.variant} ${r.totale ? 'cabina__row--totale' : ''}`}>
+                        <td className="cabina__pl-voce"><TruncatedText text={r.label} className="cabina__voce-txt" /></td>
+                        {cols.map(c => {
+                          const a = agg(r.key, c.months)
+                          const tone = toneOf(r.polarity, a.scost)
+                          const tot = c.totale ? 'cabina__col-tot' : ''
+                          // Barra di avanzamento Actual / riferimento (scala fino al 120%, tacca al 100%)
+                          const ratio = a.ref ? Math.min(a.actual / a.ref, 1.2) / 1.2 : 0
+                          return (
+                            <React.Fragment key={c.label}>
+                              <td className={`cabina__num cabina__num--ly cabina__grp-start ${tot}`}>{fmtNum(a.ly)}</td>
+                              <td className={`cabina__num ${tot}`}>{fmtNum(a.budget)}</td>
+                              <td className={`cabina__num cabina__num--actual ${tot}`}>
+                                <span className="cabina__actual">
+                                  {fmtNum(a.actual)}
+                                  <span className={`cabina__bar cabina__bar--${tone}`} aria-hidden="true">
+                                    <span className={`cabina__bar-fill cabina__bar-fill--w${Math.round(ratio * 20)}`} />
+                                  </span>
+                                </span>
+                              </td>
+                              <td className={`cabina__num cabina__scost-cell cabina__heat--${tone}-${heatLevel(a.pct)} ${tot}`}>
+                                <Tooltip text={`${fmtPct(a.pct)} vs ${refBreve} (${fmtNum(a.ref)} €)`}>
+                                  <span className={`cabina__scost cabina__scost--${tone}`}>
+                                    {tone !== 'neutral' && <i className={`fa-solid fa-caret-${a.scost >= 0 ? 'up' : 'down'}`} />}
+                                    {fmtNum(a.scost)}
+                                  </span>
+                                </Tooltip>
+                              </td>
+                            </React.Fragment>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                )
+              })}
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Letture del periodo — calcolate dai dati della tabella */}
+      <div className="cabina__insights" aria-label="Letture del periodo">
+        <div className="cabina__insight">
+          <i className={`fa-solid fa-sack-dollar cabina__insight-ico cabina__insight-ico--${molTone}`} aria-hidden="true" />
+          <span>
+            MOL {periodoLabel.toLowerCase()} <strong>{fmtNum(mol.actual)} €</strong>,{' '}
+            <strong className={`cabina__scost--${molTone}`}>{fmtPct(mol.pct)}</strong> {rispettoA}
+          </span>
+        </div>
+        {peggiore && (
+          <div className="cabina__insight">
+            <i className={`fa-solid fa-triangle-exclamation cabina__insight-ico cabina__insight-ico--${peggiore.sfav > 0 ? 'neg' : 'neutral'}`} aria-hidden="true" />
+            <span>
+              Da tenere d'occhio: <strong>{peggiore.r.label}</strong>{' '}
+              <strong className={`cabina__scost--${peggiore.sfav > 0 ? 'neg' : 'pos'}`}>{fmtPct(peggiore.a.pct)}</strong>
+            </span>
+          </div>
+        )}
+        {migliore && (
+          <div className="cabina__insight">
+            <i className="fa-solid fa-trophy cabina__insight-ico cabina__insight-ico--pos" aria-hidden="true" />
+            <span>
+              Mese più redditizio: <strong>{migliore.c.label}</strong>, marginalità{' '}
+              <strong>{(migliore.m * 100).toLocaleString('it-IT', { maximumFractionDigits: 1 })}%</strong>
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )

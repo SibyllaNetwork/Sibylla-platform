@@ -25,7 +25,11 @@
 
   &__actions
     display: inline-flex
+    align-items: center
     gap: 6px
+
+    .vsw
+      margin-right: 8px
 
     .sib-btn--icon i
       color: $primary
@@ -209,6 +213,137 @@
 
   &__row--margine td
     background: $primary-50
+
+  // ── Arricchimenti visivi ─────────────────────────────────────────
+
+  &__colhead-ico
+    margin-right: 6px
+    font-size: 11px
+    opacity: .7
+
+  // Metrica usata come riferimento dello scostamento: sottolineata
+  &__pl thead th.cabina__subhead--ref
+    color: $primary
+    box-shadow: inset 0 -2px 0 $primary
+
+  // Actual + micro-barra di avanzamento rispetto al riferimento
+  &__actual
+    display: inline-flex
+    flex-direction: column
+    align-items: flex-end
+    gap: 3px
+
+  &__bar
+    position: relative
+    display: block
+    width: 100%
+    min-width: 44px
+    height: 3px
+    border-radius: 2px
+    background: $border
+    overflow: hidden
+
+    // Tacca del 100% (scala fino al 120%)
+    &::after
+      content: ''
+      position: absolute
+      top: 0
+      bottom: 0
+      left: 83.33%
+      width: 1px
+      background: $text-inactive
+
+    &--pos .cabina__bar-fill
+      background: var(--color-success-mid)
+
+    &--neg .cabina__bar-fill
+      background: var(--color-error)
+
+    &--neutral .cabina__bar-fill
+      background: $text-inactive
+
+  &__bar-fill
+    display: block
+    height: 100%
+    border-radius: 2px
+    transition: width .45s ease
+
+  // Larghezza a passi del 5% (niente style inline): w0 … w20
+  @for $i from 0 through 20
+    &__bar-fill--w#{$i}
+      width: $i * 5%
+
+  // Scostamento: tinta rettangolare d'intensità proporzionale (1 lieve → 3 forte)
+  &__pl td.cabina__heat--pos-2
+    background: color-mix(in srgb, var(--color-success-light) 60%, transparent)
+
+  &__pl td.cabina__heat--pos-3
+    background: var(--color-success-light)
+
+  &__pl td.cabina__heat--neg-2
+    background: color-mix(in srgb, var(--color-error-light) 60%, transparent)
+
+  &__pl td.cabina__heat--neg-3
+    background: var(--color-error-light)
+
+  &__scost-cell .cabina__scost
+    cursor: default
+
+  // Intestazione di sezione: bottone che comprime/espande le voci
+  &__sec-toggle
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    color: inherit
+    letter-spacing: inherit
+    text-transform: inherit
+    cursor: pointer
+
+    &--static
+      cursor: default
+
+  &__sec-chev
+    width: 10px
+    font-size: 10px
+    color: $text-inactive
+
+  // Riga delle righe-voce: evidenzia la riga al passaggio, anche la voce fissa
+  &__row:hover td.cabina__pl-voce
+    color: $primary
+
+  // ── Letture del periodo (sotto la tabella) ───────────────────────
+  &__insights
+    display: flex
+    flex-wrap: wrap
+    gap: 10px 28px
+    padding: 10px 2px 0
+    border-top: 1px solid $border
+    font-size: 13px
+    color: $text-active
+
+  &__insight
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+    strong
+      font-weight: 700
+
+  &__insight-ico
+    font-size: 15px
+
+    &--pos
+      color: var(--color-success-dark)
+
+    &--neg
+      color: var(--color-error-dark)
+
+    &--neutral
+      color: $primary
 
 // Laptop con sidebar aperta: compatta paddings e colonna voci perché il
 // trimestre (3 mesi + totale × 4 metriche) stia senza scroll orizzontale.
