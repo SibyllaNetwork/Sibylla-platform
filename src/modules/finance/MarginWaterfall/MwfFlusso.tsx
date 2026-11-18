@@ -8,8 +8,9 @@ import { Conto, fmtCompatto, fmtPct } from './mwfData'
  * da sinistra e confluiscono nei Ricavi; da lì il denaro si divide fra costi
  * variabili (che defluiscono in costi di camera e commissioni) e margine di
  * contribuzione, che a sua volta si divide fra costi fissi e utile. Lo spessore
- * di ogni corrente è l'importo; le particelle che scorrono rendono visibile il
- * flusso. Passando su un nodo o una corrente si legge il dettaglio.
+ * di ogni corrente è l'importo; i nastri sfumano dal colore di partenza a
+ * quello di arrivo, si disegnano da sinistra a destra all'ingresso e un
+ * riflesso di luce scorre lungo il flusso. Passando su un nodo o una corrente si legge il dettaglio.
  */
 export interface Sorgente { id: string; nome: string; conto: Conto }
 
@@ -86,24 +87,41 @@ export default function MwfFlusso({ sorgenti, totale }: { sorgenti: Sorgente[]; 
     )
   }
 
-  // ── Corrente: nastro + particelle che scorrono ───────────────────────────
+  // ── Corrente: nastro sfumato (colore di partenza → arrivo) che si disegna
+  //    all'ingresso, con un riflesso di luce che scorre lungo il flusso ──────
   const Corrente = (p: any) => {
     const d = `M${p.sourceX},${p.sourceY} C${p.sourceControlX},${p.sourceY} ${p.targetControlX},${p.targetY} ${p.targetX},${p.targetY}`
     const sorg: Nodo = p.payload.source
     const dest: Nodo = p.payload.target
-    const colore = sorg.tipo === 'sorgente' ? coloreNodo(sorg) : coloreNodo(dest)
     const acceso = !hover || hover === sorg.name || hover === dest.name
-    const n = Math.max(1, Math.min(7, Math.round(p.linkWidth / 9)))
-    const dur = 3.2
+    const gid = `mwf-flx-g-${p.index}`
+    const w = Math.max(p.linkWidth, 1)
+    // Ritardo per colonna: le correnti si disegnano da sinistra a destra
+    const colonna = sorg.tipo === 'sorgente' ? 0 : sorg.tipo === 'ricavi' ? 1 : 2
     return (
-      <g className={acceso ? '' : 'mwf-flx__spento'}>
-        <path d={d} fill="none" stroke={colore} strokeWidth={Math.max(p.linkWidth, 1)} className="mwf-flx__nastro" />
-        {!still && Array.from({ length: n }, (_, i) => (
-          <circle key={i} r={Math.max(1.5, Math.min(3.5, p.linkWidth / 6))} className="mwf-flx__goccia"
-            cy={((i % 3) - 1) * Math.min(p.linkWidth / 3, 8)}>
-            <animateMotion dur={`${dur}s`} begin={`${(i * dur) / n}s`} repeatCount="indefinite" path={d} />
-          </circle>
-        ))}
+      <g className={`mwf-flx__corrente ${acceso ? '' : 'mwf-flx__spento'} ${hover && acceso ? 'mwf-flx__corrente--on' : ''}`}>
+        <defs>
+          <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1={p.sourceX} x2={p.targetX} y1={0} y2={0}>
+            <stop offset="0%" stopColor={coloreNodo(sorg)} />
+            <stop offset="100%" stopColor={coloreNodo(dest)} />
+          </linearGradient>
+          {/* Riflesso: fascia di luce sfumata che attraversa il nastro */}
+          <linearGradient id={`${gid}-r`} gradientUnits="userSpaceOnUse" x1={p.sourceX} x2={p.targetX} y1={0} y2={0}>
+            <stop offset="0%" stopColor="#fff" stopOpacity={0} />
+            <stop offset="38%" stopColor="#fff" stopOpacity={0} />
+            <stop offset="50%" stopColor="#fff" stopOpacity={0.6} />
+            <stop offset="62%" stopColor="#fff" stopOpacity={0} />
+            <stop offset="100%" stopColor="#fff" stopOpacity={0} />
+            {!still && (
+              <animateTransform attributeName="gradientTransform" type="translate"
+                from={`${-(p.targetX - p.sourceX)} 0`} to={`${p.targetX - p.sourceX} 0`}
+                dur="4.5s" begin={`${1 + colonna * 0.45}s`} repeatCount="indefinite" />
+            )}
+          </linearGradient>
+        </defs>
+        <path d={d} fill="none" stroke={`url(#${gid})`} strokeWidth={w} pathLength={100}
+          className={`mwf-flx__nastro ${still ? '' : `mwf-flx__nastro--entra mwf-flx__col${colonna}`}`} />
+        {!still && <path d={d} fill="none" stroke={`url(#${gid}-r)`} strokeWidth={w} className="mwf-flx__riflesso" />}
       </g>
     )
   }

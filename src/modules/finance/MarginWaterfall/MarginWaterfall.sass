@@ -379,15 +379,32 @@
     color: $primary
 
   &__nastro
-    opacity: .28
+    opacity: .38
     transition: opacity .25s ease
 
-    &:hover
-      opacity: .45
+    // Ingresso: il nastro si disegna lungo il percorso
+    &--entra
+      stroke-dasharray: 100 100
+      stroke-dashoffset: 100
+      animation: mwf-disegna .9s cubic-bezier(.4, 0, .2, 1) forwards
 
-  &__goccia
-    fill: var(--color-surface)
-    opacity: .9
+  &__corrente:hover .mwf-flx__nastro,
+  &__corrente--on .mwf-flx__nastro
+    opacity: .62
+
+  // Riflesso: fascia di luce sfumata (gradiente animato) che percorre il nastro
+  &__riflesso
+    pointer-events: none
+    opacity: 0
+    animation: mwf-appare .6s ease 1.2s forwards
+
+  // Sequenza per colonna (sinistra → destra)
+  &__col1
+    animation-delay: .35s
+
+  &__col2
+    animation-delay: .7s
+
 
   &__spento
     opacity: .25
@@ -425,6 +442,19 @@
     stroke: var(--color-surface)
     stroke-width: 4px
     stroke-linejoin: round
+
+@keyframes mwf-disegna
+  to
+    stroke-dashoffset: 0
+
+@keyframes mwf-appare
+  to
+    opacity: 1
+
+@media (prefers-reduced-motion: reduce)
+  .mwf-flx__nastro--entra
+    animation: none
+    stroke-dashoffset: 0
 
 // Cascata
 .mwf-casc
