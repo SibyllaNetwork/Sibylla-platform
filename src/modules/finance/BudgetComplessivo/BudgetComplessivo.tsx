@@ -3,6 +3,7 @@ import PageHead from '../../../core/components/PageHead'
 import { SelectField, RadioGroup } from '../../../core/components/form'
 import './BudgetComplessivo.sass'
 import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
+import { useScenariBudgetStore } from '../../../store/useScenariBudgetStore'
 
 /**
  * Budget complessivo — pianificazione strategica del conto economico, per voce
@@ -48,7 +49,27 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
   const [scenario, setScenario] = useState('')
   const [vals, setVals] = useState<Inputs>(blankInputs)
 
-  useEffect(() => { setVals(blankInputs()) }, [anno, struttura, modo])
+  // Scenari portati da altre pagine (BEP analysis → "Usa come budget complessivo")
+  const { scenari: scenariSalvati, daAprire, apri } = useScenariBudgetStore()
+  const opzioniScenario = useMemo(() => [
+    ...SCENARI.map(s => ({ value: s, label: s })),
+    ...scenariSalvati.map(s => ({ value: s.id, label: `${s.nome} (${s.anno})` })),
+  ], [scenariSalvati])
+  const scenarioSalvato = scenariSalvati.find(s => s.id === scenario)
+
+  // All'arrivo dalla BEP analysis: apre lo scenario appena salvato
+  useEffect(() => {
+    const s = daAprire ? scenariSalvati.find(x => x.id === daAprire) : undefined
+    if (!s) return
+    setModo('Simulato')
+    setAnno(String(s.anno))
+    setScenario(s.id)
+    apri(null)
+  }, [daAprire, scenariSalvati, apri])
+
+  useEffect(() => {
+    setVals(modo === 'Simulato' && scenarioSalvato ? { ...scenarioSalvato.mesi } : blankInputs())
+  }, [anno, struttura, modo, scenarioSalvato])
 
   // Mesi già trascorsi (read-only) in base all'anno selezionato
   const now = new Date()
@@ -114,7 +135,7 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
           <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={opzioniStrutture} className="w-56" />
           <RadioGroup name="modo" label="Modalità" value={modo} onChange={v => setModo(v as 'Diretto' | 'Simulato')} options={MODI} />
           {modo === 'Simulato' && (
-            <SelectField name="scenario" label="Scenario" value={scenario} onChange={e => setScenario(e.target.value)} placeholder="Seleziona Scenario" options={SCENARI.map(s => ({ value: s, label: s }))} className="w-52" />
+            <SelectField name="scenario" label="Scenario" value={scenario} onChange={e => setScenario(e.target.value)} placeholder="Seleziona Scenario" options={opzioniScenario} className="w-52" />
           )}
           <SelectField name="anno" label="Anno" value={anno} onChange={e => setAnno(e.target.value)} options={ANNI.map(a => ({ value: a, label: a }))} className="w-24" />
         </div>
@@ -124,6 +145,18 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
           </button>
         </div>
       </div>
+
+      {modo === 'Simulato' && scenarioSalvato && (
+        <p className="bc__scen-nota">
+          <i className="fa-solid fa-flask" aria-hidden="true" />
+          Scenario dalla BEP analysis ({scenarioSalvato.struttura}): ricavi obiettivo{' '}
+          <strong>{fmtEuro(scenarioSalvato.ricaviObiettivo)}</strong>, margine obiettivo <strong>{fmtEuro(scenarioSalvato.margineObiettivo)}</strong>,
+          ripartiti sui mesi con la stagionalità dell'anno.
+          <button type="button" className="bc__scen-link" onClick={() => navigate('break-even')}>
+            Apri BEP analysis <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+          </button>
+        </p>
+      )}
 
       {/* Tabella annuale — prima colonna fissa, mesi scorrevoli con lo slider */}
       <div className="bc__timeline">

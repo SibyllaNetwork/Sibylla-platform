@@ -1,184 +1,219 @@
-// ─── BREAK EVEN POINT ANALYSIS ──────────────────────────────────────────────────
-// Griglia a schermo fisso: indicatori + curva di pareggio (2 colonne) + cammino
-// verso il pareggio e sensibilità.
 @use '../../../styles/tokens' as *
 
-.be
-  &__grid
-    grid-template-columns: repeat(3, minmax(0, 1fr))
-    grid-template-rows: auto minmax(0, 1.3fr) minmax(0, 1fr)
-    grid-template-areas: 'kpi  kpi  kpi' 'main main sens' 'path path comp'
+// ─── BEP ANALYSIS (pagina integrata) ─────────────────────────────────────────
+// Disegno: "Simula" in alto a sinistra; indicatori in colonna a sinistra,
+// composizione del pareggio al centro, grafico del break-even point a destra.
+.bep
+  display: flex
+  flex-direction: column
+  gap: 14px
+  container-type: inline-size
 
-  &__kpis
-    grid-area: kpi
-    display: grid
-    grid-template-columns: repeat(5, minmax(0, 1fr))
-    gap: 10px
-    min-width: 0
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
 
-  &__main
-    grid-area: main
+  &__simula
+    align-self: flex-end
 
-  &__path
-    grid-area: path
+    i
+      margin-right: 6px
 
-  &__sens
-    grid-area: sens
-
-  &__comp
-    grid-area: comp
-
-  // ── Toolbar ──────────────────────────────────────────────────────────────────
-  &__filter
-    width: 160px
-
-    &--wide
-      width: 210px
-
-  &__note
+  &__scen-tag
     display: inline-flex
     align-items: center
     gap: 6px
     margin-left: auto
     padding-bottom: 8px
-    font-family: var(--font-body)
-    font-size: 11px
-    color: var(--color-text-inactive)
-    white-space: nowrap
+    font-size: 13px
+    font-weight: 600
+    color: var(--chart-3)
+
+  &__layout
+    display: grid
+    grid-template-columns: 210px minmax(260px, 0.8fr) minmax(0, 1.6fr)
+    gap: 14px
+    align-items: stretch
+
+  // ── Indicatori (colonna sinistra) ──────────────────────────────────
+  &__kpis
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__kpi
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 12px 14px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+
+  &__kpi-head
+    display: flex
+    align-items: center
+    gap: 7px
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__info
+    margin-left: auto
+    color: $text-inactive
+    cursor: help
+
+  &__kpi-val
+    font-family: 'Poppins', sans-serif
+    font-size: 22px
+    font-weight: 700
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+  &__kpi-scen
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 13px
+    font-weight: 700
+    color: var(--chart-3)
 
     i
-      color: var(--color-primary)
-      font-size: 12px
+      font-size: 10px
 
-  // ── Aree grafico ─────────────────────────────────────────────────────────────
-  &__chart
-    flex: 1
-    min-height: 0
+    em
+      font-style: normal
+      font-weight: 400
+      font-size: 11px
+      color: $text-inactive
+
+  // ── Card ───────────────────────────────────────────────────────────
+  &__card
+    display: flex
+    flex-direction: column
+    gap: 10px
     min-width: 0
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
 
-  &__foot
-    strong
-      color: var(--color-primary)
-      font-variant-numeric: tabular-nums
+  &__card-head
+    h2
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 14px
+      font-weight: 700
+      color: $primary
 
-  // ── Tabelle (dettaglio e sensibilità) ────────────────────────────────────────
-  &__detail
-    display: flex
-    flex-direction: column
-    flex: 1
-    min-height: 0
-
-  &__detail-table,
-  &__sens-table
-    flex: 1
-    min-height: 0
-
-    .sib-table.sib-table
+    p
+      margin: 2px 0 0
       font-size: 12px
+      color: $text-inactive
 
-      th,
-      td
-        padding-top: 3px
-        padding-bottom: 3px
+    &--row
+      display: flex
+      align-items: flex-start
+      justify-content: space-between
+      gap: 12px
+      flex-wrap: wrap
 
-  // Colonne in percentuale: la tabella si adatta alla card, non il contrario
-  &__sens-table .sib-table
+  &__table
     table-layout: fixed
+    width: 100%
 
-  &__col-var
-    width: 34%
+  &__table th.bep__num,
+  &__table td.bep__num
+    text-align: right
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
 
-  &__col-num
-    width: 33%
+  &__table td.bep__col-scen,
+  &__table th.bep__col-scen
+    color: var(--chart-3)
+    font-weight: 700
 
-  // ── Composizione del pareggio: numeri, non un grafico ────────────────────────
-  &__figures
+  &__sim-actions
+    display: inline-flex
+    align-items: center
+    gap: 4px
+
+    .sib-btn--icon i
+      color: $primary
+      font-size: 14px
+
+  &__usa i
+    margin-right: 6px
+
+  &__legend
     display: flex
-    flex-direction: column
-    justify-content: space-between
-    flex: 1
-    min-height: 0
+    flex-wrap: wrap
+    gap: 6px 16px
     margin: 0
     padding: 0
     list-style: none
-
-  &__figure
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 8px
-    padding: 3px 0
-    border-bottom: 1px solid var(--color-border)
-
-    &:last-child
-      border-bottom: 0
-
-  &__figure-lbl
-    min-width: 0
-    font-family: var(--font-body)
     font-size: 12px
-    color: var(--color-text-inactive)
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
+    color: $text-active
 
-  &__figure-val
-    font-family: var(--font-heading)
+    li
+      display: inline-flex
+      align-items: center
+      gap: 6px
+
+  &__sw
+    display: inline-block
+    width: 16px
+    height: 3px
+    border-radius: 2px
+
+    &--ric
+      background: var(--chart-1)
+
+    &--cos
+      background: var(--chart-6)
+
+    &--scen
+      background: var(--chart-3)
+
+    &--cf
+      height: 0
+      border-top: 2px dashed var(--chart-ly)
+
+  // Altezza definita: ResponsiveContainer al 100% di un'altezza indefinita misura male
+  &__chart
+    position: relative
+    height: 400px
+    min-width: 0
+
+  &__foot
+    margin: 0
     font-size: 13px
-    font-weight: 600
-    color: var(--color-primary)
-    font-variant-numeric: tabular-nums
-    white-space: nowrap
+    line-height: 1.5
+    color: $text-active
 
-  // Riga della situazione attuale: si distingue senza colorare la riga
-  &__row--base
-    td
-      font-weight: 700
-      color: var(--color-primary)
-
-  &__num
-    text-align: right
-
-  &__tag
-    margin-left: 6px
-    padding: 0 5px
-    border-radius: 999px
-    background: color-mix(in srgb, var(--chart-4) 16%, transparent)
-    color: var(--chart-4)
-    font-size: 10px
-    font-weight: 600
-
-  // Paginazione SEMPRE centrata (standard piattaforma)
-  &__pager
+  &__usa-modal
     display: flex
-    justify-content: center
-    flex: none
-    margin-top: 6px
+    flex-direction: column
+    gap: 14px
+    padding: 4px 24px 20px
 
-// ── Compattazione su larghezze da laptop ──────────────────────────────────────
-@container bi-page (max-width: 1180px)
-  .be
-    &__kpis
-      gap: 8px
+    p
+      margin: 0
+      font-size: 13px
+      line-height: 1.5
+      color: $text-active
 
-    &__filter
-      width: 138px
+  &__usa-footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
 
-      &--wide
-        width: 176px
+// Laptop con sidebar: indicatori e composizione affiancati sopra, grafico sotto
+@container (max-width: 1200px)
+  .bep__layout
+    grid-template-columns: 200px minmax(0, 1fr)
 
-    &__note
-      font-size: 10px
-
-    &__detail-table .sib-table,
-    &__sens-table .sib-table
-      font-size: 11px
-
-      th,
-      td
-        padding-inline: 6px
-
-@media (max-height: 820px)
-  .be
-    &__kpis
-      gap: 8px
+  .bep__main
+    grid-column: 1 / -1

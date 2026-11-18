@@ -141,3 +141,32 @@
   &__row--totale td
     font-weight: 700
     background: $primary-50
+
+// Nota dello scenario portato dalla BEP analysis
+.bc__scen-nota
+  display: flex
+  align-items: center
+  flex-wrap: wrap
+  gap: 6px
+  margin: 0 0 12px
+  font-size: 13px
+  color: $text-active
+
+  > i
+    color: var(--chart-3)
+
+.bc__scen-link
+  margin-left: auto
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 0
+  border: 0
+  background: none
+  font: inherit
+  font-weight: 600
+  color: $primary
+  cursor: pointer
+
+  &:hover
+    text-decoration: underline
