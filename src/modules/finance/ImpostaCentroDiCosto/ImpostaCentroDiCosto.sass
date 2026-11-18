@@ -23,91 +23,256 @@
     gap: 16px
     flex-wrap: wrap
 
-// Legenda livelli
-.icc-legend
-  display: flex
-  flex-wrap: wrap
-  gap: 16px
-  padding: 12px 14px
-  background: $primary-50
+// Quattro colonne collegate: L1 → L2 → L3 → L4
+.icc-cols
+  display: grid
+  grid-template-columns: minmax(0, .8fr) repeat(3, minmax(0, 1fr))
   border: 1px solid $border
-  border-radius: 10px
-
-  &__item
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    font-size: 12px
-    color: $text-active
-
-// Albero gerarchico
-.icc-tree
-  border: 1px solid $border
-  border-radius: 10px
+  border-radius: 12px
   overflow: hidden
   background: var(--color-surface)
+
+.icc-col
+  display: flex
+  flex-direction: column
+  min-width: 0
+  border-right: 1px solid $border
+
+  &:last-child
+    border-right: 0
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 12px 12px 10px
+    border-bottom: 1px solid $border
+    background: $primary-50
+
+  &__lv
+    flex: none
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    border-radius: 8px
+    background: $primary
+    color: $white
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 700
+
+  &--l2 &__lv
+    background: var(--chart-1)
+
+  &--l3 &__lv
+    background: var(--chart-5)
+
+  &--l4 &__lv
+    background: var(--chart-4)
+
+  &__tit
+    flex: 1 1 auto
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+    strong
+      font-family: 'Poppins', sans-serif
+      font-size: 13px
+      color: $primary
+
+    span
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+      font-size: 11px
+      color: $text-inactive
+
+    em
+      font-style: normal
+      font-weight: 600
+      color: $text-active
+
+  &__add i
+    color: $primary
+    font-size: 14px
+
+  &__list
+    flex: 1 1 auto
+    margin: 0
+    padding: 6px
+    list-style: none
+    min-height: 280px
+    max-height: 420px
+    overflow-y: auto
 
   &__row
     display: flex
     align-items: center
-    gap: 10px
-    padding: 8px 14px
-    border-bottom: 1px solid $border
+    gap: 8px
+    padding: 4px 6px
+    border-radius: 8px
 
-    &:last-child
-      border-bottom: none
-
-    // Indentazione per livello
-    &--l1
+    &:hover
       background: $primary-50
-      font-weight: 700
 
-    &--l2
-      padding-left: 40px
+    &:hover .icc-col__acts
+      opacity: 1
 
-    &--l3
-      padding-left: 66px
+    &--open
+      background: $primary-100
 
-    &--l4
-      padding-left: 92px
+      .icc-col__name
+        font-weight: 700
+        color: $primary
 
-  &__chev
-    width: 18px
-    display: inline-flex
-    justify-content: center
-    flex-shrink: 0
-
-    button
-      border: none
-      background: transparent
-      color: $primary
-      cursor: pointer
-      font-size: 12px
-      padding: 2px
-      line-height: 1
+      .icc-col__chev
+        color: $primary
 
   &__name
+    flex: 1 1 auto
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+    padding: 4px 0
+    border: 0
+    background: none
+    font: inherit
     font-size: 13px
     color: $text-active
+    text-align: left
+    cursor: pointer
 
-  &__tag
-    font-size: 10px
-    font-weight: 700
-    text-transform: uppercase
-    letter-spacing: 0.04em
-    padding: 1px 7px
-    border-radius: 999px
-    margin-left: 4px
+    &:disabled
+      cursor: default
+
+  &__txt
+    flex: 1 1 auto
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__tipo
+    font-size: 12px
 
     &--fisso
-      background: $primary-100
       color: $primary
 
     &--variabile
-      background: var(--color-warning-light)
-      color: $warning
+      color: var(--chart-2)
 
-// Paginazione centrata (standard piattaforma)
+  &__count
+    font-size: 11px
+    color: $text-inactive
+    font-variant-numeric: tabular-nums
+
+  &__chev
+    font-size: 10px
+    color: $text-inactive
+
+  &__acts
+    display: inline-flex
+    opacity: 0
+    transition: opacity .15s ease
+
+    .sib-btn--icon i
+      color: $primary
+      font-size: 12px
+
+  &__edit
+    flex: 1 1 auto
+    min-width: 0
+    height: 28px
+
+  &__empty
+    padding: 16px 8px
+    font-size: 12px
+    color: $text-inactive
+
+  &__nota
+    display: flex
+    gap: 6px
+    margin: 0
+    padding: 8px 12px 10px
+    border-top: 1px solid $border
+    font-size: 11px
+    line-height: 1.4
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+
+// Suggerimenti nella modale del centro di costo
+.icc-sugg-field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.icc-sugg
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: 6px
+
+  &__lbl
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: var(--chart-4)
+
+  &__item
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    padding: 3px 9px
+    border: 1px dashed $primary-200
+    border-radius: 6px
+    background: none
+    font: inherit
+    font-size: 12px
+    color: $primary
+    cursor: pointer
+
+    i
+      font-size: 10px
+
+    &:hover
+      border-style: solid
+      background: $primary-50
+
+  &__link
+    align-self: flex-start
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 0
+    border: 0
+    background: none
+    font: inherit
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+.icc-liste__acts
+  display: inline-flex
+  gap: 8px
+
+  .sib-btn i
+    margin-right: 6px
+
 .icc-pager
   justify-content: center
   padding: 4px 2px

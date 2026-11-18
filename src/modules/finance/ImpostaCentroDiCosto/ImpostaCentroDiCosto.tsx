@@ -10,6 +10,7 @@ import Modal from '../../../core/components/Modal'
 import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
 import { InputField, SelectField, ToggleSwitch } from '../../../core/components/form'
+import { useConfirmStore } from '../../../store/useConfirmStore'
 import './ImpostaCentroDiCosto.sass'
 
 /**
@@ -18,6 +19,12 @@ import './ImpostaCentroDiCosto.sass'
  *   L1 Macro (Fisso / Variabile) → L2 Macro-categoria →
  *   L3 Centro di costo (area operativa) → L4 Voci di costo (analitico).
  * CRUD locale (crea / modifica / elimina) + liste precompilate importabili.
+ *
+ * Liste precompilate = suggerimenti su TUTTI e 4 i livelli, in quattro colonne
+ * collegate (L1 → L2 → L3 → L4): ogni lista si gestisce (aggiungi, rinomina,
+ * elimina; L1 è fisso: costi fissi / variabili). Le stesse liste alimentano i
+ * suggerimenti della modale del centro di costo. Le voci di costo (L4) sono
+ * definite e gestite nel Configuratore › Mapping costi.
  */
 
 type Tipo = 'fisso' | 'variabile'
@@ -173,6 +180,20 @@ function filtraNodi(nodi: Nodo[], q: string): Nodo[] {
   return nodi.map(walk).filter(Boolean) as Nodo[]
 }
 
+// ── Operazioni sull'albero dei suggerimenti (immutabili) ─────────────────
+function mappa(nodi: Nodo[], f: (n: Nodo) => Nodo | null): Nodo[] {
+  return nodi.map(f).filter(Boolean).map(n => (n!.figli ? { ...n!, figli: mappa(n!.figli, f) } : n!)) as Nodo[]
+}
+const rinominaNodo = (nodi: Nodo[], id: string, nome: string) => mappa(nodi, n => (n.id === id ? { ...n, nome } : n))
+const eliminaNodo = (nodi: Nodo[], id: string) => mappa(nodi, n => (n.id === id ? null : n))
+const aggiungiFiglio = (nodi: Nodo[], parentId: string, figlio: Nodo) =>
+  mappa(nodi, n => (n.id === parentId ? { ...n, figli: [...(n.figli ?? []), figlio] } : n))
+/** Nodi di un livello, opzionalmente dentro un antenato. */
+function diLivello(nodi: Nodo[], livello: Livello): Nodo[] {
+  return nodi.flatMap(n => (n.livello === livello ? [n] : diLivello(n.figli ?? [], livello)))
+}
+const unici = (a: string[]) => Array.from(new Set(a))
+
 function fmtEuro(v: number): string {
   return '€ ' + v.toLocaleString('it-IT')
 }
@@ -188,11 +209,14 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
   const [editTarget, setEditTarget] = useState<CentroCosto | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<CentroCosto | null>(null)
 
-  // Liste precompilate
+  // Liste precompilate (suggerimenti, modificabili) e percorso aperto nelle colonne
+  const [albero, setAlbero] = useState<Nodo[]>(GERARCHIA)
   const [listSearch, setListSearch] = useState('')
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(['l1-f', 'l1-v']))
+  const [percorso, setPercorso] = useState<string[]>(['l1-f', 'l2-mn', 'l3-cam'])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [importate, setImportate] = useState(0)
+  const confirm = useConfirmStore(st => st.confirm)
+  const [inModifica, setInModifica] = useState<{ id: string; nome: string } | null>(null)
 
   const nextCodice = useMemo(() => {
     const nums = items.map(c => Number(c.codice.replace(/\D/g, ''))).filter(n => !Number.isNaN(n))
@@ -238,9 +262,7 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
   }
 
   // ── Liste precompilate ────────────────────────────────────────────
-  const alberoVisibile = useMemo(() => filtraNodi(GERARCHIA, listSearch), [listSearch])
-  const toggleExpand = (id: string) =>
-    setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const alberoVisibile = useMemo(() => filtraNodi(albero, listSearch), [albero, listSearch])
   const toggleNodo = (nodo: Nodo) =>
     setSelected(prev => {
       const next = new Set(prev)
@@ -249,6 +271,43 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
       leaves.forEach(id => (allSel ? next.delete(id) : next.add(id)))
       return next
     })
+
+  // Colonne: L1 sempre; L2/L3/L4 sono i figli del nodo aperto nella colonna precedente
+  const colonne: { livello: Livello; padre?: Nodo; nodi: Nodo[] }[] = []
+  colonne.push({ livello: 1, nodi: alberoVisibile })
+  for (let l = 0; l < 3; l++) {
+    const padre = colonne[l].nodi.find(n => n.id === percorso[l]) ?? colonne[l].nodi[0]
+    colonne.push({ livello: (l + 2) as Livello, padre, nodi: padre?.figli ?? [] })
+  }
+  const apri = (livello: Livello, id: string) => setPercorso(p => [...p.slice(0, livello - 1), id])
+
+  function aggiungi(livello: Livello, padre?: Nodo) {
+    if (!padre) return
+    const id = `u${livello}-${Date.now()}`
+    const nuovo: Nodo = { id, nome: livello === 4 ? 'Nuova voce di costo' : livello === 3 ? 'Nuovo centro di costo' : 'Nuova macro-categoria', livello, ...(livello < 4 ? { figli: [] } : {}) }
+    setAlbero(a => aggiungiFiglio(a, padre.id, nuovo))
+    setInModifica({ id, nome: nuovo.nome })
+    if (livello < 4) apri(livello, id)
+  }
+  function confermaNome() {
+    if (!inModifica) return
+    const nome = inModifica.nome.trim()
+    if (nome) setAlbero(a => rinominaNodo(a, inModifica.id, nome))
+    setInModifica(null)
+  }
+  async function elimina(n: Nodo) {
+    const sotto = foglie(n).length
+    const ok = await confirm({
+      title: 'Elimina suggerimento',
+      message: <>Eliminare <strong>{n.nome}</strong> dalle liste precompilate{n.figli?.length ? <> e i suoi {sotto} elementi collegati</> : null}? I centri di costo già configurati non cambiano.</>,
+      confirmLabel: 'Elimina',
+      danger: true,
+    })
+    if (!ok) return
+    setAlbero(a => eliminaNodo(a, n.id))
+    setSelected(prev => { const x = new Set(prev); foglie(n).forEach(id => x.delete(id)); return x })
+  }
+
   function importaSelezionati() {
     if (selected.size === 0) return
     const updated = [...items]
@@ -257,15 +316,17 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
       return nums.length ? Math.max(...nums) : 121
     })()
     let importedVoci = 0
-    // Un centro di costo (L3) per ogni nodo con voci L4 selezionate.
-    for (const l1 of GERARCHIA) for (const l2 of l1.figli ?? []) for (const l3 of l2.figli ?? []) {
+    // Un centro di costo (L3) per ogni nodo con voci L4 (o sé stesso, se senza voci) selezionate,
+    // classificato con il suo L2 e L1.
+    for (const l1 of albero) for (const l2 of l1.figli ?? []) for (const l3 of l2.figli ?? []) {
       const vociSel = (l3.figli ?? []).filter(l4 => selected.has(l4.id)).map(l4 => l4.nome)
-      if (!vociSel.length) continue
-      importedVoci += vociSel.length
+      const l3Sel = !(l3.figli?.length) && selected.has(l3.id)
+      if (!vociSel.length && !l3Sel) continue
+      importedVoci += Math.max(vociSel.length, 1)
       const existing = updated.find(c => c.denominazione === l3.nome && c.macroCategoria === l2.nome && c.tipo === l1.tipo)
       if (existing) {
         const idx = updated.indexOf(existing)
-        updated[idx] = { ...existing, voci: Array.from(new Set([...existing.voci, ...vociSel])) }
+        updated[idx] = { ...existing, voci: unici([...existing.voci, ...vociSel]) }
       } else {
         max += 1
         updated.unshift({
@@ -288,35 +349,58 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
     setTab('centri')
   }
 
-  const renderNodo = (n: Nodo): React.ReactNode => {
+  const TITOLI: Record<Livello, { tit: string; sub: string; vuoto: string }> = {
+    1: { tit: 'Macro', sub: 'Costi fissi o variabili', vuoto: '' },
+    2: { tit: 'Macro-categorie', sub: 'Es. Spese operative, Manutenzioni', vuoto: 'Nessuna macro-categoria' },
+    3: { tit: 'Centri di costo', sub: 'Area operativa: es. Ristorante, Camere', vuoto: 'Nessun centro di costo' },
+    4: { tit: 'Voci di costo', sub: 'Dettaglio analitico: es. Lampadine, Materassi', vuoto: 'Nessuna voce di costo' },
+  }
+
+  const rigaNodo = (n: Nodo, livello: Livello) => {
     const leaves = foglie(n)
     const selCount = leaves.filter(id => selected.has(id)).length
     const checked = selCount > 0 && selCount === leaves.length
     const indeterminate = selCount > 0 && selCount < leaves.length
-    const hasChildren = !!n.figli?.length
-    const open = listSearch ? true : expanded.has(n.id)
-    const meta = LIV_META[n.livello]
+    const aperto = livello < 4 && (percorso[livello - 1] === n.id || (!colonne[livello - 1].nodi.some(x => x.id === percorso[livello - 1]) && colonne[livello - 1].nodi[0]?.id === n.id))
+    const editing = inModifica?.id === n.id
     return (
-      <React.Fragment key={n.id}>
-        <div className={`icc-tree__row icc-tree__row--l${n.livello}`}>
-          <span className="icc-tree__chev">
-            {hasChildren && (
-              <button type="button" onClick={() => toggleExpand(n.id)} aria-label={open ? 'Comprimi' : 'Espandi'}>
-                <i className={`fa-light fa-chevron-${open ? 'down' : 'right'}`} />
-              </button>
-            )}
-          </span>
+      <li key={n.id} className={`icc-col__row ${aperto ? 'icc-col__row--open' : ''}`}>
+        <input
+          type="checkbox" className="sib-checkbox" checked={checked}
+          ref={el => { if (el) el.indeterminate = indeterminate }}
+          onChange={() => toggleNodo(n)} aria-label={`Seleziona ${n.nome}`}
+        />
+        {editing ? (
           <input
-            type="checkbox" className="sib-checkbox" checked={checked}
-            ref={el => { if (el) el.indeterminate = indeterminate }}
-            onChange={() => toggleNodo(n)} aria-label={n.nome}
+            className="sib-input icc-col__edit" autoFocus value={inModifica!.nome}
+            onChange={e => setInModifica({ id: n.id, nome: e.target.value })}
+            onBlur={confermaNome}
+            onKeyDown={e => { if (e.key === 'Enter') confermaNome(); if (e.key === 'Escape') setInModifica(null) }}
+            aria-label="Nome"
           />
-          <StatusBadge variant={meta.variant}>{meta.label}</StatusBadge>
-          <span className="icc-tree__name">{n.nome}</span>
-          {n.tipo && <span className={`icc-tree__tag icc-tree__tag--${n.tipo}`}>{n.tipo === 'fisso' ? 'Fisso' : 'Variabile'}</span>}
-        </div>
-        {hasChildren && open && n.figli!.map(renderNodo)}
-      </React.Fragment>
+        ) : (
+          <button type="button" className="icc-col__name" onClick={() => livello < 4 && apri(livello, n.id)} disabled={livello === 4}>
+            {n.tipo && <i className={`fa-solid ${n.tipo === 'fisso' ? 'fa-lock' : 'fa-wave-square'} icc-col__tipo icc-col__tipo--${n.tipo}`} aria-hidden="true" />}
+            <span className="icc-col__txt">{n.nome}</span>
+            {livello < 4 && <span className="icc-col__count">{n.figli?.length ?? 0}</span>}
+            {livello < 4 && <i className="fa-solid fa-chevron-right icc-col__chev" aria-hidden="true" />}
+          </button>
+        )}
+        {livello > 1 && !editing && (
+          <span className="icc-col__acts">
+            <Tooltip text="Rinomina">
+              <button type="button" className="sib-btn sib-btn--icon" aria-label={`Rinomina ${n.nome}`} onClick={() => setInModifica({ id: n.id, nome: n.nome })}>
+                <i className="fa-solid fa-pen" />
+              </button>
+            </Tooltip>
+            <Tooltip text="Elimina">
+              <button type="button" className="sib-btn sib-btn--icon icc-actions__del" aria-label={`Elimina ${n.nome}`} onClick={() => elimina(n)}>
+                <i className="fa-solid fa-trash" />
+              </button>
+            </Tooltip>
+          </span>
+        )}
+      </li>
     )
   }
 
@@ -434,37 +518,65 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
       {tab === 'liste' && (
         <div className="icc-liste">
           <p className="icc-liste__intro">
-            Suggerimenti di classificazione pronti all'uso per le strutture ricettive, organizzati sui 4 livelli del modello costi.
-            Seleziona le voci da importare nella configurazione.
+            Suggerimenti di classificazione per le strutture ricettive su tutti e 4 i livelli del modello costi.
+            Clicca un elemento per vederne i figli nella colonna accanto; seleziona con la casella ciò che vuoi importare nei centri configurati.
+            Ogni lista si può arricchire, rinominare o ripulire.
           </p>
-
-          <div className="icc-legend">
-            <span className="icc-legend__item"><StatusBadge variant="neutral">L1 · Macro</StatusBadge> Costi fissi / variabili</span>
-            <span className="icc-legend__item"><StatusBadge variant="info">L2 · Categoria</StatusBadge> Macro-categorie</span>
-            <span className="icc-legend__item"><StatusBadge variant="success">L3 · Centro di costo</StatusBadge> Area operativa</span>
-            <span className="icc-legend__item"><StatusBadge variant="warning">L4 · Voce di costo</StatusBadge> Dettaglio analitico</span>
-          </div>
 
           <div className="icc-liste__bar">
             <InputField
-              name="listSearch" label="Cerca nella gerarchia" placeholder="Es. Materassi, Ristorante…"
+              name="listSearch" label="Cerca nelle liste" placeholder="Es. Materassi, Ristorante…"
               value={listSearch} onChange={(e) => setListSearch(e.target.value)}
             />
-            <button type="button" className="sib-btn sib-btn--primary" disabled={selected.size === 0} onClick={importaSelezionati}>
-              <i className="fa-duotone fa-file-import" /> Importa selezionati ({selected.size})
-            </button>
+            <span className="icc-liste__acts">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('configuratore:costi-mapping')}>
+                <i className="fa-solid fa-sitemap" /> Mapping costi
+              </button>
+              <button type="button" className="sib-btn sib-btn--primary" disabled={selected.size === 0} onClick={importaSelezionati}>
+                <i className="fa-duotone fa-file-import" /> Importa selezionati ({selected.size})
+              </button>
+            </span>
           </div>
 
-          <div className="icc-tree">
-            {alberoVisibile.length === 0
-              ? <div className="sib-empty">Nessun suggerimento corrisponde alla ricerca.</div>
-              : alberoVisibile.map(renderNodo)}
+          <div className="icc-cols">
+            {colonne.map(col => {
+              const t = TITOLI[col.livello]
+              const meta = LIV_META[col.livello]
+              return (
+                <section key={col.livello} className={`icc-col icc-col--l${col.livello}`} aria-label={`Livello ${col.livello}: ${t.tit}`}>
+                  <header className="icc-col__head">
+                    <span className="icc-col__lv">L{col.livello}</span>
+                    <span className="icc-col__tit">
+                      <strong>{t.tit}</strong>
+                      <span>{col.padre ? <>in <em>{col.padre.nome}</em></> : t.sub}</span>
+                    </span>
+                    {col.livello > 1 && (
+                      <Tooltip text={`Aggiungi a ${col.padre?.nome ?? ''}`}>
+                        <button type="button" className="sib-btn sib-btn--icon icc-col__add" aria-label={`Aggiungi ${meta.label}`}
+                          disabled={!col.padre} onClick={() => aggiungi(col.livello, col.padre)}>
+                          <i className="fa-solid fa-plus" />
+                        </button>
+                      </Tooltip>
+                    )}
+                  </header>
+                  <ul className="icc-col__list">
+                    {col.nodi.length
+                      ? col.nodi.map(n => rigaNodo(n, col.livello))
+                      : <li className="icc-col__empty">{listSearch ? 'Nessun risultato' : t.vuoto}</li>}
+                  </ul>
+                  {col.livello === 1 && <p className="icc-col__nota"><i className="fa-solid fa-circle-info" aria-hidden="true" /> Livello fisso del modello: da qui derivano perimetri e sotto-perimetri.</p>}
+                  {col.livello === 4 && <p className="icc-col__nota"><i className="fa-solid fa-circle-info" aria-hidden="true" /> Le voci di costo sono definite e gestite nel Configuratore › Mapping costi.</p>}
+                </section>
+              )
+            })}
           </div>
         </div>
       )}
 
       {modalOpen && (
         <CentroCostoModal
+          albero={albero}
+          navigate={navigate}
           iniziale={editTarget}
           defaultCodice={nextCodice}
           onClose={() => setModalOpen(false)}
@@ -494,8 +606,10 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
 
 // ─── Modale: crea / modifica centro di costo ───────────────────────────
 function CentroCostoModal({
-  iniziale, defaultCodice, onClose, onSave,
+  albero, navigate, iniziale, defaultCodice, onClose, onSave,
 }: {
+  albero: Nodo[]
+  navigate: (p: string) => void
   iniziale?: CentroCosto | null
   defaultCodice: string
   onClose: () => void
@@ -513,6 +627,14 @@ function CentroCostoModal({
   const [voceDraft, setVoceDraft] = useState('')
 
   const canSave = denominazione.trim() !== ''
+
+  // Suggerimenti dalle liste precompilate, livello per livello
+  const l1 = albero.find(n => n.tipo === tipo)
+  const l2Sugg = unici([...(l1?.figli ?? []).map(n => n.nome), macro])
+  const l2 = (l1?.figli ?? []).find(n => n.nome === macro)
+  const l3Sugg = unici((l2 ? l2.figli ?? [] : diLivello(albero, 3)).map(n => n.nome)).filter(n => n !== denominazione)
+  const l3 = l2?.figli?.find(n => n.nome === denominazione) ?? diLivello(albero, 3).find(n => n.nome === denominazione)
+  const l4Sugg = unici((l3?.figli ?? []).map(n => n.nome)).filter(v => !voci.includes(v))
 
   function addVoce() {
     const v = voceDraft.trim()
@@ -553,7 +675,7 @@ function CentroCostoModal({
           <SelectField
             name="macro" label="L2 · Macro-categoria" value={macro}
             onChange={e => setMacro(e.target.value)}
-            options={MACRO_CATEGORIE.map(m => ({ value: m, label: m }))}
+            options={unici([...l2Sugg, ...MACRO_CATEGORIE]).map(m => ({ value: m, label: m }))}
           />
           <SelectField
             name="area" label="Area operativa" value={area}
@@ -562,10 +684,20 @@ function CentroCostoModal({
           />
         </FormGrid>
 
-        <InputField
-          name="denominazione" label="L3 · Centro di costo (denominazione)" placeholder="Es. Ristorante & Bar"
-          value={denominazione} onChange={e => setDenom(e.target.value)}
-        />
+        <div className="icc-sugg-field">
+          <InputField
+            name="denominazione" label="L3 · Centro di costo (denominazione)" placeholder="Es. Ristorante & Bar"
+            value={denominazione} onChange={e => setDenom(e.target.value)}
+          />
+          {l3Sugg.length > 0 && (
+            <div className="icc-sugg">
+              <span className="icc-sugg__lbl"><i className="fa-solid fa-lightbulb" aria-hidden="true" /> Suggeriti in {macro}:</span>
+              {l3Sugg.map(n => (
+                <button key={n} type="button" className="icc-sugg__item" onClick={() => setDenom(n)}>{n}</button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* L4 — voci di costo analitiche */}
         <div className="icc-voci">
@@ -582,6 +714,19 @@ function CentroCostoModal({
               <i className="fa-light fa-plus" /> Aggiungi
             </button>
           </div>
+          {l4Sugg.length > 0 && (
+            <div className="icc-sugg">
+              <span className="icc-sugg__lbl"><i className="fa-solid fa-lightbulb" aria-hidden="true" /> Suggerite per {denominazione}:</span>
+              {l4Sugg.map(v => (
+                <button key={v} type="button" className="icc-sugg__item" onClick={() => setVoci(prev => [...prev, v])}>
+                  <i className="fa-solid fa-plus" aria-hidden="true" /> {v}
+                </button>
+              ))}
+            </div>
+          )}
+          <button type="button" className="icc-sugg__link" onClick={() => navigate('configuratore:costi-mapping')}>
+            Le voci di costo si definiscono nel Configuratore › Mapping costi <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+          </button>
           {voci.length > 0
             ? (
               <div className="icc-voci__chips">
