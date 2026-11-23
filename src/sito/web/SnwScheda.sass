@@ -1,0 +1,334 @@
+@use '../../styles/tokens' as *
+
+.snw-sch
+  &__head
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 20px
+    margin: 14px 0 18px
+
+    h1
+      margin: 8px 0 6px
+      font-family: 'Poppins', sans-serif
+      font-size: 34px
+      color: $primary
+
+  &__sotto
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 18px
+    font-size: 13px
+    color: $text-inactive
+
+    i
+      color: $accent
+
+  // ── Galleria ─────────────────────────────────────────────────────
+  &__galleria
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 180px
+    gap: 12px
+
+  &__foto-big
+    height: 460px
+    border-radius: 12px
+    overflow: hidden
+
+  &__miniature
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__mini
+    height: 112px
+    padding: 0
+    border: 2px solid transparent
+    border-radius: 8px
+    overflow: hidden
+    opacity: .7
+    cursor: pointer
+
+    &--on
+      border-color: $accent
+      opacity: 1
+
+  // ── Layout testo + box ───────────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 380px
+    gap: 40px
+    align-items: start
+    margin-top: 32px
+
+  &__testo
+    display: flex
+    flex-direction: column
+    gap: 36px
+
+    h2
+      margin: 0 0 12px
+      font-family: 'Poppins', sans-serif
+      font-size: 20px
+      color: $primary
+
+  &__desc
+    margin: 0
+    font-size: 15px
+    line-height: 1.7
+
+  &__fatti
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 16px
+    margin: 20px 0 0
+    padding: 0
+    list-style: none
+
+    li
+      display: flex
+      gap: 12px
+
+    i
+      font-size: 22px
+      color: $accent
+
+    span
+      display: flex
+      flex-direction: column
+      font-size: 13px
+      color: $text-inactive
+
+    b
+      color: $text-active
+
+  &__include
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 10px
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: flex
+      align-items: center
+      gap: 10px
+
+    i
+      color: var(--color-success)
+
+  // ── Recensioni ───────────────────────────────────────────────────
+  &__rec
+    display: grid
+    grid-template-columns: 180px minmax(0, 1fr)
+    gap: 28px
+    align-items: center
+
+  &__rec-voto
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 4px
+
+    > b
+      font-family: 'Poppins', sans-serif
+      font-size: 48px
+      line-height: 1
+      color: $primary
+
+    small
+      font-size: 12px
+      color: $text-inactive
+      text-align: center
+
+  &__stelle
+    display: inline-flex
+    gap: 2px
+    color: $accent
+
+  &__stella-off
+    color: $border
+
+  &__rec-barre
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: grid
+      grid-template-columns: 36px minmax(0, 1fr) 36px
+      align-items: center
+      gap: 10px
+      font-size: 12px
+      color: $text-inactive
+
+    i
+      color: $accent
+
+  &__barra
+    height: 8px
+    border-radius: 4px
+    background: $primary-100
+    overflow: hidden
+
+  &__fill
+    display: block
+    height: 100%
+    background: $accent
+
+  @for $i from 0 through 20
+    &__w#{$i}
+      width: $i * 5%
+
+  &__citazioni
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 16px
+    margin: 20px 0 0
+    padding: 0
+    list-style: none
+
+    li
+      display: flex
+      flex-direction: column
+      gap: 8px
+      padding: 16px
+      border: 1px solid $border
+      border-radius: 10px
+
+    p
+      margin: 0
+      font-size: 13px
+      line-height: 1.6
+
+    small
+      color: $text-inactive
+
+  // ── Box prenotazione ─────────────────────────────────────────────
+  &__box
+    position: sticky
+    top: 92px
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 22px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    box-shadow: 0 14px 36px color-mix(in srgb, var(--snw-ink) 12%, transparent)
+
+  &__box-campi
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__lbl
+    display: block
+    margin-bottom: 6px
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__orari div
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 8px
+
+  &__ora
+    height: 34px
+    border: 1px solid $border
+    border-radius: 6px
+    background: var(--color-surface)
+    color: $text-active
+    font-family: 'Poppins', sans-serif
+    font-weight: 600
+    cursor: pointer
+
+    &--on
+      border-color: $primary
+      background: $primary
+      color: $white
+
+  &__qta
+    display: flex
+    align-items: center
+    justify-content: space-between
+
+    .snw-sch__lbl
+      margin: 0
+
+  &__tot
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 12px
+    padding-top: 14px
+    border-top: 1px solid $border
+    font-size: 12px
+    color: $text-inactive
+
+  &__tot-val
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 24px
+      color: $primary
+      white-space: nowrap
+
+  &__cta
+    justify-content: center
+    width: 100%
+    height: 42px
+
+  &__rassicura
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin: 4px 0 0
+    padding: 0
+    list-style: none
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      width: 16px
+      color: var(--color-success)
+
+  &__simili
+    margin-top: 56px
+
+    h2
+      margin: 0 0 18px
+      font-family: 'Poppins', sans-serif
+      font-size: 24px
+      color: $primary
+
+@media (max-width: 1000px)
+  .snw-sch__layout
+    grid-template-columns: 1fr
+
+  .snw-sch__box
+    position: static
+
+  .snw-sch__galleria
+    grid-template-columns: 1fr
+
+  .snw-sch__miniature
+    flex-direction: row
+
+    .snw-sch__mini
+      flex: 1
+
+  .snw-sch__citazioni,
+  .snw-sch__fatti,
+  .snw-sch__include
+    grid-template-columns: 1fr

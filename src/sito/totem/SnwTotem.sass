@@ -1,0 +1,845 @@
+@use '../../styles/tokens' as *
+
+// ─── Totem Sibylla Network ─────────────────────────────────────────────────
+// Schermo verticale 9:16 (1080×1920). Il riquadro è un container: il corpo
+// base vale 2,5cqw (27px su 1080) e tutto il resto è in em, così il layout
+// è identico sul totem vero e nell'anteprima ridotta. Niente hover: stati
+// :active per il feedback al tocco. Palette = quella della versione scelta.
+
+.snw-tot
+  position: fixed
+  inset: 0
+  z-index: 60
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 40px
+  background: radial-gradient(ellipse at 50% 0%, #3a3a3e, #141416 70%)
+  font-family: 'Open Sans', sans-serif
+
+  // ── Comandi dell'anteprima ─────────────────────────────────────────
+  &__demo
+    display: flex
+    flex-direction: column
+    gap: 10px
+    width: 240px
+    padding: 18px
+    border-radius: 12px
+    background: var(--color-surface)
+
+    small
+      color: $text-inactive
+      line-height: 1.5
+
+    .sib-btn
+      justify-content: flex-start
+
+  &__demo-tit
+    display: flex
+    align-items: center
+    gap: 8px
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    color: $primary
+
+  // Cornice del totem
+  // La cornice è il container: le cqw dello schermo si misurano su di lei
+  // (un'unità cq non si riferisce mai all'elemento stesso)
+  &__cornice
+    width: min(calc((100vh - 60px) * 9 / 16 + 28px), calc(100vw - 340px))
+    container-type: inline-size
+    padding: 14px
+    border-radius: 22px
+    background: #0d0d0f
+    box-shadow: 0 0 0 2px #2b2b30, 0 40px 90px rgba(0, 0, 0, .6)
+
+  &__schermo
+    position: relative
+    display: flex
+    flex-direction: column
+    width: 100%
+    aspect-ratio: 9 / 16
+    font-size: 2.5cqw
+    background: var(--snw-sand, #fff)
+    color: $text-active
+    overflow: hidden
+    user-select: none
+
+    button
+      font: inherit
+      -webkit-tap-highlight-color: transparent
+
+  // ── Attesa ─────────────────────────────────────────────────────────
+  &__attesa
+    position: absolute
+    inset: 0
+    display: flex
+    flex-direction: column
+    justify-content: flex-end
+    padding: 2.4em 1.8em
+    border: 0
+    background: var(--snw-ink)
+    color: $white
+    text-align: left
+    cursor: pointer
+
+  &__att-foto
+    position: absolute
+    inset: 0
+    opacity: 0
+    transition: opacity 1.5s ease
+
+    &--on
+      opacity: 1
+
+      img
+        animation: snw-tot-zoom 6s ease-out both
+
+  &__att-velo
+    position: absolute
+    inset: 0
+    background: linear-gradient(180deg, color-mix(in srgb, var(--snw-ink) 50%, transparent) 0%, transparent 25%, transparent 45%, color-mix(in srgb, var(--snw-ink) 92%, transparent) 100%)
+
+  &__att-top
+    position: absolute
+    top: 1.8em
+    left: 1.8em
+    font-size: 1.3em
+
+  &__att-txt
+    position: relative
+    display: flex
+    flex-direction: column
+    gap: .3em
+    margin-bottom: 1.6em
+
+    small
+      font-size: 1em
+      letter-spacing: .2em
+      text-transform: uppercase
+      color: $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 3em
+      font-weight: 800
+      line-height: 1
+      letter-spacing: -.03em
+
+    span
+      font-size: 1.1em
+      line-height: 1.4
+      opacity: .85
+
+  &__att-tocca
+    position: relative
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: .6em
+    height: 3em
+    border-radius: .5em
+    background: $accent
+    color: var(--snw-ink)
+    font-family: 'Poppins', sans-serif
+    font-size: 1.2em
+    font-weight: 700
+    animation: snw-tot-respira 2.2s ease-in-out infinite
+
+  &__att-lingue
+    position: relative
+    display: flex
+    justify-content: center
+    gap: .8em
+    margin-top: 1.4em
+
+  &__lingua
+    padding: .2em
+    border: 3px solid transparent
+    border-radius: 50%
+    background: none
+    cursor: pointer
+
+    &--on
+      border-color: $accent
+
+  // ── Testata e navigazione ──────────────────────────────────────────
+  &__head
+    display: flex
+    align-items: center
+    gap: 1em
+    padding: .9em 1.2em
+    border-bottom: 1px solid $border
+    background: var(--color-surface)
+
+  &__brand
+    padding: 0
+    border: 0
+    background: none
+    font-size: .95em
+
+  &__ospite
+    display: flex
+    flex-direction: column
+    margin-left: auto
+    text-align: right
+    font-size: .8em
+    color: $text-inactive
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.15em
+      color: $primary
+
+  &__scroll
+    flex: 1
+    overflow-y: auto
+    overscroll-behavior: contain
+    scrollbar-width: none
+
+    &::-webkit-scrollbar
+      display: none
+
+  &__nav
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    border-top: 1px solid $border
+    background: var(--color-surface)
+
+    button
+      position: relative
+      display: flex
+      flex-direction: column
+      align-items: center
+      gap: .25em
+      padding: .7em 0 .8em
+      border: 0
+      background: none
+      color: $text-inactive
+      font-family: 'Poppins', sans-serif
+      font-size: .85em
+      font-weight: 600
+
+      i
+        font-size: 1.7em
+
+      &:disabled
+        opacity: .35
+
+      &:active
+        background: $primary-50
+
+  &__nav-on
+    color: $primary !important
+    box-shadow: inset 0 4px 0 $accent
+
+  &__badge
+    position: absolute
+    top: .4em
+    right: calc(50% - 2.4em)
+    min-width: 1.5em
+    height: 1.5em
+    padding: 0 .3em
+    border-radius: .3em
+    background: $accent
+    color: $white
+    font-size: .8em
+    line-height: 1.5em
+
+  // ── Pagine ─────────────────────────────────────────────────────────
+  &__pag
+    display: flex
+    flex-direction: column
+    gap: 1em
+    padding: 1.2em 1.2em 2em
+
+  &__pag-head
+    display: flex
+    align-items: center
+    gap: .8em
+
+    h1
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 2em
+      font-weight: 800
+      color: $primary
+
+    small
+      color: $text-inactive
+
+  &__tit
+    margin: .6em 0 0
+    font-family: 'Poppins', sans-serif
+    font-size: 1.5em
+    font-weight: 800
+    letter-spacing: -.02em
+    color: $primary
+
+  &__benv
+    position: relative
+    height: 9em
+    border-radius: .7em
+    overflow: hidden
+
+    &--alto
+      height: 13em
+
+    > span
+      position: absolute
+      inset: auto 0 0 0
+      display: flex
+      flex-direction: column
+      padding: 2em 1em .9em
+      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--snw-ink) 88%, transparent))
+      color: $white
+
+    small
+      font-size: .85em
+      letter-spacing: .12em
+      text-transform: uppercase
+      color: $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.9em
+      font-weight: 800
+
+  // Cinque anelli come sul totem attuale
+  &__anelli
+    display: grid
+    grid-template-columns: repeat(5, 1fr)
+    gap: .4em
+
+    button
+      display: flex
+      flex-direction: column
+      align-items: center
+      gap: .4em
+      padding: .4em 0
+      border: 0
+      background: none
+      color: $text-active
+      font-family: 'Poppins', sans-serif
+      font-size: .9em
+      font-weight: 700
+
+      &:active .snw-tot__anello
+        background: $primary
+        color: $white
+
+  &__anello
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 3.6em
+    height: 3.6em
+    border: 3px solid $accent
+    border-radius: 50%
+    background: var(--color-surface)
+    color: $primary
+    font-size: 1.15em
+    transition: background .15s ease, color .15s ease
+
+    i
+      font-size: 1.6em
+
+    &--hotel
+      border-color: $primary
+
+    &--piccolo
+      width: 3em
+      height: 3em
+      font-size: 1em
+
+  &__griglia
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: .8em
+
+  &__card
+    display: flex
+    flex-direction: column
+    padding: 0
+    border: 1px solid $border
+    border-radius: .7em
+    background: var(--color-surface)
+    text-align: left
+    overflow: hidden
+
+    &:active
+      transform: scale(.98)
+
+  &__card-foto
+    height: 7em
+
+  &__card-txt
+    display: flex
+    flex-direction: column
+    gap: .2em
+    padding: .7em .8em .8em
+
+    small
+      font-size: .7em
+      color: $text-inactive
+
+    > b
+      font-family: 'Poppins', sans-serif
+      font-size: 1em
+      color: $primary
+
+  &__card-piede
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    font-size: .8em
+    color: $text-inactive
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.25em
+      color: $primary
+
+  &__card-cta
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: .5em
+    height: 2.2em
+    margin-top: .5em
+    border-radius: .4em
+    background: $primary
+    color: $white
+    font-family: 'Poppins', sans-serif
+    font-size: .85em
+    font-weight: 700
+
+  &__porta,
+  &__reception
+    display: flex
+    align-items: center
+    gap: .9em
+    padding: 1em
+    border-radius: .7em
+    background: var(--snw-ink)
+    color: color-mix(in srgb, #fff 80%, transparent)
+    font-size: .85em
+    line-height: 1.4
+
+    i
+      font-size: 2.4em
+      color: $accent
+
+    span b
+      display: block
+      font-family: 'Poppins', sans-serif
+      font-size: 1.15em
+      color: $white
+
+  // ── Struttura ──────────────────────────────────────────────────────
+  &__servizi
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: .7em
+
+    div
+      display: flex
+      flex-direction: column
+      gap: .25em
+      padding: .9em
+      border: 1px solid $border
+      border-radius: .7em
+      background: var(--color-surface)
+
+    i
+      font-size: 1.8em
+      color: $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      color: $primary
+
+    span
+      font-size: .8em
+      line-height: 1.4
+      color: $text-inactive
+
+  // ── Scheda ─────────────────────────────────────────────────────────
+  &__scheda
+    h1
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 1.9em
+      font-weight: 800
+      line-height: 1.1
+      color: $primary
+
+    > p
+      margin: 0
+      font-size: .9em
+      line-height: 1.55
+
+  &__sch-foto
+    height: 12em
+    margin: -1.2em -1.2em 0
+    overflow: hidden
+
+  &__sch-meta
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: .4em
+    font-size: .85em
+    color: $text-inactive
+
+  &__incl
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: .4em
+    margin: 0
+    padding: 0
+    list-style: none
+    font-size: .85em
+
+    i
+      margin-right: .4em
+      color: var(--color-success)
+
+  &__scelta
+    h3
+      margin: 0 0 .4em
+      font-family: 'Poppins', sans-serif
+      font-size: .9em
+      color: $primary
+
+    &--riga
+      display: flex
+      gap: 2em
+
+  &__giorni
+    display: grid
+    grid-template-columns: repeat(6, 1fr)
+    gap: .4em
+
+  &__giorno,
+  &__ora
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    padding: .5em 0
+    border: 2px solid $border
+    border-radius: .5em
+    background: var(--color-surface)
+    color: $text-active
+
+    small
+      font-size: .7em
+      text-transform: capitalize
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.3em
+
+    &--on
+      border-color: $primary
+      background: $primary
+      color: $white
+
+  &__orari
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: .4em
+
+  &__ora
+    height: 2.6em
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+
+  &__totale
+    position: sticky
+    bottom: 0
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 1em
+    margin: .6em -1.2em -2em
+    padding: 1em 1.2em
+    border-top: 1px solid $border
+    background: var(--color-surface)
+
+    > span
+      display: flex
+      flex-direction: column
+
+    small
+      font-size: .7em
+      color: $text-inactive
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.6em
+      color: $primary
+
+  &__btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: .5em
+    min-height: 2.6em
+    padding: 0 1.4em
+    border: 0
+    border-radius: .5em
+    background: $accent
+    color: var(--snw-ink)
+    font-family: 'Poppins', sans-serif
+    font-size: 1em
+    font-weight: 800
+
+    &:active
+      transform: scale(.97)
+
+    &:disabled
+      opacity: .45
+
+    &--sec
+      border: 2px solid $border
+      background: var(--color-surface)
+      color: $primary
+
+  // ── Carrello ───────────────────────────────────────────────────────
+  &__righe
+    display: flex
+    flex-direction: column
+    gap: .6em
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: grid
+      grid-template-columns: 4em minmax(0, 1fr)
+      gap: .7em
+      padding: .7em
+      border: 1px solid $border
+      border-radius: .7em
+      background: var(--color-surface)
+
+  &__riga-foto
+    width: 4em
+    height: 4em
+    border-radius: .4em
+    overflow: hidden
+
+  &__riga-txt
+    display: flex
+    flex-direction: column
+    gap: .1em
+
+    b
+      font-family: 'Poppins', sans-serif
+      color: $primary
+
+    small
+      font-size: .7em
+      color: $text-inactive
+
+  &__riga-az
+    grid-column: 1 / -1
+    display: flex
+    align-items: center
+    justify-content: space-between
+
+    .snw-stepper
+      font-size: 1em
+
+    > button
+      width: 2.4em
+      height: 2.4em
+      border: 1px solid $border
+      border-radius: .5em
+      background: var(--color-surface)
+      color: var(--color-error-dark)
+      font-size: 1em
+
+  &__somma
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    padding: .4em 0
+    border-top: 2px solid $primary
+    font-family: 'Poppins', sans-serif
+
+    b
+      font-size: 1.8em
+      color: $primary
+
+  &__pagamenti
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: .8em
+
+    button
+      display: flex
+      flex-direction: column
+      align-items: flex-start
+      gap: .3em
+      padding: 1em
+      border: 2px solid $border
+      border-radius: .7em
+      background: var(--color-surface)
+      text-align: left
+
+      &:active
+        border-color: $primary
+
+    i
+      font-size: 2.4em
+      color: $primary
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.05em
+      color: $primary
+
+    span
+      font-size: .75em
+      line-height: 1.4
+      color: $text-inactive
+
+  &__qr
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: .8em
+    padding: 1.2em
+    border-radius: .7em
+    background: var(--color-surface)
+    text-align: center
+
+    img
+      width: 11em
+      height: 11em
+
+    > i
+      font-size: 8em
+      color: $primary
+
+    span
+      font-size: .85em
+      line-height: 1.45
+      color: $text-inactive
+
+      b
+        display: block
+        font-family: 'Poppins', sans-serif
+        font-size: 1.2em
+        color: $primary
+
+    .snw-tot__btn
+      width: 100%
+
+  &__camera
+    display: flex
+    flex-direction: column
+    gap: .8em
+
+    label
+      display: flex
+      flex-direction: column
+      gap: .3em
+      font-family: 'Poppins', sans-serif
+      font-size: .8em
+      font-weight: 600
+      color: $primary
+
+    input
+      height: 2.4em
+      padding: 0 .6em
+      border: 2px solid $border
+      border-radius: .4em
+      background: var(--color-surface)
+      font-size: 1.4em
+      color: $text-active
+
+      &:focus
+        border-color: $primary
+        outline: none
+
+    .snw-tot__btn
+      width: 100%
+
+  &__vuoto
+    align-items: center
+    justify-content: center
+    min-height: 70%
+    text-align: center
+
+    > i
+      font-size: 6em
+      color: $accent
+
+    > b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.6em
+      color: $primary
+
+    > span
+      max-width: 22em
+      color: $text-inactive
+
+  // ── Inattività ─────────────────────────────────────────────────────
+  &__ancora
+    position: absolute
+    inset: 0
+    z-index: 20
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 2em
+    background: color-mix(in srgb, var(--snw-ink) 70%, transparent)
+
+    > div
+      display: flex
+      flex-direction: column
+      align-items: center
+      gap: .7em
+      padding: 1.6em
+      border-radius: .8em
+      background: var(--color-surface)
+      text-align: center
+
+    i
+      font-size: 3em
+      color: $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.5em
+      color: $primary
+
+    span
+      color: $text-inactive
+
+@keyframes snw-tot-zoom
+  from
+    transform: scale(1.12)
+  to
+    transform: scale(1)
+
+@keyframes snw-tot-respira
+  50%
+    transform: scale(1.03)
+    box-shadow: 0 0 0 .5em color-mix(in srgb, var(--color-accent) 25%, transparent)
+
+@media (max-width: 900px)
+  .snw-tot__demo
+    display: none
+
+  .snw-tot__cornice
+    width: min(calc((100vh - 60px) * 9 / 16 + 28px), calc(100vw - 40px))
+
+@media (prefers-reduced-motion: reduce)
+  .snw-tot__att-foto--on img,
+  .snw-tot__att-tocca
+    animation: none

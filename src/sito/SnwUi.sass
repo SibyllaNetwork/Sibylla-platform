@@ -1,0 +1,141 @@
+@use '../styles/tokens' as *
+
+// ─── Sito Sibylla Network — componenti condivisi (web + totem) ─────────────
+// Palette: blu Platform (primary) + oro Sibylla (accent). Le misure sono in em
+// così il Totem, che lavora a corpo grande, le scala da sé.
+
+.snw-logo
+  display: inline-flex
+  align-items: center
+  gap: .55em
+  color: $primary
+  white-space: nowrap
+
+  // Emblema «chiave» Sibylla tinto con l'accento della versione (maschera)
+  &__key
+    display: inline-block
+    width: 5.5em
+    height: 2.1em
+    background: $accent
+    -webkit-mask: url('../admin/SibyllaAdminPanel/tabs/BannerTab/sibylla-key.svg') left center / contain no-repeat
+    mask: url('../admin/SibyllaAdminPanel/tabs/BannerTab/sibylla-key.svg') left center / contain no-repeat
+
+  &__word
+    font-family: 'Poppins', sans-serif
+    font-size: 1.25em
+    font-weight: 300
+    letter-spacing: -.01em
+
+    b
+      font-weight: 700
+
+  &--chiaro
+    color: $white
+
+    .snw-logo__key
+      background: $white
+
+.snw-foto
+  display: block
+  width: 100%
+  height: 100%
+  object-fit: cover
+
+.snw-voto
+  display: inline-flex
+  align-items: center
+  gap: .3em
+  font-size: .85em
+  color: $text-inactive
+  white-space: nowrap
+
+  i
+    color: $accent
+
+  b
+    color: $text-active
+    font-weight: 700
+
+.snw-prezzo
+  display: inline-flex
+  align-items: baseline
+  flex-wrap: wrap
+  gap: .3em
+  white-space: nowrap
+
+  &__da,
+  &__unita
+    font-size: .8em
+    color: $text-inactive
+
+  &__pieno
+    font-size: .85em
+    color: $text-inactive
+
+  &__val
+    font-family: 'Poppins', sans-serif
+    font-size: 1.2em
+    font-weight: 700
+    color: $primary
+
+    &--offerta
+      color: var(--color-error-dark)
+
+  &--grande &__val
+    font-size: 1.8em
+
+.snw-etichetta
+  display: inline-flex
+  align-items: center
+  gap: .4em
+  padding: .3em .6em
+  border-radius: 4px
+  background: var(--color-surface)
+  font-family: 'Poppins', sans-serif
+  font-size: .75em
+  font-weight: 600
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .18)
+
+  &--std
+    color: $primary
+
+    i
+      color: $accent
+
+  &--offerta
+    color: var(--color-error-dark)
+
+.snw-stepper
+  display: inline-flex
+  align-items: center
+  border: 1px solid $border
+  border-radius: 6px
+  background: var(--color-surface)
+
+  button
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 2.2em
+    height: 2.2em
+    border: 0
+    background: transparent
+    color: $primary
+    cursor: pointer
+
+    &:disabled
+      color: $text-disabled
+      cursor: default
+
+    &:not(:disabled):hover
+      background: $primary-50
+
+  output
+    min-width: 2em
+    text-align: center
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    color: $text-active
+
+  &--grande
+    font-size: 1.4em

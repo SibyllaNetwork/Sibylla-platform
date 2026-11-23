@@ -1,0 +1,303 @@
+@use '../../styles/tokens' as *
+
+.snw-rete
+  &__hero
+    position: relative
+    display: flex
+    align-items: flex-end
+    min-height: 380px
+    padding-bottom: 40px
+    overflow: hidden
+
+  &__hero-foto
+    position: absolute
+    inset: 0
+
+  &__hero-velo
+    position: absolute
+    inset: 0
+    background: linear-gradient(180deg, color-mix(in srgb, var(--snw-ink) 20%, transparent), color-mix(in srgb, var(--snw-ink) 85%, transparent))
+
+  &__hero-in
+    position: relative
+    color: $white
+
+    h1
+      margin: 6px 0 10px
+      font-family: 'Poppins', sans-serif
+      font-size: 42px
+      color: $white
+
+    p
+      max-width: 680px
+      margin: 0
+      font-size: 16px
+      line-height: 1.6
+      color: rgba(255, 255, 255, .9)
+
+  &__indice
+    position: sticky
+    top: 72px
+    z-index: 4
+    border-bottom: 1px solid $border
+    background: var(--color-surface)
+
+    .snw__wrap
+      display: flex
+      gap: 4px
+      overflow-x: auto
+
+    button
+      padding: 14px 14px
+      border: 0
+      background: none
+      color: $text-active
+      font-family: 'Poppins', sans-serif
+      font-size: 13px
+      font-weight: 500
+      white-space: nowrap
+      cursor: pointer
+
+      &:hover
+        color: $primary
+
+  &__sez
+    margin-top: 64px
+    scroll-margin-top: 140px
+
+    h2
+      margin: 4px 0 10px
+      font-family: 'Poppins', sans-serif
+      font-size: 28px
+      color: $primary
+
+  &__lead
+    max-width: 760px
+    margin: 0 0 24px
+    font-size: 15px
+    line-height: 1.7
+    color: $text-inactive
+
+  &__valori,
+  &__obiettivi,
+  &__posizioni
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 20px
+
+    article
+      display: flex
+      flex-direction: column
+      gap: 8px
+      padding: 24px
+      border: 1px solid $border
+      border-radius: 12px
+      background: var(--color-surface)
+
+      > i
+        font-size: 32px
+        color: $accent
+
+      h3
+        margin: 0
+        font-family: 'Poppins', sans-serif
+        font-size: 18px
+        color: $primary
+
+      p
+        margin: 0
+        line-height: 1.6
+        color: $text-inactive
+
+      .sib-btn
+        align-self: flex-start
+        margin-top: auto
+
+  &__obiettivi,
+  &__posizioni
+    grid-template-columns: repeat(3, 1fr)
+
+  &__num
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 36px
+    height: 36px
+    border: 2px solid $accent
+    border-radius: 50%
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    color: $primary
+
+  // ── Partner ──────────────────────────────────────────────────────
+  &__partner
+    display: grid
+    grid-template-columns: 300px minmax(0, 1fr)
+    gap: 24px
+
+  &__tipi
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__tipo
+    display: grid
+    grid-template-columns: 44px 1fr
+    grid-template-rows: auto auto
+    column-gap: 12px
+    align-items: center
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    text-align: left
+    cursor: pointer
+
+    i
+      grid-row: span 2
+      font-size: 28px
+      color: $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      color: $primary
+
+    small
+      color: $text-inactive
+
+    &--on
+      border-color: $primary
+      box-shadow: inset 4px 0 0 $accent
+
+  &__aziende
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 12px
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: flex
+      align-items: center
+      gap: 12px
+      padding: 14px 16px
+      border: 1px solid $border
+      border-radius: 10px
+      font-family: 'Poppins', sans-serif
+      font-weight: 600
+      color: $text-active
+
+  &__iniz
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 40px
+    height: 40px
+    border-radius: 8px
+    background: $primary
+    color: $accent
+    font-size: 14px
+
+  // ── I.M.T. ───────────────────────────────────────────────────────
+  &__fasi
+    display: flex
+    gap: 4px
+    margin: 8px 0 20px
+
+  &__fase
+    padding: 8px 18px
+    border: 1px solid $border
+    border-radius: 6px
+    background: var(--color-surface)
+    font-family: 'Poppins', sans-serif
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+
+    &--on
+      border-color: $primary
+      background: $primary
+      color: $white
+
+  &__doc
+    display: flex
+    gap: 12px
+    margin-top: 20px
+
+  // ── Contatti ─────────────────────────────────────────────────────
+  &__contatti
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 40px
+    padding: 36px
+    border-radius: 12px
+    background: $primary-50
+
+  &__diretti
+    display: flex
+    flex-direction: column
+    gap: 10px
+    margin: 0
+    padding: 0
+    list-style: none
+    font-weight: 600
+    color: $primary
+
+    i
+      width: 20px
+      color: $accent
+
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+    .sib-btn
+      align-self: flex-start
+
+  &__grazie
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 8px
+    color: $primary
+
+    i
+      font-size: 48px
+      color: $accent
+
+  &__societa
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 0
+    margin: 0
+    border: 1px solid $border
+    border-radius: 12px
+    overflow: hidden
+
+    div
+      padding: 16px 20px
+      border-right: 1px solid $border
+      border-bottom: 1px solid $border
+
+    dt
+      font-size: 12px
+      color: $text-inactive
+
+    dd
+      margin: 4px 0 0
+      font-weight: 600
+      color: $text-active
+
+@media (max-width: 1000px)
+  .snw-rete__valori
+    grid-template-columns: 1fr 1fr
+
+  .snw-rete__obiettivi,
+  .snw-rete__posizioni,
+  .snw-rete__partner,
+  .snw-rete__contatti,
+  .snw-rete__societa
+    grid-template-columns: 1fr

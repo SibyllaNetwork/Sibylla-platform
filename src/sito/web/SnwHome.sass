@@ -1,0 +1,887 @@
+@use '../../styles/tokens' as *
+
+// ─── Home Sibylla Network — e-commerce d'impatto ──────────────────────────
+// Blu Platform profondo + oro Sibylla, tipografia Poppins grande e stretta,
+// foto a tutto campo, movimento discreto (zoom lento, nastro, reveal allo
+// scroll). Rispetta "riduci animazioni".
+
+
+.snw-home
+  // ── Bottoni d'impatto della home ──────────────────────────────────
+  &__btn-oro,
+  &__btn-vetro
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    height: 52px
+    padding: 0 28px
+    border-radius: 8px
+    font-family: 'Poppins', sans-serif
+    font-size: 15px
+    font-weight: 600
+    text-decoration: none
+    cursor: pointer
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease
+
+    &:hover
+      transform: translateY(-2px)
+
+  &__btn-oro
+    border: 0
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 80%, #fff), var(--color-accent))
+    color: var(--snw-ink)
+    box-shadow: 0 10px 28px color-mix(in srgb, var(--color-accent) 35%, transparent)
+
+    &:hover
+      box-shadow: 0 14px 34px color-mix(in srgb, var(--color-accent) 50%, transparent)
+
+  &__btn-vetro
+    border: 1px solid rgba(255, 255, 255, .4)
+    background: rgba(255, 255, 255, .08)
+    color: $white
+    backdrop-filter: blur(8px)
+
+    &:hover
+      background: rgba(255, 255, 255, .16)
+
+  &__link
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 0
+    border: 0
+    background: none
+    color: $primary
+    font-family: 'Poppins', sans-serif
+    font-size: 14px
+    font-weight: 600
+    cursor: pointer
+
+    i
+      transition: transform .2s ease
+
+    &:hover i
+      transform: translateX(4px)
+
+  // ── Hero ──────────────────────────────────────────────────────────
+  &__hero
+    position: relative
+    display: flex
+    flex-direction: column
+    justify-content: flex-end
+    min-height: calc(100vh - 36px)
+    margin-top: -73px
+    padding: 140px 0 110px
+    overflow: hidden
+    background: var(--snw-ink)
+
+  &__slide
+    position: absolute
+    inset: 0
+    opacity: 0
+    transition: opacity 1.4s ease
+
+    img
+      transform: scale(1.12)
+
+    &--on
+      opacity: 1
+
+      img
+        animation: snw-home-kenburns 7s ease-out both
+
+  &__hero-velo
+    position: absolute
+    inset: 0
+    background: radial-gradient(ellipse at 20% 100%, color-mix(in srgb, var(--snw-ink) 92%, transparent) 0%, color-mix(in srgb, var(--snw-ink) 55%, transparent) 45%, color-mix(in srgb, var(--snw-ink) 10%, transparent) 75%), linear-gradient(180deg, color-mix(in srgb, var(--snw-ink) 55%, transparent) 0%, transparent 30%)
+
+  &__hero-in
+    position: relative
+    color: $white
+
+    h1
+      margin: 14px 0 18px
+      font-family: 'Poppins', sans-serif
+      font-size: clamp(44px, 7vw, 96px)
+      font-weight: 800
+      line-height: .98
+      letter-spacing: -.035em
+      color: $white
+
+    > p
+      max-width: 560px
+      margin: 0 0 36px
+      font-size: 18px
+      line-height: 1.6
+      color: rgba(255, 255, 255, .85)
+
+  &__occhiello
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 600
+    letter-spacing: .22em
+    text-transform: uppercase
+    color: $accent
+
+  // Parola-destinazione che cambia, in oro
+  &__rotore
+    position: relative
+    display: inline-grid
+    margin-left: .25em
+    vertical-align: bottom
+
+  &__parola
+    grid-area: 1 / 1
+    background: linear-gradient(100deg, color-mix(in srgb, var(--color-accent) 55%, #fff), var(--color-accent) 55%, color-mix(in srgb, var(--color-accent) 75%, #000))
+    -webkit-background-clip: text
+    background-clip: text
+    color: transparent
+    opacity: 0
+    transform: translateY(.35em)
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .8, .2, 1)
+
+    &--on
+      opacity: 1
+      transform: none
+
+  // Ricerca in vetro smerigliato
+  &__cerca
+    max-width: 1080px
+    border: 1px solid rgba(255, 255, 255, .25)
+    border-radius: 16px
+    background: rgba(255, 255, 255, .14)
+    backdrop-filter: blur(18px) saturate(140%)
+    box-shadow: 0 30px 70px rgba(0, 0, 0, .35)
+    overflow: hidden
+
+    label
+      color: $white !important
+
+  &__cerca-tab
+    display: flex
+    border-bottom: 1px solid rgba(255, 255, 255, .2)
+
+  &__tab
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 14px 22px
+    border: 0
+    border-bottom: 3px solid transparent
+    background: none
+    color: rgba(255, 255, 255, .75)
+    font-family: 'Poppins', sans-serif
+    font-size: 14px
+    font-weight: 500
+    cursor: pointer
+
+    &--on
+      border-bottom-color: $accent
+      color: $white
+      font-weight: 700
+
+  &__cerca-campi
+    display: grid
+    grid-template-columns: 1fr 1.4fr .8fr auto
+    align-items: end
+    gap: 14px
+    padding: 18px 20px 20px
+
+  &__cerca-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 10px
+    height: 34px
+    padding: 0 30px
+    border: 0
+    border-radius: 6px
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 80%, #fff), var(--color-accent))
+    color: var(--snw-ink)
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    cursor: pointer
+
+  // Indicatori con barra di avanzamento
+  &__dots
+    position: absolute
+    right: max(24px, calc((100% - 1240px) / 2 + 24px))
+    bottom: 36px
+    display: flex
+    gap: 18px
+
+  &__dot
+    display: flex
+    flex-direction: column
+    gap: 8px
+    width: 110px
+    padding: 0
+    border: 0
+    background: none
+    color: rgba(255, 255, 255, .6)
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    text-align: left
+    cursor: pointer
+
+    &--on
+      color: $white
+
+  &__dot-bar
+    display: block
+    height: 3px
+    background: rgba(255, 255, 255, .3)
+
+    span
+      display: block
+      width: 0
+      height: 100%
+      background: $accent
+
+  &__dot--on &__dot-bar span
+    animation: snw-home-avanza 6s linear both
+
+  // ── Nastro scorrevole ─────────────────────────────────────────────
+  &__nastro
+    overflow: hidden
+    background: $accent
+    color: var(--snw-ink)
+
+  &__nastro-in
+    display: flex
+    width: max-content
+    animation: snw-home-nastro 38s linear infinite
+
+    span
+      display: inline-flex
+      align-items: center
+      gap: 28px
+      padding: 16px 0 16px 28px
+      font-family: 'Poppins', sans-serif
+      font-size: 15px
+      font-weight: 700
+      letter-spacing: .04em
+      text-transform: uppercase
+      white-space: nowrap
+
+  // ── Sezioni ───────────────────────────────────────────────────────
+  &__sez
+    margin-top: 96px
+
+  &__sez-head
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 16px
+    margin-bottom: 28px
+
+    h2
+      margin: 6px 0 0
+      font-family: 'Poppins', sans-serif
+      font-size: clamp(30px, 3.6vw, 48px)
+      font-weight: 800
+      line-height: 1.05
+      letter-spacing: -.03em
+      color: $primary
+
+  &__kicker
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: .2em
+    text-transform: uppercase
+    color: $accent
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 22px
+
+  // ── Categorie a tutta foto ────────────────────────────────────────
+  &__cat
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 18px
+
+  &__cat-voce
+    position: relative
+    height: 440px
+    padding: 0
+    border: 0
+    border-radius: 16px
+    overflow: hidden
+    text-align: left
+    cursor: pointer
+
+    img
+      transition: transform .8s cubic-bezier(.2, .8, .2, 1)
+
+    &:hover
+      img
+        transform: scale(1.08)
+
+      .snw-home__cat-anello
+        background: $accent
+        color: var(--snw-ink)
+
+      .snw-home__cat-n
+        gap: 12px
+
+    &--1,
+    &--3
+      margin-top: 40px
+
+  &__cat-velo
+    position: absolute
+    inset: 0
+    background: linear-gradient(180deg, transparent 30%, color-mix(in srgb, var(--snw-ink) 92%, transparent) 100%)
+
+  &__cat-txt
+    position: absolute
+    left: 0
+    right: 0
+    bottom: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 24px
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 28px
+      font-weight: 800
+      letter-spacing: -.02em
+      color: $white
+
+    small
+      font-size: 14px
+      color: rgba(255, 255, 255, .8)
+
+  &__cat-anello
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 56px
+    height: 56px
+    margin-bottom: 8px
+    border: 2px solid $accent
+    border-radius: 50%
+    color: $white
+    font-size: 24px
+    transition: background .3s ease, color .3s ease
+
+  &__cat-n
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-top: 10px
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    color: $accent
+    transition: gap .3s ease
+
+  // ── Carosello ─────────────────────────────────────────────────────
+  &__frecce
+    display: flex
+    gap: 10px
+
+    button
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      width: 48px
+      height: 48px
+      border: 1px solid $border
+      border-radius: 50%
+      background: var(--color-surface)
+      color: $primary
+      font-size: 16px
+      cursor: pointer
+      transition: background .2s ease, color .2s ease
+
+      &:hover
+        border-color: $primary
+        background: $primary
+        color: $white
+
+  &__carosello
+    display: grid
+    grid-auto-flow: column
+    grid-auto-columns: calc((100% - 66px) / 3.4)
+    gap: 22px
+    overflow-x: auto
+    scroll-snap-type: x mandatory
+    scrollbar-width: none
+    padding-bottom: 8px
+
+    &::-webkit-scrollbar
+      display: none
+
+  &__car-item
+    scroll-snap-align: start
+    display: flex
+
+    > *
+      flex: 1
+
+  // ── Offerta lampo ─────────────────────────────────────────────────
+  &__lampo
+    display: grid
+    grid-template-columns: 1.1fr 1fr
+    border-radius: 20px
+    background: var(--snw-ink)
+    overflow: hidden
+
+  &__lampo-foto
+    min-height: 480px
+
+    img
+      animation: snw-home-kenburns 14s ease-out infinite alternate
+
+  &__lampo-txt
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 14px
+    padding: 48px
+    color: $white
+
+    h2
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 40px
+      font-weight: 800
+      letter-spacing: -.03em
+      color: $white
+
+    > p
+      margin: 0
+      line-height: 1.6
+      color: rgba(255, 255, 255, .75)
+
+  &__lampo-tag
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    letter-spacing: .12em
+    text-transform: uppercase
+    color: #ffb4ba
+
+    i
+      animation: snw-home-pulsa 1.2s ease-in-out infinite
+
+  &__conto
+    display: flex
+    gap: 10px
+
+    span
+      display: flex
+      flex-direction: column
+      align-items: center
+      min-width: 76px
+      padding: 10px 0
+      border: 1px solid rgba(255, 255, 255, .18)
+      border-radius: 10px
+      background: rgba(255, 255, 255, .06)
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 32px
+      font-weight: 800
+      font-variant-numeric: tabular-nums
+      color: $white
+
+    small
+      font-size: 11px
+      letter-spacing: .1em
+      text-transform: uppercase
+      color: rgba(255, 255, 255, .6)
+
+  &__lampo-prezzo
+    display: flex
+    align-items: baseline
+    gap: 12px
+
+    s
+      color: rgba(255, 255, 255, .5)
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 44px
+      font-weight: 800
+      color: $accent
+
+    span
+      color: rgba(255, 255, 255, .7)
+
+  &__lampo-cta
+    display: flex
+    gap: 12px
+    flex-wrap: wrap
+    margin-top: 6px
+
+  // ── Destinazioni a mosaico ────────────────────────────────────────
+  &__dest
+    display: grid
+    grid-template-columns: 1.3fr 1fr 1fr
+    grid-template-rows: 260px 260px
+    gap: 18px
+
+  &__dest-voce
+    position: relative
+    padding: 0
+    border: 0
+    border-radius: 16px
+    overflow: hidden
+    cursor: pointer
+
+    &:first-child
+      grid-row: span 2
+
+    img
+      transition: transform .8s cubic-bezier(.2, .8, .2, 1)
+
+    &:hover img
+      transform: scale(1.08)
+
+    &:hover .snw-home__dest-txt > span
+      opacity: 1
+      transform: none
+
+  &__dest-txt
+    position: absolute
+    inset: auto 0 0 0
+    display: flex
+    flex-direction: column
+    gap: 2px
+    padding: 60px 22px 20px
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--snw-ink) 90%, transparent))
+    text-align: left
+
+    small
+      font-size: 12px
+      font-weight: 700
+      letter-spacing: .16em
+      text-transform: uppercase
+      color: $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 30px
+      font-weight: 800
+      letter-spacing: -.02em
+      color: $white
+
+    > span
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      font-size: 13px
+      font-weight: 600
+      color: $white
+      opacity: 0
+      transform: translateY(8px)
+      transition: opacity .3s ease, transform .3s ease
+
+  // ── Numeri ────────────────────────────────────────────────────────
+  &__numeri
+    margin-top: 96px
+    padding: 56px 0
+    background: var(--snw-ink)
+
+  &__numeri-in
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 24px
+
+  &__num
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding-left: 20px
+    border-left: 2px solid $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 48px
+      font-weight: 800
+      letter-spacing: -.03em
+      font-variant-numeric: tabular-nums
+      color: $white
+
+    span
+      font-size: 14px
+      color: rgba(255, 255, 255, .7)
+
+  // ── Made in Italy ─────────────────────────────────────────────────
+  &__made
+    display: grid
+    grid-template-columns: 1fr 1.6fr
+    gap: 40px
+    align-items: center
+
+  &__made-txt
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 14px
+
+    h2
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 44px
+      font-weight: 800
+      line-height: 1.05
+      letter-spacing: -.03em
+      color: $primary
+
+    p
+      margin: 0 0 8px
+      font-size: 16px
+      line-height: 1.6
+      color: $text-inactive
+
+  &__made-griglia
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 18px
+
+  &__prod
+    position: relative
+    border-radius: 16px
+    overflow: hidden
+    background: $primary-50
+
+    &:hover img
+      transform: scale(1.06)
+
+  &__prod-foto
+    display: block
+    width: 100%
+    height: 200px
+    padding: 0
+    border: 0
+    cursor: pointer
+
+    img
+      transition: transform .6s ease
+
+  &__prod-txt
+    display: flex
+    justify-content: space-between
+    gap: 10px
+    padding: 14px 64px 14px 16px
+
+    b
+      font-family: 'Poppins', sans-serif
+      color: $primary
+
+    span
+      font-family: 'Poppins', sans-serif
+      font-weight: 700
+      color: $text-active
+
+  &__prod-add
+    position: absolute
+    right: 12px
+    bottom: 10px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 40px
+    height: 40px
+    border: 0
+    border-radius: 50%
+    background: $primary
+    color: $white
+    cursor: pointer
+    transition: transform .2s ease, background .2s ease
+
+    &:hover
+      transform: rotate(90deg)
+      background: $accent
+
+  // ── Human touch ───────────────────────────────────────────────────
+  &__human
+    display: grid
+    grid-template-columns: 1fr 1fr
+    border-radius: 20px
+    background: var(--snw-ink)
+    overflow: hidden
+
+  &__human-foto
+    min-height: 420px
+
+  &__human-txt
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 14px
+    padding: 48px
+
+    h2
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 40px
+      font-weight: 800
+      line-height: 1.05
+      letter-spacing: -.03em
+      color: $white
+
+    p
+      margin: 0
+      line-height: 1.6
+      color: rgba(255, 255, 255, .75)
+
+  // ── Ipernetwork ───────────────────────────────────────────────────
+  &__rete
+    margin-top: 96px
+    padding: 80px 0
+    background: $primary-50
+
+  &__rete-grid
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 22px
+
+  &__rete-card
+    position: relative
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 32px
+    border: 1px solid $border
+    border-radius: 16px
+    background: var(--color-surface)
+    color: inherit
+    text-decoration: none
+    overflow: hidden
+    transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease
+
+    &::before
+      content: ''
+      position: absolute
+      inset: 0 0 auto 0
+      height: 4px
+      background: linear-gradient(90deg, $primary, $accent)
+      transform: scaleX(0)
+      transform-origin: left
+      transition: transform .4s ease
+
+    &:hover
+      transform: translateY(-6px)
+      border-color: transparent
+      box-shadow: 0 24px 50px color-mix(in srgb, var(--snw-ink) 16%, transparent)
+
+      &::before
+        transform: none
+
+    > i
+      font-size: 40px
+      color: $accent
+
+    h3
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 26px
+      font-weight: 800
+      color: $primary
+
+    p
+      margin: 0
+      line-height: 1.6
+      color: $text-inactive
+
+  &__rete-prod
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: .14em
+    text-transform: uppercase
+    color: $accent
+
+  &__rete-cta
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    margin-top: auto
+    padding-top: 10px
+    font-family: 'Poppins', sans-serif
+    font-weight: 600
+    color: $primary
+
+@keyframes snw-home-kenburns
+  from
+    transform: scale(1.14)
+  to
+    transform: scale(1)
+
+@keyframes snw-home-avanza
+  to
+    width: 100%
+
+@keyframes snw-home-nastro
+  to
+    transform: translateX(-50%)
+
+@keyframes snw-home-pulsa
+  50%
+    opacity: .3
+
+@media (max-width: 1100px)
+  .snw-home__griglia
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+  .snw-home__cerca-campi
+    grid-template-columns: 1fr 1fr
+
+  .snw-home__cat
+    grid-template-columns: 1fr 1fr
+
+  .snw-home__cat-voce--1,
+  .snw-home__cat-voce--3
+    margin-top: 0
+
+  .snw-home__carosello
+    grid-auto-columns: calc((100% - 22px) / 2.2)
+
+  .snw-home__made
+    grid-template-columns: 1fr
+
+@media (max-width: 760px)
+  .snw-home__dots
+    display: none
+
+  .snw-home__cerca-campi,
+  .snw-home__lampo,
+  .snw-home__human,
+  .snw-home__rete-grid,
+  .snw-home__made-griglia
+    grid-template-columns: 1fr
+
+  .snw-home__numeri-in
+    grid-template-columns: 1fr 1fr
+
+  .snw-home__dest
+    grid-template-columns: 1fr 1fr
+    grid-template-rows: repeat(3, 200px)
+
+  .snw-home__carosello
+    grid-auto-columns: 85%
+
+  .snw-home__cerca-tab
+    overflow-x: auto
+
+@media (prefers-reduced-motion: reduce)
+  .snw-home__slide--on img,
+  .snw-home__lampo-foto img,
+  .snw-home__nastro-in,
+  .snw-home__dot--on .snw-home__dot-bar span
+    animation: none

@@ -11,6 +11,7 @@ import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
 import { useChatStore } from '../store/useChatStore'
 import { useCartStore } from '../store/useCartStore'
 import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli, paginePerStruttura } from '../store/useAccessStore'
+import { useSitoStore } from '../sito/useSitoStore'
 import { useModuliStore } from '../store/useModuliStore'
 import { useOrgStore } from '../store/useOrgStore'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
@@ -477,10 +478,12 @@ export default function Topbar({
         </button>
       </Tooltip>
 
-      {/* ── Disconnetti (scarica il profilo → menu completo) ── */}
-      <button className="topbar__icon-btn" title="Disconnetti profilo" onClick={() => useAccessStore.getState().logout()}>
-        <Ico n="power" s={18} c={C.muted} />
-      </button>
+      {/* ── Disconnetti: scarica il profilo e apre il sito pubblico Sibylla Network ── */}
+      <Tooltip text="Disconnetti profilo">
+        <button className="topbar__icon-btn" aria-label="Disconnetti profilo" onClick={() => { useAccessStore.getState().logout(); useSitoStore.getState().apri() }}>
+          <Ico n="power" s={18} c={C.muted} />
+        </button>
+      </Tooltip>
 
     </div>
   )
