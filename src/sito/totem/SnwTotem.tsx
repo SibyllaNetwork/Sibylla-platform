@@ -4,7 +4,7 @@ import TouchKeyboard from '../../core/components/TouchKeyboard/TouchKeyboard'
 import FlagCircle from '../../core/components/FlagCircle'
 import { useConfirmStore } from '../../store/useConfirmStore'
 import { CATEGORIE, Categoria, FOTO, OFFERTE, STRUTTURA_OSPITE, eur, oggiIso, rigaDa, trova } from '../sitoData'
-import { useSitoStore } from '../useSitoStore'
+import { VersioneHome, useSitoStore } from '../useSitoStore'
 import { SnwFoto, SnwLogo, SnwStepper, SnwVoto } from '../SnwUi'
 import './SnwTotem.sass'
 
@@ -17,6 +17,9 @@ import './SnwTotem.sass'
  * ancora qualcuno e poi si azzera (carrello svuotato: privacy del cliente).
  * Le misure sono in em sul font del riquadro (2,5cqw): su un totem
  * 1080×1920 il corpo base vale 27px, in anteprima scala con la finestra.
+ * Tre formati come il sito: A Impatto (scuro, foto a tutto campo, carosello),
+ * B Editoriale (da rivista: filetti, corsivi, elenchi numerati), C Mosaico
+ * (riquadri colorati e angoli ampi). Il formato si sceglie dal pannello demo.
  */
 type Vista =
   | { n: 'home' }
@@ -31,6 +34,12 @@ const CONFERMA_S = 15
 const LINGUE = ['it', 'gb', 'de', 'fr', 'es']
 const SLIDE = [FOTO.colosseo, FOTO.trevi, FOTO.vernazza, FOTO.rialto]
 
+const FORMATI: { id: VersioneHome; lettera: string; nome: string }[] = [
+  { id: 'impatto', lettera: 'A', nome: 'Impatto' },
+  { id: 'editoriale', lettera: 'B', nome: 'Editoriale' },
+  { id: 'bento', lettera: 'C', nome: 'Mosaico' },
+]
+
 const giorno = (piu: number) => {
   const d = new Date(); d.setDate(d.getDate() + piu)
   return { iso: oggiIso(piu), nome: piu === 0 ? 'Oggi' : piu === 1 ? 'Domani' : d.toLocaleDateString('it-IT', { weekday: 'short' }), num: d.getDate() }
@@ -42,6 +51,7 @@ export default function SnwTotem() {
   const setModo = useSitoStore(s => s.setModo)
   const chiudi = useSitoStore(s => s.chiudi)
   const versione = useSitoStore(s => s.versione)
+  const setVersione = useSitoStore(s => s.setVersione)
   const [attesa, setAttesa] = useState(true)
   const [lingua, setLingua] = useState('it')
   const [storia, setStoria] = useState<Vista[]>([{ n: 'home' }])
@@ -80,6 +90,16 @@ export default function SnwTotem() {
       <aside className="snw-tot__demo" aria-label="Anteprima totem">
         <span className="snw-tot__demo-tit"><i className="fa-solid fa-tablet-screen" aria-hidden="true" /> Anteprima totem</span>
         <small>Schermo verticale 1080×1920, touch. Dopo {INATTIVO_S} s senza tocchi si azzera.</small>
+        <span className="snw-tot__demo-lbl">Formato</span>
+        <div className="snw-tot__formati" role="group" aria-label="Formato del totem">
+          {FORMATI.map(f => (
+            <button key={f.id} type="button" aria-pressed={versione === f.id}
+              className={versione === f.id ? 'snw-tot__formato snw-tot__formato--on' : 'snw-tot__formato'}
+              onClick={() => { setVersione(f.id); useSitoStore.getState().setModo('totem') }}>
+              <b>{f.lettera}</b>{f.nome}
+            </button>
+          ))}
+        </div>
         <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModo('web')}><i className="fa-solid fa-display" aria-hidden="true" /> Vai al sito web</button>
         <button type="button" className="sib-btn sib-btn--ghost" onClick={azzera}><i className="fa-solid fa-rotate-left" aria-hidden="true" /> Azzera il totem</button>
         <button type="button" className="sib-btn sib-btn--ghost" onClick={chiudi}><i className="fa-solid fa-right-to-bracket" aria-hidden="true" /> Torna in Platform</button>
@@ -114,7 +134,7 @@ export default function SnwTotem() {
           ) : (
             <>
               <header className="snw-tot__head">
-                <button type="button" className="snw-tot__brand" onClick={home} aria-label="Home"><SnwLogo /></button>
+                <button type="button" className="snw-tot__brand" onClick={home} aria-label="Home"><SnwLogo chiaro={versione === 'impatto'} /></button>
                 <span className="snw-tot__ospite">
                   <b>{STRUTTURA_OSPITE.nome}</b>
                   <span>{ora.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} · {ora.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
@@ -123,8 +143,8 @@ export default function SnwTotem() {
               </header>
 
               <div className="snw-tot__scroll" ref={scroll}>
-                {vista.n === 'home' && <Home vai={vai} />}
-                {vista.n === 'cat' && <Elenco cat={vista.cat} vai={vai} />}
+                {vista.n === 'home' && <Home vai={vai} versione={versione} />}
+                {vista.n === 'cat' && <Elenco cat={vista.cat} vai={vai} versione={versione} />}
                 {vista.n === 'struttura' && <Struttura />}
                 {vista.n === 'scheda' && <Scheda key={vista.id} id={vista.id} onAggiunto={() => vai({ n: 'carrello' })} />}
                 {vista.n === 'carrello' && <Carrello vai={vai} />}
@@ -161,48 +181,112 @@ export default function SnwTotem() {
   )
 }
 
-// ── Home del totem ───────────────────────────────────────────────────────
-function Home({ vai }: { vai: (v: Vista) => void }) {
+// ── Home del totem (una per formato) ─────────────────────────────────
+type PropsPag = { vai: (v: Vista) => void; versione: VersioneHome }
+
+function Anelli({ vai }: { vai: (v: Vista) => void }) {
+  return (
+    <div className="snw-tot__anelli">
+      {CATEGORIE.map(c => (
+        <button key={c.id} type="button" onClick={() => vai({ n: 'cat', cat: c.id })}>
+          <span className="snw-tot__anello"><i className={`fa-thin ${c.icona}`} aria-hidden="true" /></span>{c.nome}
+        </button>
+      ))}
+      <button type="button" onClick={() => vai({ n: 'struttura' })}>
+        <span className="snw-tot__anello snw-tot__anello--hotel"><i className="fa-thin fa-hotel" aria-hidden="true" /></span>Struttura
+      </button>
+    </div>
+  )
+}
+
+function Porta() {
+  return (
+    <section className="snw-tot__porta">
+      <i className="fa-light fa-mobile-screen-button" aria-hidden="true" />
+      <span><b>Continua dal tuo telefono</b>Al pagamento puoi inquadrare un QR code e chiudere l'acquisto sul tuo smartphone.</span>
+    </section>
+  )
+}
+
+function Home({ vai, versione }: PropsPag) {
   const top = OFFERTE.filter(o => o.cat === 'esperienze').slice(0, 4)
+
+  if (versione === 'editoriale') {
+    const oggi = new Date()
+    return (
+      <div className="snw-tot__pag">
+        <header className="snw-tot__ed-testa">
+          <small>{oggi.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })} · La guida di {STRUTTURA_OSPITE.nome}</small>
+          <h1>Cosa facciamo <em>oggi</em>?</h1>
+          <p>Le proposte scelte dal concierge per chi soggiorna qui: si prenotano in un minuto.</p>
+        </header>
+        <Anelli vai={vai} />
+        <div className="snw-tot__ed-copertina">
+          <SnwFoto id={FOTO.colosseoArchi} w={1200} h={700} alt="" />
+          <span><small>In copertina</small><b>Roma è a <em>due passi</em></b></span>
+        </div>
+        <h2 className="snw-tot__tit">Le esperienze più scelte</h2>
+        <ol className="snw-tot__lista">
+          {top.map((o, i) => <RigaTotem key={o.id} id={o.id} n={i + 1} vai={vai} />)}
+        </ol>
+        <Porta />
+      </div>
+    )
+  }
+
+  if (versione === 'bento') {
+    return (
+      <div className="snw-tot__pag">
+        <div className="snw-tot__mosaico">
+          <section className="snw-tot__benv snw-tot__mos-hero">
+            <SnwFoto id={FOTO.colosseoArchi} w={1200} h={600} alt="" />
+            <span><small>Cosa facciamo oggi?</small><b>Roma è a due passi</b></span>
+          </section>
+          {CATEGORIE.map((c, i) => (
+            <button key={c.id} type="button" className={`snw-tot__tile snw-tot__tile--${i + 1}`} onClick={() => vai({ n: 'cat', cat: c.id })}>
+              <i className={`fa-thin ${c.icona}`} aria-hidden="true" />
+              <b>{c.nome}</b>
+              <small>{OFFERTE.filter(o => o.cat === c.id).length} proposte</small>
+            </button>
+          ))}
+          <button type="button" className="snw-tot__tile snw-tot__tile--hotel" onClick={() => vai({ n: 'struttura' })}>
+            <SnwFoto id={STRUTTURA_OSPITE.foto[0]} w={900} h={400} alt="" />
+            <span><i className="fa-thin fa-hotel" aria-hidden="true" /><b>{STRUTTURA_OSPITE.nome}</b><small>Servizi dell'hotel e reception</small></span>
+          </button>
+        </div>
+        <h2 className="snw-tot__tit">Le esperienze più scelte</h2>
+        <div className="snw-tot__griglia">
+          {top.map(o => <CardTotem key={o.id} id={o.id} vai={vai} />)}
+        </div>
+        <Porta />
+      </div>
+    )
+  }
+
   return (
     <div className="snw-tot__pag">
-      <section className="snw-tot__benv">
-        <SnwFoto id={FOTO.colosseoArchi} w={1200} h={600} alt="" />
+      <section className="snw-tot__benv snw-tot__benv--hero">
+        <SnwFoto id={FOTO.colosseoArchi} w={1200} h={900} alt="" />
         <span>
           <small>Cosa facciamo oggi?</small>
           <b>Roma è a due passi</b>
         </span>
       </section>
-
-      <div className="snw-tot__anelli">
-        {CATEGORIE.map(c => (
-          <button key={c.id} type="button" onClick={() => vai({ n: 'cat', cat: c.id })}>
-            <span className="snw-tot__anello"><i className={`fa-thin ${c.icona}`} aria-hidden="true" /></span>{c.nome}
-          </button>
-        ))}
-        <button type="button" onClick={() => vai({ n: 'struttura' })}>
-          <span className="snw-tot__anello snw-tot__anello--hotel"><i className="fa-thin fa-hotel" aria-hidden="true" /></span>Struttura
-        </button>
-      </div>
-
+      <Anelli vai={vai} />
       <h2 className="snw-tot__tit">Le esperienze più scelte</h2>
-      <div className="snw-tot__griglia">
-        {top.map(o => <CardTotem key={o.id} id={o.id} vai={vai} />)}
+      <div className="snw-tot__carosello">
+        {top.map(o => <CardTotem key={o.id} id={o.id} vai={vai} foto />)}
       </div>
-
-      <section className="snw-tot__porta">
-        <i className="fa-light fa-mobile-screen-button" aria-hidden="true" />
-        <span><b>Continua dal tuo telefono</b>Al pagamento puoi inquadrare un QR code e chiudere l'acquisto sul tuo smartphone.</span>
-      </section>
+      <Porta />
     </div>
   )
 }
 
-function CardTotem({ id, vai }: { id: string; vai: (v: Vista) => void }) {
+function CardTotem({ id, vai, foto }: { id: string; vai: (v: Vista) => void; foto?: boolean }) {
   const o = trova(id)!
   return (
-    <button type="button" className="snw-tot__card" onClick={() => vai({ n: 'scheda', id })}>
-      <span className="snw-tot__card-foto"><SnwFoto id={o.foto[0]} w={700} h={500} alt="" /></span>
+    <button type="button" className={foto ? 'snw-tot__card snw-tot__card--foto' : 'snw-tot__card'} onClick={() => vai({ n: 'scheda', id })}>
+      <span className="snw-tot__card-foto"><SnwFoto id={o.foto[0]} w={700} h={foto ? 900 : 500} alt="" /></span>
       <span className="snw-tot__card-txt">
         <small>{o.citta}</small>
         <b>{o.titolo}</b>
@@ -216,17 +300,41 @@ function CardTotem({ id, vai }: { id: string; vai: (v: Vista) => void }) {
   )
 }
 
-function Elenco({ cat, vai }: { cat: Categoria; vai: (v: Vista) => void }) {
+function RigaTotem({ id, n, vai }: { id: string; n: number; vai: (v: Vista) => void }) {
+  const o = trova(id)!
+  return (
+    <li>
+      <button type="button" className="snw-tot__riga-ed" onClick={() => vai({ n: 'scheda', id })}>
+        <span className="snw-tot__riga-num">{String(n).padStart(2, '0')}</span>
+        <span className="snw-tot__riga-corpo">
+          <small>{o.citta} · {o.formula}</small>
+          <b>{o.titolo}</b>
+          <span>{o.daPrezzo && 'da '}<b>{eur(o.prezzo)}</b> <SnwVoto o={o} compatto /></span>
+        </span>
+        <span className="snw-tot__riga-img"><SnwFoto id={o.foto[0]} w={400} h={400} alt="" /></span>
+      </button>
+    </li>
+  )
+}
+
+function Elenco({ cat, vai, versione }: { cat: Categoria } & PropsPag) {
   const info = CATEGORIE.find(c => c.id === cat)!
+  const lista = OFFERTE.filter(o => o.cat === cat)
   return (
     <div className="snw-tot__pag">
       <header className="snw-tot__pag-head">
         <span className="snw-tot__anello snw-tot__anello--piccolo"><i className={`fa-thin ${info.icona}`} aria-hidden="true" /></span>
-        <span><h1>{info.nome}</h1><small>{info.claim}</small></span>
+        <span><h1>{info.nome}</h1><small>{info.claim} · {lista.length} proposte</small></span>
       </header>
-      <div className="snw-tot__griglia">
-        {OFFERTE.filter(o => o.cat === cat).map(o => <CardTotem key={o.id} id={o.id} vai={vai} />)}
-      </div>
+      {versione === 'editoriale' ? (
+        <ol className="snw-tot__lista">
+          {lista.map((o, i) => <RigaTotem key={o.id} id={o.id} n={i + 1} vai={vai} />)}
+        </ol>
+      ) : (
+        <div className="snw-tot__griglia">
+          {lista.map(o => <CardTotem key={o.id} id={o.id} vai={vai} foto={versione === 'impatto'} />)}
+        </div>
+      )}
     </div>
   )
 }

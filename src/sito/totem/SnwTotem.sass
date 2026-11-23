@@ -34,6 +34,52 @@
     .sib-btn
       justify-content: flex-start
 
+  &__demo-lbl
+    margin-top: 6px
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__formati
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__formato
+    display: flex
+    align-items: center
+    gap: 10px
+    height: 34px
+    padding: 0 10px
+    border: 1px solid $border
+    border-radius: 6px
+    background: var(--color-surface)
+    color: $text-active
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    cursor: pointer
+
+    b
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      width: 20px
+      height: 20px
+      border-radius: 4px
+      background: $primary-50
+      color: $primary
+      font-size: 11px
+
+    &--on
+      border-color: $primary
+      color: $primary
+      font-weight: 600
+
+      b
+        background: $primary
+        color: $white
+
   &__demo-tit
     display: flex
     align-items: center
@@ -843,3 +889,602 @@
   .snw-tot__att-foto--on img,
   .snw-tot__att-tocca
     animation: none
+
+// ═══ Elementi per formato (markup dedicato) ═══════════════════════════════
+.snw-tot
+  // A · carosello di card fotografiche
+  &__benv--hero
+    height: 17em
+    margin: -1.2em -1.2em 0
+    border-radius: 0
+
+    b
+      font-size: 2.8em
+      line-height: 1
+      letter-spacing: -.03em
+
+  &__carosello
+    display: grid
+    grid-auto-flow: column
+    grid-auto-columns: 62%
+    gap: .8em
+    margin: 0 -1.2em
+    padding: 0 1.2em .2em
+    overflow-x: auto
+    scroll-snap-type: x mandatory
+    scrollbar-width: none
+
+    &::-webkit-scrollbar
+      display: none
+
+    > *
+      scroll-snap-align: start
+
+  &__card--foto
+    position: relative
+    height: 15em
+    border: 0
+
+    .snw-tot__card-foto
+      position: absolute
+      inset: 0
+      height: auto
+
+    .snw-tot__card-txt
+      position: relative
+      margin-top: auto
+      padding-top: 3em
+      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--snw-ink) 92%, transparent) 45%)
+      color: $white
+
+      small
+        color: $accent
+
+      > b,
+      .snw-tot__card-piede b
+        color: $white
+
+    .snw-tot__card-piede
+      color: color-mix(in srgb, #fff 75%, transparent)
+
+    .snw-tot__card-cta
+      background: $accent
+      color: var(--snw-ink)
+
+  // B · testata da rivista, copertina, elenco numerato
+  &__ed-testa
+    display: flex
+    flex-direction: column
+    gap: .4em
+    padding-bottom: .9em
+    border-bottom: 2px solid $primary
+
+    small
+      font-size: .75em
+      letter-spacing: .14em
+      text-transform: uppercase
+      color: $accent
+
+    h1
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 2.6em
+      font-weight: 700
+      line-height: 1.02
+      letter-spacing: -.03em
+      color: var(--snw-ink)
+
+    em
+      color: $primary
+
+    p
+      margin: 0
+      font-size: .9em
+      line-height: 1.5
+      color: $text-inactive
+
+  &__ed-copertina
+    position: relative
+    display: grid
+    grid-template-columns: 1.3fr 1fr
+    align-items: end
+    gap: .9em
+    padding: .9em 0
+    border-top: 1px solid $border
+    border-bottom: 1px solid $border
+
+    img
+      height: 10em
+
+    span
+      display: flex
+      flex-direction: column
+      gap: .3em
+
+    small
+      font-size: .7em
+      letter-spacing: .14em
+      text-transform: uppercase
+      color: $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.7em
+      font-weight: 700
+      line-height: 1.05
+      color: var(--snw-ink)
+
+    em
+      color: $primary
+
+  &__lista
+    margin: 0
+    padding: 0
+    list-style: none
+    border-top: 2px solid $primary
+
+    li
+      border-bottom: 1px solid $border
+
+  &__riga-ed
+    display: grid
+    grid-template-columns: 2.2em minmax(0, 1fr) 5em
+    align-items: center
+    gap: .8em
+    width: 100%
+    padding: .8em 0
+    border: 0
+    background: none
+    color: $text-active
+    text-align: left
+
+    &:active
+      background: $primary-50
+
+  &__riga-num
+    font-family: 'Poppins', sans-serif
+    font-size: 1.5em
+    font-style: italic
+    font-weight: 300
+    color: $accent
+
+  &__riga-corpo
+    display: flex
+    flex-direction: column
+    gap: .15em
+    min-width: 0
+
+    small
+      overflow: hidden
+      font-size: .7em
+      color: $text-inactive
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    > b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.05em
+      font-style: italic
+      line-height: 1.2
+      color: var(--snw-ink)
+
+    > span
+      display: flex
+      align-items: baseline
+      gap: .6em
+      font-size: .8em
+      color: $text-inactive
+
+      b
+        font-family: 'Poppins', sans-serif
+        font-size: 1.2em
+        color: $primary
+
+  &__riga-img
+    width: 5em
+    height: 5em
+    overflow: hidden
+
+  // C · mosaico di riquadri
+  &__mosaico
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: .6em
+
+  &__mos-hero
+    grid-column: 1 / -1
+    height: 11em
+
+  &__tile
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    justify-content: flex-end
+    gap: .15em
+    min-height: 7.5em
+    padding: .9em 1em
+    border: 0
+    border-radius: 1.2em
+    color: $white
+    text-align: left
+    overflow: hidden
+
+    &:active
+      transform: scale(.98)
+
+    > i
+      position: absolute
+      top: .35em
+      right: .4em
+      font-size: 2.8em
+      opacity: .9
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 1.3em
+      font-weight: 800
+
+    small
+      font-size: .75em
+      opacity: .85
+
+    &--1
+      background: $primary
+
+    &--2
+      background: $accent
+      color: var(--snw-ink)
+
+    &--3
+      background: var(--snw-ink)
+
+      > i
+        color: $accent
+
+    &--4
+      background: color-mix(in srgb, var(--color-primary) 18%, #fff)
+      color: var(--snw-ink)
+
+      > i
+        color: $primary
+
+    &--hotel
+      grid-column: 1 / -1
+      min-height: 8em
+      padding: 0
+
+      img
+        position: absolute
+        inset: 0
+
+      > span
+        position: relative
+        display: flex
+        flex-direction: column
+        gap: .1em
+        width: 100%
+        padding: 2.4em 1em .9em
+        background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--snw-ink) 90%, transparent))
+
+        i
+          font-size: 1.6em
+          color: $accent
+
+// ═══ Formati: ritocchi degli elementi comuni ══════════════════════════════
+// A · Impatto: cromia scura, contrasti forti
+.snw-tot.snw--impatto
+  .snw-tot__head,
+  .snw-tot__nav
+    border-color: transparent
+    background: var(--snw-ink)
+
+  .snw-tot__ospite
+    color: color-mix(in srgb, #fff 65%, transparent)
+
+    b
+      color: $white
+
+  .snw-tot__nav
+    button
+      color: color-mix(in srgb, #fff 60%, transparent)
+
+      &:active
+        background: color-mix(in srgb, #fff 8%, transparent)
+
+  .snw-tot__nav-on
+    color: $accent !important
+
+  .snw-tot__tit,
+  .snw-tot__pag-head h1
+    font-size: 1.8em
+    font-weight: 900
+    letter-spacing: -.03em
+    color: var(--snw-ink)
+
+  .snw-tot__anello
+    border: 0
+    background: var(--snw-ink)
+    color: $accent
+
+    &--hotel
+      background: $accent
+      color: var(--snw-ink)
+
+  .snw-tot__sch-foto
+    height: 17em
+
+  .snw-tot__scheda h1
+    font-size: 2.3em
+    font-weight: 900
+    letter-spacing: -.03em
+    color: var(--snw-ink)
+
+  .snw-tot__giorno--on,
+  .snw-tot__ora--on
+    border-color: var(--snw-ink)
+    background: var(--snw-ink)
+    color: $accent
+
+  .snw-tot__totale
+    border: 0
+    background: var(--snw-ink)
+
+    small
+      color: color-mix(in srgb, #fff 65%, transparent)
+
+    b
+      color: $white
+
+  .snw-tot__somma
+    padding: .7em 1em
+    border: 0
+    border-radius: .6em
+    background: var(--snw-ink)
+    color: $white
+
+    b
+      color: $accent
+
+// B · Editoriale: carta, filetti, corsivi, angoli vivi
+.snw-tot.snw--editoriale
+  .snw-tot__head
+    border-bottom: 2px solid $primary
+    background: var(--snw-sand)
+
+  .snw-tot__ospite b
+    font-style: italic
+
+  .snw-tot__nav
+    border-top: 2px solid $primary
+    background: var(--snw-sand)
+
+  .snw-tot__nav-on
+    box-shadow: inset 0 -4px 0 $accent
+
+  .snw-tot__tit,
+  .snw-tot__pag-head h1,
+  .snw-tot__scheda h1
+    font-weight: 700
+    font-style: italic
+    color: var(--snw-ink)
+
+  .snw-tot__tit
+    padding-bottom: .3em
+    border-bottom: 1px solid $border
+
+  .snw-tot__anello
+    border-width: 1px
+    border-color: var(--snw-ink)
+    background: transparent
+
+  .snw-tot__benv,
+  .snw-tot__card,
+  .snw-tot__servizi div,
+  .snw-tot__righe li,
+  .snw-tot__pagamenti button,
+  .snw-tot__qr,
+  .snw-tot__ancora > div
+    border-radius: 0
+
+  .snw-tot__card,
+  .snw-tot__servizi div,
+  .snw-tot__pagamenti button
+    border: 0
+    border-top: 2px solid $primary
+    background: transparent
+
+  .snw-tot__porta,
+  .snw-tot__reception
+    border-radius: 0
+    border-top: 2px solid $primary
+    background: transparent
+    color: $text-inactive
+
+    span b
+      font-style: italic
+      color: var(--snw-ink)
+
+  .snw-tot__righe li
+    border: 0
+    border-bottom: 1px solid $border
+    background: transparent
+
+  .snw-tot__riga-foto
+    border-radius: 0
+
+  .snw-tot__giorno,
+  .snw-tot__ora
+    border-width: 1px
+    border-radius: 0
+    background: transparent
+
+    &--on
+      border-color: var(--snw-ink)
+      background: var(--snw-ink)
+
+  .snw-tot__btn,
+  .snw-tot__card-cta,
+  .snw-tot__att-tocca
+    border-radius: 0
+
+  .snw-tot__totale
+    border-top: 2px solid $primary
+    background: var(--snw-sand)
+
+  .snw-tot__sch-foto
+    margin: 0
+    height: 13em
+
+  // Attesa: foto in alto, testo su carta
+  .snw-tot__attesa
+    background: var(--snw-sand)
+    color: var(--snw-ink)
+
+  .snw-tot__att-foto
+    inset: 0 0 46% 0
+    overflow: hidden
+
+  .snw-tot__att-velo
+    inset: 0 0 46% 0
+    background: linear-gradient(180deg, color-mix(in srgb, var(--snw-ink) 45%, transparent), transparent 30%)
+
+  .snw-tot__att-txt
+    padding-top: .8em
+    border-top: 2px solid $primary
+
+    b
+      font-weight: 700
+      font-style: italic
+      color: var(--snw-ink)
+
+    span
+      opacity: 1
+      color: $text-inactive
+
+  .snw-tot__att-tocca
+    background: var(--snw-ink)
+    color: $white
+
+// C · Mosaico: riquadri, angoli ampi, navigazione flottante
+.snw-tot.snw--bento
+  .snw-tot__head
+    margin: .6em .6em 0
+    border: 0
+    border-radius: 1.2em
+
+  .snw-tot__nav
+    margin: 0 .6em .6em
+    border: 0
+    border-radius: 1.4em
+    background: var(--snw-ink)
+    overflow: hidden
+
+    button
+      color: color-mix(in srgb, #fff 60%, transparent)
+
+  .snw-tot__nav-on
+    color: $white !important
+    box-shadow: none
+    background: $primary !important
+
+  .snw-tot__tit,
+  .snw-tot__pag-head h1
+    font-weight: 900
+    color: var(--snw-ink)
+
+  .snw-tot__benv,
+  .snw-tot__card,
+  .snw-tot__servizi div,
+  .snw-tot__righe li,
+  .snw-tot__pagamenti button,
+  .snw-tot__qr,
+  .snw-tot__porta,
+  .snw-tot__reception,
+  .snw-tot__ancora > div
+    border: 0
+    border-radius: 1.2em
+
+  .snw-tot__griglia > .snw-tot__card:nth-child(3n + 1)
+    grid-column: 1 / -1
+
+    .snw-tot__card-foto
+      height: 10em
+
+  .snw-tot__anello
+    border-radius: 1em
+
+  .snw-tot__card-cta,
+  .snw-tot__btn,
+  .snw-tot__giorno,
+  .snw-tot__ora,
+  .snw-tot__riga-foto
+    border-radius: .8em
+
+  .snw-tot__giorno,
+  .snw-tot__ora
+    border: 0
+
+  .snw-tot__sch-foto
+    margin: 0
+    border-radius: 1.4em
+
+  .snw-tot__totale
+    margin: .6em 0 0
+    border: 0
+    border-radius: 1.2em
+    background: color-mix(in srgb, var(--color-accent) 16%, #fff)
+
+  .snw-tot__somma
+    padding: .7em 1em
+    border: 0
+    border-radius: 1.2em
+    background: color-mix(in srgb, var(--color-accent) 16%, #fff)
+
+  // Attesa: mosaico di foto con riquadro di benvenuto
+  .snw-tot__attesa
+    background: var(--snw-sand)
+    color: var(--snw-ink)
+
+  .snw-tot__att-velo
+    display: none
+
+  .snw-tot__att-foto
+    opacity: 1
+    border-radius: 1.4em
+    overflow: hidden
+    transition: outline-color .6s ease
+    outline: .25em solid transparent
+    outline-offset: -.25em
+
+    &--on
+      outline-color: $accent
+
+    &:nth-of-type(1)
+      inset: .8em 50.8% 45% .8em
+
+    &:nth-of-type(2)
+      inset: .8em .8em 72% 50.8%
+
+    &:nth-of-type(3)
+      inset: 29% .8em 45% 50.8%
+
+    &:nth-of-type(4)
+      display: none
+
+  .snw-tot__att-txt
+    padding: 1.2em
+    border-radius: 1.4em
+    background: $primary
+    color: $white
+
+    small
+      color: $accent
+
+  .snw-tot__att-tocca
+    border-radius: 1em
+
+.snw-tot.snw--bento .snw-tot__att-top
+  top: 1.4em
+  left: 1.4em
+  font-size: .9em
