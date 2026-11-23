@@ -125,7 +125,7 @@ export default function MwfFlusso({ sorgenti, totale, riproduci }: { sorgenti: S
     return (
       <g className={`mwf-flx__nodo ${spento ? 'mwf-flx__spento' : ''}`}
         onMouseEnter={() => setHover(n.name)} onMouseLeave={() => setHover(null)}>
-        <rect x={p.x} y={p.y} width={p.width} height={Math.max(p.height, 2)} rx={3} fill={coloreNodo(n)}
+        <rect x={p.x} y={p.y} width={p.width} height={Math.max(p.height, 2)} fill={coloreNodo(n)}
           className={ora ? `mwf-flx__cresce ${ritardo}` : ''} />
         <g className={ora ? `mwf-flx__appare ${ritardo}` : ''}>
           <text x={x} y={cy - 3} textAnchor={sinistra ? 'end' : 'start'} className={`mwf-flx__nome mwf-flx__nome--${n.tipo}`}>{n.name}</text>
