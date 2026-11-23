@@ -20,7 +20,7 @@ import './SnwWeb.sass'
 const VERSIONI: { id: VersioneHome; lettera: string; nome: string }[] = [
   { id: 'impatto', lettera: 'A', nome: 'Impatto' },
   { id: 'editoriale', lettera: 'B', nome: 'Editoriale' },
-  { id: 'bento', lettera: 'C', nome: 'Bento' },
+  { id: 'bento', lettera: 'C', nome: 'Mosaico' },
 ]
 
 export default function SnwWeb() {

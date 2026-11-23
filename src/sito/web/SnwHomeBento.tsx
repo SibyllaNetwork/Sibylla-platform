@@ -7,7 +7,7 @@ import SnwCard from './SnwCard'
 import './SnwHomeBento.sass'
 
 /**
- * Home — versione C «Bento»: la home come una griglia di riquadri modulari
+ * Home — versione C «Mosaico» (id interno 'bento'): la home come una griglia di riquadri modulari
  * di misure diverse (hero, ricerca, offerta lampo, categorie colorate, top
  * della rete, destinazione, numeri, human touch, totem), poi una vetrina
  * filtrabile per categoria. Dinamica, molto "app".
