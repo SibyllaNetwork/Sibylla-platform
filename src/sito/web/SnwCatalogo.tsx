@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react'
 import { CheckboxField, RadioGroup, RangeField, SelectField, ToggleSwitch } from '../../core/components/form'
-import { CATEGORIE, Categoria, OFFERTE, eur } from '../sitoData'
+import { CATEGORIE, Categoria, FOTO, OFFERTE, eur } from '../sitoData'
 import { useSitoStore } from '../useSitoStore'
 import SnwCard from './SnwCard'
+import SnwTestata from './SnwTestata'
 import './SnwCatalogo.sass'
 
 /**
@@ -10,6 +11,10 @@ import './SnwCatalogo.sass'
  * valutazione, cancellazione gratuita, preferiti) e risultati ordinabili.
  */
 type Ordine = 'consigliati' | 'prezzo-su' | 'prezzo-giu' | 'voto'
+
+const FOTO_CAT: Record<Categoria | 'tutto', string> = {
+  tutto: FOTO.vernazza, soggiorni: FOTO.cameraClassica, esperienze: FOTO.trevi, prodotti: FOTO.olio, servizi: FOTO.valigia,
+}
 
 export default function SnwCatalogo({ cat, dove }: { cat?: Categoria; dove?: string }) {
   const vai = useSitoStore(s => s.vai)
@@ -39,28 +44,21 @@ export default function SnwCatalogo({ cat, dove }: { cat?: Categoria; dove?: str
   const azzera = () => { setLuoghi([]); setMaxPrezzo(tetto); setVotoMin('0'); setSoloCanc(false); setSoloPref(false) }
 
   return (
-    <div className="snw__wrap snw-cat">
-      <nav className="snw-cat__briciole" aria-label="Percorso">
-        <button type="button" onClick={() => vai({ nome: 'home' })}>Home</button>
-        <i className="fa-solid fa-chevron-right" aria-hidden="true" />
-        <span>{info?.nome ?? 'Tutte le offerte'}</span>
-      </nav>
-
-      <header className="snw-cat__head">
-        <div>
-          <h1>{info?.nome ?? 'Tutte le offerte'}</h1>
-          <p>{info?.claim ?? 'Soggiorni, esperienze, prodotti e servizi della rete Sibylla'}</p>
-        </div>
-        <div className="snw-cat__tab" role="tablist" aria-label="Categoria">
-          <button type="button" role="tab" aria-selected={!cat} className={!cat ? 'snw-cat__t snw-cat__t--on' : 'snw-cat__t'} onClick={() => vai({ nome: 'catalogo' })}>Tutto</button>
-          {CATEGORIE.map(c => (
-            <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} className={cat === c.id ? 'snw-cat__t snw-cat__t--on' : 'snw-cat__t'}
-              onClick={() => vai({ nome: 'catalogo', cat: c.id })}>
-              <i className={`fa-light ${c.icona}`} aria-hidden="true" />{c.nome}
-            </button>
-          ))}
-        </div>
-      </header>
+    <div className="snw-cat">
+      <SnwTestata kicker={dove ? `Catalogo · ${dove}` : 'Catalogo'} titolo={info ? (info.id === 'esperienze' ? 'Scegli tra le' : 'Scegli tra i') : 'Tutte le'} enfasi={info ? info.nome.toLowerCase() : 'offerte'}
+        sotto={info?.claim ?? 'Soggiorni, esperienze, prodotti e servizi della rete Sibylla'} foto={FOTO_CAT[cat ?? 'tutto']} icona={info?.icona ?? 'fa-grid-2'}
+        briciole={[{ nome: info?.nome ?? 'Tutte le offerte' }]}
+        extra={<span className="snw-cat__conta"><b>{base.length}</b> offerte in {citta.length} località</span>} />
+      <div className="snw__wrap">
+      <div className="snw-cat__tab snw-cat__tab--barra" role="tablist" aria-label="Categoria">
+        <button type="button" role="tab" aria-selected={!cat} className={!cat ? 'snw-cat__t snw-cat__t--on' : 'snw-cat__t'} onClick={() => vai({ nome: 'catalogo' })}>Tutto</button>
+        {CATEGORIE.map(c => (
+          <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} className={cat === c.id ? 'snw-cat__t snw-cat__t--on' : 'snw-cat__t'}
+            onClick={() => vai({ nome: 'catalogo', cat: c.id })}>
+            <i className={`fa-light ${c.icona}`} aria-hidden="true" />{c.nome}
+          </button>
+        ))}
+      </div>
 
       <div className="snw-cat__layout">
         <aside className="snw-cat__filtri" aria-label="Filtri">
@@ -112,6 +110,7 @@ export default function SnwCatalogo({ cat, dove }: { cat?: Categoria; dove?: str
             </div>
           )}
         </section>
+      </div>
       </div>
     </div>
   )

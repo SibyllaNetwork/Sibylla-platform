@@ -24,6 +24,7 @@ export default function SnwScheda({ id }: { id: string }) {
   const aggiungi = useSitoStore(s => s.aggiungi)
   const preferiti = useSitoStore(s => s.preferiti)
   const preferito = useSitoStore(s => s.preferito)
+  const versione = useSitoStore(s => s.versione)
   const [fotoSel, setFotoSel] = useState(0)
   const [data, setData] = useState(oggiIso(7))
   const [dataFine, setDataFine] = useState(oggiIso(9))
@@ -41,7 +42,44 @@ export default function SnwScheda({ id }: { id: string }) {
   const etichettaQta = sogg ? 'Camere' : prodotto ? 'Quantità' : o.unita === 'a persona' ? 'Partecipanti' : 'Quantità'
 
   return (
-    <div className="snw__wrap snw-sch">
+    <div className={`snw-sch snw-sch--${versione}`}>
+      {versione === 'impatto' ? (
+        // A · Impatto: foto a tutta larghezza con titolo sopra
+        <section className="snw-sch__hero">
+          <SnwFoto key={fotoSel} id={o.foto[fotoSel]} w={2000} h={1000} alt={o.titolo} className="snw-sch__hero-foto" />
+          <span className="snw-sch__hero-velo" />
+          <div className="snw__wrap snw-sch__hero-in">
+            <nav className="snw-cat__briciole" aria-label="Percorso">
+        <button type="button" onClick={() => vai({ nome: 'home' })}>Home</button>
+        <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+        <button type="button" onClick={() => vai({ nome: 'catalogo', cat: o.cat })}>{nomeCategoria(o.cat)}</button>
+        <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+        <span>{o.titolo}</span>
+      </nav>
+
+            <div className="snw-sch__hero-riga">
+              <div>
+                <SnwEtichetta testo={o.etichetta} />
+                <h1>{o.titolo}</h1>
+                <span className="snw-sch__sotto">
+                  <span><i className="fa-solid fa-location-dot" aria-hidden="true" /> {o.citta}, {o.regione}</span>
+                  <SnwVoto o={o} />
+                  <span><i className="fa-solid fa-handshake" aria-hidden="true" /> Partner {o.partner}</span>
+                </span>
+              </div>
+              {o.foto.length > 1 && <div className="snw-sch__miniature">
+            {o.foto.map((f, i) => (
+              <button key={f} type="button" className={i === fotoSel ? 'snw-sch__mini snw-sch__mini--on' : 'snw-sch__mini'}
+                aria-label={`Foto ${i + 1}`} aria-pressed={i === fotoSel} onClick={() => setFotoSel(i)}>
+                <SnwFoto id={f} w={300} h={200} alt="" />
+              </button>
+            ))}
+              </div>}
+            </div>
+          </div>
+        </section>
+      ) : (
+        <div className="snw__wrap">
       <nav className="snw-cat__briciole" aria-label="Percorso">
         <button type="button" onClick={() => vai({ nome: 'home' })}>Home</button>
         <i className="fa-solid fa-chevron-right" aria-hidden="true" />
@@ -79,6 +117,10 @@ export default function SnwScheda({ id }: { id: string }) {
         )}
       </div>
 
+        </div>
+      )}
+
+      <div className="snw__wrap">
       <div className="snw-sch__layout">
         <div className="snw-sch__testo">
           <section>
@@ -193,6 +235,7 @@ export default function SnwScheda({ id }: { id: string }) {
           <div className="snw-cat__griglia">{simili.map(x => <SnwCard key={x.id} o={x} />)}</div>
         </section>
       )}
+      </div>
     </div>
   )
 }

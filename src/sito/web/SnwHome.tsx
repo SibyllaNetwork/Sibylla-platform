@@ -220,10 +220,10 @@ export default function SnwHome() {
         </header>
         <div className="snw-home__dest">
           {DESTINAZIONI.map(d => {
-            const n = OFFERTE.filter(o => o.citta === d.nome).length
+            const n = OFFERTE.filter(o => d.citta.includes(o.citta)).length
             return (
               <button key={d.nome} type="button" className="snw-home__dest-voce"
-                onClick={() => vai({ nome: 'catalogo', dove: n ? d.nome : undefined })}>
+                onClick={() => vai({ nome: 'destinazione', citta: d.nome })}>
                 <SnwFoto id={d.foto} w={900} h={900} alt="" />
                 <span className="snw-home__dest-txt">
                   <small>{d.regione}</small>

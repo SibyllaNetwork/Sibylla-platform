@@ -90,7 +90,7 @@ export default function SnwHomeBento() {
         </section>
 
         {/* Destinazione */}
-        <button type="button" className="snw-bento__t snw-bento__dest" onClick={() => vai({ nome: 'catalogo', dove: 'Venezia' })}>
+        <button type="button" className="snw-bento__t snw-bento__dest" onClick={() => vai({ nome: 'destinazione', citta: 'Venezia' })}>
           <SnwFoto id={FOTO.rialto} w={900} h={1000} alt="" />
           <span className="snw-bento__dest-txt"><small>Destinazione del mese</small><b>Venezia</b></span>
         </button>

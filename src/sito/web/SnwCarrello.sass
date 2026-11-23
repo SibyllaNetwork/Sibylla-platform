@@ -233,3 +233,60 @@
 
   .snw-car__form
     grid-template-columns: 1fr
+
+// ═══ Formati ═══════════════════════════════════════════════════════════════
+.snw--impatto .snw-car
+  &__riep
+    border: 0
+    background: var(--snw-ink)
+    color: $white
+
+    h2,
+    dd,
+    .snw-car__totale dt
+      color: $white !important
+
+    dt
+      color: color-mix(in srgb, #fff 65%, transparent)
+
+    label
+      color: $white !important
+
+  &__totale
+    border-top-color: color-mix(in srgb, #fff 20%, transparent)
+
+    dd
+      color: $accent !important
+
+  &__riep .sib-btn--ghost
+    color: $white
+
+.snw--editoriale .snw-car
+  h1
+    font-weight: 700
+    font-style: italic
+
+  &__riep
+    border: 0
+    border-top: 2px solid $primary
+    border-radius: 0
+    background: transparent
+
+  &__foto
+    border-radius: 2px
+
+.snw--bento .snw-car
+  &__riep
+    border: 0
+    border-radius: 20px
+    background: color-mix(in srgb, var(--color-accent) 14%, #fff)
+
+  &__righe li
+    margin-bottom: 12px
+    padding: 14px
+    border: 0
+    border-radius: 20px
+    background: var(--color-surface)
+
+  &__foto
+    border-radius: 14px

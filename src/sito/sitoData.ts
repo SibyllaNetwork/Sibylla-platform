@@ -229,13 +229,20 @@ export const OFFERTE: Offerta[] = [
   },
 ]
 
+/** Destinazioni della rete: ogni pagina raccoglie le offerte delle sue località. */
 export const DESTINAZIONI = [
-  { nome: 'Roma', regione: 'Lazio', foto: F.colosseoArchi },
-  { nome: 'Venezia', regione: 'Veneto', foto: F.rialto },
-  { nome: 'Cinque Terre', regione: 'Liguria', foto: F.vernazza },
-  { nome: 'Sardegna', regione: 'Mare', foto: F.mare },
-  { nome: 'Castelli Romani', regione: 'Lazio', foto: F.vino },
+  { nome: 'Roma', regione: 'Lazio', foto: F.colosseoArchi, citta: ['Roma'],
+    intro: "Duemila anni di storia a portata di passeggiata: dal Colosseo a Trastevere, con gli hotel, le guide e i sapori della rete." },
+  { nome: 'Venezia', regione: 'Veneto', foto: F.rialto, citta: ['Venezia'],
+    intro: 'Dimore storiche sul Canal Grande e una città da vivere lontano dalla folla, calle dopo calle.' },
+  { nome: 'Cinque Terre', regione: 'Liguria', foto: F.vernazza, citta: ['Manarola'],
+    intro: 'Cinque borghi a picco sul mare: sentieri, barche al tramonto e la cucina ligure dei nostri partner.' },
+  { nome: 'Sardegna', regione: 'Mare', foto: F.mare, citta: ['Villasimius'],
+    intro: 'Calette turchesi e ville sul mare per chi cerca silenzio, sole e privacy.' },
+  { nome: 'Castelli Romani', regione: 'Lazio', foto: F.vino, citta: ['Ardea', 'Piglio'],
+    intro: 'Vigne, borghi e resort a mezz’ora da Roma: il Lazio da gustare con calma.' },
 ]
+export const destinazione = (nome: string) => DESTINAZIONI.find(d => d.nome === nome)
 
 export const PARTNER: Record<'hotel' | 'to' | 'fornitori', string[]> = {
   hotel: ['GAR S.R.L', 'Sibylla', 'Leaving Room Italia S.R.L.', 'Gar Ghost srl', 'La Torre srl'],

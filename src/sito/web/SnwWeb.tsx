@@ -10,6 +10,9 @@ import SnwCatalogo from './SnwCatalogo'
 import SnwScheda from './SnwScheda'
 import SnwCarrello from './SnwCarrello'
 import SnwRete from './SnwRete'
+import SnwInfo from './SnwInfo'
+import SnwPreferiti from './SnwPreferiti'
+import SnwDestinazione from './SnwDestinazione'
 import './SnwWeb.sass'
 
 /**
@@ -52,8 +55,9 @@ export default function SnwWeb() {
     return () => io.disconnect()
   }, [pagina, versione])
 
-  // Header trasparente sopra l'hero della versione Impatto
-  const sopraHero = pagina.nome === 'home' && versione === 'impatto' && inCima
+  // Header trasparente sopra le bande fotografiche della versione Impatto
+  // (tutte le pagine tranne carrello e conferma)
+  const sopraHero = versione === 'impatto' && inCima && pagina.nome !== 'carrello' && pagina.nome !== 'conferma'
 
   const catAttiva = pagina.nome === 'catalogo' ? pagina.cat : pagina.nome === 'scheda' ? trova(pagina.id)?.cat : undefined
 
@@ -72,7 +76,7 @@ export default function SnwWeb() {
           </span>
           <span className="snw__strip-dx">
             <a href="tel:00390691714070"><i className="fa-solid fa-phone" aria-hidden="true" /> +39 06 91714070</a>
-            <button type="button" onClick={() => vai({ nome: 'rete', ancora: 'contatti' })}>
+            <button type="button" onClick={() => vai({ nome: 'info', id: 'contatti' })}>
               <i className="fa-solid fa-handshake" aria-hidden="true" /> Diventa partner
             </button>
             <button type="button" onClick={() => useSitoStore.getState().setModo('totem')}>
@@ -103,7 +107,7 @@ export default function SnwWeb() {
           </nav>
           <div className="snw__azioni">
             <Tooltip text="Preferiti">
-              <button type="button" className="snw__ico" aria-label={`Preferiti (${preferiti.length})`} onClick={() => vai({ nome: 'catalogo' })}>
+              <button type="button" className="snw__ico" aria-label={`Preferiti (${preferiti.length})`} onClick={() => vai({ nome: 'preferiti' })}>
                 <i className="fa-regular fa-heart" />
                 {preferiti.length > 0 && <span className="snw__conta">{preferiti.length}</span>}
               </button>
@@ -126,6 +130,9 @@ export default function SnwWeb() {
         {pagina.nome === 'scheda' && <SnwScheda key={pagina.id} id={pagina.id} />}
         {(pagina.nome === 'carrello' || pagina.nome === 'conferma') && <SnwCarrello />}
         {pagina.nome === 'rete' && <SnwRete ancora={pagina.ancora} />}
+        {pagina.nome === 'info' && <SnwInfo key={pagina.id} id={pagina.id} />}
+        {pagina.nome === 'preferiti' && <SnwPreferiti />}
+        {pagina.nome === 'destinazione' && <SnwDestinazione key={pagina.citta} citta={pagina.citta} />}
       </main>
 
       <footer className="snw__foot">
@@ -139,16 +146,16 @@ export default function SnwWeb() {
             </div>
             <div>
               <h4>Rete</h4>
-              <button type="button" onClick={() => vai({ nome: 'rete', ancora: 'partner' })}>Partner</button>
-              <button type="button" onClick={() => vai({ nome: 'rete', ancora: 'imt' })}>Programma di Rete I.M.T.</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'partner' })}>Partner</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'imt' })}>Programma di Rete I.M.T.</button>
               <a href="https://www.sibyllaecosystem.it/" target="_blank" rel="noreferrer">sibyllaecosystem.it</a>
             </div>
             <div>
               <h4>Società</h4>
-              <button type="button" onClick={() => vai({ nome: 'rete', ancora: 'chi-siamo' })}>Chi siamo</button>
-              <button type="button" onClick={() => vai({ nome: 'rete', ancora: 'lavora' })}>Lavora con noi</button>
-              <button type="button" onClick={() => vai({ nome: 'rete', ancora: 'contatti' })}>Contattaci</button>
-              <button type="button" onClick={() => vai({ nome: 'rete', ancora: 'societa' })}>Dati societari</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'chi-siamo' })}>Chi siamo</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'lavora' })}>Lavora con noi</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'contatti' })}>Contattaci</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'societa' })}>Dati societari</button>
             </div>
             <div>
               <h4>Seguici</h4>
@@ -165,8 +172,8 @@ export default function SnwWeb() {
                 <i className="fa-brands fa-cc-paypal" aria-label="PayPal" />
                 <i className="fa-brands fa-cc-apple-pay" aria-label="Apple Pay" />
               </span>
-              <button type="button">Privacy policy</button>
-              <button type="button">Cookie policy</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'privacy' })}>Privacy policy</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'cookie' })}>Cookie policy</button>
             </div>
           </div>
           <div className="snw__legal">

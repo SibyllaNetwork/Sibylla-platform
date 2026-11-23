@@ -1,0 +1,130 @@
+@use '../../styles/tokens' as *
+
+.snw-dst
+  &__numeri
+    display: flex
+    gap: 32px
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: flex
+      flex-direction: column
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 30px
+      font-weight: 800
+      letter-spacing: -.02em
+
+    span
+      font-size: 12px
+      letter-spacing: .1em
+      text-transform: uppercase
+      opacity: .75
+
+  &__sez
+    margin-top: 56px
+
+    > header
+      display: flex
+      align-items: flex-end
+      justify-content: space-between
+      gap: 16px
+      margin-bottom: 20px
+
+    h2
+      display: flex
+      align-items: center
+      gap: 12px
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 30px
+      font-weight: 800
+      letter-spacing: -.03em
+      color: $primary
+
+      i
+        color: $accent
+
+  &__link
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 0
+    border: 0
+    background: none
+    color: $primary
+    font-family: 'Poppins', sans-serif
+    font-weight: 600
+    cursor: pointer
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 20px
+
+  &__vuoto
+    margin-top: 40px
+    color: $text-inactive
+
+  &__altre
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 16px
+
+    button
+      position: relative
+      height: 220px
+      padding: 0
+      border: 0
+      border-radius: 14px
+      overflow: hidden
+      cursor: pointer
+
+      img
+        transition: transform .6s ease
+
+      &:hover img
+        transform: scale(1.06)
+
+    span
+      position: absolute
+      inset: auto 0 0 0
+      display: flex
+      flex-direction: column
+      padding: 40px 18px 16px
+      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--snw-ink) 88%, transparent))
+      color: $white
+      text-align: left
+
+    small
+      font-size: 11px
+      letter-spacing: .14em
+      text-transform: uppercase
+      color: $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 22px
+      font-weight: 800
+
+// Nei formati chiari i numeri dell'intestazione sono scuri
+.snw--editoriale .snw-dst__numeri
+  color: $primary
+
+.snw--editoriale .snw-dst__altre button
+  border-radius: 4px
+
+.snw--bento .snw-dst__altre button
+  border-radius: 20px
+
+@media (max-width: 1100px)
+  .snw-dst__griglia,
+  .snw-dst__altre
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+@media (max-width: 640px)
+  .snw-dst__griglia
+    grid-template-columns: 1fr

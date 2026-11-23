@@ -13,7 +13,13 @@ export type PaginaSito =
   | { nome: 'scheda'; id: string }
   | { nome: 'carrello' }
   | { nome: 'rete'; ancora?: string }
+  | { nome: 'info'; id: PaginaInfo }
+  | { nome: 'preferiti' }
+  | { nome: 'destinazione'; citta: string }
   | { nome: 'conferma'; ordine: string }
+
+/** Pagine istituzionali (come sul sito attuale, una pagina ciascuna). */
+export type PaginaInfo = 'chi-siamo' | 'partner' | 'imt' | 'lavora' | 'contatti' | 'societa' | 'privacy' | 'cookie'
 
 export interface RigaCarrello {
   key: string
@@ -86,3 +92,6 @@ export const useSitoStore = create<SitoState>()(
     { name: 'sibylla.sito-network', version: 1, partialize: (s) => ({ carrello: s.carrello, preferiti: s.preferiti, modo: s.modo, versione: s.versione }) },
   ),
 )
+
+// Solo in sviluppo: aggancio per la QA automatica (puppeteer) delle pagine
+if (process.env.NODE_ENV !== 'production') (window as unknown as { __snwStore: typeof useSitoStore }).__snwStore = useSitoStore

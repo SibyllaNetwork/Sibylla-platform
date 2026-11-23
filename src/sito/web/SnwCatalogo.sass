@@ -43,10 +43,22 @@
       margin: 4px 0 0
       color: $text-inactive
 
+  &__conta
+    font-size: 15px
+
+    b
+      margin-right: 6px
+      font-family: 'Poppins', sans-serif
+      font-size: 30px
+      font-weight: 800
+
   &__tab
     display: flex
     gap: 4px
     flex-wrap: wrap
+
+    &--barra
+      margin: 28px 0 24px
 
   &__t
     display: inline-flex
@@ -169,3 +181,47 @@
 
   .snw-cat__griglia
     grid-template-columns: 1fr
+
+// ═══ Formati ═══════════════════════════════════════════════════════════════
+.snw--impatto .snw-cat
+  &__t--on
+    border-color: var(--snw-ink)
+    background: var(--snw-ink)
+
+  &__filtri
+    border: 0
+    box-shadow: 0 14px 40px color-mix(in srgb, var(--snw-ink) 12%, transparent)
+
+.snw--editoriale .snw-cat
+  &__t
+    border: 0
+    border-bottom: 2px solid transparent
+    border-radius: 0
+    background: none
+
+    &--on
+      border-bottom-color: $accent
+      background: none
+      color: $primary
+      font-weight: 700
+
+  &__filtri
+    border: 0
+    border-top: 2px solid $primary
+    border-radius: 0
+    background: transparent
+    padding-left: 0
+    padding-right: 0
+
+.snw--bento .snw-cat
+  &__t
+    height: 40px
+    border-radius: 10px
+
+    &--on
+      border-color: var(--snw-ink)
+      background: var(--snw-ink)
+
+  &__filtri
+    border: 0
+    border-radius: 20px

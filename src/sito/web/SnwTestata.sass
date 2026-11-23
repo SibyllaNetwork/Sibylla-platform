@@ -1,0 +1,232 @@
+@use '../../styles/tokens' as *
+
+// ─── Intestazione delle pagine interne (tre formati) ──────────────────────
+
+.snw-tst
+  h1
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    letter-spacing: -.035em
+
+  &__briciole
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 8px
+    font-size: 12px
+
+    button
+      padding: 0
+      border: 0
+      background: none
+      color: inherit
+      font: inherit
+      cursor: pointer
+
+      &:hover
+        text-decoration: underline
+
+    i
+      font-size: 9px
+      opacity: .6
+
+  &__kicker
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: .2em
+    text-transform: uppercase
+    color: $accent
+
+  // ── A · Impatto ───────────────────────────────────────────────────
+  &--impatto
+    position: relative
+    display: flex
+    align-items: flex-end
+    min-height: 440px
+    margin-top: -73px
+    padding: 140px 0 48px
+    overflow: hidden
+    background: var(--snw-ink)
+    color: $white
+
+    .snw-tst__briciole
+      margin-bottom: 18px
+      color: color-mix(in srgb, #fff 75%, transparent)
+
+    h1
+      margin: 10px 0 12px
+      font-size: clamp(40px, 6vw, 84px)
+      font-weight: 800
+      line-height: .98
+      color: $white
+
+      em
+        font-style: normal
+        color: $accent
+
+    p
+      max-width: 640px
+      margin: 0
+      font-size: 17px
+      line-height: 1.6
+      color: color-mix(in srgb, #fff 82%, transparent)
+
+  &__foto
+    position: absolute
+    inset: 0
+    animation: snw-tst-zoom 12s ease-out both
+
+  &__velo
+    position: absolute
+    inset: 0
+    background: linear-gradient(180deg, color-mix(in srgb, var(--snw-ink) 55%, transparent) 0%, color-mix(in srgb, var(--snw-ink) 35%, transparent) 40%, color-mix(in srgb, var(--snw-ink) 92%, transparent) 100%)
+
+  &__in
+    position: relative
+
+  &--impatto &__extra
+    margin-top: 24px
+
+  // ── B · Editoriale ────────────────────────────────────────────────
+  &--editoriale
+    padding-top: 28px
+
+    .snw-tst__briciole
+      color: $text-inactive
+
+    .snw-tst__kicker
+      font-weight: 600
+      letter-spacing: .26em
+
+  &__griglia
+    display: grid
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr)
+    gap: 56px
+    align-items: end
+    margin-top: 20px
+    padding-bottom: 36px
+    border-bottom: 1px solid $primary
+
+    h1
+      margin: 16px 0 18px
+      font-size: clamp(44px, 6vw, 88px)
+      font-weight: 700
+      line-height: .98
+      color: $primary
+
+      em
+        font-style: italic
+        font-weight: 300
+        color: $accent
+
+    p
+      max-width: 560px
+      margin: 0
+      font-size: 18px
+      line-height: 1.6
+      color: $text-inactive
+
+  &--editoriale &__extra
+    margin-top: 24px
+
+  &__ritratto
+    height: 340px
+    border-radius: 4px
+    overflow: hidden
+
+  // ── C · Mosaico ───────────────────────────────────────────────────
+  &--mosaico
+    padding-top: 24px
+
+    .snw-tst__briciole
+      margin-bottom: 14px
+      color: $text-inactive
+
+  &__tessere
+    display: grid
+    grid-template-columns: 1.4fr 1fr 1fr
+    grid-auto-rows: minmax(120px, auto)
+    gap: 16px
+
+  &__t
+    position: relative
+    border-radius: 20px
+    overflow: hidden
+    animation: snw-tst-entra .6s cubic-bezier(.2, .8, .2, 1) both
+
+    &--tit
+      grid-row: span 2
+      display: flex
+      flex-direction: column
+      justify-content: flex-end
+      gap: 10px
+      padding: 32px
+      background: var(--snw-ink)
+      color: $white
+
+      h1
+        font-size: clamp(36px, 4.6vw, 64px)
+        font-weight: 800
+        line-height: 1
+        color: $white
+
+        em
+          font-style: normal
+          color: $accent
+
+      p
+        margin: 0
+        font-size: 15px
+        line-height: 1.6
+        color: color-mix(in srgb, #fff 78%, transparent)
+
+    &--foto
+      grid-row: span 2
+      min-height: 280px
+      animation-delay: .08s
+
+    &--extra
+      grid-row: span 2
+      display: flex
+      flex-direction: column
+      justify-content: center
+      padding: 24px
+      background: color-mix(in srgb, var(--color-accent) 16%, #fff)
+      color: var(--snw-ink)
+      animation-delay: .16s
+
+  // Senza riquadro extra la foto occupa due colonne
+  &__tessere:not(:has(.snw-tst__t--extra)) .snw-tst__t--foto
+    grid-column: span 2
+
+@keyframes snw-tst-zoom
+  from
+    transform: scale(1.1)
+  to
+    transform: scale(1)
+
+@keyframes snw-tst-entra
+  from
+    opacity: 0
+    transform: translateY(20px)
+
+@media (max-width: 900px)
+  .snw-tst__griglia,
+  .snw-tst__tessere
+    grid-template-columns: 1fr
+
+  .snw-tst__ritratto
+    display: none
+
+  .snw-tst__tessere .snw-tst__t--foto
+    grid-column: auto !important
+    min-height: 200px
+
+@media (prefers-reduced-motion: reduce)
+  .snw-tst__foto,
+  .snw-tst__t
+    animation: none

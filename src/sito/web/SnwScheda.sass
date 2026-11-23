@@ -332,3 +332,151 @@
   .snw-sch__fatti,
   .snw-sch__include
     grid-template-columns: 1fr
+
+// ═══ Formati ═══════════════════════════════════════════════════════════════
+
+// A · Impatto: foto a tutta larghezza, titolo enorme in bianco
+.snw-sch
+  &__hero
+    position: relative
+    display: flex
+    align-items: flex-end
+    min-height: 620px
+    margin-top: -73px
+    padding: 120px 0 40px
+    overflow: hidden
+    background: var(--snw-ink)
+    color: $white
+
+    .snw-cat__briciole
+      margin-bottom: 18px
+      color: color-mix(in srgb, #fff 75%, transparent)
+
+      button
+        color: $white
+
+  &__hero-foto
+    position: absolute
+    inset: 0
+    animation: snw-sch-entra .8s ease both
+
+  &__hero-velo
+    position: absolute
+    inset: 0
+    background: linear-gradient(180deg, color-mix(in srgb, var(--snw-ink) 55%, transparent) 0%, transparent 35%, color-mix(in srgb, var(--snw-ink) 92%, transparent) 100%)
+
+  &__hero-in
+    position: relative
+
+  &__hero-riga
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 32px
+
+    h1
+      margin: 10px 0 12px
+      font-family: 'Poppins', sans-serif
+      font-size: clamp(40px, 5.6vw, 80px)
+      font-weight: 800
+      line-height: 1
+      letter-spacing: -.035em
+      color: $white
+
+    .snw-sch__sotto
+      color: color-mix(in srgb, #fff 85%, transparent)
+
+      .snw-voto,
+      .snw-voto b
+        color: $white
+
+    .snw-sch__miniature
+      flex-direction: row
+      flex: none
+
+    .snw-sch__mini
+      width: 120px
+      height: 80px
+      border-color: color-mix(in srgb, #fff 40%, transparent)
+
+      &--on
+        border-color: $accent
+
+  &--impatto .snw-sch__layout
+    margin-top: 48px
+
+// B · Editoriale: testata da rivista, galleria con foto grande e miniature in riga
+.snw-sch--editoriale
+  .snw-sch__head h1
+    font-size: clamp(40px, 5vw, 72px)
+    font-weight: 700
+    letter-spacing: -.04em
+
+  .snw-sch__galleria
+    grid-template-columns: 1fr
+    padding-bottom: 28px
+    border-bottom: 1px solid $primary
+
+  .snw-sch__foto-big
+    height: 520px
+    border-radius: 4px
+
+  .snw-sch__miniature
+    flex-direction: row
+
+  .snw-sch__mini
+    width: 160px
+    border-radius: 2px
+
+  .snw-sch__box,
+  .snw-sch__citazioni li
+    border-radius: 4px
+
+  .snw-sch__testo h2
+    font-weight: 700
+    font-style: italic
+
+// C · Mosaico: galleria a tessere (foto grande + miniature a riquadro)
+.snw-sch--bento
+  .snw-sch__head h1
+    font-weight: 800
+    letter-spacing: -.03em
+
+  .snw-sch__galleria
+    grid-template-columns: 2fr 1fr
+
+  .snw-sch__foto-big
+    height: 480px
+    border-radius: 20px
+
+  .snw-sch__miniature
+    display: grid
+    grid-template-rows: repeat(3, 1fr)
+    gap: 12px
+
+  .snw-sch__mini
+    height: auto
+    border-radius: 20px
+    opacity: 1
+
+  .snw-sch__box,
+  .snw-sch__citazioni li,
+  .snw-sch__fatti li
+    border-radius: 20px
+
+  .snw-sch__fatti li
+    padding: 14px
+    background: $primary-50
+
+@keyframes snw-sch-entra
+  from
+    opacity: .4
+    transform: scale(1.04)
+
+@media (max-width: 1000px)
+  .snw-sch__hero-riga
+    flex-direction: column
+    align-items: flex-start
+
+  .snw-sch--bento .snw-sch__galleria
+    grid-template-columns: 1fr
