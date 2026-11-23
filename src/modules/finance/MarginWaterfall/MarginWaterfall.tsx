@@ -7,7 +7,6 @@ import { SelectField } from '../../../core/components/form'
 import { exportTableToXls } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 import MwfFlusso from './MwfFlusso'
-import MwfCascata from './MwfCascata'
 import MwfMacchina from './MwfMacchina'
 import { CAMERE, Prospettiva, SEGMENTI, Voce, conto, fmtCompatto, fmtEuro, fmtPct, genera } from './mwfData'
 import './MarginWaterfall.sass'
@@ -21,8 +20,9 @@ import './MarginWaterfall.sass'
  * flusso, che si divide in costi variabili, margine di contribuzione, costi
  * fissi e utile. Si tolgono e rimettono con un clic o trascinandoli sul
  * grafico. Il carosello in basso filtra sull'altra dimensione; lo switch
- * inverte la prospettiva. In alternativa la Macchina (linea di produzione:
- * tramoggia, digestore, nastro, pressa, bancale) e la Cascata.
+ * inverte la prospettiva. Vista predefinita: la Filiera (linea di produzione:
+ * tramoggia, Contribuzione, nastro, Costi di struttura, Risultato d'esercizio),
+ * che parte vuota e si carica una mazzetta di ricavi per volta.
  */
 
 const ANNI = [2024, 2025, 2026]
@@ -31,23 +31,22 @@ const PROSPETTIVE: VistaOpzione<Prospettiva>[] = [
   { value: 'segmento', label: 'Segmenti → camere', icon: 'fa-users', hint: 'Mattoncini per segmento' },
   { value: 'camera', label: 'Camere → segmenti', icon: 'fa-bed', hint: 'Mattoncini per tipologia' },
 ]
-type Forma = 'flusso' | 'macchina' | 'cascata'
+type Forma = 'macchina' | 'flusso'
 const FORME: VistaOpzione<Forma>[] = [
   { value: 'flusso', label: 'Flusso', icon: 'fa-water', hint: 'Dove va ogni euro' },
-  { value: 'macchina', label: 'Macchina', icon: 'fa-industry', hint: 'Linea di produzione' },
-  { value: 'cascata', label: 'Cascata', icon: 'fa-chart-waterfall', hint: 'Waterfall' },
+  { value: 'macchina', label: 'Filiera', icon: 'fa-industry', hint: "Dai ricavi all'utile" },
 ]
 
 export default function MarginWaterfall({ navigate }: { navigate: (p: string) => void }) {
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [anno, setAnno] = useState(2026)
   const [prospettiva, setProspettiva] = useState<Prospettiva>('segmento')
-  const [forma, setForma] = useState<Forma>('flusso')
+  const [forma, setForma] = useState<Forma>('macchina')
   // Mattoncini attivi nel flusso (voci dell'elenco a destra) e filtro del carosello
-  const [dentro, setDentro] = useState<string[]>(SEGMENTI.map(v => v.id))
+  const [dentro, setDentro] = useState<string[]>([])
   const [sopra, setSopra] = useState(false)
   const [selCarosello, setSelCarosello] = useState<string | null>(null)
-  // Macchina: ultimo pacchetto caricato a mano (cade solo lui nella tramoggia)
+  // Filiera: ultima mazzetta caricata a mano (cade solo lei nella tramoggia)
   const [ultimo, setUltimo] = useState<string | null>(null)
   const macchina = forma === 'macchina'
 
@@ -71,7 +70,7 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
   const versaTutti = () => { setDentro(elenco.map(v => v.id)); setUltimo(null) }
   const scambia = (id: string, versato: boolean) => (versato ? togli(id) : versa(id))
 
-  // La Macchina parte con la tramoggia vuota: i ricavi si caricano uno per volta
+  // La Filiera parte con la tramoggia vuota: i ricavi si caricano uno per volta
   function cambiaForma(f: Forma) {
     setForma(f)
     if (f === 'macchina') { setDentro([]); setUltimo(null) }
@@ -79,7 +78,7 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
 
   function cambiaProspettiva(p: Prospettiva) {
     setProspettiva(p)
-    setDentro((p === 'segmento' ? SEGMENTI : CAMERE).map(v => v.id))
+    setDentro(macchina ? [] : (p === 'segmento' ? SEGMENTI : CAMERE).map(v => v.id))
     setSelCarosello(null)
     setUltimo(null)
   }
@@ -136,7 +135,7 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
               <p>
                 {dentro.length === elenco.length
                   ? `Tutti i ricavi per ${nomeElenco}`
-                  : `${dentro.length} di ${elenco.length} voci di ricavo ${forma === 'flusso' ? 'nel flusso' : forma === 'macchina' ? 'nella macchina' : 'nel grafico'}`} · {struttura} {anno}
+                  : `${dentro.length} di ${elenco.length} voci di ricavo ${forma === 'flusso' ? 'nel flusso' : 'nella filiera'}`} · {struttura} {anno}
               </p>
             </div>
             <span className="mwf__graf-actions">
@@ -152,10 +151,8 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
           </header>
           {forma === 'flusso' ? (
             <MwfFlusso sorgenti={sorgenti} totale={cImbuto} riproduci={riproduci} />
-          ) : forma === 'macchina' ? (
-            <MwfMacchina sorgenti={sorgenti} totale={cImbuto} riproduci={`${riproduci}|${dentro.join(',')}`} ultimo={ultimo} />
           ) : (
-            <MwfCascata c={cImbuto} />
+            <MwfMacchina sorgenti={sorgenti} totale={cImbuto} riproduci={`${riproduci}|${dentro.join(',')}`} ultimo={ultimo} />
           )}
         </section>
 
@@ -179,7 +176,7 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
                     onDoubleClick={macchina ? () => scambia(m.id, versato) : undefined}
                     aria-pressed={versato}
                     aria-label={`${m.nome}: ${macchina
-                      ? (versato ? 'nella macchina, doppio clic per toglierlo' : 'trascina sulla macchina o fai doppio clic per caricarlo')
+                      ? (versato ? 'nella filiera, doppio clic per toglierlo' : 'trascina sulla filiera o fai doppio clic per caricarlo')
                       : (versato ? 'nel flusso, clic per toglierlo' : 'trascina sul grafico o clicca per aggiungerlo')}`}
                   >
                     <span className="mwf__brick-top">
@@ -202,7 +199,7 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
           <span className="mwf__hint">
             <i className="fa-solid fa-hand-pointer" aria-hidden="true" />{' '}
             {macchina
-              ? 'Carica i ricavi uno per volta: trascina un mattoncino sulla macchina o fai doppio clic (doppio clic di nuovo per toglierlo). La barra è la quota dei ricavi.'
+              ? 'Carica i ricavi uno per volta: trascina un mattoncino sulla filiera o fai doppio clic (doppio clic di nuovo per toglierlo). La barra è la quota dei ricavi.'
               : 'Clicca un mattoncino per toglierlo o rimetterlo nel flusso (o trascinalo sul grafico). La barra è la quota dei ricavi.'}
           </span>
         </aside>

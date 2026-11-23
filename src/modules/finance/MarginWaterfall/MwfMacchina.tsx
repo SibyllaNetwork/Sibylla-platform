@@ -4,7 +4,7 @@ import { Passi, useRacconto } from './MwfRacconto'
 import type { Sorgente } from './MwfFlusso'
 
 /**
- * Macchina del margine: lo stesso racconto in 5 tempi del Flusso, visto come
+ * Filiera del margine: lo stesso racconto in 5 tempi del Flusso, visto come
  * una linea di produzione.
  *   1. le mazzette dei ricavi (una per voce) cadono nella tramoggia;
  *   2. il reparto Contribuzione separa i costi variabili, che scendono nel cassone
@@ -105,7 +105,7 @@ export default function MwfMacchina({ sorgenti, totale, riproduci, ultimo }: {
   const racconto = useRacconto(riproduci, PASSO_MS)
   const { still, vaiA, ricomincia } = racconto
   const attive = sorgenti.filter(s => s.conto.ricavi > 0)
-  // Tramoggia vuota: la macchina resta ferma in attesa della prima mazzetta
+  // Tramoggia vuota: la filiera resta ferma in attesa della prima mazzetta
   const vuoto = !attive.length
   const fase = vuoto ? 0 : racconto.fase
 
@@ -164,7 +164,7 @@ export default function MwfMacchina({ sorgenti, totale, riproduci, ultimo }: {
       )}
 
       <div className="mwf-mac" role="img"
-        aria-label={`Macchina del margine: entrano ricavi per ${fmtCompatto(t.ricavi)}, escono costi variabili ${fmtCompatto(t.costiVariabili)}, margine ${fmtCompatto(t.mdc)}, costi fissi ${fmtCompatto(t.costiFissi)}, ${perdita ? 'perdita' : 'utile'} ${fmtCompatto(t.utile)}`}>
+        aria-label={`Filiera del margine: entrano ricavi per ${fmtCompatto(t.ricavi)}, escono costi variabili ${fmtCompatto(t.costiVariabili)}, margine ${fmtCompatto(t.mdc)}, costi fissi ${fmtCompatto(t.costiFissi)}, ${perdita ? 'perdita' : 'utile'} ${fmtCompatto(t.utile)}`}>
         <svg viewBox="0 0 1000 440" preserveAspectRatio="xMidYMid meet" className="mwf-mac__svg">
           {/* Pavimento */}
           <line x1={20} y1={433} x2={980} y2={433} className="mwf-mac__pavimento" />
