@@ -38,6 +38,18 @@ export type ModoSito = 'web' | 'totem'
 /** Versioni grafiche della home web, scelte dai link in header. */
 export type VersioneHome = 'impatto' | 'editoriale' | 'bento'
 
+/** Ricerca soggiorni (barra del catalogo): la scheda parte da queste date. */
+export interface RicercaSoggiorni {
+  dove: string
+  dal: string
+  al: string
+  adulti: number
+  bambini: number
+  camere: number
+}
+
+const isoTra = (giorni: number) => { const d = new Date(); d.setDate(d.getDate() + giorni); return d.toISOString().slice(0, 10) }
+
 interface SitoState {
   aperto: boolean
   /** Sito web (desktop/mobile) o Totem interattivo verticale nelle strutture. */
@@ -47,6 +59,8 @@ interface SitoState {
   carrello: RigaCarrello[]
   preferiti: string[]
   drawer: boolean
+  ricerca: RicercaSoggiorni
+  setRicerca: (r: Partial<RicercaSoggiorni>) => void
   apri: () => void
   chiudi: () => void
   vai: (p: PaginaSito) => void
@@ -70,6 +84,8 @@ export const useSitoStore = create<SitoState>()(
       carrello: [],
       preferiti: [],
       drawer: false,
+      ricerca: { dove: '', dal: isoTra(14), al: isoTra(17), adulti: 2, bambini: 0, camere: 1 },
+      setRicerca: (r) => set((s) => ({ ricerca: { ...s.ricerca, ...r } })),
       apri: () => set({ aperto: true, pagina: { nome: 'home' } }),
       chiudi: () => set({ aperto: false, drawer: false }),
       vai: (pagina) => set({ pagina, drawer: false }),

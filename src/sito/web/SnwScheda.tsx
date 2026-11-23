@@ -26,10 +26,12 @@ export default function SnwScheda({ id }: { id: string }) {
   const preferito = useSitoStore(s => s.preferito)
   const versione = useSitoStore(s => s.versione)
   const [fotoSel, setFotoSel] = useState(0)
-  const [data, setData] = useState(oggiIso(7))
-  const [dataFine, setDataFine] = useState(oggiIso(9))
+  const ricerca = useSitoStore(s => s.ricerca)
+  const daRicerca = o?.cat === 'soggiorni' && ricerca.dal >= oggiIso()
+  const [data, setData] = useState(daRicerca ? ricerca.dal : oggiIso(7))
+  const [dataFine, setDataFine] = useState(daRicerca ? ricerca.al : oggiIso(9))
   const [orario, setOrario] = useState(o?.orari?.[0])
-  const [qta, setQta] = useState(o?.unita === 'a persona' ? 2 : 1)
+  const [qta, setQta] = useState(daRicerca ? ricerca.camere : o?.unita === 'a persona' ? 2 : 1)
   if (!o) return <div className="snw__wrap"><p>Offerta non trovata.</p></div>
 
   const sogg = o.cat === 'soggiorni'

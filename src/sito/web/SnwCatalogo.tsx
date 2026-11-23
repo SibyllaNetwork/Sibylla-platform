@@ -3,6 +3,7 @@ import { CheckboxField, RadioGroup, RangeField, SelectField, ToggleSwitch } from
 import { CATEGORIE, Categoria, FOTO, OFFERTE, eur } from '../sitoData'
 import { useSitoStore } from '../useSitoStore'
 import SnwCard from './SnwCard'
+import SnwSoggiorni from './SnwSoggiorni'
 import SnwTestata from './SnwTestata'
 import './SnwCatalogo.sass'
 
@@ -17,6 +18,11 @@ const FOTO_CAT: Record<Categoria | 'tutto', string> = {
 }
 
 export default function SnwCatalogo({ cat, dove }: { cat?: Categoria; dove?: string }) {
+  // I soggiorni hanno la ricerca da sito di booking (date, ospiti, filtri di dettaglio)
+  return cat === 'soggiorni' ? <SnwSoggiorni dove={dove} /> : <CatalogoOfferte cat={cat} dove={dove} />
+}
+
+function CatalogoOfferte({ cat, dove }: { cat?: Categoria; dove?: string }) {
   const vai = useSitoStore(s => s.vai)
   const preferiti = useSitoStore(s => s.preferiti)
   const base = OFFERTE.filter(o => !cat || o.cat === cat)

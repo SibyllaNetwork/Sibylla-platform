@@ -32,7 +32,43 @@ export interface Offerta {
   orari?: string[]
   lingue?: string[]
   incontro?: string
+  /** Dati della struttura (solo soggiorni): alimentano i filtri di ricerca. */
+  alloggio?: Alloggio
 }
+
+export type TipoAlloggio = 'Hotel' | 'B&B' | 'Dimora storica' | 'Resort' | 'Appartamento' | 'Villa' | 'Agriturismo'
+export type Trattamento = 'Solo pernottamento' | 'Colazione inclusa' | 'Mezza pensione'
+export type ServizioAlloggio = 'wifi' | 'parcheggio' | 'piscina' | 'spa' | 'aria' | 'ristorante' | 'animali' | 'navetta' | 'palestra' | 'accessibile' | 'vista'
+
+export interface Alloggio {
+  tipo: TipoAlloggio
+  stelle?: number
+  /** Quartiere o zona della località. */
+  zona: string
+  /** Distanza dal centro, in km. */
+  km: number
+  trattamento: Trattamento
+  servizi: ServizioAlloggio[]
+  /** Ospiti massimi per camera o unità. */
+  ospiti: number
+  pagaInStruttura: boolean
+}
+
+export const SERVIZI_ALLOGGIO: Record<ServizioAlloggio, { nome: string; icona: string }> = {
+  wifi: { nome: 'Wi-Fi gratuito', icona: 'fa-wifi' },
+  parcheggio: { nome: 'Parcheggio', icona: 'fa-square-parking' },
+  piscina: { nome: 'Piscina', icona: 'fa-person-swimming' },
+  spa: { nome: 'Spa e benessere', icona: 'fa-spa' },
+  aria: { nome: 'Aria condizionata', icona: 'fa-snowflake' },
+  ristorante: { nome: 'Ristorante', icona: 'fa-utensils' },
+  animali: { nome: 'Animali ammessi', icona: 'fa-paw' },
+  navetta: { nome: 'Navetta', icona: 'fa-van-shuttle' },
+  palestra: { nome: 'Palestra', icona: 'fa-dumbbell' },
+  accessibile: { nome: 'Accessibile in sedia a rotelle', icona: 'fa-wheelchair' },
+  vista: { nome: 'Vista panoramica', icona: 'fa-binoculars' },
+}
+export const TIPI_ALLOGGIO: TipoAlloggio[] = ['Hotel', 'B&B', 'Dimora storica', 'Resort', 'Appartamento', 'Villa', 'Agriturismo']
+export const TRATTAMENTI: Trattamento[] = ['Solo pernottamento', 'Colazione inclusa', 'Mezza pensione']
 
 export const CATEGORIE: { id: Categoria; nome: string; icona: string; claim: string }[] = [
   { id: 'soggiorni', nome: 'Soggiorni', icona: 'fa-bed-front', claim: 'Hotel e dimore selezionate dalla rete' },
@@ -138,6 +174,7 @@ export const OFFERTE: Offerta[] = [
     voto: 4.8, recensioni: 642, etichetta: 'Offerta', partner: 'Sibylla', cancellazione: true,
     descrizione: 'Palazzo di fine Ottocento a dieci minuti dal Colosseo: camere ampie, colazione con prodotti del territorio e concierge digitale con i totem della rete.',
     include: ['Colazione inclusa', 'Wi-Fi veloce', 'Concierge digitale', 'Deposito bagagli gratuito'],
+    alloggio: { tipo: 'Hotel', stelle: 4, zona: 'Esquilino', km: 1.4, trattamento: 'Colazione inclusa', servizi: ['wifi', 'aria', 'ristorante', 'accessibile', 'palestra'], ospiti: 3, pagaInStruttura: true },
   },
   {
     id: 'trevi-suites', cat: 'soggiorni', titolo: 'Residenza Trevi Suites', formula: 'Suite ★★★★ · centro storico',
@@ -145,6 +182,7 @@ export const OFFERTE: Offerta[] = [
     voto: 4.9, recensioni: 318, etichetta: 'Più scelto', partner: 'Leaving Room Italia', cancellazione: true,
     descrizione: 'Sei suite a due passi da Fontana di Trevi, con terrazza comune sui tetti e check-in senza attese.',
     include: ['Colazione in camera', 'Terrazza panoramica', 'Check-in digitale'],
+    alloggio: { tipo: 'Hotel', stelle: 4, zona: 'Centro storico', km: 0.3, trattamento: 'Colazione inclusa', servizi: ['wifi', 'aria', 'vista'], ospiti: 2, pagaInStruttura: false },
   },
   {
     id: 'villa-ardea', cat: 'soggiorni', titolo: 'Villa Ardea Resort & Spa', formula: 'Resort ★★★★★ · Junior suite',
@@ -152,6 +190,7 @@ export const OFFERTE: Offerta[] = [
     voto: 4.7, recensioni: 205, etichetta: 'Solo su Network', partner: 'La Torre srl', cancellazione: false,
     descrizione: 'Piscina, spa e pineta a mezz’ora da Roma: il resort della rete per chi vuole la città di giorno e il silenzio di sera.',
     include: ['Mezza pensione', 'Accesso spa', 'Navetta per Roma'],
+    alloggio: { tipo: 'Resort', stelle: 5, zona: 'Litorale', km: 3.5, trattamento: 'Mezza pensione', servizi: ['wifi', 'parcheggio', 'piscina', 'spa', 'aria', 'ristorante', 'navetta', 'palestra', 'accessibile'], ospiti: 4, pagaInStruttura: true },
   },
   {
     id: 'ca-rialto', cat: 'soggiorni', titolo: "Ca' Rialto Guest House", formula: 'Dimora storica · vista canale',
@@ -159,6 +198,7 @@ export const OFFERTE: Offerta[] = [
     voto: 4.6, recensioni: 284, partner: 'Gar Ghost srl', cancellazione: true,
     descrizione: 'Cinque camere affacciate sul Canal Grande a cento metri dal ponte di Rialto, in una casa veneziana del Seicento.',
     include: ['Colazione', 'Vista canale', 'Transfer in taxi acqueo scontato'],
+    alloggio: { tipo: 'Dimora storica', zona: 'San Polo', km: 0.6, trattamento: 'Colazione inclusa', servizi: ['wifi', 'aria', 'vista', 'animali'], ospiti: 2, pagaInStruttura: true },
   },
   {
     id: 'dimora-mare', cat: 'soggiorni', titolo: 'Dimora sul mare', formula: 'Villa con piscina · 6 ospiti',
@@ -166,6 +206,64 @@ export const OFFERTE: Offerta[] = [
     voto: 4.8, recensioni: 77, etichetta: 'Novità', partner: 'GAR S.R.L', cancellazione: true,
     descrizione: 'Villa a picco su una caletta turchese, con piscina a sfioro e barca a disposizione su richiesta.',
     include: ['Piscina privata', 'Pulizia giornaliera', 'Barca su richiesta'],
+    alloggio: { tipo: 'Villa', zona: 'Costa sud', km: 4.2, trattamento: 'Solo pernottamento', servizi: ['wifi', 'parcheggio', 'piscina', 'aria', 'vista', 'animali'], ospiti: 6, pagaInStruttura: false },
+  },
+
+  {
+    id: 'hotel-navona', cat: 'soggiorni', titolo: 'Hotel Navona', formula: 'Hotel ★★★ · Doppia classic',
+    citta: 'Roma', regione: 'Lazio', foto: [F.cameraClassica, F.trevi], prezzo: 155, prezzoPieno: 178, unita: 'a notte', daPrezzo: true,
+    voto: 4.5, recensioni: 912, etichetta: 'Offerta', partner: 'Roma Incoming', cancellazione: true,
+    descrizione: 'A cinquanta passi da Piazza Navona, camere essenziali e luminose per chi vuole girare Roma tutta a piedi.',
+    include: ['Colazione', 'Wi-Fi', 'Deposito bagagli'],
+    alloggio: { tipo: 'Hotel', stelle: 3, zona: 'Centro storico', km: 0.4, trattamento: 'Colazione inclusa', servizi: ['wifi', 'aria', 'accessibile'], ospiti: 3, pagaInStruttura: true },
+  },
+  {
+    id: 'trastevere-bb', cat: 'soggiorni', titolo: 'B&B Vicolo del Cinque', formula: 'B&B · camera con bagno privato',
+    citta: 'Roma', regione: 'Lazio', foto: [F.tevere, F.camera], prezzo: 95, unita: 'a notte', daPrezzo: true,
+    voto: 4.7, recensioni: 431, etichetta: 'Più scelto', partner: 'Leaving Room Italia', cancellazione: true,
+    descrizione: 'Quattro camere in un palazzetto di Trastevere: colazione fatta in casa e le trattorie migliori sotto casa.',
+    include: ['Colazione fatta in casa', 'Wi-Fi', 'Check-in fino a mezzanotte'],
+    alloggio: { tipo: 'B&B', zona: 'Trastevere', km: 1.8, trattamento: 'Colazione inclusa', servizi: ['wifi', 'aria', 'animali'], ospiti: 2, pagaInStruttura: true },
+  },
+  {
+    id: 'prati-loft', cat: 'soggiorni', titolo: 'Loft Prati San Pietro', formula: 'Appartamento · 2 camere · 4 ospiti',
+    citta: 'Roma', regione: 'Lazio', foto: [F.sanPietro, F.camera], prezzo: 130, unita: 'a notte', daPrezzo: true,
+    voto: 4.6, recensioni: 156, partner: 'GAR S.R.L', cancellazione: false,
+    descrizione: 'Loft con cucina a dieci minuti a piedi da San Pietro: comodo per famiglie e soggiorni lunghi.',
+    include: ['Cucina attrezzata', 'Lavatrice', 'Biancheria e pulizie finali'],
+    alloggio: { tipo: 'Appartamento', zona: 'Prati', km: 2.6, trattamento: 'Solo pernottamento', servizi: ['wifi', 'aria', 'parcheggio'], ospiti: 4, pagaInStruttura: false },
+  },
+  {
+    id: 'hotel-san-marco', cat: 'soggiorni', titolo: 'Hotel Ala San Marco', formula: 'Hotel ★★★★ · Deluxe vista laguna',
+    citta: 'Venezia', regione: 'Veneto', foto: [F.camera, F.rialto], prezzo: 230, unita: 'a notte', daPrezzo: true,
+    voto: 4.8, recensioni: 509, etichetta: 'Solo su Network', partner: 'Gar Ghost srl', cancellazione: true,
+    descrizione: 'Affacciato sul bacino di San Marco, con altana panoramica e ristorante di cucina veneziana.',
+    include: ['Colazione', 'Altana panoramica', 'Transfer in taxi acqueo scontato'],
+    alloggio: { tipo: 'Hotel', stelle: 4, zona: 'San Marco', km: 0.2, trattamento: 'Colazione inclusa', servizi: ['wifi', 'aria', 'ristorante', 'vista', 'palestra'], ospiti: 3, pagaInStruttura: true },
+  },
+  {
+    id: 'manarola-mare', cat: 'soggiorni', titolo: 'Camere sul Porticciolo', formula: 'B&B · vista mare',
+    citta: 'Manarola', regione: 'Liguria', foto: [F.manarola, F.cameraClassica], prezzo: 120, unita: 'a notte', daPrezzo: true,
+    voto: 4.9, recensioni: 288, etichetta: 'Più scelto', partner: 'Italia Autentica TO', cancellazione: true,
+    descrizione: 'Camere colorate sopra il porticciolo di Manarola: si sente il mare dal letto e i sentieri partono sotto casa.',
+    include: ['Colazione in terrazza', 'Vista mare', 'Pass treno Cinque Terre scontato'],
+    alloggio: { tipo: 'B&B', zona: 'Borgo', km: 0.1, trattamento: 'Colazione inclusa', servizi: ['wifi', 'vista'], ospiti: 2, pagaInStruttura: true },
+  },
+  {
+    id: 'vernazza-terrazze', cat: 'soggiorni', titolo: 'Hotel Le Terrazze', formula: 'Hotel ★★★ · Doppia con terrazzo',
+    citta: 'Vernazza', regione: 'Liguria', foto: [F.vernazza, F.camera], prezzo: 145, unita: 'a notte', daPrezzo: true,
+    voto: 4.4, recensioni: 203, etichetta: 'Novità', partner: 'Italia Autentica TO', cancellazione: false,
+    descrizione: 'Terrazzi privati sul porto di Vernazza e ristorante di pesce del giorno al piano terra.',
+    include: ['Colazione', 'Terrazzo privato', 'Ristorante convenzionato'],
+    alloggio: { tipo: 'Hotel', stelle: 3, zona: 'Porto', km: 0.2, trattamento: 'Colazione inclusa', servizi: ['wifi', 'ristorante', 'vista', 'animali'], ospiti: 3, pagaInStruttura: true },
+  },
+  {
+    id: 'agriturismo-piglio', cat: 'soggiorni', titolo: 'Agriturismo Colle Cesanese', formula: 'Agriturismo · tra le vigne',
+    citta: 'Piglio', regione: 'Lazio', foto: [F.vino, F.ristorante], prezzo: 110, unita: 'a notte', daPrezzo: true,
+    voto: 4.8, recensioni: 134, partner: 'Cantine del Piglio', cancellazione: true,
+    descrizione: 'Casale in mezzo ai filari del Cesanese: cena con i prodotti dell’azienda e degustazione in cantina.',
+    include: ['Mezza pensione', 'Degustazione in cantina', 'Biciclette'],
+    alloggio: { tipo: 'Agriturismo', zona: 'Colline', km: 2.1, trattamento: 'Mezza pensione', servizi: ['wifi', 'parcheggio', 'piscina', 'ristorante', 'animali', 'accessibile'], ospiti: 4, pagaInStruttura: true },
   },
 
   // ── Prodotti ─────────────────────────────────────────────────────────
@@ -235,7 +333,7 @@ export const DESTINAZIONI = [
     intro: "Duemila anni di storia a portata di passeggiata: dal Colosseo a Trastevere, con gli hotel, le guide e i sapori della rete." },
   { nome: 'Venezia', regione: 'Veneto', foto: F.rialto, citta: ['Venezia'],
     intro: 'Dimore storiche sul Canal Grande e una città da vivere lontano dalla folla, calle dopo calle.' },
-  { nome: 'Cinque Terre', regione: 'Liguria', foto: F.vernazza, citta: ['Manarola'],
+  { nome: 'Cinque Terre', regione: 'Liguria', foto: F.vernazza, citta: ['Manarola', 'Vernazza'],
     intro: 'Cinque borghi a picco sul mare: sentieri, barche al tramonto e la cucina ligure dei nostri partner.' },
   { nome: 'Sardegna', regione: 'Mare', foto: F.mare, citta: ['Villasimius'],
     intro: 'Calette turchesi e ville sul mare per chi cerca silenzio, sole e privacy.' },
