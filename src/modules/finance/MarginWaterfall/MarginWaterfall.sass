@@ -578,9 +578,372 @@
   .mwf-flx__nastro--entra,
   .mwf-flx__cresce,
   .mwf-flx__appare,
-  .mwf-flx__didascalia
+  .mwf-flx__didascalia,
+  .mwf-mac__gira,
+  .mwf-mac__tappeto--corre,
+  .mwf-mac__spia--on
     animation: none
     stroke-dashoffset: 0
+
+// ─── Macchina del margine ───────────────────────────────────────────
+// Linea di produzione: tramoggia → Contribuzione → nastro → Costi di struttura
+// → Risultato d'esercizio; i ricavi viaggiano come mazzette di banconote.
+// Le animazioni usano longhand (non shorthand) per non azzerare i ritardi
+// delle classi mwf-flx__rit*.
+.mwf-mac
+  width: 100%
+  height: 440px
+
+  &__svg
+    display: block
+    width: 100%
+    height: 100%
+
+  &__pavimento
+    stroke: $border
+    stroke-width: 2
+
+  &__corpo
+    fill: $primary-50
+    stroke: $primary
+    stroke-width: 2
+
+  &__bordo
+    stroke: $primary
+    stroke-width: 4
+
+  &__pannello
+    fill: var(--color-surface)
+    stroke: $border
+
+  &__denti
+    fill: none
+    stroke: $primary-400
+    stroke-width: 7
+    stroke-dasharray: 4 3.5
+
+  &__ruota
+    fill: $primary-200
+    stroke: $primary
+    stroke-width: 1.5
+
+  &__mozzo
+    fill: $primary
+
+  &__raggio
+    stroke: $primary
+    stroke-width: 2
+
+  &__manometro
+    fill: var(--color-surface)
+    stroke: $primary
+    stroke-width: 2
+
+  &__lancetta
+    stroke: $error
+    stroke-width: 2.5
+    stroke-linecap: round
+    transform-box: view-box
+    transform-origin: 244px 204px
+    transform: rotate(-55deg)
+    transition: transform .9s cubic-bezier(.3, 1.4, .5, 1)
+
+    &--su
+      transform: rotate(55deg)
+
+  &__spia
+    fill: $border
+    stroke: $primary
+    stroke-width: 1
+
+    &--on
+      fill: $success
+      animation-name: mwf-mac-lampeggia
+      animation-duration: .8s
+      animation-iteration-count: infinite
+
+  &__targa
+    font-family: 'Poppins', sans-serif
+    font-size: 10px
+    font-weight: 700
+    letter-spacing: 2px
+    fill: $primary
+
+    &--chiara
+      fill: var(--color-surface)
+
+    &--stretta
+      font-size: 9px
+      letter-spacing: 1px
+
+  &__bocca
+    fill: $primary-900
+
+  &__scivolo
+    fill: $primary-100
+    stroke: $primary-300
+    stroke-width: 1.5
+
+  &__cassone
+    fill: var(--color-surface)
+    stroke: $primary
+    stroke-width: 2
+
+  &__livello
+    opacity: .5
+
+  &__cassone-nome,
+  &__cassone-val
+    font-size: 11px
+    paint-order: stroke
+    stroke: var(--color-surface)
+    stroke-width: 4px
+    stroke-linejoin: round
+
+  &__cassone-nome
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    fill: $text-active
+
+  &__cassone-val
+    font-weight: 600
+    fill: $text-inactive
+    font-variant-numeric: tabular-nums
+
+  &__nastro
+    fill: $primary-700
+
+  &__tappeto
+    stroke: $primary-300
+    stroke-width: 3
+    stroke-dasharray: 8 6
+
+    &--corre
+      animation-name: mwf-mac-tappeto
+      animation-duration: .45s
+      animation-timing-function: linear
+      animation-iteration-count: infinite
+
+  &__rullo
+    fill: $primary-200
+    stroke: $primary
+    stroke-width: 1
+
+  &__gamba
+    stroke: $primary-300
+    stroke-width: 3
+
+  &__traversa
+    fill: $primary
+
+  &__stelo
+    fill: $primary-300
+
+  &__mazza
+    fill: $primary-700
+
+  &__base
+    fill: $primary-200
+    stroke: $primary
+    stroke-width: 1.5
+
+  &__bancale
+    fill: $primary-300
+
+  &__display
+    fill: $text-active
+    stroke: $primary
+    stroke-width: 2
+
+  &__display-txt
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 700
+    fill: var(--color-surface)
+    font-variant-numeric: tabular-nums
+
+  &__pacco-nastro
+    fill: $white
+    opacity: .8
+
+  &__pacco-bordo
+    fill: none
+    stroke: $white
+    stroke-opacity: .45
+    stroke-width: 1
+
+  &__pacco-pila
+    stroke: $white
+    stroke-opacity: .5
+    stroke-width: 1
+
+  &__pacco-euro
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+
+  &__attesa
+    font-size: 11px
+    font-style: italic
+    fill: $text-inactive
+
+  &__freccia
+    fill: $primary
+
+  &__chiama
+    animation-name: mwf-mac-chiama
+    animation-duration: 1.2s
+    animation-timing-function: ease-in-out
+    animation-iteration-count: infinite
+
+  &__invito
+    i
+      margin-right: 4px
+
+  // Movimenti
+  &__gira
+    transform-box: fill-box
+    transform-origin: center
+    animation-name: mwf-mac-gira
+    animation-duration: 1.6s
+    animation-timing-function: linear
+    animation-iteration-count: infinite
+
+    &--inv
+      animation-direction: reverse
+
+    &--rullo
+      animation-duration: .7s
+
+  &__cade
+    animation-name: mwf-mac-cade
+    animation-duration: 1.3s
+    animation-timing-function: ease-in
+    animation-fill-mode: both
+
+  &__riempi
+    transform-box: fill-box
+    transform-origin: bottom
+    animation-name: mwf-cresce
+    animation-duration: .9s
+    animation-timing-function: ease-out
+    animation-fill-mode: both
+
+  &__scende
+    animation-name: mwf-mac-scende
+    animation-duration: .8s
+    animation-timing-function: ease-in
+    animation-fill-mode: both
+
+  &__esce1
+    animation-name: mwf-mac-esce1
+    animation-duration: 1.4s
+    animation-timing-function: cubic-bezier(.3, .6, .4, 1)
+    animation-fill-mode: both
+
+  &__entra2
+    animation-name: mwf-mac-entra2
+    animation-duration: .9s
+    animation-timing-function: ease-in
+    animation-fill-mode: both
+
+  &__pressa
+    animation-name: mwf-mac-pressa
+    animation-duration: .6s
+    animation-delay: .7s
+    animation-iteration-count: 2
+    animation-timing-function: ease-in-out
+
+  &__esce2
+    animation-name: mwf-mac-esce2
+    animation-duration: 1.4s
+    animation-timing-function: cubic-bezier(.3, .6, .4, 1)
+    animation-fill-mode: both
+
+  // Ritardi (dopo le classi mwf-flx__* per prevalere a pari specificità)
+  &__rit-tramoggia
+    animation-delay: .9s
+
+  &__rit-cassone
+    animation-delay: .8s
+
+  &__rit-secondo
+    animation-delay: .35s
+
+  &__rit-pressa
+    animation-delay: 1s
+
+  &__rit-etichetta
+    animation-delay: 1.2s
+
+@keyframes mwf-mac-chiama
+  50%
+    transform: translateY(5px)
+
+@keyframes mwf-mac-gira
+  to
+    transform: rotate(360deg)
+
+@keyframes mwf-mac-lampeggia
+  50%
+    opacity: .3
+
+@keyframes mwf-mac-tappeto
+  to
+    stroke-dashoffset: -14
+
+@keyframes mwf-mac-cade
+  0%
+    opacity: 0
+    transform: translateY(-90px)
+  30%
+    opacity: 1
+    transform: translateY(0)
+  55%
+    opacity: 1
+    transform: translateY(0)
+  100%
+    opacity: 0
+    transform: translateY(80px)
+
+@keyframes mwf-mac-scende
+  from
+    opacity: 1
+    transform: translateY(0)
+  to
+    opacity: 0
+    transform: translateY(56px)
+
+@keyframes mwf-mac-esce1
+  from
+    opacity: 0
+    transform: translateX(-170px)
+  15%
+    opacity: 1
+  to
+    transform: translateX(0)
+
+@keyframes mwf-mac-entra2
+  from
+    opacity: 1
+    transform: translateX(0)
+  80%
+    opacity: 1
+  to
+    opacity: 0
+    transform: translateX(180px)
+
+@keyframes mwf-mac-pressa
+  50%
+    transform: translateY(70px)
+
+@keyframes mwf-mac-esce2
+  from
+    opacity: 0
+    transform: translateX(-200px)
+  15%
+    opacity: 1
+  to
+    transform: translateX(0)
 
 // Cascata
 .mwf-casc

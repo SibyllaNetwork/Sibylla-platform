@@ -8,6 +8,7 @@ import { exportTableToXls } from '../../sales/booking/GrigliaDisponibilita/expor
 import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 import MwfFlusso from './MwfFlusso'
 import MwfCascata from './MwfCascata'
+import MwfMacchina from './MwfMacchina'
 import { CAMERE, Prospettiva, SEGMENTI, Voce, conto, fmtCompatto, fmtEuro, fmtPct, genera } from './mwfData'
 import './MarginWaterfall.sass'
 
@@ -20,7 +21,8 @@ import './MarginWaterfall.sass'
  * flusso, che si divide in costi variabili, margine di contribuzione, costi
  * fissi e utile. Si tolgono e rimettono con un clic o trascinandoli sul
  * grafico. Il carosello in basso filtra sull'altra dimensione; lo switch
- * inverte la prospettiva. Forma "cascata" in alternativa.
+ * inverte la prospettiva. In alternativa la Macchina (linea di produzione:
+ * tramoggia, digestore, nastro, pressa, bancale) e la Cascata.
  */
 
 const ANNI = [2024, 2025, 2026]
@@ -29,9 +31,10 @@ const PROSPETTIVE: VistaOpzione<Prospettiva>[] = [
   { value: 'segmento', label: 'Segmenti → camere', icon: 'fa-users', hint: 'Mattoncini per segmento' },
   { value: 'camera', label: 'Camere → segmenti', icon: 'fa-bed', hint: 'Mattoncini per tipologia' },
 ]
-type Forma = 'flusso' | 'cascata'
+type Forma = 'flusso' | 'macchina' | 'cascata'
 const FORME: VistaOpzione<Forma>[] = [
   { value: 'flusso', label: 'Flusso', icon: 'fa-water', hint: 'Dove va ogni euro' },
+  { value: 'macchina', label: 'Macchina', icon: 'fa-industry', hint: 'Linea di produzione' },
   { value: 'cascata', label: 'Cascata', icon: 'fa-chart-waterfall', hint: 'Waterfall' },
 ]
 
@@ -44,6 +47,9 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
   const [dentro, setDentro] = useState<string[]>(SEGMENTI.map(v => v.id))
   const [sopra, setSopra] = useState(false)
   const [selCarosello, setSelCarosello] = useState<string | null>(null)
+  // Macchina: ultimo pacchetto caricato a mano (cade solo lui nella tramoggia)
+  const [ultimo, setUltimo] = useState<string | null>(null)
+  const macchina = forma === 'macchina'
 
   const d = useMemo(() => genera(struttura, anno), [struttura, anno])
   const elenco: Voce[] = prospettiva === 'segmento' ? SEGMENTI : CAMERE
@@ -60,14 +66,22 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
   const cImbuto = filtro(dentro, selCarosello)
   const nome = (lista: Voce[], id: string | null) => lista.find(v => v.id === id)?.nome
 
-  const versa = (id: string) => setDentro(x => (x.includes(id) ? x : [...x, id]))
-  const togli = (id: string) => setDentro(x => x.filter(v => v !== id))
-  const versaTutti = () => setDentro(elenco.map(v => v.id))
+  const versa = (id: string) => { setDentro(x => (x.includes(id) ? x : [...x, id])); setUltimo(id) }
+  const togli = (id: string) => { setDentro(x => x.filter(v => v !== id)); setUltimo(null) }
+  const versaTutti = () => { setDentro(elenco.map(v => v.id)); setUltimo(null) }
+  const scambia = (id: string, versato: boolean) => (versato ? togli(id) : versa(id))
+
+  // La Macchina parte con la tramoggia vuota: i ricavi si caricano uno per volta
+  function cambiaForma(f: Forma) {
+    setForma(f)
+    if (f === 'macchina') { setDentro([]); setUltimo(null) }
+  }
 
   function cambiaProspettiva(p: Prospettiva) {
     setProspettiva(p)
     setDentro((p === 'segmento' ? SEGMENTI : CAMERE).map(v => v.id))
     setSelCarosello(null)
+    setUltimo(null)
   }
 
   // ── Carosello ────────────────────────────────────────────────────────
@@ -82,6 +96,9 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
     }))
     exportTableToXls(`margin-waterfall-${anno}.xls`, header, rows, `Margin waterfall — ${struttura} ${anno}`)
   }
+
+  const sorgenti = elenco.filter(v => dentro.includes(v.id)).map(v => ({ id: v.id, nome: v.nome, conto: filtro(v.id, selCarosello) }))
+  const riproduci = `${struttura}|${anno}|${prospettiva}|${selCarosello ?? ''}`
 
   const passo = (v: number, tot: number) => (tot > 0 ? Math.max(0, Math.min(20, Math.round((v / tot) * 20))) : 0)
   const titoloGraf = nome(carosello, selCarosello) ?? 'Tutta la struttura'
@@ -100,7 +117,7 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
           </div>
         </div>
         <div className="mwf__actions">
-          <VistaSwitch value={forma} options={FORME} onChange={setForma} ariaLabel="Forma del grafico" />
+          <VistaSwitch value={forma} options={FORME} onChange={cambiaForma} ariaLabel="Forma del grafico" />
           <Tooltip text="Esporta Excel"><button className="sib-btn sib-btn--icon" aria-label="Esporta Excel" onClick={exportXls}><i className="fa-regular fa-file-xls" /></button></Tooltip>
         </div>
       </div>
@@ -119,7 +136,7 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
               <p>
                 {dentro.length === elenco.length
                   ? `Tutti i ricavi per ${nomeElenco}`
-                  : `${dentro.length} di ${elenco.length} voci di ricavo nel ${forma === 'flusso' ? 'flusso' : 'grafico'}`} · {struttura} {anno}
+                  : `${dentro.length} di ${elenco.length} voci di ricavo ${forma === 'flusso' ? 'nel flusso' : forma === 'macchina' ? 'nella macchina' : 'nel grafico'}`} · {struttura} {anno}
               </p>
             </div>
             <span className="mwf__graf-actions">
@@ -134,11 +151,9 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
             </span>
           </header>
           {forma === 'flusso' ? (
-            <MwfFlusso
-              sorgenti={elenco.filter(v => dentro.includes(v.id)).map(v => ({ id: v.id, nome: v.nome, conto: filtro(v.id, selCarosello) }))}
-              totale={cImbuto}
-              riproduci={`${struttura}|${anno}|${prospettiva}|${selCarosello ?? ''}`}
-            />
+            <MwfFlusso sorgenti={sorgenti} totale={cImbuto} riproduci={riproduci} />
+          ) : forma === 'macchina' ? (
+            <MwfMacchina sorgenti={sorgenti} totale={cImbuto} riproduci={`${riproduci}|${dentro.join(',')}`} ultimo={ultimo} />
           ) : (
             <MwfCascata c={cImbuto} />
           )}
@@ -160,9 +175,12 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
                     className={`mwf__brick ${versato ? 'mwf__brick--versato' : 'mwf__brick--fuori'}`}
                     draggable
                     onDragStart={e => { e.dataTransfer.setData('text/plain', m.id); e.dataTransfer.effectAllowed = 'move' }}
-                    onClick={() => (versato ? togli(m.id) : versa(m.id))}
+                    onClick={macchina ? undefined : () => scambia(m.id, versato)}
+                    onDoubleClick={macchina ? () => scambia(m.id, versato) : undefined}
                     aria-pressed={versato}
-                    aria-label={`${m.nome}: ${versato ? 'nel flusso, clic per toglierlo' : 'trascina sul grafico o clicca per aggiungerlo'}`}
+                    aria-label={`${m.nome}: ${macchina
+                      ? (versato ? 'nella macchina, doppio clic per toglierlo' : 'trascina sulla macchina o fai doppio clic per caricarlo')
+                      : (versato ? 'nel flusso, clic per toglierlo' : 'trascina sul grafico o clicca per aggiungerlo')}`}
                   >
                     <span className="mwf__brick-top">
                       <i className={`fa-solid ${versato ? 'fa-check' : 'fa-plus'} mwf__brick-grip`} aria-hidden="true" />
@@ -181,7 +199,12 @@ export default function MarginWaterfall({ navigate }: { navigate: (p: string) =>
               )
             })}
           </ul>
-          <span className="mwf__hint"><i className="fa-solid fa-hand-pointer" aria-hidden="true" /> Clicca un mattoncino per toglierlo o rimetterlo nel flusso (o trascinalo sul grafico). La barra è la quota dei ricavi.</span>
+          <span className="mwf__hint">
+            <i className="fa-solid fa-hand-pointer" aria-hidden="true" />{' '}
+            {macchina
+              ? 'Carica i ricavi uno per volta: trascina un mattoncino sulla macchina o fai doppio clic (doppio clic di nuovo per toglierlo). La barra è la quota dei ricavi.'
+              : 'Clicca un mattoncino per toglierlo o rimetterlo nel flusso (o trascinalo sul grafico). La barra è la quota dei ricavi.'}
+          </span>
         </aside>
       </div>
 
