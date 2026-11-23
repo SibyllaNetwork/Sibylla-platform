@@ -7,7 +7,7 @@ import type { Sorgente } from './MwfFlusso'
  * Macchina del margine: lo stesso racconto in 5 tempi del Flusso, visto come
  * una linea di produzione.
  *   1. le mazzette dei ricavi (una per voce) cadono nella tramoggia;
- *   2. il reparto Contribuzione separa i costi variabili, che scendono nei cassoni
+ *   2. il reparto Contribuzione separa i costi variabili, che scendono nel cassone
  *      (costi di camera, commissioni);
  *   3. sul nastro esce il pacco del margine di contribuzione;
  *   4. il reparto Costi di struttura trattiene i costi fissi (cassone sotto);
@@ -134,8 +134,7 @@ export default function MwfMacchina({ sorgenti, totale, riproduci, ultimo }: {
   const sMdc = lato(t.mdc)
   const sCf = lato(t.costiFissi)
   const sUt = lato(t.utile)
-  const sCam = Math.min(44, lato(t.costiCamera, 60))
-  const sCom = Math.min(44, lato(t.commissioni, 60))
+  const sCv = Math.min(44, lato(t.costiVariabili, 60))
 
   const lavora1 = fase >= 1 && fase <= 3 && !still
   const nastro1 = fase === 3 && !still
@@ -146,7 +145,7 @@ export default function MwfMacchina({ sorgenti, totale, riproduci, ultimo }: {
     nuovo
       ? `Nella tramoggia cade la mazzetta ${nuovo.s.nome} (${fmtCompatto(nuovo.s.conto.ricavi)}): ${attive.length === 1 ? 'è la prima' : `ora ci sono ${attive.length} mazzette`}, ${fmtCompatto(t.ricavi)} in tutto.`
       : `Nella tramoggia cadono ${attive.length === 1 ? 'una mazzetta' : `${attive.length} mazzette`} di ricavi: insieme fanno ${fmtCompatto(t.ricavi)}.`,
-    `Il reparto Contribuzione separa i costi variabili: ${fmtCompatto(t.costiCamera)} di costi di camera e ${fmtCompatto(t.commissioni)} di commissioni finiscono nei cassoni (${cento(t.costiVariabili)} € ogni 100 €).`,
+    `Il reparto Contribuzione separa i costi variabili: ${fmtCompatto(t.costiCamera)} di costi di camera e ${fmtCompatto(t.commissioni)} di commissioni finiscono nel cassone dei costi variabili (${cento(t.costiVariabili)} € ogni 100 €).`,
     `Sul nastro esce il margine di contribuzione: ${fmtCompatto(t.mdc)}, cioè ${cento(t.mdc)} € ogni 100 € entrati.`,
     `Il reparto Costi di struttura trattiene i costi fissi: ${fmtCompatto(t.costiFissi)}.`,
     perdita
@@ -213,17 +212,14 @@ export default function MwfMacchina({ sorgenti, totale, riproduci, ultimo }: {
           <text x={186} y={292} textAnchor="middle" className="mwf-mac__targa">CONTRIBUZIONE</text>
           <rect x={296} y={282} width={8} height={36} className="mwf-mac__bocca" />
 
-          {/* Scivoli e cassoni dei costi variabili */}
-          <path d="M98,300 L150,300 L140,350 L108,350 Z" className="mwf-mac__scivolo" />
-          <path d="M218,300 L270,300 L262,350 L230,350 Z" className="mwf-mac__scivolo" />
+          {/* Scivolo e cassone dei costi variabili */}
+          <path d="M152,300 L208,300 L200,350 L160,350 Z" className="mwf-mac__scivolo" />
           {ora(2) && (
             <>
-              <g className="mwf-mac__scende"><Mazzetta cx={124} top={300} s={sCam} colore={COL.cv} titolo="Costi di camera" /></g>
-              <g className="mwf-mac__scende mwf-mac__rit-secondo"><Mazzetta cx={246} top={300} s={sCom} colore={COL.cv} titolo="Commissioni" /></g>
+              <g className="mwf-mac__scende"><Mazzetta cx={180} top={300} s={sCv} colore={COL.cv} titolo={`Costi variabili: ${fmtCompatto(t.costiVariabili)}`} /></g>
             </>
           )}
-          <Cassone x={64} w={120} colore={COL.cv} nome="Costi di camera" valore={fmtCompatto(t.costiCamera)} pct={pct(t.costiCamera)} pieno={fase >= 2} ora={ora(2)} />
-          <Cassone x={188} w={120} colore={COL.cv} nome="Commissioni" valore={fmtCompatto(t.commissioni)} pct={pct(t.commissioni)} pieno={fase >= 2} ora={ora(2)} />
+          <Cassone x={100} w={160} colore={COL.cv} nome="Costi variabili" valore={fmtCompatto(t.costiVariabili)} pct={pct(t.costiVariabili)} pieno={fase >= 2} ora={ora(2)} />
 
           {/* ── Nastro 1: Contribuzione → Costi di struttura ────────────────────────── */}
           <line x1={330} y1={BELT_Y + 14} x2={330} y2={433} className="mwf-mac__gamba" />
