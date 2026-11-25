@@ -892,6 +892,23 @@
     transform: scale(1.03)
     box-shadow: 0 0 0 .5em color-mix(in srgb, var(--color-accent) 25%, transparent)
 
+// Totem vero (schermo riconosciuto): lo schermo occupa tutta la finestra,
+// niente cornice; il corpo resta 2,5% della larghezza (27px su 1080)
+.snw-tot--dispositivo
+  gap: 0
+  background: var(--snw-ink)
+
+  .snw-tot__cornice
+    width: 100vw
+    height: 100vh
+    padding: 0
+    border-radius: 0
+    box-shadow: none
+
+  .snw-tot__schermo
+    height: 100%
+    aspect-ratio: auto
+
 @media (max-width: 900px)
   .snw-tot__demo
     display: none

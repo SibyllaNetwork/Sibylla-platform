@@ -49,7 +49,9 @@ const giorno = (piu: number) => {
   return { iso: oggiIso(piu), nome: piu === 0 ? 'Oggi' : piu === 1 ? 'Domani' : d.toLocaleDateString('it-IT', { weekday: 'short' }), num: d.getDate() }
 }
 
-export default function SnwTotem() {
+/** `dispositivo`: gira su un totem vero (schermo riconosciuto): tutto
+ *  schermo, senza cornice né pannello dell'anteprima. */
+export default function SnwTotem({ dispositivo = false }: { dispositivo?: boolean }) {
   const carrello = useSitoStore(s => s.carrello)
   const svuota = useSitoStore(s => s.svuota)
   const setModo = useSitoStore(s => s.setModo)
@@ -105,9 +107,9 @@ export default function SnwTotem() {
   const tocco = () => { if (inattivo < INATTIVO_S) setInattivo(0) }
 
   return (
-    <div className={`snw-tot snw--${versione}`} data-section="sito">
+    <div className={`snw-tot snw--${versione} ${dispositivo ? 'snw-tot--dispositivo' : ''}`} data-section="sito">
       {/* Comandi dell'anteprima (fuori dallo schermo del totem) */}
-      <aside className="snw-tot__demo" aria-label="Anteprima totem">
+      {!dispositivo && <aside className="snw-tot__demo" aria-label="Anteprima totem">
         <span className="snw-tot__demo-tit"><i className="fa-solid fa-tablet-screen" aria-hidden="true" /> Anteprima totem</span>
         <small>Schermo verticale 1080×1920, touch. Dopo {INATTIVO_S} s senza tocchi si azzera.</small>
         <span className="snw-tot__demo-lbl">Formato</span>
@@ -123,7 +125,7 @@ export default function SnwTotem() {
         <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModo('web')}><i className="fa-solid fa-display" aria-hidden="true" /> Vai al sito web</button>
         <button type="button" className="sib-btn sib-btn--ghost" onClick={azzera}><i className="fa-solid fa-rotate-left" aria-hidden="true" /> Azzera il totem</button>
         <button type="button" className="sib-btn sib-btn--ghost" onClick={chiudi}><i className="fa-solid fa-right-to-bracket" aria-hidden="true" /> Torna in Platform</button>
-      </aside>
+      </aside>}
 
       <div className="snw-tot__cornice">
         <div className="snw-tot__schermo" onPointerDown={tocco}>
