@@ -7,6 +7,7 @@ import { SelectField } from '../../../core/components/form'
 import { getNotifiche, type NotificaDto } from '../../../services/notifiche.service'
 import { useChatStore } from '../../../store/useChatStore'
 import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperativeStore'
+import { useCashflowStore } from '../../../store/useCashflowStore'
 import { usePreventiviSoggiornoStore } from '../../../store/usePreventiviSoggiornoStore'
 import { usePraticheStore, praticheInRitardo } from '../../../store/usePraticheStore'
 import { useVccEmesseStore, useVccRows, vccScadute } from '../../../store/useVccEmesseStore'
@@ -249,6 +250,29 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     [richiesteOp],
   )
 
+  // Solleciti di pagamento inviati dalla pagina Cashflow ai clienti in ritardo.
+  const solleciti = useCashflowStore((s) => s.solleciti)
+  const sollecitiNotifs: NotificaUI[] = useMemo(() => {
+    const today = new Date()
+    return solleciti.map((x, i) => {
+      const d = new Date(x.inviatoIl)
+      const sameDay = d.toDateString() === today.toDateString()
+      const sameMonth = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
+      const importo = `${Math.round(x.importo).toLocaleString('it-IT')} €`
+      return {
+        id: 960000 + i,
+        sev: 'warning' as const,
+        title: 'Sollecito di pagamento inviato',
+        text: `${x.cliente}: pagamento di ${importo} scaduto il ${new Date(x.scadenza).toLocaleDateString('it-IT')} (${x.struttura}). Il partner riceve la notifica su Platform.`,
+        ref: x.cliente,
+        date: `${WEEKDAYS[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MONTHS[d.getMonth()]}`,
+        time: d.toTimeString().slice(0, 5),
+        group: (sameDay ? 'oggi' : sameMonth ? 'mese-corrente' : 'precedenti') as NotificaUI['group'],
+        read: false,
+      }
+    })
+  }, [solleciti])
+
   // Pagamenti con carta dei preventivi di soggiorno → autorizzato / rifiutato.
   const preventivi = usePreventiviSoggiornoStore((s) => s.preventivi)
   const pagamentiNotifs: NotificaUI[] = useMemo(() => {
@@ -467,8 +491,8 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   }
 
   const allNotifications = useMemo(
-    () => [...ritardoNotifs, ...turniNotifs, ...pagamentiNotifs, ...vccNotifs, ...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
-    [ritardoNotifs, turniNotifs, pagamentiNotifs, vccNotifs, cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
+    () => [...ritardoNotifs, ...turniNotifs, ...pagamentiNotifs, ...vccNotifs, ...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...sollecitiNotifs, ...items],
+    [sollecitiNotifs, ritardoNotifs, turniNotifs, pagamentiNotifs, vccNotifs, cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
   )
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),
