@@ -6,6 +6,7 @@
 //  dataset per struttura × camera × segmento, niente numeri paralleli.
 
 import { CAMERE, SEGMENTI, conto, genera, type Dataset } from '../MarginWaterfall/mwfData'
+import { apiFetchSibylla } from '../../../services/api'
 
 export type Metrica = 'ricavi' | 'margine' | 'utile' | 'notti' | 'adr' | 'costi'
 export type Dimensione = 'struttura' | 'camera' | 'segmento'
@@ -284,23 +285,45 @@ export function formatta(m: Metrica): (n: number) => string {
 // ── Interprete: AI se configurata, altrimenti locale ─────────────────────────
 export type Fonte = 'ai' | 'locale'
 
-export async function interpreta(domanda: string, elenco: string[]): Promise<{ piano: Piano; fonte: Fonte }> {
+// Con il Portal configurato (REACT_APP_API_URL) l'interprete è l'endpoint del
+// Portal (docs/portal-decision-tree-ai.md); nella demo su Vercel la funzione di
+// prova /api/decision-tree. Qualunque errore → interprete locale.
+const PORTAL = !!process.env.REACT_APP_API_URL
+const TIMEOUT_MS = 15000
+
+async function chiediAi(domanda: string, elenco: string[]): Promise<Partial<Piano> | null> {
+  const corpo = { domanda, strutture: elenco }
+  if (PORTAL) {
+    const scaduto = new Promise<null>(r => window.setTimeout(() => r(null), TIMEOUT_MS))
+    const j = await Promise.race([
+      apiFetchSibylla<{ piano?: Partial<Piano> }>('finance/decisionTree/Interpreta', { method: 'POST', body: corpo, redirectOn401: false }),
+      scaduto,
+    ])
+    return j?.piano ?? null
+  }
+  const ctrl = new AbortController()
+  const timer = window.setTimeout(() => ctrl.abort(), TIMEOUT_MS)
   try {
-    const ctrl = new AbortController()
-    const timer = window.setTimeout(() => ctrl.abort(), 15000)
     const r = await fetch('/api/decision-tree', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ domanda, strutture: elenco }),
+      body: JSON.stringify(corpo),
       signal: ctrl.signal,
     })
+    if (!r.ok) return null
+    const j = await r.json() as { piano?: Partial<Piano> }
+    return j.piano ?? null
+  } finally {
     window.clearTimeout(timer)
-    if (r.ok) {
-      const j = await r.json() as { piano?: Partial<Piano> }
-      if (j.piano) return { piano: sanifica(j.piano, elenco), fonte: 'ai' }
-    }
+  }
+}
+
+export async function interpreta(domanda: string, elenco: string[]): Promise<{ piano: Piano; fonte: Fonte }> {
+  try {
+    const piano = await chiediAi(domanda, elenco)
+    if (piano) return { piano: sanifica(piano, elenco), fonte: 'ai' }
   } catch {
-    // Rete o funzione non raggiungibile (sviluppo locale): interprete locale
+    // Endpoint assente, errore o rete: interprete locale
   }
   return { piano: sanifica(interpretaLocale(domanda, elenco), elenco), fonte: 'locale' }
 }
