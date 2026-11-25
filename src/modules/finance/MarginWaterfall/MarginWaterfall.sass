@@ -579,17 +579,16 @@
   .mwf-flx__cresce,
   .mwf-flx__appare,
   .mwf-flx__didascalia,
-  .mwf-mac__gira,
-  .mwf-mac__tappeto--corre,
+  .mwf-mac__tubo-flusso,
   .mwf-mac__spia--on
     animation: none
     stroke-dashoffset: 0
 
 // ─── Macchina del margine ───────────────────────────────────────────
-// Linea di produzione: tramoggia → Contribuzione → nastro → Costi di struttura
-// → Risultato d'esercizio; i ricavi viaggiano come mazzette di banconote.
-// Le animazioni usano longhand (non shorthand) per non azzerare i ritardi
-// delle classi mwf-flx__rit*.
+// Una sola macchina: tramoggia dei ricavi → corpo con quadrante del margine →
+// tre condotti verso contenitori identici (costi variabili a sinistra, costi
+// fissi in basso, utile a destra). Le animazioni usano longhand (non shorthand)
+// per non azzerare i ritardi delle classi mwf-flx__rit*.
 .mwf-mac
   width: 100%
   height: 440px
@@ -616,40 +615,31 @@
     fill: var(--color-surface)
     stroke: $border
 
-  &__denti
-    fill: none
-    stroke: $primary-400
-    stroke-width: 7
-    stroke-dasharray: 4 3.5
-
-  &__ruota
-    fill: $primary-200
-    stroke: $primary
-    stroke-width: 1.5
-
   &__mozzo
     fill: $primary
 
-  &__raggio
-    stroke: $primary
-    stroke-width: 2
+  &__arco
+    fill: none
+    stroke: $border
+    stroke-width: 8
 
-  &__manometro
-    fill: var(--color-surface)
-    stroke: $primary
-    stroke-width: 2
+  &__arco-val
+    fill: none
+    stroke-width: 8
+
+  &__tacca
+    stroke: $text-inactive
+    stroke-width: 1.5
+
+  &__scala
+    font-size: 9px
+    font-weight: 600
+    fill: $text-inactive
 
   &__lancetta
-    stroke: $error
+    stroke: $primary
     stroke-width: 2.5
     stroke-linecap: round
-    transform-box: view-box
-    transform-origin: 244px 204px
-    transform: rotate(-55deg)
-    transition: transform .9s cubic-bezier(.3, 1.4, .5, 1)
-
-    &--su
-      transform: rotate(55deg)
 
   &__spia
     fill: $border
@@ -669,20 +659,34 @@
     letter-spacing: 2px
     fill: $primary
 
-    &--chiara
-      fill: var(--color-surface)
-
-    &--stretta
-      font-size: 9px
-      letter-spacing: 1px
-
   &__bocca
-    fill: $primary-900
+    fill: $primary
 
-  &__scivolo
-    fill: $primary-100
-    stroke: $primary-300
-    stroke-width: 1.5
+  &__tubo
+    fill: none
+    stroke: $primary
+    stroke-width: 18
+    stroke-linejoin: round
+
+  &__tubo-anima
+    fill: none
+    stroke: $primary-50
+    stroke-width: 13
+    stroke-linejoin: round
+
+  &__tubo-flusso
+    fill: none
+    stroke-width: 13
+    stroke-linejoin: round
+    stroke-dasharray: 10 8
+    opacity: .75
+    // scorre durante il passaggio, poi si spegne (nell'ultima fase non resta acceso)
+    animation-name: mwf-mac-flusso, mwf-mac-spegni
+    animation-duration: .5s, .4s
+    animation-delay: 0s, 1.8s
+    animation-timing-function: linear, ease-out
+    animation-iteration-count: infinite, 1
+    animation-fill-mode: none, forwards
 
   &__cassone
     fill: var(--color-surface)
@@ -710,72 +714,35 @@
     fill: $text-inactive
     font-variant-numeric: tabular-nums
 
-  &__nastro
-    fill: $primary-700
-
-  &__tappeto
-    stroke: $primary-300
-    stroke-width: 3
-    stroke-dasharray: 8 6
-
-    &--corre
-      animation-name: mwf-mac-tappeto
-      animation-duration: .45s
-      animation-timing-function: linear
-      animation-iteration-count: infinite
-
-  &__rullo
-    fill: $primary-200
-    stroke: $primary
-    stroke-width: 1
-
-  &__gamba
-    stroke: $primary-300
-    stroke-width: 3
-
-  &__traversa
-    fill: $primary
-
-  &__stelo
-    fill: $primary-300
-
-  &__mazza
-    fill: $primary-700
-
-  &__base
-    fill: $primary-200
-    stroke: $primary
-    stroke-width: 1.5
-
-  &__bancale
-    fill: $primary-300
-
   &__display
     fill: $text-active
     stroke: $primary
     stroke-width: 2
 
+  &__display-lbl
+    font-family: 'Poppins', sans-serif
+    font-size: 8px
+    font-weight: 700
+    letter-spacing: 1px
+    fill: var(--color-surface)
+    opacity: .7
+
   &__display-txt
     font-family: 'Poppins', sans-serif
-    font-size: 12px
+    font-size: 16px
     font-weight: 700
     fill: var(--color-surface)
+    font-variant-numeric: tabular-nums
+
+  &__display-sub
+    font-size: 11px
+    font-weight: 600
+    fill: $text-inactive
     font-variant-numeric: tabular-nums
 
   &__pacco-nastro
     fill: $white
     opacity: .8
-
-  &__pacco-bordo
-    fill: none
-    stroke: $white
-    stroke-opacity: .45
-    stroke-width: 1
-
-  &__pacco-pila
-    stroke: $white
-    stroke-opacity: .5
-    stroke-width: 1
 
   &__pacco-euro
     font-family: 'Poppins', sans-serif
@@ -800,20 +767,6 @@
       margin-right: 4px
 
   // Movimenti
-  &__gira
-    transform-box: fill-box
-    transform-origin: center
-    animation-name: mwf-mac-gira
-    animation-duration: 1.6s
-    animation-timing-function: linear
-    animation-iteration-count: infinite
-
-    &--inv
-      animation-direction: reverse
-
-    &--rullo
-      animation-duration: .7s
-
   &__cade
     animation-name: mwf-mac-cade
     animation-duration: 1.3s
@@ -834,31 +787,6 @@
     animation-timing-function: ease-in
     animation-fill-mode: both
 
-  &__esce1
-    animation-name: mwf-mac-esce1
-    animation-duration: 1.4s
-    animation-timing-function: cubic-bezier(.3, .6, .4, 1)
-    animation-fill-mode: both
-
-  &__entra2
-    animation-name: mwf-mac-entra2
-    animation-duration: .9s
-    animation-timing-function: ease-in
-    animation-fill-mode: both
-
-  &__pressa
-    animation-name: mwf-mac-pressa
-    animation-duration: .6s
-    animation-delay: .7s
-    animation-iteration-count: 2
-    animation-timing-function: ease-in-out
-
-  &__esce2
-    animation-name: mwf-mac-esce2
-    animation-duration: 1.4s
-    animation-timing-function: cubic-bezier(.3, .6, .4, 1)
-    animation-fill-mode: both
-
   // Ritardi (dopo le classi mwf-flx__* per prevalere a pari specificità)
   &__rit-tramoggia
     animation-delay: .9s
@@ -866,27 +794,21 @@
   &__rit-cassone
     animation-delay: .8s
 
-  &__rit-pressa
-    animation-delay: 1s
-
-  &__rit-etichetta
-    animation-delay: 1.2s
-
 @keyframes mwf-mac-chiama
   50%
     transform: translateY(5px)
-
-@keyframes mwf-mac-gira
-  to
-    transform: rotate(360deg)
 
 @keyframes mwf-mac-lampeggia
   50%
     opacity: .3
 
-@keyframes mwf-mac-tappeto
+@keyframes mwf-mac-flusso
   to
-    stroke-dashoffset: -14
+    stroke-dashoffset: -18
+
+@keyframes mwf-mac-spegni
+  to
+    opacity: 0
 
 @keyframes mwf-mac-cade
   0%
@@ -909,38 +831,6 @@
   to
     opacity: 0
     transform: translateY(56px)
-
-@keyframes mwf-mac-esce1
-  from
-    opacity: 0
-    transform: translateX(-170px)
-  15%
-    opacity: 1
-  to
-    transform: translateX(0)
-
-@keyframes mwf-mac-entra2
-  from
-    opacity: 1
-    transform: translateX(0)
-  80%
-    opacity: 1
-  to
-    opacity: 0
-    transform: translateX(180px)
-
-@keyframes mwf-mac-pressa
-  50%
-    transform: translateY(70px)
-
-@keyframes mwf-mac-esce2
-  from
-    opacity: 0
-    transform: translateX(-200px)
-  15%
-    opacity: 1
-  to
-    transform: translateX(0)
 
 // Laptop con sidebar: elenco dei ricavi più stretto
 @container (max-width: 1180px)
