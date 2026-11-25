@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
     "@sibylla-hr/hr-pages": "file:vendor/sibylla-hr-hr-pages-0.1.0.tgz",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

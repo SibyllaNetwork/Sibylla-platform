@@ -52,7 +52,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "crea-servizio": "Crea e configura i servizi disponibili per i tuoi clienti",
   "crea-strategia": "Crea strategie guidate in modo smart, ottimizzando ricavi e disponibilità in base alla finestra di prenotazione",
   "crea-struttura": "Inserisci i dati aziendali per registrare una nuova azienda",
-  "decision-tree": "Supporto decisionale basato su scenari e dati finanziari per strategie aziendali ottimali",
+  "decision-tree": "Fai una domanda sui tuoi dati: Sibylla costruisce la risposta",
   "efficienza-operativa": "Ottimizza la disponibilità delle camere con suggerimenti intelligenti per massimizzare occupazione e ricavi",
   "executive-overview": "Dashboard integrata di sintesi per le performace d'impresa",
   "fatturazione-passiva": "Gestisci e monitora tutte le fatture in entrata",

@@ -1,312 +1,505 @@
 // ─── DECISION TREE ──────────────────────────────────────────────────────────────
-// Griglia a schermo fisso: albero su due righe (2 colonne) + valore atteso ed
-// esposizione della leva scelta. Niente fascia KPI: l'albero ha bisogno dell'altezza.
+// Pagina bianca con la search bar al centro; dopo la domanda la barra sale in
+// alto e sotto nasce la BI della risposta: titolo, KPI, albero + grafico.
+// Vincolo BI: una schermata, il corpo si compatta invece di scrollare.
 @use '../../../styles/tokens' as *
 
-.dt
-  &__grid
-    grid-template-columns: repeat(3, minmax(0, 1fr))
-    grid-template-rows: minmax(0, 1.12fr) minmax(0, 1fr)
-    grid-template-areas: 'albero albero valori' 'albero albero esp'
+.dtq
+  height: 100%
+  min-height: 0
+  display: flex
+  flex-direction: column
+  container-type: inline-size
+  container-name: dtq
 
-  &__albero
-    grid-area: albero
-
-  &__valori
-    grid-area: valori
-
-  &__esp
-    grid-area: esp
-
-  // ── Toolbar ──────────────────────────────────────────────────────────────────
-  &__filter
-    width: 160px
-
-    &--wide
-      width: 210px
-
-  &__note
-    display: inline-flex
+  // ── Barra della domanda ────────────────────────────────────────────────────
+  &__barra
+    display: flex
     align-items: center
-    gap: 6px
-    margin-left: auto
-    padding-bottom: 8px
-    font-family: var(--font-body)
-    font-size: 11px
-    color: var(--color-text-inactive)
+    gap: 10px
+    margin-bottom: 14px
+
+    &--grande
+      width: min(760px, 100%)
+      margin: 0 auto 18px
+
+  &__search
+    flex: 1
+    min-width: 0
+
+    // La × la mette già il componente: niente quella nativa del browser
+    input::-webkit-search-cancel-button
+      appearance: none
+      display: none
+
+  // Il campo condiviso è a 34px: nella pagina vuota è la protagonista.
+  // Due classi nel selettore per prevalere su .sib-input.
+  &__barra--grande &__search .sib-input
+    height: 48px
+    padding-left: 40px
+    font-size: 15px
+    border-radius: 12px
+    box-shadow: $shadow-lg
+
+  &__barra--grande &__chiedi
+    height: 48px
+    padding: 0 20px
+    border-radius: 12px
+
+  &__chiedi
+    flex: none
     white-space: nowrap
 
     i
-      color: var(--color-primary)
-      font-size: 12px
+      margin-right: 6px
 
-  // ── Albero: tre livelli affiancati, collegati da dorsali verticali ───────────
-  &__tree
-    display: grid
-    grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1.2fr)
+  // ── Pagina vuota ───────────────────────────────────────────────────────────
+  &__hero
     flex: 1
     min-height: 0
-    min-width: 0
-
-  &__root
-    align-self: center
     display: flex
     flex-direction: column
-    gap: 1px
-    min-width: 0
-    margin-right: 14px
-    padding: 8px 10px
-    border: 1px solid var(--color-primary)
-    border-radius: var(--radius-md)
-    background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))
-
-  &__root-lbl
-    font-family: var(--font-heading)
-    font-size: 12px
-    font-weight: 600
-    color: var(--color-primary)
-
-  &__root-val
-    font-family: var(--font-heading)
-    font-size: 17px
-    font-weight: 700
-    color: var(--color-primary)
-    font-variant-numeric: tabular-nums
-
-  &__root-meta
-    font-family: var(--font-body)
-    font-size: 10px
-    color: var(--color-text-inactive)
-
-  // Livelli 2 e 3: dorsale verticale fra il centro della prima e dell'ultima voce
-  // (--spine, valore runtime che dipende da quante voci ci sono)
-  &__branches,
-  &__leaves
-    position: relative
-    display: flex
-    flex-direction: column
-    justify-content: space-between
-    gap: 6px
-    flex: 1
-    min-height: 0
-    min-width: 0
-    margin: 0
-    padding: 0 12px 0 26px
-    list-style: none
-
-    &::before
-      content: ''
-      position: absolute
-      left: 0
-      top: var(--spine, 12%)
-      bottom: var(--spine, 12%)
-      width: 1px
-      background: var(--color-border)
-
-    // Raccordo dal livello precedente alla dorsale
-    &::after
-      content: ''
-      position: absolute
-      left: -14px
-      top: 50%
-      width: 14px
-      height: 1px
-      background: var(--color-border)
-
-  &__leaves
-    justify-content: space-around
-
-  &__branch,
-  &__leaf
-    position: relative
-    display: flex
-    align-items: stretch
-    flex: 1
-    min-height: 0
-    min-width: 0
-
-    // Raccordo orizzontale dalla dorsale al nodo
-    &::before
-      content: ''
-      position: absolute
-      left: -26px
-      top: 50%
-      width: 26px
-      height: 1px
-      background: var(--color-border)
-
-  // ── Nodo di decisione (cliccabile) ──────────────────────────────────────────
-  &__node
-    display: flex
-    flex-direction: column
+    align-items: center
     justify-content: center
-    gap: 2px
-    width: 100%
-    min-width: 0
-    padding: 5px 10px
-    border: 1px solid var(--color-border)
-    border-radius: var(--radius-md)
-    background: var(--color-surface)
-    text-align: left
-    cursor: pointer
-    transition: border-color 160ms ease, background 160ms ease
-
-    &:hover
-      border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border))
-      background: var(--color-primary-100)
-
-    // La leva scelta: il bordo pieno la lega ai suoi esiti a destra
-    &--on
-      border-color: var(--color-primary)
-      background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface))
-
-  &__node-bottom
-    display: flex
-    align-items: center
-    gap: 8px
-    min-width: 0
-
-  &__node-lbl
-    min-width: 0
-    font-family: var(--font-heading)
-    font-size: 12px
-    font-weight: 600
-    color: var(--color-primary)
-
-  &__node-meta
-    min-width: 0
-    font-family: var(--font-body)
-    font-size: 10px
-    color: var(--color-text-inactive)
-
-  // ── Esito (foglia): probabilità, effetto, scostamento ───────────────────────
-  // Riquadro tratteggiato: più recessivo del nodo di decisione, perché l'esito non
-  // si sceglie: si subisce.
-  &__leaf
-    // Le foglie non si stirano: sono riquadri compatti distribuiti nell'altezza
-    flex: 0 0 auto
-    align-items: center
-    gap: 8px
-    padding: 5px 9px
-    border: 1px dashed var(--color-border)
-    border-radius: var(--radius-md)
-    background: var(--color-bg)
-
-    &::before
-      border-top: 1px dashed var(--color-border)
-      background: none
-      height: 0
-
-  &__leaf-prob
-    align-self: center
-    flex: none
-    min-width: 40px
-    padding: 1px 6px
-    border-radius: 999px
-    background: color-mix(in srgb, var(--chart-1) 12%, transparent)
-    color: var(--chart-1)
-    font-family: var(--font-heading)
-    font-size: 11px
-    font-weight: 700
-    font-variant-numeric: tabular-nums
+    padding: 0 16px 6vh
     text-align: center
 
-  &__leaf-testi
-    display: flex
-    flex-direction: column
-    gap: 2px
-    justify-content: center
-    min-width: 0
-    flex: 1
+  &__hero-tit
+    margin: 8px 0 6px
+    font-family: 'Poppins', sans-serif
+    font-size: 26px
+    font-weight: 700
+    color: $text-active
 
-  &__leaf-bottom
-    display: flex
-    align-items: center
-    gap: 8px
-    min-width: 0
+  &__hero-sub
+    max-width: 620px
+    margin: 0 0 22px
+    font-size: 14px
+    line-height: 1.5
+    color: $text-inactive
 
-  &__leaf-lbl
-    min-width: 0
-    font-family: var(--font-body)
+  // Albero stilizzato che si disegna all'apertura
+  &__deco
+    width: 170px
+    height: auto
+
+  &__deco-ramo
+    fill: none
+    stroke: $primary-300
+    stroke-width: 2
+    stroke-dasharray: 120
+    stroke-dashoffset: 120
+    animation: dtq-disegna .9s ease-out forwards
+
+    @for $i from 0 through 5
+      &--#{$i}
+        animation-delay: #{0.15 + $i * 0.12}s
+
+  &__deco-radice
+    fill: $primary
+
+  &__deco-nodo
+    fill: $primary-200
+    stroke: $primary
+    stroke-width: 1.5
+
+  &__deco-foglia
+    fill: $primary-50
+    stroke: $primary-300
+    stroke-width: 1.5
+    opacity: 0
+    animation: dtq-appare .4s ease-out forwards
+    animation-delay: .9s
+
+    &--top
+      fill: $accent
+      stroke: $accent
+
+  // ── Suggerimenti ───────────────────────────────────────────────────────────
+  &__sugg
+    width: min(760px, 100%)
+    margin: 0 auto
+    text-align: left
+
+  &__sugg-lbl
+    display: block
+    margin-bottom: 6px
+    font-family: 'Poppins', sans-serif
     font-size: 12px
-    color: var(--color-text)
+    font-weight: 600
+    color: $primary
 
-  &__leaf-meta
-    font-family: var(--font-body)
-    font-size: 10px
-    color: var(--color-text-inactive)
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
-
-  // ── Grafico e numeri ────────────────────────────────────────────────────────
-  &__chart
-    flex: 1
-    min-height: 0
-    min-width: 0
-
-
-  &__figures
-    display: flex
-    flex-direction: column
-    justify-content: space-between
-    flex: 1
-    min-height: 0
+  &__sugg-lista
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 6px
     margin: 0
     padding: 0
     list-style: none
 
-  &__figure
+  &__sugg-btn
     display: flex
     align-items: center
-    justify-content: space-between
     gap: 8px
-    padding: 3px 0
-    border-bottom: 1px solid var(--color-border)
-
-    &:last-child
-      border-bottom: 0
-
-  &__figure-lbl
-    min-width: 0
-    font-family: var(--font-body)
-    font-size: 12px
-    color: var(--color-text-inactive)
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
-
-  &__figure-val
-    font-family: var(--font-heading)
+    width: 100%
+    padding: 8px 12px
+    border: 1px solid $border
+    border-radius: 8px
+    background: var(--color-surface)
+    color: $text-active
+    font: inherit
     font-size: 13px
+    text-align: left
+    cursor: pointer
+    transition: border-color .2s ease, background .2s ease
+
+    i
+      flex: none
+      color: $primary
+      font-size: 12px
+
+    &:hover,
+    &:focus-visible
+      border-color: $primary
+      background: $primary-50
+
+  // ── Attesa ─────────────────────────────────────────────────────────────────
+  &__attesa
+    flex: 1
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 14px
+
+  &__spinner
+    position: relative
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 64px
+    height: 64px
+    color: $primary
+    font-size: 22px
+
+    &::before
+      content: ''
+      position: absolute
+      inset: 0
+      border: 3px solid $primary-100
+      border-top-color: $primary
+      border-radius: 50%
+      animation: dtq-gira .9s linear infinite
+
+  &__attesa-txt
+    font-size: 14px
     font-weight: 600
-    color: var(--color-primary)
+    color: $primary
+    animation: dtq-appare .35s ease both
+
+  // ── Domanda non capita ─────────────────────────────────────────────────────
+  &__noncapita
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 10px
+    padding: 32px 16px
+
+  &__noncapita-ico
+    color: $primary
+    font-size: 28px
+
+  &__noncapita-txt
+    max-width: 640px
+    margin: 0 0 10px
+    font-size: 14px
+    font-weight: 600
+    color: $text-active
+    text-align: center
+
+  // ── BI della risposta ──────────────────────────────────────────────────────
+  &__bi
+    flex: 1
+    min-height: 0
+    display: grid
+    grid-template-rows: auto auto minmax(0, 1fr)
+    gap: 12px
+    animation: dtq-appare .4s ease both
+
+  &__risposta-tit
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-size: 18px
+    font-weight: 700
+    color: $text-active
+
+  &__risposta-sub
+    margin: 2px 0 0
+    font-size: 13px
+    color: $text-inactive
+
+  &__capita
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+    margin: 6px 0 0
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    white-space: nowrap
+
+    i
+      flex: none
+
+  &__capita-sep
+    color: $border
+
+  &__capita-ambito
+    min-width: 0
+    font-weight: 500
+    color: $text-inactive
+
+  &__kpi
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 12px
+
+  &__griglia
+    min-height: 0
+    display: grid
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr)
+    gap: 12px
+
+  &__card
+    min-height: 0
+
+  &__card-body
+    min-height: 0
+
+  // ── Albero ─────────────────────────────────────────────────────────────────
+  &__albero
+    position: relative
+    height: 100%
+    min-height: 0
+    display: grid
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr) minmax(0, 1.1fr)
+    column-gap: 44px
+    align-items: stretch
+
+  &__linee
+    position: absolute
+    top: 0
+    left: 0
+    pointer-events: none
+    overflow: visible
+
+  &__linea
+    fill: none
+    stroke: $border
+    stroke-width: 1.5
+    transition: stroke .25s ease
+
+    &--on
+      stroke: $primary
+      stroke-width: 2.5
+
+  &__col
+    position: relative
+    min-height: 0
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 6px
+
+  &__radice
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 4px
+    padding: 12px
+    border: 2px solid $primary
+    border-radius: 10px
+    background: var(--color-surface)
+
+  &__radice-lbl
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__radice-val
+    font-family: 'Poppins', sans-serif
+    font-size: 20px
+    font-weight: 700
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+  &__radice-ambito
+    max-width: 100%
+    font-size: 11px
+    color: $text-inactive
+
+  &__nodo
+    display: flex
+    flex-direction: column
+    gap: 3px
+    min-height: 0
+    width: 100%
+    padding: 6px 10px
+    border: 1px solid $border
+    border-radius: 8px
+    background: var(--color-surface)
+    font: inherit
+    text-align: left
+    animation: dtq-appare .35s ease both
+
+    &--l2
+      animation-delay: .15s
+
+  button.dtq__nodo
+    cursor: pointer
+    transition: border-color .2s ease, box-shadow .2s ease
+
+    &:hover
+      border-color: $primary-300
+
+  &__nodo--attivo
+    border-color: $primary
+    box-shadow: $shadow-lg
+
+  &__nodo--migliore
+    border-color: $primary
+    background: $primary-50
+
+  &__nodo-top,
+  &__nodo-bot
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+  &__nodo-bot
+    justify-content: space-between
+
+  &__nodo-stella
+    flex: none
+    color: $accent
+    font-size: 11px
+
+  &__nodo-nome
+    flex: 1
+    min-width: 0
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+
+  &__nodo-quota
+    flex: none
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    font-variant-numeric: tabular-nums
+
+  &__nodo-val
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
     font-variant-numeric: tabular-nums
     white-space: nowrap
 
-// ── Compattazione su larghezze da laptop ──────────────────────────────────────
-@container bi-page (max-width: 1180px)
-  .dt
-    &__filter
-      width: 138px
+  &__nodo-barra
+    display: block
+    width: 100%
+    height: 3px
 
-      &--wide
-        width: 176px
+  &__nodo-barra-fondo
+    fill: $primary-100
 
-    &__note
-      display: none
+  &__nodo-barra-val
+    fill: $primary
 
-    &__tree
-      grid-template-columns: 132px minmax(0, 1fr) minmax(0, 1.05fr)
+// Laptop con sidebar aperta: suggerimenti su una colonna, albero più stretto
+@container dtq (max-width: 1100px)
+  .dtq__sugg-lista
+    grid-template-columns: minmax(0, 1fr)
 
-    &__root-val
-      font-size: 15px
+  .dtq__griglia
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
 
+  .dtq__albero
+    column-gap: 28px
+
+  .dtq__kpi
+    gap: 8px
+
+// Schermi bassi (laptop 720–820px): nodi su una riga sola, così 6 rami stanno
+// nella card senza sovrapporsi e la pagina resta in una schermata
 @media (max-height: 820px)
-  .dt
-    &__figure
-      padding: 2px 0
+  .dtq__nodo
+    flex-direction: row
+    align-items: center
+    gap: 8px
+    padding: 4px 8px
 
-    &__branches,
-    &__leaves
-      gap: 4px
+  .dtq__nodo-top
+    flex: 1
+    min-width: 0
+
+  .dtq__nodo-bot
+    flex: none
+    gap: 6px
+
+  // Restano nome e valore: quota e variazione sono nel grafico e nei KPI
+  .dtq__nodo-barra,
+  .dtq__nodo-quota,
+  .dtq__nodo-bot .delta-badge
+    display: none
+
+  .dtq__albero
+    column-gap: 28px
+
+  .dtq__nodo-val
+    font-size: 12px
+
+  .dtq__col
+    gap: 4px
+
+  .dtq__radice-val
+    font-size: 17px
+
+  .dtq__bi
+    gap: 8px
+
+.dtq__radice-val
+  white-space: nowrap
+
+@keyframes dtq-disegna
+  to
+    stroke-dashoffset: 0
+
+@keyframes dtq-appare
+  from
+    opacity: 0
+    transform: translateY(4px)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes dtq-gira
+  to
+    transform: rotate(360deg)
+
+@media (prefers-reduced-motion: reduce)
+  .dtq__deco-ramo,
+  .dtq__deco-foglia,
+  .dtq__nodo,
+  .dtq__bi,
+  .dtq__attesa-txt
+    animation: none
+    opacity: 1
+    stroke-dashoffset: 0
+
+  .dtq__spinner::before
+    animation-duration: 2.5s

@@ -1,243 +1,375 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
-  Bar, BarChart, CartesianGrid, Cell, LabelList, ReferenceLine,
-  ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis,
+  Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis,
 } from 'recharts'
-import { SelectField } from '../../../core/components/form'
+import PageHead from '../../../core/components/PageHead'
+import { SearchField } from '../../../core/components/form'
 import TruncatedText from '../../../core/components/TruncatedText'
 import {
-  ANIM, BiPage, ChartCard, ChartTooltip, DeltaBadge, barEndLabel,
-  CHART, fmtEur, fmtEurK, fmtPct, gridProps, reducedMotion, series, yAxisProps,
+  ANIM, CHART, ChartCard, ChartTooltip, DeltaBadge, KpiTile, fmtAxisNum, gridProps, reducedMotion, series,
 } from '../../../core/bi'
-import { apiFetchSibylla } from '../../../services/api'
-import { buildFinance, computeDecisioni, type FinanceData } from '../_data/financeMock'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import {
+  DIMENSIONI, METRICHE, calcola, delta, formatta, interpreta,
+  type Fonte, type Nodo, type Risposta,
+} from './dtMotore'
 import './DecisionTree.sass'
-import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── DECISION TREE ──────────────────────────────────────────────────────────────
-//  Le leve di gestione messe a confronto per VALORE ATTESO, non per caso migliore.
-//    • albero a tre livelli: la domanda, le quattro decisioni possibili, gli esiti di
-//      quella selezionata con la rispettiva probabilità
-//    • valore atteso per decisione: la somma degli esiti pesati sulle probabilità
-//    • esposizione della decisione scelta: caso migliore, caso peggiore, probabilità
-//      di migliorare il margine
-//  Gli esiti escono dallo STESSO motore di simulazione di WIF analysis
-//  (`applyScenario` in `finance/_data/financeMock`): niente numeri paralleli.
-//  Deroga consapevole: qui non c'è la fascia KPI, perché la pagina è una sola
-//  domanda con le sue risposte e l'albero ha bisogno di tutta l'altezza.
+//  Pagina bianca con una search bar al centro: l'utente scrive una domanda sui
+//  dati ("qual è la camera che fa più margine?") e Sibylla costruisce una BI
+//  dedicata: risposta, KPI, albero (domanda → primo livello → secondo livello,
+//  col percorso migliore evidenziato) e grafico con il confronto sull'anno prima.
+//  L'interprete è Claude Haiku 5.5 via /api/decision-tree (chiave solo sul
+//  server); senza chiave, o in sviluppo, l'interprete locale. I numeri li
+//  calcola sempre `dtMotore` dai dati di Sibylla.
+
+type Stato =
+  | { tipo: 'vuota' }
+  | { tipo: 'pensa'; domanda: string }
+  | { tipo: 'risposta'; domanda: string; risposta: Risposta; fonte: Fonte }
+  | { tipo: 'noncapita'; domanda: string; nota: string; fonte: Fonte }
+
+const PASSI_ATTESA = ['Leggo la domanda…', 'Interrogo Sales & Marketing e Finance…', 'Costruisco la risposta…']
+const ATTESA_MIN_MS = 1200
 
 export default function DecisionTree({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  // Parte dalla struttura selezionata in alto e la segue.
-  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
-  const [anno, setAnno] = useState(2026)
-  const [scelta, setScelta] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [remoto, setRemoto] = useState<Partial<FinanceData> | null>(null)
+  const { elenco: elencoOrg, struttura } = useStrutturaCorrente()
+  const elenco = useMemo(() => (elencoOrg.length ? elencoOrg : [struttura]), [elencoOrg, struttura])
+  const [testo, setTesto] = useState('')
+  const [stato, setStato] = useState<Stato>({ tipo: 'vuota' })
+  const [passo, setPasso] = useState(0)
+  const corrente = useRef(0)
 
-  const mock = useMemo(() => buildFinance(anno, strutturaId), [anno, strutturaId])
-  const data: FinanceData = useMemo(() => ({ ...mock, ...(remoto ?? {}) }), [mock, remoto])
-  const kpi = useMemo(() => computeDecisioni(data), [data])
+  const suggerimenti = useMemo(() => {
+    const altra = elenco[1] ?? elenco[0]
+    return [
+      'Qual è la camera che sta generando più margine?',
+      `Come stanno andando le vendite corporate di ${altra}?`,
+      elenco.length > 1 ? "Quale struttura fa più utile rispetto all'anno scorso?" : "Quale segmento fa più utile rispetto all'anno scorso?",
+      'Dove perdo margine con i tour operator?',
+      'Quale segmento ha il prezzo medio più alto?',
+      'Quante notti vendiamo per tipologia di camera?',
+    ]
+  }, [elenco])
 
+  const chiedi = useCallback(async (domanda: string) => {
+    const q = domanda.trim()
+    if (!q) return
+    setTesto(q)
+    const id = ++corrente.current
+    setStato({ tipo: 'pensa', domanda: q })
+    setPasso(0)
+    const [esito] = await Promise.all([
+      interpreta(q, elenco),
+      new Promise(r => window.setTimeout(r, reducedMotion() ? 0 : ATTESA_MIN_MS)),
+    ])
+    if (id !== corrente.current) return
+    const { piano, fonte } = esito
+    if (!piano.comprensibile) setStato({ tipo: 'noncapita', domanda: q, nota: piano.nota, fonte })
+    else setStato({ tipo: 'risposta', domanda: q, risposta: calcola(piano, elenco), fonte })
+  }, [elenco])
+
+  // Passi dell'attesa ("spinnerino di Sibilla")
   useEffect(() => {
-    let annullato = false
-    setLoading(true)
-    apiFetchSibylla<Partial<FinanceData>>('finance/GetContoEconomico', {
-      method: 'POST',
-      body: { strutturaId, anno },
-    })
-      .then((d) => { if (!annullato && d) setRemoto(d) })
-      .catch(() => { if (!annullato) setRemoto(null) })
-      .finally(() => { if (!annullato) setLoading(false) })
-    return () => { annullato = true }
-  }, [strutturaId, anno])
+    if (stato.tipo !== 'pensa') return
+    const t = window.setInterval(() => setPasso(p => Math.min(p + 1, PASSI_ATTESA.length - 1)), 450)
+    return () => window.clearInterval(t)
+  }, [stato.tipo])
 
-  const still = reducedMotion()
+  // Cambia la struttura in alto: la risposta si ricalcola sullo stesso piano
+  useEffect(() => {
+    setStato(s => (s.tipo === 'risposta' ? { ...s, risposta: calcola(s.risposta.piano, elenco) } : s))
+  }, [elenco])
 
-  // Senza scelta esplicita si mostra la decisione col valore atteso più alto: la
-  // pagina apre già su una risposta, non su un elenco da interpretare.
-  const attiva = useMemo(
-    () => kpi.decisioni.find((d) => d.key === scelta) ?? kpi.decisioni[0] ?? null,
-    [kpi, scelta],
+  const vuota = stato.tipo === 'vuota'
+  const ricomincia = () => { corrente.current++; setTesto(''); setStato({ tipo: 'vuota' }) }
+
+  const barra = (
+    <form className={`dtq__barra ${vuota ? 'dtq__barra--grande' : ''}`} role="search"
+      onSubmit={e => { e.preventDefault(); chiedi(testo) }}>
+      <SearchField
+        name="dtq-domanda"
+        value={testo}
+        placeholder="Fai una domanda sui tuoi dati, ad esempio: qual è la camera che fa più margine?"
+        loading={stato.tipo === 'pensa'}
+        onChange={e => setTesto(e.target.value)}
+        onSearch={v => chiedi(v)}
+        onClear={() => setTesto('')}
+        className="dtq__search"
+      />
+      <button type="submit" className="sib-btn sib-btn--primary dtq__chiedi" disabled={!testo.trim() || stato.tipo === 'pensa'}>
+        <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" /> Chiedi a Sibylla
+      </button>
+    </form>
   )
 
-  // Scala simmetrica: guadagno e perdita di margine pesano visivamente uguale
-  const scalaValori = useMemo(() => {
-    const estremo = Math.max(...kpi.decisioni.map((d) => Math.abs(d.valoreAtteso)), 1) * 1.9
-    return [-estremo, estremo] as [number, number]
-  }, [kpi])
-
   return (
-    <BiPage
-      title="Decision tree"
-      subtitle={`Quale leva conviene muovere nel ${data.anno}: esiti, probabilità e valore atteso`}
-      glossary={['GOP', 'ADR', 'occupazione', 'costiFissi', 'costiVariabili', 'delta']}
-      dataAt={data.aggiornatoAl}
-      loading={loading}
-      onRefresh={() => setRemoto(null)}
-      gridClassName="dt__grid"
-      toolbar={(
+    <div className={`dtq ${vuota ? 'dtq--vuota' : ''}`}>
+      <PageHead
+        title="Decision tree"
+        subtitle="Fai una domanda sui tuoi dati: Sibylla costruisce la risposta"
+        actions={!vuota ? (
+          <button type="button" className="sib-btn sib-btn--ghost" onClick={ricomincia}>
+            <i className="fa-solid fa-plus" aria-hidden="true" /> Nuova domanda
+          </button>
+        ) : undefined}
+      />
+
+      {vuota ? (
+        <section className="dtq__hero">
+          <AlberoDecorativo />
+          <h2 className="dtq__hero-tit">Cosa vuoi sapere?</h2>
+          <p className="dtq__hero-sub">
+            Chiedi come vanno vendite, margini, utile, notti o prezzo medio per struttura, tipologia di camera o segmento:
+            Sibylla interroga i dati e ti risponde con l'albero e i grafici.
+          </p>
+          {barra}
+          <Suggerimenti voci={suggerimenti} onScegli={chiedi} />
+        </section>
+      ) : (
         <>
-          <SelectField
-            name="struttura" label="Struttura"
-            value={strutturaId ?? ''}
-            onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
-            options={[
-              { value: '', label: 'Tutte le strutture' },
-              ...data.strutture.map((s) => ({ value: s.id, label: s.nome })),
-            ]}
-            className="dt__filter dt__filter--wide"
-          />
-          <SelectField
-            name="anno" label="Anno" value={anno}
-            onChange={(e) => setAnno(Number(e.target.value))}
-            options={[2024, 2025, 2026].map((a) => ({ value: a, label: String(a) }))}
-            className="dt__filter"
-          />
-          <span className="dt__note">
-            <i className="fa-solid fa-diagram-project" aria-hidden="true" />
-            Valore atteso più alto: {kpi.migliore?.label ?? '—'}
-            {kpi.migliore && ` (${fmtEurK(kpi.migliore.valoreAtteso)} di margine)`}
-          </span>
+          {barra}
+          {stato.tipo === 'pensa' && <Attesa passo={passo} />}
+          {stato.tipo === 'noncapita' && (
+            <section className="dtq__noncapita">
+              <i className="fa-solid fa-circle-question dtq__noncapita-ico" aria-hidden="true" />
+              <p className="dtq__noncapita-txt">{stato.nota}</p>
+              <Suggerimenti voci={suggerimenti} onScegli={chiedi} />
+            </section>
+          )}
+          {stato.tipo === 'risposta' && <Bi risposta={stato.risposta} fonte={stato.fonte} />}
         </>
       )}
-    >
-      {/* ── Albero delle decisioni ───────────────────────────────────────── */}
-      <ChartCard
-        className="dt__albero"
-        index={0}
-        title="Albero delle decisioni"
-        subtitle="Scegli una leva a sinistra: a destra compaiono gli esiti possibili con la loro probabilità"
-        badge={`base ${fmtEurK(kpi.gopBase)}`}
-        footer={attiva
-          ? `${attiva.label}: ${attiva.ipotesi}. Valore atteso ${fmtEurK(attiva.valoreAtteso)} di margine, con ${fmtPct(attiva.probMiglioramento, 0)} di probabilità di migliorare.`
-          : undefined}
-      >
-        <div className="dt__tree">
-          {/* Livello 1: la domanda e il punto di partenza */}
-          <div className="dt__root">
-            <span className="dt__root-lbl">Come recuperare margine?</span>
-            <span className="dt__root-val">{fmtEurK(kpi.gopBase)}</span>
-            <span className="dt__root-meta">margine attuale</span>
-          </div>
+    </div>
+  )
+}
 
-          {/* Livello 2: le decisioni. La riga di collegamento è verticale fra il
-              centro della prima e dell'ultima voce: --spine è quella distanza. */}
-          <ul
-            className="dt__branches"
-            style={{ ['--spine' as any]: `${100 / (kpi.decisioni.length * 2)}%` }}
-          >
-            {kpi.decisioni.map((d) => (
-              <li className="dt__branch" key={d.key}>
-                <button
-                  type="button"
-                  className={`dt__node ${d.key === attiva?.key ? 'dt__node--on' : ''}`}
-                  onClick={() => setScelta(d.key)}
-                  aria-pressed={d.key === attiva?.key}
-                >
-                  {/* Etichetta su una riga intera: il valore atteso va sotto, così il
-                      nome della leva non viene troncato dal badge. */}
-                  <TruncatedText text={d.label} className="dt__node-lbl" />
-                  <span className="dt__node-bottom">
-                    <DeltaBadge value={d.valoreAtteso} label={fmtEurK(d.valoreAtteso)} size="sm" />
-                    <TruncatedText text={d.descrizione} className="dt__node-meta" />
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+// ── Componenti della pagina ──────────────────────────────────────────────────
 
-          {/* Livello 3: gli esiti della decisione attiva */}
-          <ul
-            className="dt__leaves"
-            style={{ ['--spine' as any]: `${100 / ((attiva?.esiti.length ?? 1) * 2)}%` }}
-          >
-            {(attiva?.esiti ?? []).map((e) => (
-              <li className="dt__leaf" key={e.key}>
-                <span className="dt__leaf-prob">{fmtPct(e.probabilita, 0)}</span>
-                <span className="dt__leaf-testi">
-                  <TruncatedText text={e.label} className="dt__leaf-lbl" />
-                  <span className="dt__leaf-bottom">
-                    <DeltaBadge value={e.delta} label={fmtEurK(e.delta)} size="sm" />
-                    <span className="dt__leaf-meta">margine {fmtEurK(e.gop)}</span>
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
+function Suggerimenti({ voci, onScegli }: { voci: string[]; onScegli: (q: string) => void }) {
+  return (
+    <div className="dtq__sugg">
+      <span className="dtq__sugg-lbl">Prova a chiedere</span>
+      <ul className="dtq__sugg-lista">
+        {voci.map(v => (
+          <li key={v}>
+            <button type="button" className="dtq__sugg-btn" onClick={() => onScegli(v)}>
+              <i className="fa-solid fa-arrow-turn-down-right" aria-hidden="true" />
+              <TruncatedText text={v} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function Attesa({ passo }: { passo: number }) {
+  return (
+    <div className="dtq__attesa" role="status" aria-live="polite">
+      <span className="dtq__spinner" aria-hidden="true">
+        <i className="fa-solid fa-diagram-project" />
+      </span>
+      <span className="dtq__attesa-txt" key={passo}>{PASSI_ATTESA[passo]}</span>
+    </div>
+  )
+}
+
+/** Albero stilizzato della pagina vuota: dice "qui nascono gli alberi". */
+function AlberoDecorativo() {
+  const foglie = [[150, 22], [150, 62], [150, 102], [150, 142]]
+  return (
+    <svg className="dtq__deco" viewBox="0 0 200 164" aria-hidden="true">
+      {[52, 112].map((y, i) => (
+        <path key={y} d={`M38,82 C70,82 66,${y} 96,${y}`} className={`dtq__deco-ramo dtq__deco-ramo--${i}`} />
+      ))}
+      {foglie.map(([x, y], i) => (
+        <path key={y} d={`M104,${i < 2 ? 52 : 112} C128,${i < 2 ? 52 : 112} 124,${y} ${x - 8},${y}`} className={`dtq__deco-ramo dtq__deco-ramo--${2 + i}`} />
+      ))}
+      <circle cx={30} cy={82} r={9} className="dtq__deco-radice" />
+      {[52, 112].map(y => <rect key={y} x={96} y={y - 7} width={16} height={14} rx={3} className="dtq__deco-nodo" />)}
+      {foglie.map(([x, y], i) => <rect key={y} x={x - 8} y={y - 6} width={44} height={12} rx={3} className={`dtq__deco-foglia ${i === 1 ? 'dtq__deco-foglia--top' : ''}`} />)}
+    </svg>
+  )
+}
+
+function Bi({ risposta: r, fonte }: { risposta: Risposta; fonte: Fonte }) {
+  const p = r.piano
+  const met = METRICHE[p.metrica]
+  const fmt = formatta(p.metrica)
+  const foglia = p.dimensioni[p.dimensioni.length - 1]
+  const quota = r.migliore && met.additiva && r.totale ? (r.migliore.valore / r.totale) * 100 : null
+  const scarto = r.migliore && !met.additiva && r.totale ? delta(r.migliore.valore, r.totale) : null
+
+  return (
+    <div className="dtq__bi">
+      <header className="dtq__risposta">
+        <h2 className="dtq__risposta-tit">{r.titolo}</h2>
+        <p className="dtq__risposta-sub">{r.sintesi}</p>
+        <p className="dtq__capita">
+          <i className={`fa-solid ${fonte === 'ai' ? 'fa-wand-magic-sparkles' : 'fa-gears'}`} aria-hidden="true" />
+          {fonte === 'ai' ? 'Interpretata dall’AI di Sibylla' : 'Interpretata da Sibylla'}
+          <span className="dtq__capita-sep">·</span>{met.nome}
+          <span className="dtq__capita-sep">·</span>{p.dimensioni.map(d => DIMENSIONI[d].nome).join(' › ')}
+          <span className="dtq__capita-sep">·</span><TruncatedText text={r.ambito} className="dtq__capita-ambito" />
+        </p>
+      </header>
+
+      <div className="dtq__kpi">
+        <KpiTile index={0} label={`${met.nome} ${p.anno}`} value={r.totale} format={fmt}
+          delta={delta(r.totale, r.totalePrec)} invertDelta={met.inversa} icon="fa-chart-column" info={`Variazione sul ${p.anno - 1}`} />
+        <KpiTile index={1} label={`${met.nome} ${p.anno - 1}`} value={r.totalePrec} format={fmt} icon="fa-clock-rotate-left" />
+        <KpiTile index={2} label={foglia ? `${p.ordine === 'asc' ? 'In coda' : 'In testa'}: ${r.migliore?.nome ?? '—'}` : 'Migliore'}
+          value={r.migliore?.valore ?? 0} format={fmt}
+          delta={r.migliore ? delta(r.migliore.valore, r.migliore.prec) : undefined}
+          invertDelta={met.inversa} icon="fa-trophy" info={`Su tutto l'ambito della domanda; variazione sul ${p.anno - 1}`} />
+        {quota !== null
+          ? <KpiTile index={3} label={`Quota di ${r.migliore?.nome ?? ''} sul totale`} value={quota} format={n => `${n.toLocaleString('it-IT', { maximumFractionDigits: 1 })}%`} icon="fa-chart-pie" />
+          : <KpiTile index={3} label="Scarto dalla media" value={scarto ?? 0} format={n => `${n >= 0 ? '+' : '−'}${Math.abs(n).toLocaleString('it-IT', { maximumFractionDigits: 1 })}%`} icon="fa-scale-balanced" />}
+      </div>
+
+      <div className="dtq__griglia">
+        <ChartCard index={0} className="dtq__card" bodyClassName="dtq__card-body"
+          title="Albero della risposta"
+          subtitle={`${p.dimensioni.map(d => DIMENSIONI[d].nome).join(' › ')}: clicca un ramo per vederne il dettaglio`}
+          badge={p.ordine === 'asc' ? 'dal più basso' : 'dal più alto'}>
+          <Albero risposta={r} />
+        </ChartCard>
+        <ChartCard index={1} className="dtq__card" bodyClassName="dtq__card-body"
+          title={foglia ? `${met.nome} per ${DIMENSIONI[foglia].nome.toLowerCase()}` : met.nome}
+          subtitle={`${p.anno} a confronto con il ${p.anno - 1}`}
+          legend={[{ key: 'valore', name: String(p.anno), color: series(0) }, { key: 'prec', name: String(p.anno - 1), color: CHART.ly }]}>
+          <Grafico risposta={r} />
+        </ChartCard>
+      </div>
+    </div>
+  )
+}
+
+function Grafico({ risposta: r }: { risposta: Risposta }) {
+  const fmt = formatta(r.piano.metrica)
+  const anim = !reducedMotion()
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={r.voci} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 4 }} barGap={2} barCategoryGap="22%">
+        <CartesianGrid {...gridProps} horizontal={false} vertical />
+        <XAxis type="number" tick={{ fontSize: 11, fill: CHART.inkMuted }} tickLine={false} axisLine={{ stroke: CHART.axis }} tickFormatter={fmtAxisNum} />
+        <YAxis type="category" dataKey="nome" width={118} tick={{ fontSize: 11, fill: CHART.ink }} tickLine={false} axisLine={false} interval={0} />
+        <RTooltip cursor={{ fill: CHART.grid }}
+          content={<ChartTooltip names={{ valore: String(r.piano.anno), prec: String(r.piano.anno - 1) }} format={v => fmt(v)} />} />
+        <Bar dataKey="valore" fill={series(0)} radius={[0, 3, 3, 0]} isAnimationActive={anim} animationDuration={ANIM.duration} animationBegin={ANIM.begin(0)} />
+        <Bar dataKey="prec" fill={CHART.ly} radius={[0, 3, 3, 0]} isAnimationActive={anim} animationDuration={ANIM.duration} animationBegin={ANIM.begin(1)} />
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+
+/** "Hotel Siracusa" → "Siracusa": nei nodi dell'albero conta il nome proprio (il completo è nel tooltip). */
+const nomeBreve = (s: string) => s.replace(/^(hotel|resort|albergo|relais|villa)\s+/i, '')
+
+// ── Albero con i collegamenti disegnati in SVG fra le card ───────────────────
+function Albero({ risposta: r }: { risposta: Risposta }) {
+  const radice = r.radice
+  const [scelto, setScelto] = useState<string | null>(null)
+  const attivo = radice.figli.find(n => n.id === scelto) ?? radice.figli.find(n => n.migliore) ?? radice.figli[0]
+  useEffect(() => { setScelto(null) }, [r])
+
+  const box = useRef<HTMLDivElement>(null)
+  const nodi = useRef(new Map<string, HTMLElement>())
+  const [linee, setLinee] = useState<{ d: string; on: boolean }[]>([])
+  const [dim, setDim] = useState({ w: 0, h: 0 })
+
+  const misura = useCallback(() => {
+    const b = box.current
+    if (!b) return
+    const bb = b.getBoundingClientRect()
+    const pos = (id: string, lato: 'dx' | 'sx') => {
+      const el = nodi.current.get(id)
+      if (!el) return null
+      const q = el.getBoundingClientRect()
+      return { x: (lato === 'dx' ? q.right : q.left) - bb.left, y: q.top + q.height / 2 - bb.top }
+    }
+    const curva = (a: { x: number; y: number }, z: { x: number; y: number }) => {
+      const m = (a.x + z.x) / 2
+      return `M${a.x},${a.y} C${m},${a.y} ${m},${z.y} ${z.x},${z.y}`
+    }
+    const out: { d: string; on: boolean }[] = []
+    const a = pos('radice', 'dx')
+    radice.figli.forEach(n => {
+      const z = pos(n.id, 'sx')
+      if (a && z) out.push({ d: curva(a, z), on: n.id === attivo?.id })
+    })
+    const a2 = attivo && pos(attivo.id, 'dx')
+    attivo?.figli.forEach(n => {
+      const z = pos(n.id, 'sx')
+      if (a2 && z) out.push({ d: curva(a2, z), on: n.migliore })
+    })
+    setLinee(out)
+    setDim({ w: bb.width, h: bb.height })
+  }, [radice, attivo])
+
+  useLayoutEffect(() => { misura() }, [misura])
+  useEffect(() => {
+    const b = box.current
+    if (!b || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => misura())
+    ro.observe(b)
+    return () => ro.disconnect()
+  }, [misura])
+
+  const reg = (id: string) => (el: HTMLElement | null) => { if (el) nodi.current.set(id, el); else nodi.current.delete(id) }
+  const met = METRICHE[r.piano.metrica]
+  const fmt = formatta(r.piano.metrica)
+
+  const card = (n: Nodo, livello: 1 | 2, onClick?: () => void) => {
+    const d = delta(n.valore, n.prec)
+    const contenuto = (
+      <>
+        <span className="dtq__nodo-top">
+          {n.migliore && <i className="fa-solid fa-star dtq__nodo-stella" aria-label="Percorso migliore" />}
+          <TruncatedText text={n.dim === 'struttura' ? nomeBreve(n.nome) : n.nome} full={n.nome} className="dtq__nodo-nome" />
+          {n.quota !== null && <span className="dtq__nodo-quota">{Math.round(n.quota * 100)}%</span>}
+        </span>
+        <span className="dtq__nodo-bot">
+          <span className="dtq__nodo-val">{fmt(n.valore)}</span>
+          <DeltaBadge value={Math.round(d * 10) / 10} size="sm" invert={met.inversa} />
+        </span>
+        {n.quota !== null && (
+          <svg className="dtq__nodo-barra" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+            <rect x={0} y={0} width={100} height={4} className="dtq__nodo-barra-fondo" />
+            <rect x={0} y={0} width={Math.max(1, Math.min(100, n.quota * 100))} height={4} className="dtq__nodo-barra-val" />
+          </svg>
+        )}
+      </>
+    )
+    const cls = `dtq__nodo dtq__nodo--l${livello} ${n.migliore ? 'dtq__nodo--migliore' : ''} ${onClick && n.id === attivo?.id ? 'dtq__nodo--attivo' : ''}`
+    return onClick
+      ? <button key={n.id} type="button" ref={reg(n.id)} className={cls} onClick={onClick} aria-pressed={n.id === attivo?.id}>{contenuto}</button>
+      : <div key={n.id} ref={reg(n.id)} className={cls}>{contenuto}</div>
+  }
+
+  return (
+    <div className="dtq__albero" ref={box}>
+      <svg className="dtq__linee" width={dim.w} height={dim.h} aria-hidden="true">
+        {linee.map((l, i) => <path key={i} d={l.d} className={`dtq__linea ${l.on ? 'dtq__linea--on' : ''}`} />)}
+      </svg>
+      <div className="dtq__col dtq__col--radice">
+        <div ref={reg('radice')} className="dtq__radice">
+          <span className="dtq__radice-lbl">{met.nome} {r.piano.anno}</span>
+          <span className="dtq__radice-val">{fmt(radice.valore)}</span>
+          <DeltaBadge value={Math.round(delta(radice.valore, radice.prec) * 10) / 10} size="sm" invert={met.inversa} />
+          <TruncatedText text={r.ambito} className="dtq__radice-ambito" />
         </div>
-      </ChartCard>
-
-      {/* ── Valore atteso ────────────────────────────────────────────────── */}
-      <ChartCard
-        className="dt__valori"
-        index={1}
-        title="Valore atteso per decisione"
-        subtitle="Esiti pesati sulle probabilità, non il caso migliore"
-        footer="Il caso migliore di una leva può essere alto e il suo valore atteso basso: conta la probabilità con cui si verifica."
-      >
-        <div className="dt__chart">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={kpi.decisioni} layout="vertical"
-              margin={{ top: 2, right: 6, left: 6, bottom: 0 }} barCategoryGap="24%"
-            >
-              <CartesianGrid {...gridProps} horizontal={false} vertical />
-              <XAxis type="number" hide domain={scalaValori} />
-              <YAxis
-                type="category" dataKey="breve" {...yAxisProps} width={78} interval={0}
-                tick={{ fontSize: 11, fill: CHART.ink }}
-              />
-              <RTooltip
-                cursor={{ fill: 'transparent' }}
-                content={<ChartTooltip names={{ valoreAtteso: 'Valore atteso' }} format={(v) => fmtEur(v, 0)} />}
-              />
-              {/* Lo zero è "non muovere nulla": sotto, la leva distrugge margine */}
-              <ReferenceLine x={0} stroke={CHART.axis} />
-              <Bar
-                dataKey="valoreAtteso" radius={[0, 3, 3, 0]} maxBarSize={16}
-                isAnimationActive={!still}
-                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
-              >
-                {kpi.decisioni.map((d) => (
-                  <Cell key={d.key} fill={d.valoreAtteso >= 0 ? series(0) : CHART.bad} />
-                ))}
-                <LabelList dataKey="valoreAtteso" content={barEndLabel()} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+      </div>
+      <div className="dtq__col">
+        {radice.figli.map(n => card(n, 1, n.figli.length ? () => setScelto(n.id) : undefined))}
+      </div>
+      {attivo && attivo.figli.length > 0 && (
+        <div className="dtq__col">
+          {attivo.figli.map(n => card(n, 2))}
         </div>
-      </ChartCard>
-
-      {/* ── Esposizione della decisione scelta ───────────────────────────── */}
-      <ChartCard
-        className="dt__esp"
-        index={2}
-        title="Esposizione della leva scelta"
-        subtitle={attiva?.label ?? '—'}
-      >
-        <ul className="dt__figures">
-          <li className="dt__figure">
-            <span className="dt__figure-lbl">Valore atteso</span>
-            <span className="dt__figure-val">{fmtEurK(attiva?.valoreAtteso ?? 0)}</span>
-          </li>
-          <li className="dt__figure">
-            <span className="dt__figure-lbl">Caso migliore</span>
-            <span className="dt__figure-val">{fmtEurK(attiva?.migliore ?? 0)}</span>
-          </li>
-          <li className="dt__figure">
-            <span className="dt__figure-lbl">Caso peggiore</span>
-            <span className="dt__figure-val">{fmtEurK(attiva?.peggiore ?? 0)}</span>
-          </li>
-          <li className="dt__figure">
-            <span className="dt__figure-lbl">Probabilità di migliorare</span>
-            <span className="dt__figure-val">{fmtPct(attiva?.probMiglioramento ?? 0, 0)}</span>
-          </li>
-          <li className="dt__figure">
-            <span className="dt__figure-lbl">Margine di partenza</span>
-            <span className="dt__figure-val">{fmtEurK(kpi.gopBase)}</span>
-          </li>
-        </ul>
-      </ChartCard>
-    </BiPage>
+      )}
+    </div>
   )
 }
