@@ -1681,6 +1681,7 @@
     gap: .6em
     // Mai più alta dello schermo meno testata e navigazione (9:16 → 16/9 della larghezza)
     max-height: calc(100cqw * 16 / 9 - 14em)
+    overflow-y: auto
     padding: .55em .8em
     background: var(--color-surface)
     border-radius: 0 0 1.1em 1.1em
@@ -1746,35 +1747,7 @@
   &__g-barra &__g-voce--on &__g-blob::before
     border-width: 3px
 
-  // ── Ricerca per parametri (si apre dalla barra) ─────────────────────
-  &__g-cerca
-    display: flex
-    flex-direction: column
-    min-height: 0
-    gap: .5em
-    padding: .4em 0 .3em
-    border-top: 1px solid $border
-    overflow-y: auto
-
-  // In testa alla pagina categoria: card bianca, filtra dal vivo
-  &__g-cerca--pagina
-    padding: .9em 1em 1em
-    border-top: 0
-    border-radius: 1.1em
-    background: var(--color-surface)
-    box-shadow: 0 .25em 1em rgba(30, 27, 22, .08)
-    overflow: visible
-
-  &__g-passi
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: .8em
-
-    > span
-      display: flex
-      flex-direction: column
-      gap: .3em
-
+  // Elenco senza risultati (ricerca in SnwRicerca)
   &__g-nessuno
     display: flex
     align-items: center
@@ -1782,68 +1755,6 @@
     margin: 0
     font-size: .9em
     color: $text-inactive
-
-  &__g-lbl
-    margin-top: .2em
-    font-family: 'Poppins', sans-serif
-    font-size: .75em
-    font-weight: 700
-    color: $primary
-
-  &__g-scelte
-    display: flex
-    flex-wrap: wrap
-    gap: .4em
-
-    &--scorre
-      flex-wrap: nowrap
-      overflow-x: auto
-      scrollbar-width: none
-
-      &::-webkit-scrollbar
-        display: none
-
-  &__g-cerca &__g-scelta
-    display: inline-flex
-    flex: none
-    align-items: center
-    gap: .4em
-    height: 2.2em
-    padding: 0 .9em
-    border: 2px solid $border
-    border-radius: 2em
-    background: var(--color-surface)
-    color: $text-active
-    font-family: 'Poppins', sans-serif
-    font-size: .8em
-    font-weight: 600
-
-    &--on
-      border-color: $primary
-      color: $primary
-
-  &__g-testo
-    height: 2.4em
-    padding: 0 .8em
-    border: 2px solid $border
-    border-radius: 2em
-    background: var(--color-surface)
-    font-size: 1em
-    color: $text-active
-
-    &:focus
-      border-color: $primary
-      outline: none
-
-  &__g-cerca &__g-vai
-    margin-top: .3em
-    border-radius: 2em
-    background: $primary
-    color: $white
-
-    &:disabled
-      background: $border
-      color: $text-inactive
 
 .snw-tot__g-blob::before
   content: ''
