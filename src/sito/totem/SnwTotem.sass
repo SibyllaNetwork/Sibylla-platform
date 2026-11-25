@@ -199,11 +199,17 @@
     gap: .8em
     margin-top: 1.4em
 
+  // inline-flex + line-height 0: niente spazio sotto la bandiera, l'anello
+  // resta un cerchio (prima la riga di testo lo allungava in basso)
   &__lingua
+    display: inline-flex
+    align-items: center
+    justify-content: center
     padding: .2em
     border: 3px solid transparent
     border-radius: 50%
     background: none
+    line-height: 0
     cursor: pointer
 
     &--on

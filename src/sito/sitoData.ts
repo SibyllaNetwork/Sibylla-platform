@@ -354,15 +354,15 @@ export const nomeCategoria = (c: Categoria) => CATEGORIE.find(x => x.id === c)?.
 
 /** Struttura che ospita il totem (la categoria «Struttura» del totem). */
 export const STRUTTURA_OSPITE = {
-  nome: 'Palazzo Esquilino',
+  nome: 'Hotel Archimede',
   stelle: 4,
   indirizzo: 'Via Vicenza 5/A · Roma',
   foto: [F.cameraClassica, F.camera, F.colosseo],
   telefonoReception: '9',
   servizi: [
-    { icona: 'fa-mug-saucer', nome: 'Colazione', info: '7:00 – 10:30 · sala Esquilino, piano terra' },
+    { icona: 'fa-mug-saucer', nome: 'Colazione', info: '7:00 – 10:30 · sala colazioni, piano terra' },
     { icona: 'fa-door-open', nome: 'Check-out', info: 'Entro le 11:00 · late check-out su richiesta' },
-    { icona: 'fa-wifi', nome: 'Wi-Fi', info: 'Rete «Esquilino-Guest» · password sul cartoncino in camera' },
+    { icona: 'fa-wifi', nome: 'Wi-Fi', info: 'Rete «Archimede-Guest» · password sul cartoncino in camera' },
     { icona: 'fa-bell-concierge', nome: 'Reception', info: 'Aperta 24 ore · tasto 9 dal telefono di camera' },
     { icona: 'fa-utensils', nome: 'Ristorante', info: 'Cena 19:30 – 22:30 · prenotazione in reception' },
     { icona: 'fa-suitcase-rolling', nome: 'Deposito bagagli', info: 'Gratuito il giorno del check-out' },
