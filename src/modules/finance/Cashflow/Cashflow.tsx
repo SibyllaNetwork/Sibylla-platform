@@ -10,7 +10,7 @@ import TruncatedText from '../../../core/components/TruncatedText'
 import VistaSwitch from '../../../core/components/VistaSwitch'
 import { DatePickerField, SelectField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
-import { CHART, ChartCard, ChartTooltip, fmtAxisNum, gridProps, reducedMotion, series } from '../../../core/bi'
+import { CHART, ChartCard, ChartTooltip, fmtAxisNum, gridProps, reducedMotion, series, useFitRows } from '../../../core/bi'
 import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 import { useCashflowStore } from '../../../store/useCashflowStore'
 import {
@@ -207,12 +207,14 @@ function GraficoLiquidita({ d, proiezione }: { d: DatiCassa; proiezione: ReturnT
 function ProssimiMovimenti({ d, piano, proiezione }: { d: DatiCassa; piano: Record<string, string>; proiezione: ReturnType<typeof proietta> }) {
   const oggiIso = iso(oggi())
   const saldoDel = new Map(proiezione.map(p => [p.data, p.saldo]))
+  // Solo le righe che stanno intere nella card
+  const fit = useFitRows({ rowSelector: '.cfl__mov-riga', headSelector: '.cfl__mov-nessuna', headerHeight: 0, rowHeight: 47, min: 3, max: 14 })
   const mov = [
     ...d.incassi.filter(i => i.stato !== 'incassato').map(i => ({ id: i.id, data: dataIncasso(i, oggiIso), nome: i.cliente, det: i.descrizione, importo: i.importo, ritardo: i.stato === 'in-ritardo' })),
     ...d.uscite.map(u => ({ id: u.id, data: piano[u.id] ?? u.scadenza, nome: u.fornitore, det: u.descrizione, importo: -u.importo, ritardo: false })),
-  ].sort((a, b) => a.data.localeCompare(b.data) || b.importo - a.importo).slice(0, 9)
+  ].sort((a, b) => a.data.localeCompare(b.data) || b.importo - a.importo).slice(0, fit.rows)
   return (
-    <ul className="cfl__mov">
+    <ul className="cfl__mov" ref={fit.ref}>
       {mov.map((m, i) => {
         const ultimoDelGiorno = mov[i + 1]?.data !== m.data
         return (
@@ -241,16 +243,16 @@ function ModaleConti({ d, open, onClose }: { d: DatiCassa; open: boolean; onClos
   }), [d])
   const max = Math.max(...d.conti.map(c => c.saldo))
   return (
-    <Modal open={open} onClose={onClose} title="Liquidità effettiva per conto" size="lg" className="cfl-scuro">
-      <div className="cfl-scuro__tot">
-        <span className="cfl-scuro__tot-val">{eurPieno(d.liquidita)}</span>
-        <span className="cfl-scuro__tot-sub">al {dataLunga(iso(oggi()))} · {d.conti.length} conti collegati</span>
+    <Modal open={open} onClose={onClose} title="Liquidità effettiva per conto" size="lg">
+      <div className="cfl-conti__tot">
+        <span className="cfl-conti__tot-val">{eurPieno(d.liquidita)}</span>
+        <span className="cfl-conti__tot-sub">al {dataLunga(iso(oggi()))} · {d.conti.length} conti collegati</span>
       </div>
-      <div className="cfl-scuro__grafico">
+      <div className="cfl-conti__grafico">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={dati} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-            <XAxis dataKey="data" tickFormatter={dataBreve} tick={{ fontSize: 10, fill: 'currentColor' }} tickLine={false} axisLine={false} minTickGap={40} />
-            <YAxis tickFormatter={fmtAxisNum} tick={{ fontSize: 10, fill: 'currentColor' }} tickLine={false} axisLine={false} width={44} />
+            <XAxis dataKey="data" tickFormatter={dataBreve} tick={{ fontSize: 10, fill: CHART.inkMuted }} tickLine={false} axisLine={{ stroke: CHART.axis }} minTickGap={40} />
+            <YAxis tickFormatter={fmtAxisNum} tick={{ fontSize: 10, fill: CHART.inkMuted }} tickLine={false} axisLine={false} width={44} />
             <RTooltip content={<TipData names={Object.fromEntries(d.conti.map(c => [c.id, c.banca]))} format={v => eur(v)} />} />
             {d.conti.map((c, i) => (
               <Area key={c.id} dataKey={c.id} stackId="1" stroke={series(i)} fill={series(i)} fillOpacity={0.55} isAnimationActive={!reducedMotion()} />
@@ -258,20 +260,20 @@ function ModaleConti({ d, open, onClose }: { d: DatiCassa; open: boolean; onClos
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <ul className="cfl-scuro__conti">
+      <ul className="cfl-conti__conti">
         {d.conti.map((c, i) => (
-          <li key={c.id} className="cfl-scuro__conto">
+          <li key={c.id} className="cfl-conti__conto">
             <span className={`cfl__dot cfl__dot--${i}`} aria-hidden="true" />
-            <span className="cfl-scuro__banca">
+            <span className="cfl-conti__banca">
               <TruncatedText text={c.banca} />
-              <span className="cfl-scuro__iban">{c.iban}</span>
+              <span className="cfl-conti__iban">{c.iban}</span>
             </span>
-            <svg className="cfl-scuro__barra" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true">
-              <rect x={0} y={0} width={100} height={6} rx={3} className="cfl-scuro__barra-fondo" />
-              <rect x={0} y={0} width={(c.saldo / max) * 100} height={6} rx={3} className={`cfl-scuro__barra-val cfl-scuro__barra-val--${i}`} />
+            <svg className="cfl-conti__barra" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true">
+              <rect x={0} y={0} width={100} height={6} rx={3} className="cfl-conti__barra-fondo" />
+              <rect x={0} y={0} width={(c.saldo / max) * 100} height={6} rx={3} className={`cfl-conti__barra-val cfl-conti__barra-val--${i}`} />
             </svg>
-            <span className="cfl-scuro__saldo">{eurPieno(c.saldo)}</span>
-            <span className="cfl-scuro__quota">{Math.round((c.saldo / d.liquidita) * 100)}%</span>
+            <span className="cfl-conti__saldo">{eurPieno(c.saldo)}</span>
+            <span className="cfl-conti__quota">{Math.round((c.saldo / d.liquidita) * 100)}%</span>
           </li>
         ))}
       </ul>

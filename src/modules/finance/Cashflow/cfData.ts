@@ -127,14 +127,17 @@ const CLIENTI: Omit<Incasso, 'id' | 'scadenza' | 'stimata' | 'stato' | 'incassat
   { cliente: 'Viaggi del Sole', tipo: 'Agenzia', ricorrenza: 'mensile', puntualita: 0.9, ritardoMedio: 3, base: 18_000, giorno: 25 },
 ] as never
 
-const FORNITORI: { fornitore: string; categoria: CategoriaUscita; descrizione: string; base: number; termini: number; ogni: number; spostabile: boolean; giorno?: number }[] = [
-  { fornitore: 'Celestino Forniture', categoria: 'Fornitori', descrizione: 'Generi alimentari ristorante', base: 18_500, termini: 30, ogni: 10, spostabile: true },
-  { fornitore: 'Lavanderia Etna', categoria: 'Fornitori', descrizione: 'Biancheria e lavaggio', base: 9_200, termini: 30, ogni: 15, spostabile: true },
+// `fineMese`: pagamento a N giorni data fattura FINE MESE (come accade spesso):
+// le scadenze si accumulano l'ultimo giorno del mese e creano i picchi che la
+// pianificazione deve livellare.
+const FORNITORI: { fornitore: string; categoria: CategoriaUscita; descrizione: string; base: number; termini: number; ogni: number; spostabile: boolean; giorno?: number; fineMese?: boolean }[] = [
+  { fornitore: 'Celestino Forniture', categoria: 'Fornitori', descrizione: 'Generi alimentari ristorante', base: 18_500, termini: 30, ogni: 10, spostabile: true, fineMese: true },
+  { fornitore: 'Lavanderia Etna', categoria: 'Fornitori', descrizione: 'Biancheria e lavaggio', base: 9_200, termini: 30, ogni: 15, spostabile: true, fineMese: true },
   { fornitore: 'Enel Energia', categoria: 'Utenze', descrizione: 'Energia elettrica', base: 14_800, termini: 45, ogni: 30, spostabile: true },
   { fornitore: 'Acquedotto comunale', categoria: 'Utenze', descrizione: 'Servizio idrico', base: 3_900, termini: 45, ogni: 30, spostabile: true },
-  { fornitore: 'Idraulica Russo', categoria: 'Manutenzione', descrizione: 'Manutenzione impianti', base: 6_400, termini: 60, ogni: 30, spostabile: true },
+  { fornitore: 'Idraulica Russo', categoria: 'Manutenzione', descrizione: 'Manutenzione impianti', base: 6_400, termini: 60, ogni: 30, spostabile: true, fineMese: true },
   { fornitore: 'Edil Sud Costruzioni', categoria: 'Lavori', descrizione: 'Ristrutturazione secondo piano (SAL)', base: 68_000, termini: 60, ogni: 30, spostabile: true },
-  { fornitore: 'Cantina Valle dell\'Etna', categoria: 'Fornitori', descrizione: 'Vini e bevande', base: 11_300, termini: 60, ogni: 20, spostabile: true },
+  { fornitore: 'Cantina Valle dell\'Etna', categoria: 'Fornitori', descrizione: 'Vini e bevande', base: 11_300, termini: 60, ogni: 20, spostabile: true, fineMese: true },
   { fornitore: 'Personale', categoria: 'Personale', descrizione: 'Stipendi del mese', base: 185_000, termini: 0, ogni: 30, spostabile: false, giorno: 27 },
   { fornitore: 'Agenzia delle Entrate', categoria: 'Fiscale', descrizione: 'F24: contributi e ritenute', base: 72_000, termini: 0, ogni: 30, spostabile: false, giorno: 16 },
   { fornitore: 'Intesa Sanpaolo', categoria: 'Finanziamenti', descrizione: 'Rata mutuo ristrutturazione', base: 24_500, termini: 0, ogni: 30, spostabile: false, giorno: 30 },
@@ -193,7 +196,8 @@ export function generaCassa(struttura: string): DatiCassa {
       }
       // fatture ricevute ogni `ogni` giorni, a partire da un giorno sfasato
       if ((d + fi * 3 + 60) % f.ogni !== 0) continue
-      const scadenza = piuGiorni(data, f.termini)
+      const grezza = piuGiorni(data, f.termini)
+      const scadenza = f.fineMese ? new Date(grezza.getFullYear(), grezza.getMonth() + 1, 0) : grezza
       const ds = Math.round((scadenza.getTime() - t.getTime()) / GIORNO)
       if (d > 0 || ds < 0 || ds > ORIZZONTE) continue
       uscite.push({
