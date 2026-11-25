@@ -11,20 +11,20 @@ import { Conto, fmtCompatto } from './mwfData'
  */
 export const ULTIMA = 5
 
-export function useRacconto(riproduci: string, passoMs: number) {
+export function useRacconto(riproduci: string, passoMs: number, ultima = ULTIMA) {
   const still = reducedMotion()
-  const [fase, setFase] = useState(still ? ULTIMA : 0)
+  const [fase, setFase] = useState(still ? ultima : 0)
   const [play, setPlay] = useState(0)
   const timer = useRef<number[]>([])
 
   // Parte all'apertura e quando cambiano struttura, anno, prospettiva o filtro
   useEffect(() => {
     timer.current.forEach(clearTimeout)
-    if (still) { setFase(ULTIMA); return }
+    if (still) { setFase(ultima); return }
     setFase(0)
-    timer.current = Array.from({ length: ULTIMA }, (_, i) => window.setTimeout(() => setFase(i + 1), 250 + i * passoMs))
+    timer.current = Array.from({ length: ultima }, (_, i) => window.setTimeout(() => setFase(i + 1), 250 + i * passoMs))
     return () => timer.current.forEach(clearTimeout)
-  }, [riproduci, play, still, passoMs])
+  }, [riproduci, play, still, passoMs, ultima])
 
   const vaiA = (f: number) => { timer.current.forEach(clearTimeout); setFase(f) }
   const ricomincia = () => setPlay(x => x + 1)
@@ -47,14 +47,18 @@ function Tappa({ n, titolo, valore, segno, attiva, raggiunta, tono, onClick }: {
   )
 }
 
-export function Passi({ totale, nSorgenti, fase, vaiA, ricomincia, didascalie }: {
+export interface TappaDef { titolo: string; valore: number; segno: string; tono: string }
+
+export function Passi({ totale, nSorgenti, fase, vaiA, ricomincia, didascalie, tappe }: {
   totale: Conto; nSorgenti: number; fase: number; vaiA: (f: number) => void; ricomincia: () => void
   /** Testi propri della vista; se assenti quelli standard del flusso del denaro. */
   didascalie?: string[]
+  /** Tappe proprie della vista; se assenti le 5 standard (ricavi → utile passando dal margine). */
+  tappe?: TappaDef[]
 }) {
   const r = totale.ricavi || 1
   const perdita = totale.utile < 0
-  const TAPPE = [
+  const TAPPE: TappaDef[] = tappe ?? [
     { titolo: 'Entrano i ricavi', valore: totale.ricavi, segno: '', tono: 'ric' },
     { titolo: 'Escono i costi variabili', valore: totale.costiVariabili, segno: '−', tono: 'cv' },
     { titolo: 'Resta il margine', valore: totale.mdc, segno: '', tono: 'mdc' },
