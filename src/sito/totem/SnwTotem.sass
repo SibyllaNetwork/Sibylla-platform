@@ -906,14 +906,13 @@
   &__carosello
     display: grid
     grid-auto-flow: column
-    grid-auto-columns: 62%
+    // Lo scorrimento resta dentro i margini della pagina: due card intere,
+    // nessuna card tagliata ai bordi; le altre arrivano scorrendo
+    grid-auto-columns: calc(50% - .4em)
     gap: .8em
-    margin: 0 -1.2em
-    padding: 0 1.2em .2em
+    padding-bottom: .2em
     overflow-x: auto
     scroll-snap-type: x mandatory
-    // Lo snap rispetta il margine interno: la prima card non si incolla al bordo
-    scroll-padding-inline: 1.2em
     scrollbar-width: none
 
     &::-webkit-scrollbar
