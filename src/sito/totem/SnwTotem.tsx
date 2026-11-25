@@ -25,11 +25,23 @@ import './SnwTotem.sass'
  */
 type Vista =
   | { n: 'home' }
-  | { n: 'cat'; cat: Categoria }
+  | { n: 'cat'; cat: Categoria; filtri?: Filtri }
   | { n: 'struttura' }
-  | { n: 'scheda'; id: string }
+  | { n: 'scheda'; id: string; pre?: Filtri }
   | { n: 'carrello' }
   | { n: 'pagato'; come: 'telefono' | 'camera'; ordine: string }
+
+/** Ricerca per parametri (Impatto 2: barra e testa delle pagine categoria).
+ *  Arrivo (giorni da oggi), notti e ospiti valgono per i soggiorni e
+ *  precompilano la scheda; testo, luogo e prezzo filtrano l'elenco. */
+interface Filtri { testo: string; dove: string; max: number; arrivo: number; notti: number; ospiti: number }
+const FILTRI_VUOTI: Filtri = { testo: '', dove: '', max: 0, arrivo: 0, notti: 2, ospiti: 2 }
+const CITTA_TOT = Array.from(new Set(OFFERTE.map(o => o.citta))).filter(c => c !== 'Tutta Italia')
+const BUDGET = [0, 50, 150, 300]
+const etichettaBudget = (n: number) => (n ? `Fino a ${n} €` : 'Qualsiasi')
+const filtra = (cat: Categoria, f?: Filtri) => OFFERTE.filter(o => o.cat === cat && (!f || (
+  (!f.dove || o.citta === f.dove) && (!f.max || o.prezzo <= f.max)
+  && (!f.testo.trim() || `${o.titolo} ${o.formula} ${o.citta} ${o.descrizione}`.toLowerCase().includes(f.testo.trim().toLowerCase())))))
 
 const INATTIVO_S = 75
 const CONFERMA_S = 15
@@ -63,6 +75,9 @@ export default function SnwTotem() {
   const [ora, setOra] = useState(() => new Date())
   const scroll = useRef<HTMLDivElement>(null)
   const [barra, setBarra] = useState(false)
+  const [cerca, setCerca] = useState(false)
+  const [rCat, setRCat] = useState<Categoria>('soggiorni')
+  const [rF, setRF] = useState<Filtri>(FILTRI_VUOTI)
   const vista = storia[storia.length - 1]
   const conBarra = versione === 'impatto2' && (vista.n === 'home' || vista.n === 'cat')
 
@@ -75,10 +90,13 @@ export default function SnwTotem() {
   }
   const pezzi = carrello.reduce((a, r) => a + r.qta, 0)
 
-  const vai = (v: Vista) => { setStoria(s => [...s, v]); scroll.current?.scrollTo({ top: 0 }); setBarra(false) }
+  const vai = (v: Vista) => { setStoria(s => [...s, v]); scroll.current?.scrollTo({ top: 0 }); setBarra(false); setCerca(false) }
   const indietro = () => { setStoria(s => (s.length > 1 ? s.slice(0, -1) : s)); scroll.current?.scrollTo({ top: 0 }); setBarra(false) }
   const home = () => { setStoria([{ n: 'home' }]); scroll.current?.scrollTo({ top: 0 }); setBarra(false) }
-  const azzera = useCallback(() => { svuota(); setStoria([{ n: 'home' }]); setAttesa(true); setInattivo(0) }, [svuota])
+  const azzera = useCallback(() => {
+    svuota(); setStoria([{ n: 'home' }]); setAttesa(true); setInattivo(0)
+    setCerca(false); setRCat('soggiorni'); setRF(FILTRI_VUOTI)
+  }, [svuota])
 
   // Orologio, foto dell'attesa, contatore di inattività
   useEffect(() => {
@@ -158,20 +176,31 @@ export default function SnwTotem() {
               <div className="snw-tot__scroll" ref={scroll} onScroll={e => suScroll(e.currentTarget)}>
                 {conBarra && (
                   <div className="snw-tot__g-aggancio">
-                    <nav className={barra ? 'snw-tot__g-barra snw-tot__g-barra--on' : 'snw-tot__g-barra'} aria-label="Categorie" aria-hidden={!barra}>
-                      {CATEGORIE.map((c, i) => (
-                        <button key={c.id} type="button" tabIndex={barra ? 0 : -1} onClick={() => vai({ n: 'cat', cat: c.id })}
-                          className={vista.n === 'cat' && vista.cat === c.id ? 'snw-tot__g-voce snw-tot__g-voce--on' : 'snw-tot__g-voce'}>
-                          <span className={`snw-tot__g-blob snw-tot__g-blob--${i}`}><i className={`fa-light ${c.icona}`} aria-hidden="true" /></span>{c.nome}
+                    <div className={barra || cerca ? 'snw-tot__g-barra snw-tot__g-barra--on' : 'snw-tot__g-barra'} aria-hidden={!(barra || cerca)}>
+                      <nav className="snw-tot__g-voci" aria-label="Categorie">
+                        {CATEGORIE.map((c, i) => (
+                          <button key={c.id} type="button" tabIndex={barra || cerca ? 0 : -1} onClick={() => vai({ n: 'cat', cat: c.id })}
+                            className={vista.n === 'cat' && vista.cat === c.id ? 'snw-tot__g-voce snw-tot__g-voce--on' : 'snw-tot__g-voce'}>
+                            <span className={`snw-tot__g-blob snw-tot__g-blob--${i}`}><i className={`fa-light ${c.icona}`} aria-hidden="true" /></span>{c.nome}
+                          </button>
+                        ))}
+                        <button type="button" tabIndex={barra || cerca ? 0 : -1} aria-expanded={cerca} onClick={() => setCerca(v => !v)}
+                          className={cerca ? 'snw-tot__g-voce snw-tot__g-voce--on' : 'snw-tot__g-voce'}>
+                          <span className="snw-tot__g-blob snw-tot__g-blob--cerca"><i className={`fa-light ${cerca ? 'fa-xmark' : 'fa-magnifying-glass'}`} aria-hidden="true" /></span>{cerca ? 'Chiudi' : 'Cerca'}
                         </button>
-                      ))}
-                    </nav>
+                      </nav>
+
+                      {cerca && (
+                        <RicercaTotem cat={rCat} onCat={setRCat} f={rF} onF={setRF}
+                          onCerca={() => vai({ n: 'cat', cat: rCat, filtri: rF })} />
+                      )}
+                    </div>
                   </div>
                 )}
                 {vista.n === 'home' && <Home vai={vai} versione={versione} />}
-                {vista.n === 'cat' && <Elenco cat={vista.cat} vai={vai} versione={versione} />}
+                {vista.n === 'cat' && <Elenco cat={vista.cat} filtri={vista.filtri} vai={vai} versione={versione} />}
                 {vista.n === 'struttura' && <Struttura />}
-                {vista.n === 'scheda' && <Scheda key={vista.id} id={vista.id} onAggiunto={() => vai({ n: 'carrello' })} />}
+                {vista.n === 'scheda' && <Scheda key={vista.id} id={vista.id} pre={vista.pre} onAggiunto={() => vai({ n: 'carrello' })} />}
                 {vista.n === 'carrello' && <Carrello vai={vai} />}
                 {vista.n === 'pagato' && <Pagato come={vista.come} ordine={vista.ordine} onFine={azzera} />}
               </div>
@@ -370,22 +399,104 @@ function RigaTotem({ id, n, vai }: { id: string; n: number; vai: (v: Vista) => v
   )
 }
 
-function Elenco({ cat, vai, versione }: { cat: Categoria } & PropsPag) {
+/** Blocco di ricerca per parametri. Con onCat sceglie anche la categoria
+ *  (barra); senza, la categoria è quella della pagina e filtra dal vivo. */
+function RicercaTotem({ cat, onCat, f, onF, onCerca }: {
+  cat: Categoria; onCat?: (c: Categoria) => void; f: Filtri; onF: (f: Filtri) => void; onCerca?: () => void
+}) {
+  const set = (p: Partial<Filtri>) => onF({ ...f, ...p })
+  const n = filtra(cat, f).length
+  const sogg = cat === 'soggiorni'
+  const scelta = (on: boolean) => (on ? 'snw-tot__g-scelta snw-tot__g-scelta--on' : 'snw-tot__g-scelta')
+  return (
+    <form className={onCerca ? 'snw-tot__g-cerca' : 'snw-tot__g-cerca snw-tot__g-cerca--pagina'}
+      onSubmit={e => { e.preventDefault(); onCerca?.() }}>
+      {onCat && (
+        <>
+          <span className="snw-tot__g-lbl">Cosa cerchi</span>
+          <div className="snw-tot__g-scelte" role="radiogroup" aria-label="Categoria">
+            {CATEGORIE.map(c => (
+              <button key={c.id} type="button" role="radio" aria-checked={cat === c.id} className={scelta(cat === c.id)} onClick={() => onCat(c.id)}>
+                <i className={`fa-light ${c.icona}`} aria-hidden="true" />{c.nome}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      <input className="snw-tot__g-testo" type="text" value={f.testo} onChange={e => set({ testo: e.target.value })}
+        placeholder={sogg ? 'Parola chiave: centro, mare, spa…' : 'Parola chiave: tour, vino, transfer…'} aria-label="Parola chiave" />
+      <span className="snw-tot__g-lbl">Dove</span>
+      <div className="snw-tot__g-scelte snw-tot__g-scelte--scorre" role="radiogroup" aria-label="Dove">
+        {['', ...CITTA_TOT].map(c => (
+          <button key={c || 'tutte'} type="button" role="radio" aria-checked={f.dove === c} className={scelta(f.dove === c)} onClick={() => set({ dove: c })}>
+            {c || 'Ovunque'}
+          </button>
+        ))}
+      </div>
+      {sogg && (
+        <>
+          <span className="snw-tot__g-lbl">Arrivo</span>
+          <div className="snw-tot__g-scelte snw-tot__g-scelte--scorre" role="radiogroup" aria-label="Arrivo">
+            {[0, 1, 2, 3, 4, 5].map(g => {
+              const d = giorno(g)
+              return (
+                <button key={g} type="button" role="radio" aria-checked={f.arrivo === g} className={scelta(f.arrivo === g)} onClick={() => set({ arrivo: g })}>
+                  {d.nome} {d.num}
+                </button>
+              )
+            })}
+          </div>
+          <div className="snw-tot__g-passi">
+            <span><span className="snw-tot__g-lbl">Notti</span><SnwStepper valore={f.notti} onChange={v => set({ notti: v })} max={14} etichetta="notti" /></span>
+            <span><span className="snw-tot__g-lbl">Ospiti</span><SnwStepper valore={f.ospiti} onChange={v => set({ ospiti: v })} max={8} etichetta="ospiti" /></span>
+          </div>
+        </>
+      )}
+      <span className="snw-tot__g-lbl">Prezzo</span>
+      <div className="snw-tot__g-scelte" role="radiogroup" aria-label="Prezzo">
+        {BUDGET.map(b => (
+          <button key={b} type="button" role="radio" aria-checked={f.max === b} className={scelta(f.max === b)} onClick={() => set({ max: b })}>
+            {etichettaBudget(b)}
+          </button>
+        ))}
+      </div>
+      {onCerca && (
+        <button type="submit" className="snw-tot__btn snw-tot__g-vai" disabled={!n}>
+          <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+          {n ? `Mostra ${n} ${n === 1 ? 'risultato' : 'risultati'}` : 'Nessun risultato: cambia i parametri'}
+        </button>
+      )}
+    </form>
+  )
+}
+
+function Elenco({ cat, filtri, vai, versione }: { cat: Categoria; filtri?: Filtri } & PropsPag) {
   const info = CATEGORIE.find(c => c.id === cat)!
-  const lista = OFFERTE.filter(o => o.cat === cat)
+  // Impatto 2: ricerca per parametri in testa alla pagina, filtra dal vivo
+  const conRicerca = versione === 'impatto2'
+  const [f, setF] = useState<Filtri>(filtri ?? FILTRI_VUOTI)
+  const attivi = conRicerca ? f : filtri
+  const lista = filtra(cat, attivi)
+  const parametri = attivi && [attivi.testo.trim() && `«${attivi.testo.trim()}»`, attivi.dove, attivi.max ? etichettaBudget(attivi.max) : ''].filter(Boolean).join(' · ')
+  // Le schede dei soggiorni partono da arrivo, notti e ospiti scelti qui
+  const apri = (v: Vista) => vai(v.n === 'scheda' && conRicerca ? { ...v, pre: f } : v)
   return (
     <div className="snw-tot__pag">
       <header className="snw-tot__pag-head">
         <span className="snw-tot__anello snw-tot__anello--piccolo"><i className={`fa-thin ${info.icona}`} aria-hidden="true" /></span>
-        <span><h1>{info.nome}</h1><small>{info.claim} · {lista.length} proposte</small></span>
+        <span><h1>{info.nome}</h1><small>{parametri ? `${parametri} · ${lista.length} risultati` : `${info.claim} · ${lista.length} proposte`}</small></span>
       </header>
+      {conRicerca && <RicercaTotem cat={cat} f={f} onF={setF} />}
+      {conRicerca && !lista.length && (
+        <p className="snw-tot__g-nessuno"><i className="fa-light fa-magnifying-glass" aria-hidden="true" /> Nessuna proposta con questi parametri: prova a cambiarli.</p>
+      )}
       {versione === 'editoriale' ? (
         <ol className="snw-tot__lista">
-          {lista.map((o, i) => <RigaTotem key={o.id} id={o.id} n={i + 1} vai={vai} />)}
+          {lista.map((o, i) => <RigaTotem key={o.id} id={o.id} n={i + 1} vai={apri} />)}
         </ol>
       ) : (
         <div className="snw-tot__griglia">
-          {lista.map(o => <CardTotem key={o.id} id={o.id} vai={vai} foto={versione === 'impatto'} />)}
+          {lista.map(o => <CardTotem key={o.id} id={o.id} vai={apri} foto={versione === 'impatto'} />)}
         </div>
       )}
     </div>
@@ -423,15 +534,15 @@ function Struttura() {
 }
 
 // ── Scheda ───────────────────────────────────────────────────────────────
-function Scheda({ id, onAggiunto }: { id: string; onAggiunto: () => void }) {
+function Scheda({ id, pre, onAggiunto }: { id: string; pre?: Filtri; onAggiunto: () => void }) {
   const o = trova(id)!
   const aggiungi = useSitoStore(s => s.aggiungi)
   const sogg = o.cat === 'soggiorni'
   const prodotto = o.cat === 'prodotti'
-  const [g, setG] = useState(sogg ? 0 : 1)
-  const [notti, setNotti] = useState(2)
+  const [g, setG] = useState(sogg ? pre?.arrivo ?? 0 : 1)
+  const [notti, setNotti] = useState(sogg && pre ? pre.notti : 2)
   const [orario, setOrario] = useState(o.orari?.[0])
-  const [qta, setQta] = useState(o.unita === 'a persona' ? 2 : 1)
+  const [qta, setQta] = useState(o.unita === 'a persona' ? (pre?.ospiti ?? 2) : 1)
   const data = oggiIso(g)
   const riga = rigaDa(o, { qta, data: prodotto ? undefined : data, dataFine: sogg ? oggiIso(g + notti) : undefined, orario: sogg || prodotto ? undefined : orario })
   const etichetta = sogg ? 'Camere' : prodotto ? 'Quantità' : o.unita === 'a persona' ? 'Persone' : 'Quantità'

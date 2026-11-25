@@ -1535,33 +1535,49 @@
     letter-spacing: -.02em
     color: var(--snw-ink)
 
-  // Icone su forme irregolari, una tinta per categoria
+  // Icone su forme irregolari: fondo trasparente e un solo bordo colorato,
+  // fermo, che segue la forma. Una tinta per categoria.
   .snw-tot__anello
+    position: relative
     border: 0
-    border-radius: 71% 29% 64% 36% / 38% 66% 34% 62%
-    background: color-mix(in srgb, var(--color-accent) 30%, #fff)
+    background: none
     color: var(--snw-ink)
-    animation: snw-tot-blob 9s ease-in-out infinite alternate
+    --blob: #E3A21A
 
   .snw-tot__anelli button
     &:nth-child(2) .snw-tot__anello
-      border-radius: 33% 67% 41% 59% / 62% 30% 70% 38%
-      background: #D7F0E6
-      animation-delay: -2s
+      --blob: #0E7C61
 
     &:nth-child(3) .snw-tot__anello
-      border-radius: 68% 32% 30% 70% / 34% 63% 37% 66%
-      background: #FFDCD2
-      animation-delay: -4s
+      --blob: #E0603F
 
     &:nth-child(4) .snw-tot__anello
-      border-radius: 38% 62% 72% 28% / 66% 37% 63% 34%
-      background: #DCE6FF
-      animation-delay: -6s
+      --blob: #4F6FD6
 
     &:active .snw-tot__anello
-      background: var(--snw-ink)
-      color: $accent
+      background: none
+      color: var(--blob)
+
+  .snw-tot__anello::before
+    content: ''
+    position: absolute
+    inset: 0
+    border: 3px solid var(--blob)
+    border-radius: 71% 29% 64% 36% / 38% 66% 34% 62%
+
+  .snw-tot__anelli button
+    &:nth-child(2) .snw-tot__anello::before
+      border-radius: 33% 67% 41% 59% / 62% 30% 70% 38%
+
+    &:nth-child(3) .snw-tot__anello::before
+      border-radius: 68% 32% 30% 70% / 34% 63% 37% 66%
+
+    &:nth-child(4) .snw-tot__anello::before
+      border-radius: 38% 62% 72% 28% / 66% 37% 63% 34%
+
+  .snw-tot__anello i
+    position: relative
+    color: var(--blob)
 
   .snw-tot__anello i
     font-weight: 300
@@ -1660,9 +1676,11 @@
     height: 0
 
   &__g-barra
-    display: grid
-    grid-template-columns: repeat(4, 1fr)
-    gap: .3em
+    display: flex
+    flex-direction: column
+    gap: .6em
+    // Mai più alta dello schermo meno testata e navigazione (9:16 → 16/9 della larghezza)
+    max-height: calc(100cqw * 16 / 9 - 14em)
     padding: .55em .8em
     background: var(--color-surface)
     border-radius: 0 0 1.1em 1.1em
@@ -1672,6 +1690,11 @@
 
     &--on
       transform: translateY(0)
+
+  &__g-voci
+    display: grid
+    grid-template-columns: repeat(5, 1fr)
+    gap: .3em
 
   // Due classi: battono «.snw-tot__schermo button { font: inherit }»
   &__g-barra &__g-voce
@@ -1695,32 +1718,151 @@
       background: $primary-50
 
   &__g-blob
+    position: relative
     display: inline-flex
     align-items: center
     justify-content: center
     width: 2.6em
     height: 2.6em
-    border-radius: 71% 29% 64% 36% / 38% 66% 34% 62%
-    background: color-mix(in srgb, var(--color-accent) 30%, #fff)
+    --blob: #E3A21A
     color: var(--snw-ink)
 
     i
+      position: relative
       font-size: 1.3em
 
     &--1
-      border-radius: 33% 67% 41% 59% / 62% 30% 70% 38%
-      background: #D7F0E6
+      --blob: #0E7C61
 
     &--2
-      border-radius: 68% 32% 30% 70% / 34% 63% 37% 66%
-      background: #FFDCD2
+      --blob: #E0603F
 
     &--3
-      border-radius: 38% 62% 72% 28% / 66% 37% 63% 34%
-      background: #DCE6FF
+      --blob: #4F6FD6
 
-  &__g-barra &__g-voce--on &__g-blob
-    box-shadow: 0 0 0 2px $primary
+    &--cerca
+      --blob: var(--snw-ink)
+
+  &__g-barra &__g-voce--on &__g-blob::before
+    border-width: 3px
+
+  // ── Ricerca per parametri (si apre dalla barra) ─────────────────────
+  &__g-cerca
+    display: flex
+    flex-direction: column
+    min-height: 0
+    gap: .5em
+    padding: .4em 0 .3em
+    border-top: 1px solid $border
+    overflow-y: auto
+
+  // In testa alla pagina categoria: card bianca, filtra dal vivo
+  &__g-cerca--pagina
+    padding: .9em 1em 1em
+    border-top: 0
+    border-radius: 1.1em
+    background: var(--color-surface)
+    box-shadow: 0 .25em 1em rgba(30, 27, 22, .08)
+    overflow: visible
+
+  &__g-passi
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: .8em
+
+    > span
+      display: flex
+      flex-direction: column
+      gap: .3em
+
+  &__g-nessuno
+    display: flex
+    align-items: center
+    gap: .6em
+    margin: 0
+    font-size: .9em
+    color: $text-inactive
+
+  &__g-lbl
+    margin-top: .2em
+    font-family: 'Poppins', sans-serif
+    font-size: .75em
+    font-weight: 700
+    color: $primary
+
+  &__g-scelte
+    display: flex
+    flex-wrap: wrap
+    gap: .4em
+
+    &--scorre
+      flex-wrap: nowrap
+      overflow-x: auto
+      scrollbar-width: none
+
+      &::-webkit-scrollbar
+        display: none
+
+  &__g-cerca &__g-scelta
+    display: inline-flex
+    flex: none
+    align-items: center
+    gap: .4em
+    height: 2.2em
+    padding: 0 .9em
+    border: 2px solid $border
+    border-radius: 2em
+    background: var(--color-surface)
+    color: $text-active
+    font-family: 'Poppins', sans-serif
+    font-size: .8em
+    font-weight: 600
+
+    &--on
+      border-color: $primary
+      color: $primary
+
+  &__g-testo
+    height: 2.4em
+    padding: 0 .8em
+    border: 2px solid $border
+    border-radius: 2em
+    background: var(--color-surface)
+    font-size: 1em
+    color: $text-active
+
+    &:focus
+      border-color: $primary
+      outline: none
+
+  &__g-cerca &__g-vai
+    margin-top: .3em
+    border-radius: 2em
+    background: $primary
+    color: $white
+
+    &:disabled
+      background: $border
+      color: $text-inactive
+
+.snw-tot__g-blob::before
+  content: ''
+  position: absolute
+  inset: 0
+  border: 2px solid var(--blob)
+  border-radius: 71% 29% 64% 36% / 38% 66% 34% 62%
+
+.snw-tot__g-blob--1::before
+  border-radius: 33% 67% 41% 59% / 62% 30% 70% 38%
+
+.snw-tot__g-blob--2::before
+  border-radius: 68% 32% 30% 70% / 34% 63% 37% 66%
+
+.snw-tot__g-blob--3::before
+  border-radius: 38% 62% 72% 28% / 66% 37% 63% 34%
+
+.snw-tot__g-blob i
+  color: var(--blob)
 
 @keyframes snw-tot-blob
   0%
@@ -1731,6 +1873,5 @@
     border-radius: 66% 34% 37% 63% / 42% 70% 30% 58%
 
 @media (prefers-reduced-motion: reduce)
-  .snw-tot.snw--impatto2 .snw-tot__anello,
   .snw-tot__g-hero-foto
     animation: none
