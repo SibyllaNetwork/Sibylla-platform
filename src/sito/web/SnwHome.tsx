@@ -13,6 +13,9 @@ import './SnwHome.sass'
  * smerigliato, nastro scorrevole, categorie a tutta foto, caroselli, offerta
  * lampo con conto alla rovescia, destinazioni a mosaico, numeri della rete,
  * human touch e ipernetwork. Le sezioni entrano allo scroll (.snw-reveal).
+ * Variante «solare» (versione Impatto 2): fascia gialla con bordo a onda e
+ * foto in una forma irregolare, categorie su icone a forma libera e barra di
+ * ricerca che scende dall'alto quando quella dell'hero esce dallo schermo.
  */
 const CITTA = Array.from(new Set(OFFERTE.map(o => o.citta)))
 
@@ -58,7 +61,7 @@ function Numero({ valore, decimali = 0, suffisso = '', etichetta }: { valore: nu
   )
 }
 
-export default function SnwHome() {
+export default function SnwHome({ solare = false }: { solare?: boolean }) {
   const vai = useSitoStore(s => s.vai)
   const aggiungi = useSitoStore(s => s.aggiungi)
   const [slide, setSlide] = useState(0)
@@ -69,6 +72,8 @@ export default function SnwHome() {
   const [ospiti, setOspiti] = useState('2')
   const [hh, mm, ss] = useMezzanotte()
   const carosello = useRef<HTMLDivElement>(null)
+  const cercaHero = useRef<HTMLFormElement>(null)
+  const [barra, setBarra] = useState(false)
   const di = (c: Categoria) => OFFERTE.filter(o => o.cat === c)
   const lampo = trova('colosseo-prioritario')!
 
@@ -78,13 +83,84 @@ export default function SnwHome() {
     return () => clearInterval(t)
   }, [])
 
+  // Solare: la barra di ricerca scende quando quella dell'hero esce in alto
+  useEffect(() => {
+    const el = cercaHero.current
+    if (!solare || !el) return
+    const io = new IntersectionObserver(([v]) => setBarra(!v.isIntersecting && v.boundingClientRect.top < 0),
+      { root: el.closest('.snw'), rootMargin: '-72px 0px 0px 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [solare])
+
+  const cerca = (inBarra: boolean) => (
+    <form ref={inBarra ? undefined : cercaHero} className={inBarra ? 'snw-home__cerca snw-home__cerca--barra' : 'snw-home__cerca'}
+      onSubmit={e => { e.preventDefault(); vai({ nome: 'catalogo', cat, dove: dove || undefined }) }}>
+      <div className="snw-home__cerca-tab" role="tablist" aria-label="Cosa cerchi">
+        {CATEGORIE.map(c => (
+          <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} tabIndex={inBarra && !barra ? -1 : undefined}
+            className={cat === c.id ? 'snw-home__tab snw-home__tab--on' : 'snw-home__tab'} onClick={() => setCat(c.id)}>
+            <i className={`fa-light ${c.icona}`} aria-hidden="true" />{c.nome}
+          </button>
+        ))}
+      </div>
+      <div className="snw-home__cerca-campi">
+        <SelectField name={inBarra ? 'dove-barra' : 'dove'} label="Dove" value={dove} onChange={e => setDove(e.target.value)}
+          options={[{ value: '', label: 'Tutte le destinazioni' }, ...CITTA.map(c => ({ value: c, label: c }))]} />
+        <DateRangeField label={cat === 'soggiorni' ? 'Check-in e check-out' : 'Quando'} nameFrom={inBarra ? 'dal-barra' : 'dal'} nameTo={inBarra ? 'al-barra' : 'al'}
+          valueFrom={dal} valueTo={al} onChangeFrom={e => setDal(e.target.value)} onChangeTo={e => setAl(e.target.value)} />
+        <SelectField name={inBarra ? 'ospiti-barra' : 'ospiti'} label="Ospiti" value={ospiti} onChange={e => setOspiti(e.target.value)}
+          options={[1, 2, 3, 4, 5, 6].map(n => ({ value: String(n), label: `${n} ${n === 1 ? 'ospite' : 'ospiti'}` }))} />
+        <button type="submit" className="snw-home__cerca-btn">
+          <i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Cerca
+        </button>
+      </div>
+    </form>
+  )
+
   const scorri = (dir: number) => carosello.current?.scrollBy({ left: dir * 340, behavior: 'smooth' })
   const recensioni = OFFERTE.reduce((a, o) => a + o.recensioni, 0)
   const votoMedio = OFFERTE.reduce((a, o) => a + o.voto, 0) / OFFERTE.length
 
   return (
-    <div className="snw-home">
+    <div className={solare ? 'snw-home snw-home--solare' : 'snw-home'}>
+      {solare && (
+        <div className="snw-home__aggancio" aria-hidden={!barra}>
+          <div className={barra ? 'snw-home__barra snw-home__barra--on' : 'snw-home__barra'}>
+            <div className="snw__wrap">{cerca(true)}</div>
+          </div>
+        </div>
+      )}
+
       {/* ── Hero a tutto schermo ─────────────────────────────────────── */}
+      {solare ? (
+        <section className="snw-home__sol">
+          <div className="snw__wrap snw-home__sol-in">
+            <div className="snw-home__sol-txt">
+              <span className="snw-home__occhiello"><i className="fa-solid fa-key" aria-hidden="true" /> Change the way of buying travel</span>
+              <h1>
+                Vivi
+                <span className="snw-home__rotore" aria-live="polite">
+                  {SLIDE.map((s, i) => <span key={s.luogo} className={i === slide ? 'snw-home__parola snw-home__parola--on' : 'snw-home__parola'}>{s.luogo}</span>)}
+                </span>
+                <br />come chi ci abita.
+              </h1>
+              <p>Soggiorni scelti, esperienze autentiche e il meglio del Made in Italy, da un'unica rete di imprese del turismo.</p>
+            </div>
+            <div className="snw-home__sol-foto">
+              {SLIDE.map((s, i) => (
+                <div key={s.foto} className={`snw-home__slide ${i === slide ? 'snw-home__slide--on' : ''}`} aria-hidden={i !== slide}>
+                  <SnwFoto id={s.foto} w={1000} h={1000} alt="" />
+                </div>
+              ))}
+            </div>
+            <div className="snw-home__sol-cerca">{cerca(false)}</div>
+          </div>
+          <svg className="snw-home__sol-onda" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 10 V6 C 14 1, 30 1, 46 5 S 78 10, 100 3 V10 Z" />
+          </svg>
+        </section>
+      ) : (
       <section className="snw-home__hero">
         {SLIDE.map((s, i) => (
           <div key={s.foto} className={`snw-home__slide ${i === slide ? 'snw-home__slide--on' : ''}`} aria-hidden={i !== slide}>
@@ -103,27 +179,7 @@ export default function SnwHome() {
           </h1>
           <p>Soggiorni scelti, esperienze autentiche e il meglio del Made in Italy, da un'unica rete di imprese del turismo.</p>
 
-          <form className="snw-home__cerca" onSubmit={e => { e.preventDefault(); vai({ nome: 'catalogo', cat, dove: dove || undefined }) }}>
-            <div className="snw-home__cerca-tab" role="tablist" aria-label="Cosa cerchi">
-              {CATEGORIE.map(c => (
-                <button key={c.id} type="button" role="tab" aria-selected={cat === c.id}
-                  className={cat === c.id ? 'snw-home__tab snw-home__tab--on' : 'snw-home__tab'} onClick={() => setCat(c.id)}>
-                  <i className={`fa-light ${c.icona}`} aria-hidden="true" />{c.nome}
-                </button>
-              ))}
-            </div>
-            <div className="snw-home__cerca-campi">
-              <SelectField name="dove" label="Dove" value={dove} onChange={e => setDove(e.target.value)}
-                options={[{ value: '', label: 'Tutte le destinazioni' }, ...CITTA.map(c => ({ value: c, label: c }))]} />
-              <DateRangeField label={cat === 'soggiorni' ? 'Check-in e check-out' : 'Quando'} nameFrom="dal" nameTo="al"
-                valueFrom={dal} valueTo={al} onChangeFrom={e => setDal(e.target.value)} onChangeTo={e => setAl(e.target.value)} />
-              <SelectField name="ospiti" label="Ospiti" value={ospiti} onChange={e => setOspiti(e.target.value)}
-                options={[1, 2, 3, 4, 5, 6].map(n => ({ value: String(n), label: `${n} ${n === 1 ? 'ospite' : 'ospiti'}` }))} />
-              <button type="submit" className="snw-home__cerca-btn">
-                <i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Cerca
-              </button>
-            </div>
-          </form>
+          {cerca(false)}
         </div>
 
         <div className="snw-home__dots" role="tablist" aria-label="Destinazioni in primo piano">
@@ -135,6 +191,7 @@ export default function SnwHome() {
           ))}
         </div>
       </section>
+      )}
 
       {/* ── Nastro scorrevole ────────────────────────────────────────── */}
       <div className="snw-home__nastro" aria-hidden="true">
@@ -151,6 +208,18 @@ export default function SnwHome() {
             <h2>Quattro modi di viaggiare</h2>
           </div>
         </header>
+        {solare ? (
+          <div className="snw-home__blob-cat">
+            {CATEGORIE.map((c, i) => (
+              <button key={c.id} type="button" className="snw-home__blob-voce" onClick={() => vai({ nome: 'catalogo', cat: c.id })}>
+                <span className={`snw-home__blob snw-home__blob--${i}`}><i className={`fa-light ${c.icona}`} aria-hidden="true" /></span>
+                <b>{c.nome}</b>
+                <small>{c.claim}</small>
+                <span className="snw-home__cat-n">{di(c.id).length} offerte <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
+              </button>
+            ))}
+          </div>
+        ) : (
         <div className="snw-home__cat">
           {CATEGORIE.map((c, i) => (
             <button key={c.id} type="button" className={`snw-home__cat-voce snw-home__cat-voce--${i}`} onClick={() => vai({ nome: 'catalogo', cat: c.id })}>
@@ -165,6 +234,7 @@ export default function SnwHome() {
             </button>
           ))}
         </div>
+        )}
       </section>
 
       {/* ── Carosello esperienze ─────────────────────────────────────── */}

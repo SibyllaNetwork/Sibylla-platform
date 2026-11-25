@@ -1,5 +1,5 @@
 import React from 'react'
-import { PaginaSito, useSitoStore } from '../useSitoStore'
+import { PaginaSito, useSitoStore, versioneWeb } from '../useSitoStore'
 import { SnwFoto } from '../SnwUi'
 import './SnwTestata.sass'
 
@@ -26,7 +26,7 @@ interface Props {
 }
 
 export default function SnwTestata({ kicker, titolo, enfasi, sotto, foto, icona, briciole, extra }: Props) {
-  const versione = useSitoStore(s => s.versione)
+  const versione = versioneWeb(useSitoStore(s => s.versione))
   const vai = useSitoStore(s => s.vai)
 
   const percorso = briciole && briciole.length > 0 && (

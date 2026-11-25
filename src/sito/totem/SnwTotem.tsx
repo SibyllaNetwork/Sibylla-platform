@@ -19,7 +19,9 @@ import './SnwTotem.sass'
  * 1080×1920 il corpo base vale 27px, in anteprima scala con la finestra.
  * Tre formati come il sito: A Impatto (scuro, foto a tutto campo, carosello),
  * B Editoriale (da rivista: filetti, corsivi, elenchi numerati), C Mosaico
- * (riquadri colorati e angoli ampi). Il formato si sceglie dal pannello demo.
+ * (riquadri colorati e angoli ampi); A2 Impatto 2 (solare e giocoso: fascia
+ * gialla ondulata, icone su forme irregolari, barra delle categorie che scende
+ * dall'alto quando si scorre). Il formato si sceglie dal pannello demo.
  */
 type Vista =
   | { n: 'home' }
@@ -36,6 +38,7 @@ const SLIDE = [FOTO.colosseo, FOTO.trevi, FOTO.vernazza, FOTO.rialto]
 
 const FORMATI: { id: VersioneHome; lettera: string; nome: string }[] = [
   { id: 'impatto', lettera: 'A', nome: 'Impatto' },
+  { id: 'impatto2', lettera: 'A2', nome: 'Impatto 2' },
   { id: 'editoriale', lettera: 'B', nome: 'Editoriale' },
   { id: 'bento', lettera: 'C', nome: 'Mosaico' },
 ]
@@ -59,12 +62,22 @@ export default function SnwTotem() {
   const [slide, setSlide] = useState(0)
   const [ora, setOra] = useState(() => new Date())
   const scroll = useRef<HTMLDivElement>(null)
+  const [barra, setBarra] = useState(false)
   const vista = storia[storia.length - 1]
+  const conBarra = versione === 'impatto2' && (vista.n === 'home' || vista.n === 'cat')
+
+  // Impatto 2: la barra delle categorie scende quando le icone escono dallo
+  // schermo (nelle pagine senza icone, appena si scorre)
+  const suScroll = (el: HTMLDivElement) => {
+    if (!conBarra) return
+    const icone = el.querySelector('.snw-tot__anelli')
+    setBarra(icone ? icone.getBoundingClientRect().bottom < el.getBoundingClientRect().top + 8 : el.scrollTop > 40)
+  }
   const pezzi = carrello.reduce((a, r) => a + r.qta, 0)
 
-  const vai = (v: Vista) => { setStoria(s => [...s, v]); scroll.current?.scrollTo({ top: 0 }) }
-  const indietro = () => { setStoria(s => (s.length > 1 ? s.slice(0, -1) : s)); scroll.current?.scrollTo({ top: 0 }) }
-  const home = () => { setStoria([{ n: 'home' }]); scroll.current?.scrollTo({ top: 0 }) }
+  const vai = (v: Vista) => { setStoria(s => [...s, v]); scroll.current?.scrollTo({ top: 0 }); setBarra(false) }
+  const indietro = () => { setStoria(s => (s.length > 1 ? s.slice(0, -1) : s)); scroll.current?.scrollTo({ top: 0 }); setBarra(false) }
+  const home = () => { setStoria([{ n: 'home' }]); scroll.current?.scrollTo({ top: 0 }); setBarra(false) }
   const azzera = useCallback(() => { svuota(); setStoria([{ n: 'home' }]); setAttesa(true); setInattivo(0) }, [svuota])
 
   // Orologio, foto dell'attesa, contatore di inattività
@@ -142,7 +155,19 @@ export default function SnwTotem() {
                 <FlagCircle code={lingua} size={40} />
               </header>
 
-              <div className="snw-tot__scroll" ref={scroll}>
+              <div className="snw-tot__scroll" ref={scroll} onScroll={e => suScroll(e.currentTarget)}>
+                {conBarra && (
+                  <div className="snw-tot__g-aggancio">
+                    <nav className={barra ? 'snw-tot__g-barra snw-tot__g-barra--on' : 'snw-tot__g-barra'} aria-label="Categorie" aria-hidden={!barra}>
+                      {CATEGORIE.map((c, i) => (
+                        <button key={c.id} type="button" tabIndex={barra ? 0 : -1} onClick={() => vai({ n: 'cat', cat: c.id })}
+                          className={vista.n === 'cat' && vista.cat === c.id ? 'snw-tot__g-voce snw-tot__g-voce--on' : 'snw-tot__g-voce'}>
+                          <span className={`snw-tot__g-blob snw-tot__g-blob--${i}`}><i className={`fa-light ${c.icona}`} aria-hidden="true" /></span>{c.nome}
+                        </button>
+                      ))}
+                    </nav>
+                  </div>
+                )}
                 {vista.n === 'home' && <Home vai={vai} versione={versione} />}
                 {vista.n === 'cat' && <Elenco cat={vista.cat} vai={vai} versione={versione} />}
                 {vista.n === 'struttura' && <Struttura />}
@@ -184,17 +209,17 @@ export default function SnwTotem() {
 // ── Home del totem (una per formato) ─────────────────────────────────
 type PropsPag = { vai: (v: Vista) => void; versione: VersioneHome }
 
-function Anelli({ vai }: { vai: (v: Vista) => void }) {
+function Anelli({ vai, soloCategorie }: { vai: (v: Vista) => void; soloCategorie?: boolean }) {
   return (
-    <div className="snw-tot__anelli">
+    <div className={soloCategorie ? 'snw-tot__anelli snw-tot__anelli--4' : 'snw-tot__anelli'}>
       {CATEGORIE.map(c => (
         <button key={c.id} type="button" onClick={() => vai({ n: 'cat', cat: c.id })}>
           <span className="snw-tot__anello"><i className={`fa-thin ${c.icona}`} aria-hidden="true" /></span>{c.nome}
         </button>
       ))}
-      <button type="button" onClick={() => vai({ n: 'struttura' })}>
+      {!soloCategorie && <button type="button" onClick={() => vai({ n: 'struttura' })}>
         <span className="snw-tot__anello snw-tot__anello--hotel"><i className="fa-thin fa-hotel" aria-hidden="true" /></span>Struttura
-      </button>
+      </button>}
     </div>
   )
 }
@@ -210,6 +235,33 @@ function Porta() {
 
 function Home({ vai, versione }: PropsPag) {
   const top = OFFERTE.filter(o => o.cat === 'esperienze').slice(0, 4)
+
+  if (versione === 'impatto2') {
+    const fila = (cat: Categoria, n = 4) => OFFERTE.filter(o => o.cat === cat).slice(0, n)
+    return (
+      <div className="snw-tot__pag snw-tot__g">
+        <section className="snw-tot__g-hero">
+          <span className="snw-tot__g-hero-txt">
+            <small>Cosa facciamo oggi?</small>
+            <b>Roma è a due passi</b>
+            <span>Esperienze, sapori e servizi della città, prenotabili qui in un minuto.</span>
+          </span>
+          <span className="snw-tot__g-hero-foto"><SnwFoto id={FOTO.colosseoArchi} w={700} h={700} alt="" /></span>
+          <svg className="snw-tot__g-onda" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 10 V6 C 14 1, 30 1, 46 5 S 78 10, 100 3 V10 Z" />
+          </svg>
+        </section>
+        <Anelli vai={vai} soloCategorie />
+        <h2 className="snw-tot__tit">Le esperienze più scelte</h2>
+        <div className="snw-tot__carosello">{top.map(o => <CardTotem key={o.id} id={o.id} vai={vai} />)}</div>
+        <h2 className="snw-tot__tit">Sapori da portare a casa</h2>
+        <div className="snw-tot__carosello">{fila('prodotti').map(o => <CardTotem key={o.id} id={o.id} vai={vai} />)}</div>
+        <h2 className="snw-tot__tit">Servizi per il soggiorno</h2>
+        <div className="snw-tot__carosello">{fila('servizi').map(o => <CardTotem key={o.id} id={o.id} vai={vai} />)}</div>
+        <Porta />
+      </div>
+    )
+  }
 
   if (versione === 'editoriale') {
     const oggi = new Date()
@@ -274,7 +326,8 @@ function Home({ vai, versione }: PropsPag) {
       </section>
       <Anelli vai={vai} />
       <h2 className="snw-tot__tit">Le esperienze più scelte</h2>
-      <div className="snw-tot__carosello">
+      {/* Quattro esperienze in griglia 2×2: riempiono lo schermo senza vuoti */}
+      <div className="snw-tot__griglia snw-tot__griglia--foto">
         {top.map(o => <CardTotem key={o.id} id={o.id} vai={vai} foto />)}
       </div>
       <Porta />

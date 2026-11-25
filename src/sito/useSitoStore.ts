@@ -35,8 +35,11 @@ export interface RigaCarrello {
 }
 
 export type ModoSito = 'web' | 'totem'
-/** Versioni grafiche della home web, scelte dai link in header. */
-export type VersioneHome = 'impatto' | 'editoriale' | 'bento'
+/** Versioni grafiche della home web, scelte dai link in header.
+ *  'impatto2' esiste solo sul totem: il sito web la mostra come 'impatto'. */
+export type VersioneHome = 'impatto' | 'impatto2' | 'editoriale' | 'bento'
+export type VersioneWeb = Exclude<VersioneHome, 'impatto2'>
+export const versioneWeb = (v: VersioneHome): VersioneWeb => (v === 'impatto2' ? 'impatto' : v)
 
 /** Ricerca soggiorni (barra del catalogo): la scheda parte da queste date. */
 export interface RicercaSoggiorni {

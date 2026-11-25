@@ -357,6 +357,10 @@
     grid-template-columns: repeat(5, 1fr)
     gap: .4em
 
+    // Impatto 2: solo le quattro categorie del sito
+    &--4
+      grid-template-columns: repeat(4, 1fr)
+
     button
       display: flex
       flex-direction: column
@@ -402,6 +406,10 @@
     display: grid
     grid-template-columns: 1fr 1fr
     gap: .8em
+
+    // A · Impatto: card fotografiche un po' più basse, quattro stanno a schermo
+    &--foto .snw-tot__card--foto
+      height: 13em
 
   &__card
     display: flex
@@ -1489,3 +1497,240 @@
   top: 1.4em
   left: 1.4em
   font-size: .9em
+
+// A2 · Impatto 2: solare e giocoso. Fascia gialla con bordo a onda, icone
+// su forme irregolari (raggi diversi per angolo, che respirano piano), card
+// bianche molto arrotondate e barra delle categorie che scende dall'alto
+// quando le icone escono dallo schermo.
+.snw-tot.snw--impatto2
+  // Palette in SnwWeb.sass (.snw--impatto2), comune a sito e totem
+
+  .snw-tot__head
+    border-color: transparent
+    background: $accent
+
+    // Chiave del logo scura: l'accento giallo sparirebbe sul fondo giallo
+    .snw-logo
+      color: var(--snw-ink)
+
+    .snw-logo__key
+      background: var(--snw-ink)
+
+  .snw-tot__ospite
+    color: color-mix(in srgb, var(--snw-ink) 70%, transparent)
+
+    b
+      color: var(--snw-ink)
+
+  .snw-tot__nav
+    border-color: transparent
+    box-shadow: 0 -.3em 1em rgba(0, 0, 0, .06)
+
+  .snw-tot__nav-on
+    box-shadow: inset 0 4px 0 $primary
+
+  .snw-tot__tit
+    font-size: 1.6em
+    font-weight: 800
+    letter-spacing: -.02em
+    color: var(--snw-ink)
+
+  // Icone su forme irregolari, una tinta per categoria
+  .snw-tot__anello
+    border: 0
+    border-radius: 71% 29% 64% 36% / 38% 66% 34% 62%
+    background: color-mix(in srgb, var(--color-accent) 30%, #fff)
+    color: var(--snw-ink)
+    animation: snw-tot-blob 9s ease-in-out infinite alternate
+
+  .snw-tot__anelli button
+    &:nth-child(2) .snw-tot__anello
+      border-radius: 33% 67% 41% 59% / 62% 30% 70% 38%
+      background: #D7F0E6
+      animation-delay: -2s
+
+    &:nth-child(3) .snw-tot__anello
+      border-radius: 68% 32% 30% 70% / 34% 63% 37% 66%
+      background: #FFDCD2
+      animation-delay: -4s
+
+    &:nth-child(4) .snw-tot__anello
+      border-radius: 38% 62% 72% 28% / 66% 37% 63% 34%
+      background: #DCE6FF
+      animation-delay: -6s
+
+    &:active .snw-tot__anello
+      background: var(--snw-ink)
+      color: $accent
+
+  .snw-tot__anello i
+    font-weight: 300
+
+  // Card bianche, angoli ampi, ombra morbida
+  .snw-tot__card
+    border: 0
+    border-radius: 1.1em
+    box-shadow: 0 .25em 1em rgba(30, 27, 22, .1)
+
+  .snw-tot__card-foto
+    height: 8em
+
+  .snw-tot__card-txt > b,
+  .snw-tot__card-piede b
+    color: var(--snw-ink)
+
+  .snw-tot__card-cta
+    border-radius: 2em
+    background: $accent
+    color: var(--snw-ink)
+
+  .snw-tot__carosello
+    padding: .3em .1em 1em
+    margin-bottom: -.6em
+
+  .snw-tot__porta
+    border-radius: 1.1em
+    background: $primary
+
+    i
+      color: $accent
+
+.snw-tot
+  // Fascia gialla con foto in una forma irregolare e bordo a onda
+  &__g-hero
+    position: relative
+    display: grid
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr)
+    align-items: center
+    gap: 1em
+    margin: -1.2em -1.2em 0
+    padding: 1.4em 1.4em 3.2em
+    background: $accent
+
+  &__g-hero-txt
+    display: flex
+    flex-direction: column
+    gap: .35em
+    color: var(--snw-ink)
+
+    small
+      font-size: .85em
+      font-weight: 700
+      letter-spacing: .1em
+      text-transform: uppercase
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 2.6em
+      font-weight: 900
+      line-height: 1
+      letter-spacing: -.03em
+
+    span
+      font-size: .95em
+      line-height: 1.4
+
+  &__g-hero-foto
+    aspect-ratio: 1
+    border-radius: 62% 38% 46% 54% / 48% 60% 40% 52%
+    overflow: hidden
+    box-shadow: 0 .5em 1.5em rgba(30, 27, 22, .18)
+    animation: snw-tot-blob 12s ease-in-out infinite alternate
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  &__g-onda
+    position: absolute
+    left: 0
+    bottom: -1px
+    width: 100%
+    height: 2.4em
+
+    path
+      fill: var(--snw-sand)
+
+  // Barra delle categorie: aggancio sticky alto zero, la barra scende dall'alto
+  &__g-aggancio
+    position: sticky
+    top: 0
+    z-index: 5
+    height: 0
+
+  &__g-barra
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: .3em
+    padding: .55em .8em
+    background: var(--color-surface)
+    border-radius: 0 0 1.1em 1.1em
+    box-shadow: 0 .4em 1.2em rgba(30, 27, 22, .14)
+    transform: translateY(-110%)
+    transition: transform .35s cubic-bezier(.2, .8, .2, 1)
+
+    &--on
+      transform: translateY(0)
+
+  // Due classi: battono «.snw-tot__schermo button { font: inherit }»
+  &__g-barra &__g-voce
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: .2em
+    padding: .2em 0
+    border: 0
+    border-radius: .6em
+    background: none
+    color: $text-active
+    font-family: 'Poppins', sans-serif
+    font-size: .72em
+    font-weight: 700
+
+    &--on
+      color: $primary
+
+    &:active
+      background: $primary-50
+
+  &__g-blob
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 2.6em
+    height: 2.6em
+    border-radius: 71% 29% 64% 36% / 38% 66% 34% 62%
+    background: color-mix(in srgb, var(--color-accent) 30%, #fff)
+    color: var(--snw-ink)
+
+    i
+      font-size: 1.3em
+
+    &--1
+      border-radius: 33% 67% 41% 59% / 62% 30% 70% 38%
+      background: #D7F0E6
+
+    &--2
+      border-radius: 68% 32% 30% 70% / 34% 63% 37% 66%
+      background: #FFDCD2
+
+    &--3
+      border-radius: 38% 62% 72% 28% / 66% 37% 63% 34%
+      background: #DCE6FF
+
+  &__g-barra &__g-voce--on &__g-blob
+    box-shadow: 0 0 0 2px $primary
+
+@keyframes snw-tot-blob
+  0%
+    border-radius: 71% 29% 64% 36% / 38% 66% 34% 62%
+  50%
+    border-radius: 36% 64% 58% 42% / 63% 34% 66% 37%
+  100%
+    border-radius: 66% 34% 37% 63% / 42% 70% 30% 58%
+
+@media (prefers-reduced-motion: reduce)
+  .snw-tot.snw--impatto2 .snw-tot__anello,
+  .snw-tot__g-hero-foto
+    animation: none

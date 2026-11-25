@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { DatePickerField, DateRangeField } from '../../core/components/form'
 import Tooltip from '../../core/components/Tooltip'
 import { OFFERTE, eur, nomeCategoria, oggiIso, rigaDa, trova } from '../sitoData'
-import { useSitoStore } from '../useSitoStore'
+import { useSitoStore, versioneWeb } from '../useSitoStore'
 import { SnwEtichetta, SnwFoto, SnwPrezzo, SnwStepper, SnwVoto } from '../SnwUi'
 import SnwCard from './SnwCard'
 import './SnwScheda.sass'
@@ -24,7 +24,7 @@ export default function SnwScheda({ id }: { id: string }) {
   const aggiungi = useSitoStore(s => s.aggiungi)
   const preferiti = useSitoStore(s => s.preferiti)
   const preferito = useSitoStore(s => s.preferito)
-  const versione = useSitoStore(s => s.versione)
+  const versione = versioneWeb(useSitoStore(s => s.versione))
   const [fotoSel, setFotoSel] = useState(0)
   const ricerca = useSitoStore(s => s.ricerca)
   const daRicerca = o?.cat === 'soggiorni' && ricerca.dal >= oggiIso()

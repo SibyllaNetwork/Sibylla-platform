@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Tooltip from '../../core/components/Tooltip'
 import { CATEGORIE, eur, trova } from '../sitoData'
-import { VersioneHome, useSitoStore } from '../useSitoStore'
+import { VersioneHome, useSitoStore, versioneWeb } from '../useSitoStore'
 import { SnwFoto, SnwLogo } from '../SnwUi'
 import SnwHome from './SnwHome'
 import SnwHomeEditoriale from './SnwHomeEditoriale'
@@ -22,6 +22,7 @@ import './SnwWeb.sass'
  */
 const VERSIONI: { id: VersioneHome; lettera: string; nome: string }[] = [
   { id: 'impatto', lettera: 'A', nome: 'Impatto' },
+  { id: 'impatto2', lettera: 'A2', nome: 'Impatto 2' },
   { id: 'editoriale', lettera: 'B', nome: 'Editoriale' },
   { id: 'bento', lettera: 'C', nome: 'Mosaico' },
 ]
@@ -34,7 +35,9 @@ export default function SnwWeb() {
   const preferiti = useSitoStore(s => s.preferiti)
   const drawer = useSitoStore(s => s.drawer)
   const setDrawer = useSitoStore(s => s.setDrawer)
-  const versione = useSitoStore(s => s.versione)
+  // Impatto 2 = Impatto con la home «solare» e la sua palette
+  const scelta = useSitoStore(s => s.versione)
+  const versione = versioneWeb(scelta)
   const setVersione = useSitoStore(s => s.setVersione)
   const scroller = useRef<HTMLDivElement>(null)
   const [inCima, setInCima] = useState(true)
@@ -42,7 +45,7 @@ export default function SnwWeb() {
   const totale = carrello.reduce((a, r) => a + r.prezzo * r.qta, 0)
 
   // Ogni cambio pagina riparte dall'alto
-  useEffect(() => { scroller.current?.scrollTo({ top: 0 }); setInCima(true) }, [pagina, versione])
+  useEffect(() => { scroller.current?.scrollTo({ top: 0 }); setInCima(true) }, [pagina, scelta])
 
   // Sezioni che entrano allo scroll: .snw-reveal → .snw-reveal--in
   useEffect(() => {
@@ -53,23 +56,25 @@ export default function SnwWeb() {
     }), { root, threshold: 0.12 })
     root.querySelectorAll('.snw-reveal:not(.snw-reveal--in)').forEach(el => io.observe(el))
     return () => io.disconnect()
-  }, [pagina, versione])
+  }, [pagina, scelta])
 
   // Header trasparente sopra le bande fotografiche della versione Impatto
   // (tutte le pagine tranne carrello e conferma)
+  // (la home solare di Impatto 2 ha la fascia gialla: header pieno)
   const sopraHero = versione === 'impatto' && inCima && pagina.nome !== 'carrello' && pagina.nome !== 'conferma'
+    && !(scelta === 'impatto2' && pagina.nome === 'home')
 
   const catAttiva = pagina.nome === 'catalogo' ? pagina.cat : pagina.nome === 'scheda' ? trova(pagina.id)?.cat : undefined
 
   return (
-    <div className={`snw snw--${versione}`} data-section="sito" ref={scroller} onScroll={e => setInCima(e.currentTarget.scrollTop < 40)}>
+    <div className={scelta === 'impatto2' ? 'snw snw--impatto snw--impatto2' : `snw snw--${versione}`} data-section="sito" ref={scroller} onScroll={e => setInCima(e.currentTarget.scrollTop < 40)}>
       <div className="snw__strip">
         <div className="snw__wrap snw__strip-in">
           <span className="snw__versioni" role="tablist" aria-label="Versione della home">
             <span>Versione</span>
             {VERSIONI.map(v => (
-              <button key={v.id} type="button" role="tab" aria-selected={versione === v.id}
-                className={versione === v.id ? 'snw__versione snw__versione--on' : 'snw__versione'} onClick={() => setVersione(v.id)}>
+              <button key={v.id} type="button" role="tab" aria-selected={scelta === v.id}
+                className={scelta === v.id ? 'snw__versione snw__versione--on' : 'snw__versione'} onClick={() => setVersione(v.id)}>
                 <b>{v.lettera}</b>{v.nome}
               </button>
             ))}
@@ -123,7 +128,7 @@ export default function SnwWeb() {
       </header>
 
       <main className="snw__main">
-        {pagina.nome === 'home' && versione === 'impatto' && <SnwHome />}
+        {pagina.nome === 'home' && versione === 'impatto' && <SnwHome solare={scelta === 'impatto2'} />}
         {pagina.nome === 'home' && versione === 'editoriale' && <SnwHomeEditoriale />}
         {pagina.nome === 'home' && versione === 'bento' && <SnwHomeBento />}
         {pagina.nome === 'catalogo' && <SnwCatalogo key={`${pagina.cat ?? ''}|${pagina.dove ?? ''}`} cat={pagina.cat} dove={pagina.dove} />}

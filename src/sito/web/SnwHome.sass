@@ -891,3 +891,276 @@
   .snw-home__nastro-in,
   .snw-home__dot--on .snw-home__dot-bar span
     animation: none
+
+// ═══ Variante solare (versione Impatto 2) ═════════════════════════════════
+// Fascia gialla con bordo a onda, foto in una forma irregolare che respira,
+// categorie su icone a forma libera, barra di ricerca che scende dall'alto.
+.snw-home--solare
+  .snw-home__occhiello
+    color: var(--snw-ink)
+
+  // Ricerca: card bianca piena (non più vetro su foto)
+  .snw-home__cerca
+    border: 0
+    background: var(--color-surface)
+    backdrop-filter: none
+    box-shadow: 0 18px 44px rgba(30, 27, 22, .16)
+
+    label
+      color: $primary !important
+
+  .snw-home__cerca-tab
+    border-bottom-color: $border
+
+  .snw-home__tab
+    color: $text-inactive
+
+    &--on
+      border-bottom-color: $primary
+      color: var(--snw-ink)
+
+  .snw-home__cerca-btn
+    border-radius: 999px
+    background: $primary
+    color: $white
+
+  .snw-home__cat-n
+    color: $primary
+
+  // Occhielli: l'accento giallo non si legge sul fondo chiaro
+  .snw-home__kicker
+    color: $primary
+
+.snw-home
+  &__sol
+    position: relative
+    padding: 48px 0 120px
+    background: $accent
+    overflow: hidden
+
+  &__sol-in
+    display: grid
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr)
+    grid-template-areas: "txt foto" "cerca cerca"
+    align-items: center
+    gap: 32px 48px
+
+  &__sol-txt
+    grid-area: txt
+    color: var(--snw-ink)
+
+    h1
+      margin: 14px 0 18px
+      font-family: 'Poppins', sans-serif
+      font-size: clamp(34px, 4vw, 60px)
+      font-weight: 900
+      line-height: .98
+      letter-spacing: -.035em
+      color: var(--snw-ink)
+
+    p
+      max-width: 520px
+      margin: 0
+      font-size: 17px
+      line-height: 1.5
+
+  // La parola che cambia: verde sul giallo
+  &__sol-txt .snw-home__parola
+    color: $primary
+
+  &__sol-foto
+    grid-area: foto
+    position: relative
+    justify-self: center
+    width: min(100%, 440px)
+    aspect-ratio: 1
+    border-radius: 62% 38% 46% 54% / 48% 60% 40% 52%
+    overflow: hidden
+    box-shadow: 0 24px 60px rgba(30, 27, 22, .22)
+    animation: snw-home-blob 14s ease-in-out infinite alternate
+
+  &__sol-cerca
+    grid-area: cerca
+    position: relative
+    z-index: 1
+
+  &__sol-onda
+    position: absolute
+    left: 0
+    bottom: -1px
+    width: 100%
+    height: 90px
+
+    path
+      fill: var(--snw-sand)
+
+  // ── Categorie su icone a forma libera ───────────────────────────────
+  &__blob-cat
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 18px
+
+  &__blob-voce
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    padding: 18px 12px 22px
+    border: 0
+    border-radius: 20px
+    background: none
+    text-align: center
+    cursor: pointer
+    transition: background .2s ease
+
+    b
+      margin-top: 8px
+      font-family: 'Poppins', sans-serif
+      font-size: 20px
+      font-weight: 800
+      color: var(--snw-ink)
+
+    small
+      font-size: 13px
+      line-height: 1.45
+      color: $text-inactive
+
+    &:hover
+      background: var(--color-surface)
+
+    &:hover .snw-home__blob
+      transform: scale(1.06) rotate(-4deg)
+
+  &__blob
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 120px
+    height: 120px
+    border-radius: 71% 29% 64% 36% / 38% 66% 34% 62%
+    background: color-mix(in srgb, var(--color-accent) 35%, #fff)
+    color: var(--snw-ink)
+    font-size: 46px
+    transition: transform .3s ease
+    animation: snw-home-blob 10s ease-in-out infinite alternate
+
+    &--1
+      border-radius: 33% 67% 41% 59% / 62% 30% 70% 38%
+      background: #D7F0E6
+      animation-delay: -3s
+
+    &--2
+      border-radius: 68% 32% 30% 70% / 34% 63% 37% 66%
+      background: #FFDCD2
+      animation-delay: -6s
+
+    &--3
+      border-radius: 38% 62% 72% 28% / 66% 37% 63% 34%
+      background: #DCE6FF
+      animation-delay: -9s
+
+  // ── Barra di ricerca che scende dall'alto ─────────────────────────────
+  // Aggancio sticky alto zero sopra l'header (z 5): la barra lo copre
+  &__aggancio
+    position: sticky
+    top: 0
+    z-index: 7
+    height: 0
+
+  // Alta quanto l'header (72px + filetto): lo copre del tutto
+  &__barra
+    display: flex
+    align-items: center
+    min-height: 73px
+    padding: 10px 0
+
+    > .snw__wrap
+      flex: 1
+    background: var(--color-surface)
+    box-shadow: 0 10px 30px rgba(30, 27, 22, .14)
+    transform: translateY(-110%)
+    visibility: hidden
+    transition: transform .4s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .4s
+
+    &--on
+      transform: translateY(0)
+      visibility: visible
+      transition: transform .4s cubic-bezier(.2, .8, .2, 1), visibility 0s
+
+  // Versione compatta: categorie e campi su una riga, senza etichette
+  &__cerca--barra
+    display: flex
+    align-items: center
+    gap: 16px
+    max-width: none
+    border-radius: 0
+    box-shadow: none !important
+    overflow: visible
+
+    label
+      display: none
+
+    .snw-home__cerca-tab
+      flex: none
+      border: 0
+
+    .snw-home__tab
+      padding: 8px 12px
+      border-bottom: 0
+      border-radius: 999px
+      font-size: 13px
+
+    .snw-home__tab--on
+      background: $primary-50
+      color: $primary
+
+    .snw-home__cerca-campi
+      flex: 1
+      min-width: 0
+      align-items: center
+      padding: 0
+
+@keyframes snw-home-blob
+  0%
+    border-radius: 62% 38% 46% 54% / 48% 60% 40% 52%
+  50%
+    border-radius: 36% 64% 58% 42% / 63% 34% 66% 37%
+  100%
+    border-radius: 66% 34% 37% 63% / 42% 70% 30% 58%
+
+@media (max-width: 1100px)
+  .snw-home__cerca--barra .snw-home__cerca-tab
+    display: none
+
+@media (max-width: 900px)
+  .snw-home__sol-in
+    grid-template-columns: minmax(0, 1fr)
+    grid-template-areas: "txt" "foto" "cerca"
+
+  .snw-home__sol-foto
+    width: min(80%, 360px)
+
+  .snw-home__blob-cat
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+  .snw-home__blob
+    width: 96px
+    height: 96px
+    font-size: 36px
+
+@media (prefers-reduced-motion: reduce)
+  .snw-home__sol-foto,
+  .snw-home__blob
+    animation: none
+
+// Telefono: la barra che scende tiene solo Dove + Cerca (una riga)
+@media (max-width: 760px)
+  .snw-home__cerca--barra .snw-home__cerca-campi
+    grid-template-columns: minmax(0, 1fr) auto
+
+    > :nth-child(2),
+    > :nth-child(3)
+      display: none
+
+  .snw-home__cerca--barra .snw-home__cerca-btn
+    padding: 0 18px
