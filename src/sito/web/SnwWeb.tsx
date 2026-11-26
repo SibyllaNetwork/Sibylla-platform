@@ -19,6 +19,7 @@ import SnwFaq from './SnwFaq'
 import SnwRichiesta from './SnwRichiesta'
 import SnwPreventivo from './SnwPreventivo'
 import { useSitoAccountStore } from '../useSitoAccountStore'
+import SnwLingua from '../i18n/SnwLingua'
 import './SnwWeb.sass'
 
 /**
@@ -90,6 +91,7 @@ export default function SnwWeb() {
             ))}
           </span>
           <span className="snw__strip-dx">
+            <SnwLingua />
             <a href="tel:00390691714070"><i className="fa-solid fa-phone" aria-hidden="true" /> +39 06 91714070</a>
             <button type="button" onClick={() => vai({ nome: 'info', id: 'contatti' })}>
               <i className="fa-solid fa-handshake" aria-hidden="true" /> Diventa partner
@@ -206,7 +208,8 @@ export default function SnwWeb() {
             </div>
           </div>
           <div className="snw__legal">
-            © 2026 Sibylla S.r.l. · Via Vicenza 5/A, 00185 Roma · C.F. e P.IVA 15953321005 · REA 1625640 · Capitale sociale 50.000,00 €
+            <SnwLingua su valuta />
+            <span>© 2026 Sibylla S.r.l. · Via Vicenza 5/A, 00185 Roma · C.F. e P.IVA 15953321005 · REA 1625640 · Capitale sociale 50.000,00 €</span>
           </div>
         </div>
       </footer>

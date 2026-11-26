@@ -15,11 +15,13 @@ import { useSchermoTotem } from './schermoTotem'
  */
 export default function SitoNetwork() {
   const modo = useSitoStore(s => s.modo)
+  const lingua = useSitoStore(s => s.lingua)
   const dispositivo = useSchermoTotem()
+  // Chiave sulla lingua: al cambio tutto il sito si ridisegna con i testi tradotti (vedi i18n)
   return (
-    <>
+    <React.Fragment key={lingua}>
       {dispositivo ? <SnwTotem dispositivo /> : modo === 'web' ? <SnwWeb /> : <SnwTotem />}
       <ConfirmDialog />
-    </>
+    </React.Fragment>
   )
 }

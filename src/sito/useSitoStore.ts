@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { Lingua } from './i18n/lingue'
 import type { Categoria } from './sitoData'
 
 /**
@@ -72,6 +73,9 @@ interface SitoState {
   /** Sito web (desktop/mobile) o Totem interattivo verticale nelle strutture. */
   modo: ModoSito
   versione: VersioneHome
+  /** Lingua di sito e totem (vedi i18n). */
+  lingua: Lingua
+  setLingua: (l: Lingua) => void
   pagina: PaginaSito
   carrello: RigaCarrello[]
   preferiti: string[]
@@ -97,6 +101,8 @@ export const useSitoStore = create<SitoState>()(
       aperto: false,
       modo: 'web',
       versione: 'impatto',
+      lingua: 'it',
+      setLingua: (lingua) => set({ lingua, drawer: false }),
       pagina: { nome: 'home' },
       carrello: [],
       preferiti: [],
@@ -122,7 +128,7 @@ export const useSitoStore = create<SitoState>()(
       setModo: (modo) => set({ modo, pagina: { nome: 'home' }, drawer: false }),
       setVersione: (versione) => set({ versione, pagina: { nome: 'home' }, drawer: false }),
     }),
-    { name: 'sibylla.sito-network', version: 1, partialize: (s) => ({ carrello: s.carrello, preferiti: s.preferiti, modo: s.modo, versione: s.versione }) },
+    { name: 'sibylla.sito-network', version: 1, partialize: (s) => ({ carrello: s.carrello, preferiti: s.preferiti, modo: s.modo, versione: s.versione, lingua: s.lingua }) },
   ),
 )
 

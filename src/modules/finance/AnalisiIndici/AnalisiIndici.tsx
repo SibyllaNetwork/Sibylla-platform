@@ -24,7 +24,7 @@ const TONO_COLOR: Record<Tono, string> = { pos: CHART.good, neg: CHART.bad, neut
 export default function AnalisiIndici({ navigate }: { navigate: (p: string) => void }) {
   const [anno, setAnno] = useState('2024')
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
-  const [chiuse, setChiuse] = useState<Record<string, boolean>>({})
+  const [aperte, setAperte] = useState<Record<string, boolean>>({})
   const [aperto, setAperto] = useState<Indice | null>(null)
   const [parametriAperti, setParametriAperti] = useState(false)
   const ivaVendite = useIndiciParametriStore(s => s.ivaVendite)
@@ -130,13 +130,13 @@ export default function AnalisiIndici({ navigate }: { navigate: (p: string) => v
           </thead>
           <tbody>
             {righe.map(({ sez, indici }) => {
-              const chiusa = !!chiuse[sez.id]
+              const chiusa = !aperte[sez.id]
               return (
                 <React.Fragment key={sez.id}>
                   <tr className="aind__section">
                     <td colSpan={6} className={`aind__section-cell aind__section-cell--${sez.id}`}>
                       <button type="button" className="aind__sec-toggle" aria-expanded={!chiusa}
-                        onClick={() => setChiuse(s => ({ ...s, [sez.id]: !chiusa }))}>
+                        onClick={() => setAperte(s => ({ ...s, [sez.id]: chiusa }))}>
                         <i className={`fa-solid fa-chevron-${chiusa ? 'right' : 'down'} aind__sec-chev`} aria-hidden="true" />
                         <i className={`fa-solid ${sez.icona}`} aria-hidden="true" />
                         {sez.titolo}

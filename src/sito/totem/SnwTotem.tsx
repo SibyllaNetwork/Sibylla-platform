@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import TouchKeyboard from '../../core/components/TouchKeyboard/TouchKeyboard'
+import { LINGUE } from '../i18n'
 import FlagCircle from '../../core/components/FlagCircle'
 import { useConfirmStore } from '../../store/useConfirmStore'
 import { CATEGORIE, Categoria, FOTO, OFFERTE, STRUTTURA_OSPITE, eur, oggiIso, rigaDa, trova } from '../sitoData'
@@ -34,7 +35,6 @@ type Vista =
 
 const INATTIVO_S = 75
 const CONFERMA_S = 15
-const LINGUE = ['it', 'gb', 'de', 'fr', 'es']
 const SLIDE = [FOTO.colosseo, FOTO.trevi, FOTO.vernazza, FOTO.rialto]
 
 const FORMATI: { id: VersioneHome; lettera: string; nome: string }[] = [
@@ -59,7 +59,8 @@ export default function SnwTotem({ dispositivo = false }: { dispositivo?: boolea
   const versione = useSitoStore(s => s.versione)
   const setVersione = useSitoStore(s => s.setVersione)
   const [attesa, setAttesa] = useState(true)
-  const [lingua, setLingua] = useState('it')
+  const lingua = useSitoStore(s => s.lingua)
+  const setLingua = useSitoStore(s => s.setLingua)
   const [storia, setStoria] = useState<Vista[]>([{ n: 'home' }])
   const [inattivo, setInattivo] = useState(0)
   const [slide, setSlide] = useState(0)
@@ -145,10 +146,10 @@ export default function SnwTotem({ dispositivo = false }: { dispositivo?: boolea
               <span className="snw-tot__att-tocca"><i className="fa-solid fa-hand-pointer" aria-hidden="true" /> Tocca lo schermo per iniziare</span>
               <span className="snw-tot__att-lingue">
                 {LINGUE.map(l => (
-                  <button key={l} type="button" aria-label={`Lingua ${l}`} aria-pressed={l === lingua}
-                    className={l === lingua ? 'snw-tot__lingua snw-tot__lingua--on' : 'snw-tot__lingua'}
-                    onClick={e => { e.stopPropagation(); setLingua(l) }}>
-                    <FlagCircle code={l} size={44} />
+                  <button key={l.id} type="button" aria-label={l.nome} lang={l.id} aria-pressed={l.id === lingua}
+                    className={l.id === lingua ? 'snw-tot__lingua snw-tot__lingua--on' : 'snw-tot__lingua'}
+                    onClick={e => { e.stopPropagation(); setLingua(l.id) }}>
+                    <FlagCircle code={l.bandiera} size={44} />
                   </button>
                 ))}
               </span>
@@ -161,7 +162,7 @@ export default function SnwTotem({ dispositivo = false }: { dispositivo?: boolea
                   <b>{ora.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</b>
                   <span>{ora.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
                 </span>
-                <FlagCircle code={lingua} size={40} />
+                <FlagCircle code={LINGUE.find(l => l.id === lingua)?.bandiera ?? 'it'} size={40} />
               </header>
 
               <div className="snw-tot__scroll" ref={scroll} onScroll={e => suScroll(e.currentTarget)}>
