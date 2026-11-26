@@ -1528,16 +1528,12 @@
 .snw-tot.snw--impatto2
   // Palette in SnwWeb.sass (.snw--impatto2), comune a sito e totem
 
+  // Testata bianca con filo ambra: la chiave oro del logo non si leggerebbe
+  // sul fondo giallo
   .snw-tot__head
-    border-color: transparent
-    background: $accent
-
-    // Chiave del logo scura: l'accento giallo sparirebbe sul fondo giallo
-    .snw-logo
-      color: var(--snw-ink)
-
-    .snw-logo__key
-      background: var(--snw-ink)
+    border-color: $accent
+    border-bottom-width: .3em
+    background: var(--color-surface)
 
   .snw-tot__ospite
     color: color-mix(in srgb, var(--snw-ink) 70%, transparent)
@@ -1565,17 +1561,17 @@
     border: 0
     background: none
     color: var(--snw-ink)
-    --blob: #E3A21A
+    --blob: var(--snw-blob-1)
 
   .snw-tot__anelli button
     &:nth-child(2) .snw-tot__anello
-      --blob: #0E7C61
+      --blob: var(--snw-blob-2)
 
     &:nth-child(3) .snw-tot__anello
-      --blob: #E0603F
+      --blob: var(--snw-blob-3)
 
     &:nth-child(4) .snw-tot__anello
-      --blob: #4F6FD6
+      --blob: var(--snw-blob-4)
 
     &:active .snw-tot__anello
       background: none
@@ -1749,7 +1745,7 @@
     justify-content: center
     width: 2.6em
     height: 2.6em
-    --blob: #E3A21A
+    --blob: var(--snw-blob-1)
     color: var(--snw-ink)
 
     i
@@ -1757,13 +1753,13 @@
       font-size: 1.3em
 
     &--1
-      --blob: #0E7C61
+      --blob: var(--snw-blob-2)
 
     &--2
-      --blob: #E0603F
+      --blob: var(--snw-blob-3)
 
     &--3
-      --blob: #4F6FD6
+      --blob: var(--snw-blob-4)
 
     &--cerca
       --blob: var(--snw-ink)

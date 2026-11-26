@@ -63,3 +63,34 @@ export const LEGALE: Record<'privacy' | 'cookie', string[]> = {
   privacy: ['Titolare del trattamento', 'Dati raccolti', 'Finalità e base giuridica', 'Conservazione', 'Destinatari dei dati', 'Diritti dell’interessato', 'Contatti'],
   cookie: ['Cosa sono i cookie', 'Cookie tecnici', 'Cookie di analisi', 'Cookie di terze parti', 'Gestione delle preferenze', 'Aggiornamenti'],
 }
+
+/**
+ * Partner della rete per il nastro scorrevole (home Impatto 2): marchio
+ * disegnato in CSS (forma + icona o monogramma, tinta per partner), nome e
+ * tipo di attività. I nomi sono quelli delle offerte del catalogo.
+ */
+export type FormaMarchio = 'tondo' | 'quadro' | 'scudo' | 'esagono' | 'foglia' | 'rombo'
+export interface PartnerNastro {
+  nome: string
+  tipo: string
+  forma: FormaMarchio
+  /** Tinta 0-5 (palette del marchio in SnwHome.sass). */
+  tinta: number
+  icona?: string
+  /** Monogramma al posto dell'icona. */
+  sigla?: string
+  /** Stile del nome: classico (Poppins), corsivo serif, maiuscolo spaziato. */
+  scrittura: 'sans' | 'serif' | 'caps'
+}
+export const PARTNER_NASTRO: PartnerNastro[] = [
+  { nome: 'Hotel Archimede', tipo: 'Hotel · Roma', forma: 'scudo', tinta: 0, sigla: 'A', scrittura: 'serif' },
+  { nome: 'Leaving Room Italia', tipo: 'Esperienze', forma: 'tondo', tinta: 1, icona: 'fa-house-chimney-window', scrittura: 'sans' },
+  { nome: 'Cantine del Piglio', tipo: 'Cantina · Lazio', forma: 'foglia', tinta: 2, icona: 'fa-wine-glass', scrittura: 'serif' },
+  { nome: 'Roma Incoming', tipo: 'Tour operator', forma: 'esagono', tinta: 3, sigla: 'RI', scrittura: 'caps' },
+  { nome: 'Frantoio Sabino', tipo: 'Olio EVO · Sabina', forma: 'tondo', tinta: 4, icona: 'fa-leaf', scrittura: 'serif' },
+  { nome: 'La Torre', tipo: 'Hotel & resort', forma: 'quadro', tinta: 5, icona: 'fa-chess-rook', scrittura: 'caps' },
+  { nome: 'Osteria della Mole', tipo: 'Ristorante · Torino', forma: 'rombo', tinta: 2, icona: 'fa-utensils', scrittura: 'serif' },
+  { nome: 'Italia Autentica', tipo: 'Tour operator', forma: 'foglia', tinta: 1, sigla: 'IA', scrittura: 'sans' },
+  { nome: 'Gar Ghost', tipo: 'Tour e transfer', forma: 'esagono', tinta: 0, icona: 'fa-van-shuttle', scrittura: 'caps' },
+  { nome: 'GAR', tipo: 'Servizi turistici', forma: 'quadro', tinta: 3, sigla: 'G', scrittura: 'sans' },
+]

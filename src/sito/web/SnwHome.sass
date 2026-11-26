@@ -964,7 +964,7 @@
       font-size: 17px
       line-height: 1.5
 
-  // La parola che cambia: verde sul giallo
+  // La parola che cambia: navy Sibylla sul giallo
   &__sol-txt .snw-home__parola
     color: $primary
 
@@ -1040,7 +1040,7 @@
     justify-content: center
     width: 120px
     height: 120px
-    --blob: #E3A21A
+    --blob: var(--snw-blob-1)
     color: var(--blob)
     font-size: 46px
     transition: transform .3s ease
@@ -1056,19 +1056,19 @@
       position: relative
 
     &--1
-      --blob: #0E7C61
+      --blob: var(--snw-blob-2)
 
       &::before
         border-radius: 33% 67% 41% 59% / 62% 30% 70% 38%
 
     &--2
-      --blob: #E0603F
+      --blob: var(--snw-blob-3)
 
       &::before
         border-radius: 68% 32% 30% 70% / 34% 63% 37% 66%
 
     &--3
-      --blob: #4F6FD6
+      --blob: var(--snw-blob-4)
 
       &::before
         border-radius: 38% 62% 72% 28% / 66% 37% 63% 34%
@@ -1177,3 +1177,146 @@
 
   .snw-home__cerca--barra .snw-home__cerca-btn
     padding: 0 18px
+
+// ── Nastro dei partner (Impatto 2) ───────────────────────────────────────
+// Fascia navy Sibylla: etichetta fissa a sinistra, marchi che scorrono
+// (forma + icona/monogramma, tinta per partner), nome e attività.
+.snw-home__partner
+  --snw-mrc-t0: #C9A84C
+  --snw-mrc-t1: #FFC83D
+  --snw-mrc-t2: #A8445A
+  --snw-mrc-t3: #2E9C8E
+  --snw-mrc-t4: #7E9B3C
+  --snw-mrc-t5: #D9573A
+  display: flex
+  align-items: stretch
+  background: $primary
+  color: #FFFFFF
+  overflow: hidden
+
+.snw-home__partner-tit
+  position: relative
+  z-index: 1
+  display: inline-flex
+  align-items: center
+  gap: 10px
+  flex: none
+  padding: 0 28px
+  background: var(--snw-ink)
+  font-family: 'Poppins', sans-serif
+  font-size: 13px
+  font-weight: 700
+  letter-spacing: .06em
+  text-transform: uppercase
+  white-space: nowrap
+  box-shadow: 18px 0 24px -6px var(--snw-ink)
+
+  i
+    color: var(--snw-mrc-t0)
+
+.snw-home__partner-pista
+  flex: 1
+  min-width: 0
+  overflow: hidden
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent)
+
+.snw-home__partner-in
+  display: flex
+  width: max-content
+  margin: 0
+  padding: 0
+  list-style: none
+  animation: snw-home-nastro 60s linear infinite
+
+  &:hover
+    animation-play-state: paused
+
+.snw-mrc
+  display: inline-flex
+  align-items: center
+  gap: 12px
+  padding: 18px 44px 18px 0
+  white-space: nowrap
+  --snw-mrc: var(--snw-mrc-t0)
+
+  @for $i from 1 through 5
+    &--t#{$i}
+      --snw-mrc: var(--snw-mrc-t#{$i})
+
+  &__segno
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex: none
+    width: 44px
+    height: 44px
+    background: var(--snw-mrc)
+    color: #FFFFFF
+    font-size: 18px
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 16px
+      font-weight: 800
+      letter-spacing: -.02em
+
+    &--tondo
+      border-radius: 50%
+
+    &--quadro
+      border-radius: 10px
+
+    &--scudo
+      border-radius: 10px 10px 50% 50% / 10px 10px 45% 45%
+
+    &--esagono
+      clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%)
+
+    &--foglia
+      border-radius: 0 50%
+
+    &--rombo
+      width: 38px
+      height: 38px
+      margin: 3px
+      border-radius: 8px
+      transform: rotate(45deg)
+
+      i, b
+        transform: rotate(-45deg)
+
+  &__txt
+    display: flex
+    flex-direction: column
+    line-height: 1.15
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 17px
+      font-weight: 700
+
+    small
+      margin-top: 3px
+      font-size: 12px
+      color: color-mix(in srgb, #FFFFFF 62%, transparent)
+
+  // Tre «scritture» per distinguere i marchi
+  &--serif &__txt b
+    font-family: Georgia, 'Times New Roman', serif
+    font-size: 19px
+    font-style: italic
+    font-weight: 600
+
+  &--caps &__txt b
+    font-size: 14px
+    font-weight: 800
+    letter-spacing: .14em
+    text-transform: uppercase
+
+@media (max-width: 700px)
+  .snw-home__partner-tit
+    display: none
+
+@media (prefers-reduced-motion: reduce)
+  .snw-home__partner-in
+    animation: none

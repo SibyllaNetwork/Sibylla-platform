@@ -5,6 +5,7 @@ import { CATEGORIE, Categoria, DESTINAZIONI, FOTO, OFFERTE, eur, trova } from '.
 import { useSitoStore } from '../useSitoStore'
 import { SnwFoto } from '../SnwUi'
 import SnwCard from './SnwCard'
+import { PARTNER_NASTRO } from '../sitoContenuti'
 import './SnwHome.sass'
 
 /**
@@ -194,11 +195,30 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
       )}
 
       {/* ── Nastro scorrevole ────────────────────────────────────────── */}
-      <div className="snw-home__nastro" aria-hidden="true">
-        <div className="snw-home__nastro-in">
-          {[...NASTRO, ...NASTRO].map((t, i) => <span key={i}>{t}<i className="fa-solid fa-sparkle" /></span>)}
+      {solare ? (
+        // Impatto 2: i partner della rete, marchio + nome + attività
+        <div className="snw-home__partner" aria-label="I partner della rete">
+          <span className="snw-home__partner-tit"><i className="fa-solid fa-key" aria-hidden="true" />Partner della rete</span>
+          <div className="snw-home__partner-pista">
+            <ul className="snw-home__partner-in">
+              {[...PARTNER_NASTRO, ...PARTNER_NASTRO].map((p, i) => (
+                <li key={i} className={`snw-mrc snw-mrc--t${p.tinta} snw-mrc--${p.scrittura}`} aria-hidden={i >= PARTNER_NASTRO.length}>
+                  <span className={`snw-mrc__segno snw-mrc__segno--${p.forma}`}>
+                    {p.sigla ? <b>{p.sigla}</b> : <i className={`fa-solid ${p.icona}`} aria-hidden="true" />}
+                  </span>
+                  <span className="snw-mrc__txt"><b>{p.nome}</b><small>{p.tipo}</small></span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="snw-home__nastro" aria-hidden="true">
+          <div className="snw-home__nastro-in">
+            {[...NASTRO, ...NASTRO].map((t, i) => <span key={i}>{t}<i className="fa-solid fa-sparkle" /></span>)}
+          </div>
+        </div>
+      )}
 
       {/* ── Categorie a tutta foto ───────────────────────────────────── */}
       <section className="snw__wrap snw-home__sez snw-reveal">

@@ -4,19 +4,23 @@
 // Palette: blu Platform (primary) + oro Sibylla (accent). Le misure sono in em
 // così il Totem, che lavora a corpo grande, le scala da sé.
 
+// Logo: scritta Grigio scuro #333333 (o bianca su fondi scuri, --chiaro),
+// chiave SEMPRE oro Sibylla, in tutte le versioni
 .snw-logo
+  --snw-logo-testo: #333333
+  --snw-logo-oro: #C9A84C
   display: inline-flex
   align-items: center
   gap: .55em
-  color: $primary
+  color: var(--snw-logo-testo)
   white-space: nowrap
 
-  // Emblema «chiave» Sibylla tinto con l'accento della versione (maschera)
+  // Emblema «chiave» Sibylla in oro (maschera)
   &__key
     display: inline-block
     width: 5.5em
     height: 2.1em
-    background: $accent
+    background: var(--snw-logo-oro)
     -webkit-mask: url('../admin/SibyllaAdminPanel/tabs/BannerTab/sibylla-key.svg') left center / contain no-repeat
     mask: url('../admin/SibyllaAdminPanel/tabs/BannerTab/sibylla-key.svg') left center / contain no-repeat
 
@@ -30,10 +34,7 @@
       font-weight: 700
 
   &--chiaro
-    color: $white
-
-    .snw-logo__key
-      background: $white
+    --snw-logo-testo: #FFFFFF
 
 .snw-foto
   display: block
