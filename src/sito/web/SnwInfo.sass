@@ -664,3 +664,55 @@
   .snw-inf__banda
     flex-direction: column
     align-items: flex-start
+
+// ── Mission ──────────────────────────────────────────────────────────────
+.snw-inf__mission
+  display: grid
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr)
+  gap: 40px
+
+  p
+    margin: 0 0 16px
+    font-size: 16px
+    line-height: 1.75
+
+.snw-inf__eco
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  article
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 12px 14px
+    padding: 18px
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+
+    > i
+      font-size: 26px
+      color: $primary
+
+    span
+      display: flex
+      flex: 1
+      flex-direction: column
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 16px
+
+    small
+      font-size: 12px
+      color: $text-inactive
+
+    .sib-btn
+      flex-basis: 100%
+      justify-content: center
+      text-decoration: none
+
+@media (max-width: 960px)
+  .snw-inf__mission
+    grid-template-columns: minmax(0, 1fr)

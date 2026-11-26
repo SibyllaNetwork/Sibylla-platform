@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { CheckboxField, InputField, RadioGroup, TextareaField } from '../../core/components/form'
 import { PARTNER } from '../sitoData'
-import { FASI_IMT, LEGALE, PAGINE_INFO, POSIZIONI, SOCIETA, VALORI } from '../sitoContenuti'
+import { FASI_IMT, LEGALE, MISSION, PAGINE_INFO, POSIZIONI, PRODOTTI_ECOSISTEMA, SOCIETA, VALORI } from '../sitoContenuti'
 import { PaginaInfo, useSitoStore } from '../useSitoStore'
 import SnwTestata from './SnwTestata'
 import './SnwInfo.sass'
@@ -24,7 +24,7 @@ const iniziali = (s: string) => s.replace(/[^A-Za-zÀ-ú ]/g, '').split(' ').fil
 export default function SnwInfo({ id }: { id: PaginaInfo }) {
   const vai = useSitoStore(s => s.vai)
   const p = PAGINE_INFO[id]
-  const legale = id === 'privacy' || id === 'cookie'
+  const legale = id === 'privacy' || id === 'cookie' || id === 'termini'
   return (
     <div className="snw-inf">
       <SnwTestata kicker={p.kicker} titolo={p.titolo} enfasi={p.enfasi} sotto={p.sotto} foto={p.foto} icona={p.icona}
@@ -37,6 +37,7 @@ export default function SnwInfo({ id }: { id: PaginaInfo }) {
         {id === 'lavora' && <Lavora />}
         {id === 'contatti' && <Contatti />}
         {id === 'societa' && <Societa />}
+        {id === 'mission' && <Mission />}
         {legale && <Legale id={id} />}
 
         <nav className="snw-inf__altre" aria-label="Altre pagine">
@@ -253,6 +254,23 @@ function Contatti() {
   )
 }
 
+function Mission() {
+  return (
+    <section className="snw-inf__sez snw-inf__mission snw-reveal">
+      <div>{MISSION.map(p => <p key={p.slice(0, 24)}>{p}</p>)}</div>
+      <div className="snw-inf__eco">
+        {PRODOTTI_ECOSISTEMA.map(x => (
+          <article key={x.nome}>
+            <i className={`fa-light ${x.icona}`} aria-hidden="true" />
+            <span><b>{x.nome}</b><small>{x.per}</small></span>
+            <a className="sib-btn sib-btn--primary" href={x.url} target="_blank" rel="noreferrer">Vai al sito <i className="fa-solid fa-arrow-right" aria-hidden="true" /></a>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function Societa() {
   return (
     <section className="snw-inf__sez snw-reveal">
@@ -263,7 +281,7 @@ function Societa() {
   )
 }
 
-function Legale({ id }: { id: 'privacy' | 'cookie' }) {
+function Legale({ id }: { id: 'privacy' | 'cookie' | 'termini' }) {
   return (
     <section className="snw-inf__sez snw-inf__legale snw-reveal">
       <nav aria-label="Indice">

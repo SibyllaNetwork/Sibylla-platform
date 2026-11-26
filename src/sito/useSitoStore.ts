@@ -5,7 +5,9 @@ import type { Categoria } from './sitoData'
 /**
  * Sito Sibylla Network (vetrina e-commerce): visibilità, pagina corrente,
  * carrello e preferiti. Si apre da "Disconnetti profilo" in topbar; "Area
- * riservata" riporta in Platform. Persistiti solo carrello e preferiti.
+ * riservata" porta all'accesso del cliente (useSitoAccountStore), da cui
+ * l'«Area partner» riporta in Platform. Persistiti carrello, preferiti,
+ * modo e versione.
  */
 export type PaginaSito =
   | { nome: 'home' }
@@ -17,9 +19,19 @@ export type PaginaSito =
   | { nome: 'preferiti' }
   | { nome: 'destinazione'; citta: string }
   | { nome: 'conferma'; ordine: string }
+  | { nome: 'accesso'; modo?: 'accedi' | 'registrati'; poi?: PaginaSito }
+  | { nome: 'account'; sez?: SezioneAccount }
+  | { nome: 'faq' }
+  | { nome: 'richiesta'; tipo: TipoRichiesta }
+  | { nome: 'preventivo'; codice?: string }
+
+/** Sezioni dell'area riservata (menu utente di sibyllanetwork.com + operatori). */
+export type SezioneAccount = 'operatori' | 'profilo' | 'ordini' | 'preferiti' | 'portafoglio'
+/** Servizi su richiesta (sibyllanetwork.com/transfers, /restaurants, /luggage). */
+export type TipoRichiesta = 'transfer' | 'ristoranti' | 'bagagli'
 
 /** Pagine istituzionali (come sul sito attuale, una pagina ciascuna). */
-export type PaginaInfo = 'chi-siamo' | 'partner' | 'imt' | 'lavora' | 'contatti' | 'societa' | 'privacy' | 'cookie'
+export type PaginaInfo = 'chi-siamo' | 'partner' | 'imt' | 'lavora' | 'contatti' | 'societa' | 'privacy' | 'cookie' | 'termini' | 'mission'
 
 export interface RigaCarrello {
   key: string
@@ -32,6 +44,8 @@ export interface RigaCarrello {
   /** Prezzo unitario della riga (per i soggiorni: prezzo × notti). */
   prezzo: number
   dettaglio: string
+  /** Tariffa operatore dall'area riservata. */
+  b2b?: boolean
 }
 
 export type ModoSito = 'web' | 'totem'
@@ -93,7 +107,7 @@ export const useSitoStore = create<SitoState>()(
       chiudi: () => set({ aperto: false, drawer: false }),
       vai: (pagina) => set({ pagina, drawer: false }),
       aggiungi: (r) => set((s) => {
-        const key = [r.id, r.data ?? '', r.dataFine ?? '', r.orario ?? ''].join('|')
+        const key = [r.id, r.data ?? '', r.dataFine ?? '', r.orario ?? '', r.b2b ? 'b2b' : ''].join('|')
         const esiste = s.carrello.find(x => x.key === key)
         const carrello = esiste
           ? s.carrello.map(x => (x.key === key ? { ...x, qta: x.qta + r.qta } : x))

@@ -1,0 +1,212 @@
+@use '../../styles/tokens' as *
+
+// ─── Servizi su richiesta (trasferimenti, ristoranti, deposito bagagli) ───
+.snw-rq
+  padding-bottom: 72px
+
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 300px
+    gap: 40px
+    margin-top: 40px
+
+  &__form,
+  &__ok
+    padding: 26px
+    border: 1px solid $border
+    border-radius: 16px
+    background: var(--color-surface)
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 16px 18px
+
+  &__largo
+    grid-column: 1 / -1
+
+  &__stepper
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  // Etichetta dello stepper, come le label dei campi condivisi
+  &__lbl
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__menu
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px
+
+  &__m
+    position: relative
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    color: $text-active
+    text-align: left
+    cursor: pointer
+
+    span
+      display: flex
+      flex-direction: column
+      gap: 2px
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 15px
+
+    small
+      font-size: 12px
+      color: $text-inactive
+
+    strong
+      font-family: 'Poppins', sans-serif
+      font-size: 16px
+      color: $primary
+
+    i
+      position: absolute
+      top: -8px
+      right: -8px
+      font-size: 20px
+      color: $primary
+      background: var(--color-surface)
+      border-radius: 50%
+
+    &--on
+      border-color: $primary
+      box-shadow: inset 0 0 0 1px $primary
+
+  &__piede
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+    margin-top: 24px
+    padding-top: 18px
+    border-top: 1px solid $border
+
+  &__tot
+    display: flex
+    flex-direction: column
+
+    small
+      font-family: 'Poppins', sans-serif
+      font-size: 11px
+      font-weight: 700
+      letter-spacing: .14em
+      text-transform: uppercase
+      color: $text-inactive
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 26px
+      color: var(--snw-ink, #{$text-active})
+
+    em
+      font-size: 12px
+      font-style: normal
+      color: $text-inactive
+
+  &__ok
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    text-align: center
+
+    > i
+      font-size: 46px
+      color: $accent
+
+    h2
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      color: $primary
+
+    p
+      max-width: 520px
+      margin: 0 0 10px
+      color: $text-inactive
+
+    div
+      display: flex
+      gap: 8px
+
+  &__lato
+    h3
+      margin: 0 0 12px
+      font-family: 'Poppins', sans-serif
+      font-size: 16px
+      color: $primary
+
+    ol
+      display: flex
+      flex-direction: column
+      gap: 12px
+      margin: 0
+      padding-left: 20px
+
+    li
+      font-size: 13px
+
+      b
+        display: block
+        font-family: 'Poppins', sans-serif
+
+      span
+        color: $text-inactive
+
+  &__altri
+    display: flex
+    flex-direction: column
+    gap: 8px
+    margin-top: 24px
+
+    button
+      display: flex
+      align-items: center
+      gap: 10px
+      padding: 12px 14px
+      border: 1px solid $border
+      border-radius: 10px
+      background: var(--color-surface)
+      color: $text-active
+      font-family: 'Poppins', sans-serif
+      font-size: 14px
+      text-align: left
+      cursor: pointer
+
+      i:first-child
+        color: $primary
+
+      i:last-child
+        margin-left: auto
+        font-size: 11px
+        color: $text-inactive
+
+      &:hover
+        border-color: $primary
+
+@media (max-width: 960px)
+  .snw-rq__layout
+    grid-template-columns: minmax(0, 1fr)
+
+@media (max-width: 560px)
+  .snw-rq__griglia,
+  .snw-rq__menu
+    grid-template-columns: minmax(0, 1fr)
+
+  .snw-rq__piede
+    flex-direction: column
+    align-items: stretch

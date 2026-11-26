@@ -1,0 +1,927 @@
+@use '../../styles/tokens' as *
+
+// ─── Area riservata (utente collegato) ─────────────────────────────────────
+// Menu a sinistra + sezione. Colori dalla palette dell'area riservata
+// (.snw--riservata in SnwWeb.sass): oro/bronzo Sibylla, diversi dall'area
+// pubblica, come su sibyllanetwork.com. Stati e badge: icona + testo
+// colorato, mai fondi a pillola.
+
+.snw-ris
+  padding-bottom: 72px
+
+  // ── Testata ───────────────────────────────────────────────────────
+  &__testa
+    background: var(--snw-ink)
+    color: #FFFFFF
+
+  &__testa-in
+    display: flex
+    align-items: center
+    gap: 18px
+    padding-top: 28px
+    padding-bottom: 28px
+
+  &__av
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex: none
+    width: 64px
+    height: 64px
+    overflow: hidden
+    border: 2px solid $accent
+    border-radius: 50%
+    color: $accent
+    font-family: 'Poppins', sans-serif
+    font-size: 22px
+    font-weight: 700
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  &__saluto
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+    small
+      font-size: 12px
+      color: color-mix(in srgb, #FFFFFF 65%, transparent)
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 24px
+      font-weight: 700
+
+    span
+      font-size: 13px
+      color: $accent
+
+      i
+        margin-right: 4px
+
+  // ── Layout ────────────────────────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: 230px minmax(0, 1fr)
+    gap: 40px
+    margin-top: 36px
+
+  &__menu
+    position: sticky
+    top: 96px
+    align-self: start
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__voce
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 10px 12px
+    border: 0
+    border-left: 3px solid transparent
+    border-radius: 0 8px 8px 0
+    background: none
+    color: $text-active
+    font-family: 'Poppins', sans-serif
+    font-size: 14px
+    text-align: left
+    cursor: pointer
+
+    i
+      width: 18px
+      color: $primary
+      text-align: center
+
+    &:hover
+      background: color-mix(in srgb, $accent 10%, transparent)
+
+    &--on
+      border-left-color: $accent
+      background: color-mix(in srgb, $accent 14%, transparent)
+      font-weight: 600
+
+    &--esci,
+    &--esci i
+      color: var(--color-error)
+
+  &__sep
+    height: 1px
+    margin: 10px 0
+    background: $border
+
+  &__corpo
+    min-width: 0
+
+  // ── Titolo sezione ────────────────────────────────────────────────
+  &__tit
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 16px
+    margin-bottom: 20px
+
+    h1
+      margin: 0 0 4px
+      font-family: 'Poppins', sans-serif
+      font-size: clamp(26px, 3vw, 36px)
+      font-weight: 800
+      letter-spacing: -.02em
+      color: var(--snw-ink)
+
+    p
+      margin: 0
+      font-size: 14px
+      color: $text-inactive
+
+  &__intro
+    max-width: 720px
+    margin: -6px 0 24px
+    font-size: 14px
+    line-height: 1.6
+    color: $text-inactive
+
+  &__etichetta
+    display: block
+    margin-bottom: 8px
+    font-family: 'Poppins', sans-serif
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: .14em
+    text-transform: uppercase
+    color: $text-inactive
+
+  &__nota
+    margin: 0 0 14px
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $accent
+
+  // ── Tab e filtri ─────────────────────────────────────────────────
+  &__tab
+    display: flex
+    gap: 4px
+    margin-bottom: 20px
+    border-bottom: 1px solid $border
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      padding: 10px 14px
+      border: 0
+      border-bottom: 3px solid transparent
+      margin-bottom: -1px
+      background: none
+      color: $text-inactive
+      font-family: 'Poppins', sans-serif
+      font-size: 14px
+      font-weight: 600
+      cursor: pointer
+
+    &--piccolo button
+      font-size: 13px
+
+  &__tab-on
+    border-bottom-color: $accent !important
+    color: var(--snw-ink) !important
+
+  &__filtri
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 16px
+    margin-bottom: 12px
+
+    .sib-field, > div:last-child
+      min-width: 260px
+
+  &__chip
+    display: inline-flex
+    flex-wrap: wrap
+    gap: 4px
+    padding: 4px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+
+    button
+      padding: 6px 12px
+      border: 0
+      border-radius: 7px
+      background: none
+      color: $text-inactive
+      font-family: 'Poppins', sans-serif
+      font-size: 13px
+      font-weight: 600
+      cursor: pointer
+
+  &__chip-on
+    background: color-mix(in srgb, $accent 18%, transparent) !important
+    color: var(--snw-ink) !important
+
+  // ── Tabella tariffe ──────────────────────────────────────────────
+  &__tabella
+    .sib-table
+      table-layout: fixed
+      width: 100%
+
+    td
+      vertical-align: middle
+      white-space: nowrap
+      overflow: hidden
+
+  &__c-off
+    width: 38%
+
+  &__c-dove
+    width: 14%
+
+  &__c-eur
+    width: 15%
+
+  &__c-sc
+    width: 10%
+
+  &__c-az
+    width: 8%
+
+  &__num
+    text-align: right !important
+
+    small
+      font-size: 11px
+      color: $text-inactive
+
+  &__sconto
+    color: var(--color-success)
+    font-weight: 700
+
+  &__az
+    text-align: center !important
+
+  .snw-ris__ico i
+    color: var(--color-primary)
+    font-size: 16px
+
+  &__off
+    display: flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+
+  &__off-txt
+    display: flex
+    flex-direction: column
+    min-width: 0
+    font-weight: 600
+
+    small
+      font-size: 11px
+      font-weight: 400
+      color: $text-inactive
+
+  &__mini
+    flex: none
+    width: 40px
+    height: 40px
+    overflow: hidden
+    border-radius: 8px
+
+    &--grande
+      width: 72px
+      height: 72px
+
+  // ── Modali ────────────────────────────────────────────────────────
+  &__modale
+    display: flex
+    flex-direction: column
+    gap: 16px
+    padding: 4px 0 8px
+
+  &__modale-off
+    display: flex
+    align-items: center
+    gap: 14px
+
+    > span:last-child
+      display: flex
+      flex-direction: column
+      gap: 2px
+
+    b
+      font-family: 'Poppins', sans-serif
+
+    small
+      color: $text-inactive
+
+  &__modale-eur
+    s
+      color: $text-inactive
+
+    b
+      color: $primary
+
+  &__modale-campi
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px 14px
+
+  &__azioni
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding-top: 12px
+    border-top: 1px solid $border
+
+  // ── Promozioni ───────────────────────────────────────────────────
+  &__promo
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 18px
+
+  &__promo-card
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 20px
+    border: 1px solid $border
+    border-top: 4px solid $accent
+    border-radius: 12px
+    background: var(--color-surface)
+
+    header
+      display: flex
+      align-items: flex-start
+      gap: 12px
+
+      > i
+        font-size: 26px
+        color: $primary
+
+      span
+        display: flex
+        flex-direction: column
+        flex: 1
+
+      b
+        font-family: 'Poppins', sans-serif
+        font-size: 16px
+
+      small
+        font-size: 12px
+        color: $text-inactive
+
+      strong
+        font-family: 'Poppins', sans-serif
+        font-size: 22px
+        color: var(--color-success)
+
+    p
+      margin: 0
+      font-size: 13px
+      line-height: 1.55
+
+    ul
+      display: flex
+      flex-direction: column
+      gap: 4px
+      margin: 0
+      padding: 0
+      list-style: none
+      font-size: 12px
+      color: $text-inactive
+
+      i
+        margin-right: 8px
+        color: $accent
+
+    footer
+      display: flex
+      align-items: center
+      gap: 12px
+      margin-top: auto
+      padding-top: 12px
+      border-top: 1px dashed $border
+
+  &__codice
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+    letter-spacing: .06em
+    color: $primary
+
+  &__promo-n
+    flex: 1
+    font-size: 12px
+    color: $text-inactive
+
+  // ── Soggiorni riservati ──────────────────────────────────────────
+  &__sogg
+    display: flex
+    flex-direction: column
+    gap: 18px
+
+  &__sogg-card
+    display: grid
+    grid-template-columns: 300px minmax(0, 1fr)
+    overflow: hidden
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+
+  &__sogg-foto
+    position: relative
+    min-height: 220px
+
+    img
+      position: absolute
+      inset: 0
+
+  &__sogg-tipo
+    position: absolute
+    top: 12px
+    left: 12px
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 5px 9px
+    border-radius: 6px
+    background: var(--snw-ink)
+    color: $accent
+    font-family: 'Poppins', sans-serif
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: .04em
+
+  &__sogg-txt
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 18px 20px
+
+    > small
+      font-size: 12px
+      color: $text-inactive
+
+    h3
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 20px
+      color: var(--snw-ink)
+
+    p
+      margin: 4px 0 0
+      font-size: 13px
+      line-height: 1.55
+
+    ul
+      display: flex
+      flex-wrap: wrap
+      gap: 4px 16px
+      margin: 4px 0 0
+      padding: 0
+      list-style: none
+      font-size: 12px
+
+      i
+        margin-right: 6px
+        color: $accent
+
+    footer
+      display: flex
+      align-items: center
+      justify-content: space-between
+      margin-top: auto
+      padding-top: 12px
+
+  &__sogg-date
+    font-size: 13px
+
+    b
+      color: var(--color-warning)
+
+  &__sogg-eur
+    font-size: 13px
+    color: $text-inactive
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 20px
+      color: $primary
+
+  // ── Ordini ───────────────────────────────────────────────────────
+  &__gruppo
+    margin-top: 26px
+
+    h2
+      display: flex
+      align-items: center
+      gap: 10px
+      margin: 0 0 12px
+      font-family: 'Poppins', sans-serif
+      font-size: 18px
+      color: var(--snw-ink)
+
+      i
+        color: $primary
+
+      small
+        font-size: 12px
+        font-weight: 400
+        color: $text-inactive
+
+  &__nessuno
+    margin: 0
+    padding: 18px
+    border: 1px dashed $border
+    border-radius: 10px
+    font-size: 13px
+    color: $text-inactive
+
+  &__righe
+    display: flex
+    flex-direction: column
+    gap: 10px
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__riga
+    display: grid
+    grid-template-columns: 72px minmax(0, 1fr) auto auto
+    align-items: center
+    gap: 16px
+    padding: 12px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+
+    &--annullata
+      opacity: .6
+
+  &__riga-foto
+    width: 72px
+    height: 72px
+    padding: 0
+    overflow: hidden
+    border: 0
+    border-radius: 10px
+    cursor: pointer
+
+  &__riga-txt
+    display: flex
+    flex-direction: column
+    gap: 3px
+    min-width: 0
+
+    > b
+      font-family: 'Poppins', sans-serif
+      font-size: 15px
+
+    > small
+      font-size: 12px
+      color: $text-inactive
+
+  &__riga-meta
+    display: flex
+    flex-wrap: wrap
+    gap: 4px 14px
+    font-size: 12px
+    color: $text-inactive
+
+  &__stato
+    font-weight: 600
+
+    &--in-programma, &--in-consegna
+      color: $primary
+
+    &--concluso, &--consegnato
+      color: var(--color-success)
+
+    &--annullato
+      color: var(--color-error)
+
+  &__b2b
+    color: $primary
+    font-weight: 600
+
+  &__riga-eur
+    font-family: 'Poppins', sans-serif
+    font-size: 16px
+
+  &__riga-az
+    display: flex
+    gap: 6px
+
+  .snw-ris__annulla
+    color: var(--color-error)
+
+  // ── Voucher ──────────────────────────────────────────────────────
+  &__voucher
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    padding-bottom: 12px
+    text-align: center
+
+    > b
+      font-family: 'Poppins', sans-serif
+      font-size: 17px
+
+    > span, > small
+      font-size: 12px
+      color: $text-inactive
+
+    dl
+      width: 100%
+      margin: 8px 0
+      font-size: 13px
+
+      div
+        display: flex
+        justify-content: space-between
+        gap: 12px
+        padding: 6px 0
+        border-bottom: 1px solid $border
+
+      dt
+        color: $text-inactive
+
+      dd
+        margin: 0
+        font-weight: 600
+        text-align: right
+
+  &__qr
+    width: 170px
+    height: 170px
+    fill: #16130E
+
+  &__qr-bianco
+    fill: #FFFFFF
+
+  // ── Portafoglio ──────────────────────────────────────────────────
+  &__wallet
+    display: grid
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr)
+    gap: 20px
+    align-items: start
+
+  &__box
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 22px
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+
+    h2
+      margin: 0
+      font-family: 'Poppins', sans-serif
+      font-size: 18px
+
+    &--avatar
+      align-items: center
+
+  &__box-sotto
+    margin: -10px 0 4px
+    font-size: 13px
+    color: $text-inactive
+
+  &__importi
+    display: grid
+    grid-template-columns: repeat(6, minmax(0, 1fr))
+    gap: 8px
+
+    button
+      padding: 10px 0
+      border: 1px solid $border
+      border-radius: 10px
+      background: var(--color-surface)
+      color: $text-active
+      font-family: 'Poppins', sans-serif
+      font-size: 14px
+      font-weight: 600
+      cursor: pointer
+
+  &__importo-on
+    border-color: $accent !important
+    background: color-mix(in srgb, $accent 14%, transparent) !important
+
+  &__largo
+    grid-column: 1 / -1
+
+  .snw-ris__box > .snw-ris__largo
+    justify-content: center
+
+  &__saldo
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 18px
+    border: 1px solid color-mix(in srgb, $accent 40%, transparent)
+    border-radius: 12px
+    background: linear-gradient(135deg, color-mix(in srgb, $accent 6%, var(--color-surface)), color-mix(in srgb, $accent 18%, var(--color-surface)))
+
+    > b
+      font-family: 'Poppins', sans-serif
+      font-size: 30px
+      color: var(--snw-ink)
+
+    > span
+      font-size: 13px
+      color: $text-inactive
+
+    > small
+      font-size: 11px
+      font-weight: 600
+      color: $primary
+
+  &__mov-tit
+    display: flex
+    justify-content: space-between
+    margin: 4px 0 0
+    font-family: 'Poppins', sans-serif
+    font-size: 14px
+
+    small
+      font-weight: 400
+      color: $text-inactive
+
+  &__mov
+    display: flex
+    flex-direction: column
+    gap: 8px
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      border: 1px solid $border
+      border-radius: 10px
+
+    button
+      display: flex
+      align-items: center
+      gap: 10px
+      width: 100%
+      padding: 10px 12px
+      border: 0
+      background: none
+      color: $text-active
+      font: inherit
+      font-size: 13px
+      text-align: left
+      cursor: pointer
+
+      > span
+        flex: 1
+
+      small
+        color: $text-inactive
+
+      i
+        font-size: 11px
+        color: $text-inactive
+
+    p
+      margin: 0
+      padding: 8px 12px 10px
+      border-top: 1px solid $border
+      font-size: 12px
+      color: $text-inactive
+
+  &__piu
+    color: var(--color-success)
+
+  &__meno
+    color: var(--color-error)
+
+  // ── Profilo ──────────────────────────────────────────────────────
+  &__profilo
+    display: grid
+    grid-template-columns: 260px minmax(0, 1fr)
+    gap: 20px
+    align-items: start
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px 16px
+
+  &__salva
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 14px
+
+    span
+      font-size: 13px
+      color: var(--color-success)
+
+  // ── Preferiti e vuoti ────────────────────────────────────────────
+  &__pref
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 18px
+
+  &__vuoto
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 10px
+    padding: 56px 16px
+    border: 1px dashed $border
+    border-radius: 14px
+    text-align: center
+
+    > i
+      font-size: 44px
+      color: $accent
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 20px
+      color: var(--snw-ink)
+
+    span
+      max-width: 440px
+      margin-bottom: 6px
+      color: $text-inactive
+
+@media (max-width: 1100px)
+  .snw-ris__wallet,
+  .snw-ris__profilo,
+  .snw-ris__promo
+    grid-template-columns: minmax(0, 1fr)
+
+  .snw-ris__pref
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+@media (max-width: 860px)
+  .snw-ris__layout
+    grid-template-columns: minmax(0, 1fr)
+    gap: 20px
+
+  .snw-ris__menu
+    position: static
+    flex-direction: row
+    flex-wrap: wrap
+
+  .snw-ris__sep
+    display: none
+
+  .snw-ris__sogg-card
+    grid-template-columns: minmax(0, 1fr)
+
+  .snw-ris__riga
+    grid-template-columns: 56px minmax(0, 1fr)
+
+  .snw-ris__riga-eur,
+  .snw-ris__riga-az
+    grid-column: 2
+
+  .snw-ris__filtri
+    flex-direction: column
+    align-items: stretch
+
+@media (max-width: 640px)
+  // Tariffe: restano offerta, tariffa operatore e azione (layout automatico:
+  // con le celle nascoste le larghezze del colgroup non corrispondono più)
+  .snw-ris__tabella
+    .sib-table
+      table-layout: auto
+
+    col
+      width: auto !important
+
+    th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3), th:nth-child(5), td:nth-child(5)
+      display: none
+
+    .snw-ris__off-txt
+      max-width: 32vw
+
+    th, td
+      padding-left: 6px !important
+      padding-right: 6px !important
+
+    .snw-ris__num small
+      display: none
+
+@media (max-width: 560px)
+  .snw-ris__griglia,
+  .snw-ris__modale-campi,
+  .snw-ris__pref
+    grid-template-columns: minmax(0, 1fr)
+
+  .snw-ris__importi
+    grid-template-columns: repeat(3, minmax(0, 1fr))

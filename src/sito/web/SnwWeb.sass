@@ -46,6 +46,16 @@
   --snw-blob-3: #D9573A
   --snw-blob-4: #23877C
 
+// Area riservata (accesso, registrazione e pagine dell'utente collegato):
+// palette oro/bronzo Sibylla, distinta da quella pubblica di ogni versione,
+// come su sibyllanetwork.com. Viene dopo le versioni e vince.
+.snw--riservata
+  --color-primary: #85652B
+  --color-accent: #C9A84C
+  --color-link: #85652B
+  --snw-ink: #231C11
+  --snw-sand: #FAF7F0
+
 .snw
   position: fixed
   inset: 0
@@ -214,6 +224,19 @@
     display: flex
     align-items: center
     gap: 6px
+
+  // Utente collegato: avatar o iniziali nel tondo, bordo oro
+  &__ico.snw__ico--utente
+    overflow: hidden
+    border-color: var(--color-accent)
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 700
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
 
   &__ico
     position: relative
@@ -444,6 +467,12 @@
   &--in
     opacity: 1
     transform: none
+
+// Telefono: l'icona dell'area riservata si aggiunge a preferiti e carrello;
+// i preferiti restano nel menu dell'area riservata
+@media (max-width: 480px)
+  .snw__ico.snw__ico--pref
+    display: none
 
 @media (prefers-reduced-motion: reduce)
   .snw-reveal

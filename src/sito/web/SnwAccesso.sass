@@ -1,0 +1,313 @@
+@use '../../styles/tokens' as *
+
+// ─── Area riservata · accesso e registrazione ─────────────────────────────
+// Come sibyllanetwork.com/login: foto a tutto campo, claim a sinistra,
+// scheda chiara a destra. Colori dalla palette dell'area riservata
+// (.snw--riservata in SnwWeb.sass).
+
+.snw-acs
+  position: relative
+  overflow: hidden
+  background: var(--snw-ink)
+
+  &__foto
+    position: absolute
+    inset: 0
+
+  &__velo
+    position: absolute
+    inset: 0
+    background: linear-gradient(90deg, rgba(20, 16, 10, .72) 0%, rgba(20, 16, 10, .45) 45%, rgba(20, 16, 10, .2) 100%)
+
+  &__in
+    position: relative
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 440px)
+    align-items: center
+    gap: 48px
+    min-height: calc(100vh - 160px)
+    padding-top: 56px
+    padding-bottom: 56px
+
+    &--largo
+      grid-template-columns: minmax(0, .8fr) minmax(0, 640px)
+      align-items: start
+
+      .snw-acs__claim
+        position: sticky
+        top: 40px
+
+        h1
+          font-size: clamp(34px, 3.6vw, 52px)
+
+  // ── Claim ─────────────────────────────────────────────────────────
+  &__claim
+    color: #FFFFFF
+
+    h1
+      margin: 14px 0 16px
+      color: #FFFFFF
+      font-family: 'Poppins', sans-serif
+      font-size: clamp(40px, 5vw, 68px)
+      font-weight: 300
+      line-height: .98
+      letter-spacing: -.03em
+
+      b
+        display: block
+        font-weight: 800
+
+    p
+      max-width: 420px
+      margin: 0 0 22px
+      font-size: 16px
+      line-height: 1.55
+      color: color-mix(in srgb, #FFFFFF 85%, transparent)
+
+  &__kicker
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: .16em
+    text-transform: uppercase
+    color: $accent
+
+  &__plus
+    display: flex
+    flex-direction: column
+    gap: 10px
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: flex
+      align-items: center
+      gap: 12px
+      font-size: 14px
+      color: color-mix(in srgb, #FFFFFF 88%, transparent)
+
+    i
+      width: 20px
+      color: $accent
+      text-align: center
+
+  // ── Scheda ────────────────────────────────────────────────────────
+  &__card
+    padding: 28px
+    border: 1px solid color-mix(in srgb, #FFFFFF 50%, transparent)
+    border-radius: 16px
+    background: color-mix(in srgb, var(--color-surface) 94%, transparent)
+    backdrop-filter: blur(10px)
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .28)
+
+    h2
+      margin: 0 0 6px
+      font-family: 'Poppins', sans-serif
+      font-size: 22px
+      font-weight: 700
+      color: var(--snw-ink)
+
+  &__sotto
+    margin: 0 0 20px
+    font-size: 13px
+    line-height: 1.5
+    color: $text-inactive
+
+  &__campi
+    display: flex
+    flex-direction: column
+    gap: 14px
+    margin-bottom: 18px
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px 16px
+
+  &__largo
+    grid-column: 1 / -1
+
+  &__gruppo
+    margin: 0 0 18px
+    padding: 0
+    border: 0
+
+    legend
+      margin-bottom: 12px
+      font-family: 'Poppins', sans-serif
+      font-size: 13px
+      font-weight: 700
+      color: $primary
+
+  &__consensi
+    display: flex
+    flex-direction: column
+    gap: 8px
+    margin: 16px 0 18px
+
+  &__cta
+    width: 100%
+    justify-content: center
+
+  &__riga
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-top: 14px
+
+  &__link
+    padding: 0
+    border: 0
+    background: none
+    color: $primary
+    font: inherit
+    font-weight: 600
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  &__torna
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin: 14px 0 0
+    font-size: 13px
+
+    &:first-child
+      margin: 0 0 12px
+
+  &__alt
+    margin: 16px 0 0
+    font-size: 13px
+    color: $text-inactive
+
+  &__demo
+    display: flex
+    flex-direction: column
+    gap: 10px
+    margin-top: 20px
+    padding-top: 16px
+    border-top: 1px dashed $border
+    font-size: 12px
+    color: $text-inactive
+
+    span i
+      color: $accent
+
+    div
+      display: flex
+      flex-wrap: wrap
+      gap: 8px
+
+  &__ok
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    text-align: center
+
+    > i
+      font-size: 44px
+      color: $accent
+
+    p
+      margin: 0 0 12px
+      font-size: 14px
+      color: $text-inactive
+
+  // ── Scelta Privato / Business ────────────────────────────────────
+  &__scelte
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px
+    margin-bottom: 18px
+
+  &__scelta
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    padding: 20px 16px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    color: $text-active
+    text-align: center
+    cursor: pointer
+    transition: border-color .2s ease, box-shadow .2s ease
+
+    b
+      font-family: 'Poppins', sans-serif
+      font-size: 15px
+
+    small
+      font-size: 12px
+      line-height: 1.5
+      color: $text-inactive
+
+    &:hover
+      border-color: $accent
+
+    &--on
+      border-color: $primary
+      box-shadow: 0 0 0 2px $primary
+
+  &__tondo
+    width: 96px
+    height: 96px
+    margin-top: 6px
+    overflow: hidden
+    border: 3px solid $accent
+    border-radius: 50%
+
+    &--business
+      border-color: $primary
+      border-radius: 62% 38% 46% 54% / 48% 60% 40% 52%
+
+  // ── Rimando ai gestionali ────────────────────────────────────────
+  &__partner
+    position: relative
+    display: flex
+    align-items: center
+    gap: 16px
+    padding-top: 18px
+    padding-bottom: 18px
+    border-top: 1px solid color-mix(in srgb, #FFFFFF 18%, transparent)
+    color: #FFFFFF
+
+    > i
+      font-size: 26px
+      color: $accent
+
+    span
+      display: flex
+      flex-direction: column
+      flex: 1
+
+    small
+      color: color-mix(in srgb, #FFFFFF 70%, transparent)
+
+    .sib-btn--secondary
+      border-color: #FFFFFF
+      color: #FFFFFF
+
+@media (max-width: 960px)
+  .snw-acs__in,
+  .snw-acs__in--largo
+    grid-template-columns: minmax(0, 1fr)
+
+@media (max-width: 560px)
+  .snw-acs__griglia,
+  .snw-acs__scelte
+    grid-template-columns: minmax(0, 1fr)
+
+  .snw-acs__card
+    padding: 20px
+
+  .snw-acs__partner
+    flex-wrap: wrap

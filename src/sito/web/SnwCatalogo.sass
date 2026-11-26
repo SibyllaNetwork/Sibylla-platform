@@ -225,3 +225,53 @@
   &__filtri
     border: 0
     border-radius: 20px
+
+// Servizi su richiesta (solo categoria Servizi): trasferimenti, ristoranti, bagagli
+.snw-cat__richieste
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: 10px
+  margin-bottom: 18px
+  padding: 14px 16px
+  border: 1px solid $border
+  border-left: 4px solid $accent
+  border-radius: 12px
+  background: var(--color-surface)
+
+  > span
+    display: flex
+    flex: 1 1 220px
+    flex-direction: column
+
+    b
+      font-family: 'Poppins', sans-serif
+      color: $primary
+
+    small
+      font-size: 12px
+      color: $text-inactive
+
+  button
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 9px 12px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    color: $text-active
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+    i:first-child
+      color: $primary
+
+    i:last-child
+      font-size: 10px
+      color: $text-inactive
+
+    &:hover
+      border-color: $primary

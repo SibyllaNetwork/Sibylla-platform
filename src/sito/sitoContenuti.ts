@@ -1,4 +1,4 @@
-import { FOTO } from './sitoData'
+import { FOTO, Offerta, Categoria, oggiIso } from './sitoData'
 import type { PaginaInfo } from './useSitoStore'
 
 /**
@@ -24,6 +24,10 @@ export const PAGINE_INFO: Record<PaginaInfo, { titolo: string; enfasi?: string; 
     sotto: 'Come trattiamo i dati personali di chi visita il sito e acquista sulla rete.' },
   cookie: { titolo: 'Cookie', enfasi: 'policy', kicker: 'Documenti legali', icona: 'fa-cookie-bite', foto: FOTO.mappa,
     sotto: 'Quali cookie usa il sito, a cosa servono e come gestire le preferenze.' },
+  termini: { titolo: 'Termini e', enfasi: 'condizioni', kicker: 'Documenti legali', icona: 'fa-file-contract', foto: FOTO.mappa,
+    sotto: "Come si acquista sul sito: prezzi, pagamenti, voucher, cancellazioni, rimborsi e spedizioni dei prodotti." },
+  mission: { titolo: 'La nostra', enfasi: 'mission', kicker: 'Mission', icona: 'fa-compass', foto: FOTO.sanPietro,
+    sotto: "Una piattaforma tecnologica per governare l'impresa a colpo d'occhio, ovunque: Sibylla Platform e l'ecosistema che le cresce intorno." },
 }
 
 export const VALORI = [
@@ -59,9 +63,10 @@ export const SOCIETA = [
 ]
 
 /** Indici dei documenti legali (il testo arriva dall'ufficio legale). */
-export const LEGALE: Record<'privacy' | 'cookie', string[]> = {
+export const LEGALE: Record<'privacy' | 'cookie' | 'termini', string[]> = {
   privacy: ['Titolare del trattamento', 'Dati raccolti', 'Finalità e base giuridica', 'Conservazione', 'Destinatari dei dati', 'Diritti dell’interessato', 'Contatti'],
   cookie: ['Cosa sono i cookie', 'Cookie tecnici', 'Cookie di analisi', 'Cookie di terze parti', 'Gestione delle preferenze', 'Aggiornamenti'],
+  termini: ['Oggetto e parti del contratto', 'Prezzi e tassa di soggiorno', 'Pagamenti', 'Conferma e voucher', 'Cancellazioni e rimborsi', 'Diritto di recesso (prodotti)', 'Spedizioni e consegne', 'Reclami e assistenza', 'Legge applicabile e foro competente'],
 }
 
 /**
@@ -93,4 +98,113 @@ export const PARTNER_NASTRO: PartnerNastro[] = [
   { nome: 'Italia Autentica', tipo: 'Tour operator', forma: 'foglia', tinta: 1, sigla: 'IA', scrittura: 'sans' },
   { nome: 'Gar Ghost', tipo: 'Tour e transfer', forma: 'esagono', tinta: 0, icona: 'fa-van-shuttle', scrittura: 'caps' },
   { nome: 'GAR', tipo: 'Servizi turistici', forma: 'quadro', tinta: 3, sigla: 'G', scrittura: 'sans' },
+]
+
+/**
+ * Centro assistenza: domande frequenti per tema. Le risposte riprendono le
+ * regole del sito (voucher, cancellazione gratuita, tassa in struttura,
+ * spedizioni, totem); i testi definitivi li conferma il booking Sibylla.
+ */
+export const TEMI_FAQ = [
+  { id: 'prenotazioni', nome: 'Prenotazioni', icona: 'fa-calendar-check' },
+  { id: 'pagamenti', nome: 'Pagamenti', icona: 'fa-credit-card' },
+  { id: 'cancellazioni', nome: 'Cancellazioni e rimborsi', icona: 'fa-rotate-left' },
+  { id: 'spedizioni', nome: 'Prodotti e spedizioni', icona: 'fa-truck-fast' },
+  { id: 'account', nome: 'Account', icona: 'fa-user' },
+  { id: 'totem', nome: 'Totem nelle strutture', icona: 'fa-tablet-screen' },
+] as const
+export type TemaFaq = typeof TEMI_FAQ[number]['id']
+
+export const FAQ: { tema: TemaFaq; d: string; r: string }[] = [
+  { tema: 'prenotazioni', d: 'Come ricevo la conferma della prenotazione?', r: "Subito dopo il pagamento ti arriva un'e-mail con il numero d'ordine e i voucher. Li trovi anche nell'area riservata, in Prenotazioni e ordini, pronti da mostrare dal telefono." },
+  { tema: 'prenotazioni', d: 'Posso modificare data od orario di un\'esperienza?', r: "Sì, fino a 24 ore prima dell'inizio, se c'è disponibilità. Scrivi al booking dall'ordine (pulsante «Assistenza su questo ordine») e ti proponiamo le alternative." },
+  { tema: 'prenotazioni', d: 'Il soggiorno include la tassa di soggiorno?', r: 'No: la tassa di soggiorno la decide il Comune e si paga direttamente in struttura al check-in. Nel carrello la trovi indicata come «in struttura».' },
+  { tema: 'prenotazioni', d: 'Devo stampare il voucher?', r: "Non serve: basta il QR del voucher sul telefono. Se preferisci la carta, puoi stamparlo dall'area riservata." },
+  { tema: 'pagamenti', d: 'Quali metodi di pagamento accettate?', r: 'Carte Visa, Mastercard e American Express, PayPal e Apple Pay. Tutti i pagamenti sono protetti con 3-D Secure.' },
+  { tema: 'pagamenti', d: 'Quando viene addebitato l\'importo?', r: "Al momento dell'ordine. Per i soggiorni con «paga in struttura» l'addebito lo fa l'hotel secondo le sue condizioni, indicate nella scheda." },
+  { tema: 'pagamenti', d: 'Posso usare un codice sconto?', r: 'Sì, inseriscilo nel carrello nel campo «Codice sconto» prima di procedere al pagamento. Un solo codice per ordine.' },
+  { tema: 'pagamenti', d: 'Come ricevo la fattura?', r: "Chiedila al booking indicando il numero d'ordine e i dati di fatturazione (ragione sociale, P.IVA, codice SDI o PEC): la emettiamo entro 48 ore." },
+  { tema: 'cancellazioni', d: 'Come annullo una prenotazione?', r: "Dall'area riservata: apri l'ordine e usa «Annulla» sulla voce. Se l'offerta prevede la cancellazione gratuita e sei nei termini, il rimborso parte in automatico." },
+  { tema: 'cancellazioni', d: 'Entro quando ricevo il rimborso?', r: 'Il rimborso torna sullo stesso metodo di pagamento entro 5-10 giorni lavorativi, secondo i tempi della tua banca.' },
+  { tema: 'cancellazioni', d: 'Le offerte «Solo su Network» sono rimborsabili?', r: 'Dipende dall\'offerta: nella scheda trovi sempre se la cancellazione è gratuita. Quando non lo è, il booking prova comunque a spostare la data.' },
+  { tema: 'spedizioni', d: 'Dove spedite i prodotti?', r: 'In tutta Italia, con corriere espresso. Isole e località remote possono richiedere un giorno in più.' },
+  { tema: 'spedizioni', d: 'Quanto costa la spedizione?', r: 'È gratuita sopra i 49 €; sotto, il costo è indicato prima del pagamento.' },
+  { tema: 'spedizioni', d: 'Posso restituire un prodotto?', r: 'Hai 14 giorni dalla consegna per il recesso, esclusi i prodotti alimentari deperibili o aperti. Scrivici dall\'ordine e ti mandiamo l\'etichetta di reso.' },
+  { tema: 'account', d: 'Serve un account per comprare?', r: "No, puoi acquistare come ospite. Con l'account però ritrovi ordini, voucher e preferiti su ogni dispositivo, e gli ordini fatti come ospite con la stessa e-mail compaiono da soli." },
+  { tema: 'account', d: 'Ho dimenticato la password', r: 'Nella pagina di accesso usa «Password dimenticata?»: ti inviamo un link per sceglierne una nuova.' },
+  { tema: 'account', d: 'Come cancello il mio account?', r: "Dall'area riservata, in Privacy e notifiche, con «Elimina account». Cancelliamo i dati personali; restano solo quelli che la legge ci obbliga a conservare (es. fatture)." },
+  { tema: 'totem', d: 'Cosa sono i totem Sibylla Network?', r: "Schermi interattivi nelle hall degli hotel della rete: mostrano esperienze, sapori e servizi della città, prenotabili in un minuto, con pagamento al telefono o addebito in camera." },
+  { tema: 'totem', d: 'Posso ritrovare sul sito ciò che ho prenotato dal totem?', r: "Sì, se al totem hai lasciato la tua e-mail: accedi con quella e trovi l'ordine nell'area riservata." },
+]
+
+/** Mission (come su sibyllanetwork.com/mission): testo e i tre prodotti dell'ecosistema. */
+export const MISSION = [
+  "L'ecosistema Sibylla è incentrato su una sofisticata piattaforma tecnologica che prende il nome di Sibylla Platform. La piattaforma si interfaccia con fonti e dati interni ed esterni all'azienda e, grazie a un potente algoritmo proprietario, è in grado di massimizzare il profitto delle imprese che la adottano.",
+  "È composta da diversi portali e moduli perfettamente integrati fra loro per fornire un'ampia gamma di servizi e funzionalità. Creata per voi, per governare l'impresa a colpo d'occhio, ovunque.",
+  "Proiettata a innovare e a creare soluzioni che cambieranno in meglio il modo in cui le persone interagiscono, lavorano, creano imprese e si connettono: tecnologie avanzate, nuove opportunità per gli imprenditori, un ecosistema che ne favorisce la crescita.",
+]
+export const PRODOTTI_ECOSISTEMA = [
+  { nome: 'Sibylla Platform', per: 'Hotel e strutture', icona: 'fa-hotel', url: 'https://www.sibyllaecosystem.it/soluzioni/platform/' },
+  { nome: 'Sibylla Tableau', per: 'Tour operator', icona: 'fa-route', url: 'https://www.sibyllaecosystem.it/soluzioni/tableau/' },
+  { nome: 'Sibylla Agorà', per: 'Fornitori', icona: 'fa-store', url: 'https://www.sibyllaecosystem.it/soluzioni/agora/' },
+]
+
+// ═══ Area riservata operatori (B2B) ═══════════════════════════════════════
+
+/** Sconto della tariffa operatore (netta) sul prezzo pubblico, per categoria. */
+export const SCONTO_OPERATORE: Record<Categoria, number> = { soggiorni: 22, esperienze: 18, prodotti: 25, servizi: 15 }
+export const prezzoOperatore = (o: Offerta, extra = 0) =>
+  Math.round(o.prezzo * (100 - SCONTO_OPERATORE[o.cat]) * (100 - extra) / 100) / 100
+
+export interface PromoB2B {
+  id: string
+  tit: string
+  txt: string
+  icona: string
+  /** Sconto aggiuntivo sulla tariffa operatore, in %. */
+  extra: number
+  codice: string
+  scadenza: string
+  offerte: string[]
+  condizioni: string[]
+}
+export const PROMO_B2B: PromoB2B[] = [
+  { id: 'early', tit: 'Early booking primavera 2027', icona: 'fa-seedling', extra: 10, codice: 'EARLY27', scadenza: oggiIso(66),
+    txt: 'Soggiorni a Roma con arrivo da marzo a maggio: un ulteriore 10% sulla tariffa netta prenotando entro la scadenza.',
+    offerte: ['palazzo-esquilino', 'trevi-suites', 'hotel-navona', 'prati-loft'], condizioni: ['Arrivi 1 marzo – 31 maggio 2027', 'Non rimborsabile dopo 30 giorni dall\'arrivo', 'Cumulabile con la tariffa gruppi'] },
+  { id: 'gruppi', tit: 'Gruppi da 10 camere', icona: 'fa-people-group', extra: 8, codice: 'GRUPPI10', scadenza: oggiIso(120),
+    txt: 'Tariffa gruppo per allotment da 10 camere in su e una gratuità ogni 15 paganti, con rooming list gestita dal booking Sibylla.',
+    offerte: ['villa-ardea', 'hotel-san-marco', 'vernazza-terrazze', 'agriturismo-piglio'], condizioni: ['Minimo 10 camere per notte', '1 gratuità ogni 15 paganti', 'Rooming list entro 21 giorni dall\'arrivo'] },
+  { id: 'dolce-vita-to', tit: 'Dolce Vita Tour per tour operator', icona: 'fa-car-side', extra: 6, codice: 'DOLCEVITA-TO', scadenza: oggiIso(90),
+    txt: 'Le esperienze più vendute della rete con voucher a marchio della tua agenzia e assistenza dedicata per i gruppi.',
+    offerte: ['dolce-vita', 'dolce-vita-notte', 'golf-cart', 'colosseo-prioritario'], condizioni: ['Voucher con il logo dell\'agenzia', 'Conferma entro 2 ore lavorative', 'Cancellazione gratuita fino a 48 ore prima'] },
+  { id: 'welcome', tit: 'Welcome kit per eventi', icona: 'fa-gift', extra: 12, codice: 'WELCOME20', scadenza: oggiIso(45),
+    txt: 'Box Sapori di Roma, olio e vino della rete per welcome kit e omaggi di congressi ed eventi aziendali.',
+    offerte: ['box-sapori', 'olio-sabina', 'cesanese'], condizioni: ['Da 20 pezzi', 'Biglietto personalizzato incluso', 'Consegna in struttura in 5 giorni lavorativi'] },
+]
+
+export interface SoggiornoRiservato {
+  id: string
+  /** Offerta del catalogo collegata (foto e voce di carrello). */
+  offerta: string
+  tit: string
+  tipo: string
+  luogo: string
+  dal: string
+  al: string
+  posti: number
+  prezzo: number
+  txt: string
+  include: string[]
+}
+export const SOGGIORNI_RISERVATI: SoggiornoRiservato[] = [
+  { id: 'fam-cinque-terre', offerta: 'vernazza-terrazze', tit: 'Fam trip Cinque Terre', tipo: 'Fam trip', luogo: 'Vernazza · Liguria', dal: oggiIso(41), al: oggiIso(43), posti: 6, prezzo: 149,
+    txt: 'Due notti per conoscere le strutture e le esperienze della rete in Liguria, insieme ai partner locali.',
+    include: ['2 notti all\'Hotel Le Terrazze', 'Cinque Terre al tramonto in barca', 'Incontro con gli operatori locali'] },
+  { id: 'edu-roma', offerta: 'palazzo-esquilino', tit: 'Educational Roma Dolce Vita', tipo: 'Educational', luogo: 'Roma · Lazio', dal: oggiIso(27), al: oggiIso(28), posti: 9, prezzo: 99,
+    txt: 'Una notte a Palazzo Esquilino, il Dolce Vita Tour e un workshop su come vendere la rete con Sibylla Tableau.',
+    include: ['1 notte a Palazzo Esquilino', 'Dolce Vita Tour in Fiat 500', 'Workshop Sibylla Tableau'] },
+  { id: 'site-ardea', offerta: 'villa-ardea', tit: 'Site inspection Villa Ardea', tipo: 'Site inspection', luogo: 'Ardea · Lazio', dal: oggiIso(15), al: oggiIso(16), posti: 3, prezzo: 0,
+    txt: 'Una notte gratuita per gli operatori con contratto attivo, per vedere spa, sale e camere prima di proporle ai clienti.',
+    include: ['1 notte con colazione', 'Visita delle sale meeting', 'Percorso spa'] },
 ]

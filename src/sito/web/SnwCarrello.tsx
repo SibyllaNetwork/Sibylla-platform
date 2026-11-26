@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { CheckboxField, InputField, RadioGroup } from '../../core/components/form'
 import { useConfirmStore } from '../../store/useConfirmStore'
-import { eur, trova } from '../sitoData'
+import { eur, oggiIso, trova } from '../sitoData'
 import { useSitoStore } from '../useSitoStore'
+import { nuovoNumeroOrdine, useSaldo, useSitoAccountStore } from '../useSitoAccountStore'
 import { SnwFoto, SnwStepper } from '../SnwUi'
 import './SnwCarrello.sass'
 
@@ -20,10 +21,14 @@ export default function SnwCarrello() {
   const rimuovi = useSitoStore(s => s.rimuovi)
   const svuota = useSitoStore(s => s.svuota)
   const confirm = useConfirmStore(s => s.confirm)
+  const utente = useSitoAccountStore(s => s.utente)
+  const aggiungiOrdine = useSitoAccountStore(s => s.aggiungiOrdine)
+  const pagaToken = useSitoAccountStore(s => s.pagaToken)
+  const saldo = useSaldo()
   const [passo, setPasso] = useState(0)
   const [codice, setCodice] = useState('')
   const [sconto, setSconto] = useState(0)
-  const [dati, setDati] = useState({ nome: '', cognome: '', email: '', tel: '' })
+  const [dati, setDati] = useState({ nome: utente?.nome ?? '', cognome: utente?.cognome ?? '', email: utente?.email ?? '', tel: utente?.tel ?? '' })
   const [privacy, setPrivacy] = useState(false)
   const [metodo, setMetodo] = useState('carta')
 
@@ -32,8 +37,11 @@ export default function SnwCarrello() {
       <div className="snw__wrap snw-car snw-car__ok">
         <i className="fa-light fa-circle-check" aria-hidden="true" />
         <h1>Grazie, l'ordine è confermato</h1>
-        <p>Numero d'ordine <b>{pagina.ordine}</b>. Ti abbiamo inviato i voucher via e-mail; il booking Sibylla resta a disposizione per qualunque richiesta.</p>
-        <button type="button" className="sib-btn sib-btn--primary" onClick={() => vai({ nome: 'home' })}>Torna alla home</button>
+        <p>Numero d'ordine <b>{pagina.ordine}</b>. Ti abbiamo inviato i voucher via e-mail: li trovi anche nell'area riservata, in Ordini effettuati. Il booking Sibylla resta a disposizione per qualunque richiesta.</p>
+        <div className="snw-car__ok-az">
+          <button type="button" className="sib-btn sib-btn--primary" onClick={() => vai({ nome: 'account', sez: 'ordini' })}>Vai ai tuoi ordini</button>
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => vai({ nome: 'home' })}>Torna alla home</button>
+        </div>
       </div>
     )
   }
@@ -47,8 +55,19 @@ export default function SnwCarrello() {
     if (await confirm({ title: 'Rimuovere dal carrello?', message: `«${titolo}» verrà tolto dal carrello.`, confirmLabel: 'Rimuovi' })) rimuovi(key)
   }
 
+  // Come su sibyllanetwork.com, per pagare serve l'accesso all'area riservata
+  function procedi() {
+    if (passo === 0 && !utente) { vai({ nome: 'accesso', poi: { nome: 'carrello' } }); return }
+    setPasso(passo + 1)
+  }
+
   function paga() {
-    const ordine = `SN-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 90000) + 10000)}`
+    const ordine = nuovoNumeroOrdine()
+    const nomi: Record<string, string> = { carta: 'Carta di credito', paypal: 'PayPal', apple: 'Apple Pay', token: 'Sibylla Token' }
+    if (utente) {
+      aggiungiOrdine({ id: ordine, email: utente.email, data: oggiIso(), righe: carrello.map(r => ({ ...r })), sconto: valSconto, totale, metodo: nomi[metodo] })
+      if (metodo === 'token') pagaToken(totale, `Ordine ${ordine}`)
+    }
     svuota()
     vai({ nome: 'conferma', ordine })
   }
@@ -93,6 +112,7 @@ export default function SnwCarrello() {
                         <b>{o.titolo}</b>
                         <span>{o.formula}</span>
                         <small><i className="fa-regular fa-calendar" aria-hidden="true" /> {r.dettaglio}</small>
+                        {r.b2b && <small className="snw-car__b2b"><i className="fa-solid fa-briefcase" aria-hidden="true" /> Tariffa operatore · area riservata</small>}
                         {o.cancellazione && <small className="snw-car__canc"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Cancellazione gratuita</small>}
                       </span>
                       <SnwStepper valore={r.qta} onChange={v => setQta(r.key, v)} etichetta="quantità" />
@@ -125,7 +145,10 @@ export default function SnwCarrello() {
             <>
               <h1>Pagamento</h1>
               <RadioGroup name="metodo" label="Metodo di pagamento" value={metodo} onChange={setMetodo}
-                options={[{ value: 'carta', label: 'Carta di credito o debito' }, { value: 'paypal', label: 'PayPal' }, { value: 'apple', label: 'Apple Pay' }]} />
+                options={[
+                  { value: 'carta', label: 'Carta di credito o debito' }, { value: 'paypal', label: 'PayPal' }, { value: 'apple', label: 'Apple Pay' },
+                  ...(utente ? [{ value: 'token', label: `Sibylla Token · saldo ${eur(saldo)}${saldo < totale ? ' (non sufficiente)' : ''}`, disabled: saldo < totale }] : []),
+                ]} />
               {metodo === 'carta' && (
                 <div className="snw-car__form">
                   <InputField name="intestatario" label="Intestatario" defaultValue={`${dati.nome} ${dati.cognome}`.trim()} />
@@ -155,8 +178,8 @@ export default function SnwCarrello() {
             </form>
           )}
           {passo < 2 ? (
-            <button type="button" className="sib-btn sib-btn--primary snw-car__cta" disabled={passo === 1 && !datiOk} onClick={() => setPasso(passo + 1)}>
-              {passo === 0 ? 'Procedi all\'acquisto' : 'Vai al pagamento'} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+            <button type="button" className="sib-btn sib-btn--primary snw-car__cta" disabled={passo === 1 && !datiOk} onClick={procedi}>
+              {passo === 0 ? (utente ? 'Procedi all\'acquisto' : 'Accedi e procedi') : 'Vai al pagamento'} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
             </button>
           ) : (
             <button type="button" className="sib-btn sib-btn--primary snw-car__cta" onClick={paga}>

@@ -94,6 +94,14 @@ function CatalogoOfferte({ cat, dove }: { cat?: Categoria; dove?: string }) {
         </aside>
 
         <section className="snw-cat__ris">
+          {cat === 'servizi' && (
+            <div className="snw-cat__richieste" aria-label="Servizi su richiesta">
+              <span><b>Servizi su richiesta</b><small>Compili, il booking conferma entro 2 ore lavorative.</small></span>
+              {([['transfer', 'Trasferimenti', 'fa-van-shuttle'], ['ristoranti', 'Ristoranti per gruppi', 'fa-utensils'], ['bagagli', 'Deposito bagagli', 'fa-suitcase-rolling']] as const).map(([tipo, nome, ic]) => (
+                <button key={tipo} type="button" onClick={() => vai({ nome: 'richiesta', tipo })}><i className={`fa-light ${ic}`} aria-hidden="true" />{nome}<i className="fa-solid fa-arrow-right" aria-hidden="true" /></button>
+              ))}
+            </div>
+          )}
           <div className="snw-cat__barra">
             <span><b>{risultati.length}</b> {risultati.length === 1 ? 'offerta' : 'offerte'}{luoghi.length ? ` a ${luoghi.join(', ')}` : ''}</span>
             <SelectField name="ordine" label="Ordina per" value={ordine} onChange={e => setOrdine(e.target.value as Ordine)} className="snw-cat__ordine"

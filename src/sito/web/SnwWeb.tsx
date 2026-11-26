@@ -13,6 +13,12 @@ import SnwRete from './SnwRete'
 import SnwInfo from './SnwInfo'
 import SnwPreferiti from './SnwPreferiti'
 import SnwDestinazione from './SnwDestinazione'
+import SnwAccesso from './SnwAccesso'
+import SnwRiservata, { iniziali } from './SnwRiservata'
+import SnwFaq from './SnwFaq'
+import SnwRichiesta from './SnwRichiesta'
+import SnwPreventivo from './SnwPreventivo'
+import { useSitoAccountStore } from '../useSitoAccountStore'
 import './SnwWeb.sass'
 
 /**
@@ -30,7 +36,6 @@ const VERSIONI: { id: VersioneHome; lettera: string; nome: string }[] = [
 export default function SnwWeb() {
   const pagina = useSitoStore(s => s.pagina)
   const vai = useSitoStore(s => s.vai)
-  const chiudi = useSitoStore(s => s.chiudi)
   const carrello = useSitoStore(s => s.carrello)
   const preferiti = useSitoStore(s => s.preferiti)
   const drawer = useSitoStore(s => s.drawer)
@@ -41,6 +46,10 @@ export default function SnwWeb() {
   const setVersione = useSitoStore(s => s.setVersione)
   const scroller = useRef<HTMLDivElement>(null)
   const [inCima, setInCima] = useState(true)
+  const utente = useSitoAccountStore(s => s.utente)
+  // Area riservata: palette oro/bronzo distinta dall'area pubblica
+  const riservata = pagina.nome === 'accesso' || pagina.nome === 'account'
+  const vaiRiservata = () => vai(utente ? { nome: 'account' } : { nome: 'accesso' })
   const pezzi = carrello.reduce((a, r) => a + r.qta, 0)
   const totale = carrello.reduce((a, r) => a + r.prezzo * r.qta, 0)
 
@@ -61,13 +70,14 @@ export default function SnwWeb() {
   // Header trasparente sopra le bande fotografiche della versione Impatto
   // (tutte le pagine tranne carrello e conferma)
   // (la home solare di Impatto 2 ha la fascia gialla: header pieno)
-  const sopraHero = versione === 'impatto' && inCima && pagina.nome !== 'carrello' && pagina.nome !== 'conferma'
+  const sopraHero = versione === 'impatto' && inCima && pagina.nome !== 'carrello' && pagina.nome !== 'conferma' && !riservata
+    && pagina.nome !== 'richiesta' && pagina.nome !== 'preventivo'
     && !(scelta === 'impatto2' && pagina.nome === 'home')
 
   const catAttiva = pagina.nome === 'catalogo' ? pagina.cat : pagina.nome === 'scheda' ? trova(pagina.id)?.cat : undefined
 
   return (
-    <div className={scelta === 'impatto2' ? 'snw snw--impatto snw--impatto2' : `snw snw--${versione}`} data-section="sito" ref={scroller} onScroll={e => setInCima(e.currentTarget.scrollTop < 40)}>
+    <div className={`${scelta === 'impatto2' ? 'snw snw--impatto snw--impatto2' : `snw snw--${versione}`}${riservata ? ' snw--riservata' : ''}`} data-section="sito" ref={scroller} onScroll={e => setInCima(e.currentTarget.scrollTop < 40)}>
       <div className="snw__strip">
         <div className="snw__wrap snw__strip-in">
           <span className="snw__versioni" role="tablist" aria-label="Versione della home">
@@ -87,8 +97,8 @@ export default function SnwWeb() {
             <button type="button" onClick={() => useSitoStore.getState().setModo('totem')}>
               <i className="fa-solid fa-tablet-screen" aria-hidden="true" /> Totem
             </button>
-            <button type="button" onClick={chiudi}>
-              <i className="fa-solid fa-right-to-bracket" aria-hidden="true" /> Area riservata
+            <button type="button" onClick={vaiRiservata}>
+              <i className={`fa-solid ${utente ? 'fa-user' : 'fa-right-to-bracket'}`} aria-hidden="true" /> {utente ? `Ciao ${utente.nome}` : 'Area riservata'}
             </button>
           </span>
         </div>
@@ -111,8 +121,13 @@ export default function SnwWeb() {
             </button>
           </nav>
           <div className="snw__azioni">
+            <Tooltip text={utente ? 'La tua area riservata' : 'Accedi o registrati'}>
+              <button type="button" className={utente ? 'snw__ico snw__ico--utente' : 'snw__ico'} aria-label={utente ? `Area riservata di ${utente.nome}` : 'Area riservata: accedi o registrati'} onClick={vaiRiservata}>
+                {utente ? (utente.avatar ? <img src={utente.avatar} alt="" /> : <span>{iniziali(utente)}</span>) : <i className="fa-regular fa-user" />}
+              </button>
+            </Tooltip>
             <Tooltip text="Preferiti">
-              <button type="button" className="snw__ico" aria-label={`Preferiti (${preferiti.length})`} onClick={() => vai({ nome: 'preferiti' })}>
+              <button type="button" className="snw__ico snw__ico--pref" aria-label={`Preferiti (${preferiti.length})`} onClick={() => vai({ nome: 'preferiti' })}>
                 <i className="fa-regular fa-heart" />
                 {preferiti.length > 0 && <span className="snw__conta">{preferiti.length}</span>}
               </button>
@@ -138,6 +153,11 @@ export default function SnwWeb() {
         {pagina.nome === 'info' && <SnwInfo key={pagina.id} id={pagina.id} />}
         {pagina.nome === 'preferiti' && <SnwPreferiti />}
         {pagina.nome === 'destinazione' && <SnwDestinazione key={pagina.citta} citta={pagina.citta} />}
+        {pagina.nome === 'accesso' && <SnwAccesso key={pagina.modo ?? 'accedi'} modo={pagina.modo} poi={pagina.poi} />}
+        {pagina.nome === 'account' && <SnwRiservata sez={pagina.sez} />}
+        {pagina.nome === 'faq' && <SnwFaq />}
+        {pagina.nome === 'richiesta' && <SnwRichiesta key={pagina.tipo} tipo={pagina.tipo} />}
+        {pagina.nome === 'preventivo' && <SnwPreventivo codice={pagina.codice} />}
       </main>
 
       <footer className="snw__foot">
@@ -153,11 +173,13 @@ export default function SnwWeb() {
               <h4>Rete</h4>
               <button type="button" onClick={() => vai({ nome: 'info', id: 'partner' })}>Partner</button>
               <button type="button" onClick={() => vai({ nome: 'info', id: 'imt' })}>Programma di Rete I.M.T.</button>
+              <button type="button" onClick={vaiRiservata}>Area riservata operatori</button>
               <a href="https://www.sibyllaecosystem.it/" target="_blank" rel="noreferrer">sibyllaecosystem.it</a>
             </div>
             <div>
               <h4>Società</h4>
               <button type="button" onClick={() => vai({ nome: 'info', id: 'chi-siamo' })}>Chi siamo</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'mission' })}>Mission</button>
               <button type="button" onClick={() => vai({ nome: 'info', id: 'lavora' })}>Lavora con noi</button>
               <button type="button" onClick={() => vai({ nome: 'info', id: 'contatti' })}>Contattaci</button>
               <button type="button" onClick={() => vai({ nome: 'info', id: 'societa' })}>Dati societari</button>
@@ -177,6 +199,8 @@ export default function SnwWeb() {
                 <i className="fa-brands fa-cc-paypal" aria-label="PayPal" />
                 <i className="fa-brands fa-cc-apple-pay" aria-label="Apple Pay" />
               </span>
+              <button type="button" onClick={() => vai({ nome: 'faq' })}>Domande frequenti</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'termini' })}>Termini e condizioni</button>
               <button type="button" onClick={() => vai({ nome: 'info', id: 'privacy' })}>Privacy policy</button>
               <button type="button" onClick={() => vai({ nome: 'info', id: 'cookie' })}>Cookie policy</button>
             </div>
