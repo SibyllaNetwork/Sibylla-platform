@@ -5,7 +5,7 @@ import {
   DESTINAZIONI, FOTO, OFFERTE, Offerta, SERVIZI_ALLOGGIO, ServizioAlloggio, TIPI_ALLOGGIO, TRATTAMENTI, eur, oggiIso,
 } from '../sitoData'
 import { useSitoStore } from '../useSitoStore'
-import { SnwEtichetta, SnwFoto } from '../SnwUi'
+import { SnwEtichetta, SnwFoto, SnwStepper } from '../SnwUi'
 import SnwTestata from './SnwTestata'
 import './SnwSoggiorni.sass'
 
@@ -391,11 +391,7 @@ function Contatore({ nome, nota, valore, min, max, onChange }: { nome: string; n
   return (
     <div className="snw-sog__cont">
       <span><b>{nome}</b><small>{nota}</small></span>
-      <span className="snw-stepper" role="group" aria-label={nome}>
-        <button type="button" aria-label={`Diminuisci ${nome.toLowerCase()}`} disabled={valore <= min} onClick={() => onChange(valore - 1)}><i className="fa-solid fa-minus" /></button>
-        <output aria-live="polite">{valore}</output>
-        <button type="button" aria-label={`Aumenta ${nome.toLowerCase()}`} disabled={valore >= max} onClick={() => onChange(valore + 1)}><i className="fa-solid fa-plus" /></button>
-      </span>
+      <SnwStepper valore={valore} min={min} max={max} onChange={onChange} etichetta={nome.toLowerCase()} />
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { CheckboxField, DatePickerField, InputField, RadioGroup, SelectField, Te
 import { FOTO, eur, oggiIso } from '../sitoData'
 import { TipoRichiesta, useSitoStore } from '../useSitoStore'
 import { useSitoAccountStore } from '../useSitoAccountStore'
-import { SnwStepper } from '../SnwUi'
+import { SnwEsito, SnwStepper } from '../SnwUi'
 import SnwTestata from './SnwTestata'
 import './SnwRichiesta.sass'
 
@@ -90,15 +90,12 @@ export default function SnwRichiesta({ tipo }: { tipo: TipoRichiesta }) {
         briciole={[{ nome: 'Servizi', vai: { nome: 'catalogo', cat: 'servizi' } }, { nome: `${t.titolo} ${t.enfasi}`.trim() }]} />
       <div className="snw__wrap snw-rq__layout">
         {inviata ? (
-          <div className="snw-rq__ok">
-            <i className="fa-light fa-paper-plane" aria-hidden="true" />
-            <h2>Richiesta inviata</h2>
-            <p>Pratica <b>{inviata}</b> · totale indicativo <b>{eur(totale)}</b>. Il booking Sibylla conferma disponibilità e dettagli a <b>{email.trim()}</b> entro 2 ore lavorative.</p>
-            <div>
-              <button type="button" className="sib-btn sib-btn--primary" onClick={() => vai({ nome: 'home' })}>Torna alla home</button>
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInviata('')}>Nuova richiesta</button>
-            </div>
-          </div>
+          <SnwEsito icona="fa-paper-plane" titolo="Richiesta inviata" variante="riquadro" azioni={<>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={() => vai({ nome: 'home' })}>Torna alla home</button>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInviata('')}>Nuova richiesta</button>
+          </>}>
+            Pratica <b>{inviata}</b> · totale indicativo <b>{eur(totale)}</b>. Il booking Sibylla conferma disponibilità e dettagli a <b>{email.trim()}</b> entro 2 ore lavorative.
+          </SnwEsito>
         ) : (
           <form className="snw-rq__form" onSubmit={invia} noValidate>
             <div className="snw-rq__griglia">

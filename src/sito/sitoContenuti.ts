@@ -143,10 +143,14 @@ export const MISSION = [
   "È composta da diversi portali e moduli perfettamente integrati fra loro per fornire un'ampia gamma di servizi e funzionalità. Creata per voi, per governare l'impresa a colpo d'occhio, ovunque.",
   "Proiettata a innovare e a creare soluzioni che cambieranno in meglio il modo in cui le persone interagiscono, lavorano, creano imprese e si connettono: tecnologie avanzate, nuove opportunità per gli imprenditori, un ecosistema che ne favorisce la crescita.",
 ]
+/** I tre prodotti dell'ecosistema per le imprese: unica fonte per Home, La rete e Mission. */
 export const PRODOTTI_ECOSISTEMA = [
-  { nome: 'Sibylla Platform', per: 'Hotel e strutture', icona: 'fa-hotel', url: 'https://www.sibyllaecosystem.it/soluzioni/platform/' },
-  { nome: 'Sibylla Tableau', per: 'Tour operator', icona: 'fa-route', url: 'https://www.sibyllaecosystem.it/soluzioni/tableau/' },
-  { nome: 'Sibylla Agorà', per: 'Fornitori', icona: 'fa-store', url: 'https://www.sibyllaecosystem.it/soluzioni/agora/' },
+  { nome: 'Sibylla Platform', per: 'Hotel', icona: 'fa-hotel', url: 'https://www.sibyllaecosystem.it/soluzioni/platform/',
+    txt: "Dal check-in alla distribuzione, dai dati alla marginalità: l'operatività della struttura in un'unica piattaforma." },
+  { nome: 'Sibylla Tableau', per: 'Tour operator', icona: 'fa-route', url: 'https://www.sibyllaecosystem.it/soluzioni/tableau/',
+    txt: 'TO e hotel in un ambiente digitale unico: prenotazioni, disponibilità e relazioni B2B senza interruzioni.' },
+  { nome: 'Sibylla Agorà', per: 'Fornitori', icona: 'fa-store', url: 'https://www.sibyllaecosystem.it/soluzioni/agora/',
+    txt: 'Il marketplace specializzato dove proporre soluzioni su misura e crescere con una rete selezionata.' },
 ]
 
 // ═══ Area riservata operatori (B2B) ═══════════════════════════════════════

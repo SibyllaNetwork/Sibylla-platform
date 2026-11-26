@@ -21,17 +21,19 @@ export interface RadioGroupProps {
   disabled?: boolean
   onChange?: (value: string) => void
   className?: string
+  /** Opzioni una sotto l'altra (colonne strette o etichette lunghe). */
+  verticale?: boolean
 }
 
 const RadioGroup: React.FC<RadioGroupProps> = ({
   label, name, options, value, hint, error,
-  disabled = false, onChange, className,
+  disabled = false, onChange, className, verticale,
 }) => {
   const id = useId()
   return (
     <div className={clsx('flex flex-col gap-1', className)}>
       {label && <span className="text-[12px] font-semibold font-poppins text-primary">{withAcronimi(label)}</span>}
-      <div className="flex items-center gap-4 h-9">
+      <div className={verticale ? 'flex flex-col items-start gap-2 py-1' : 'flex items-center gap-4 h-9'}>
         {options.map(opt => {
           const isDisabled = disabled || !!opt.disabled
           const control = (

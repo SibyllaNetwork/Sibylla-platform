@@ -1,6 +1,6 @@
 import React from 'react'
 import { FOTO, PARTNER } from '../sitoData'
-import { PAGINE_INFO } from '../sitoContenuti'
+import { PAGINE_INFO, PRODOTTI_ECOSISTEMA } from '../sitoContenuti'
 import { PaginaInfo, useSitoStore } from '../useSitoStore'
 import { SnwFoto } from '../SnwUi'
 import SnwTestata from './SnwTestata'
@@ -12,11 +12,6 @@ import './SnwRete.sass'
  * dell'ecosistema per le imprese.
  */
 const VOCI: PaginaInfo[] = ['chi-siamo', 'partner', 'imt', 'lavora', 'contatti', 'societa']
-const ECOSISTEMA = [
-  { nome: 'Sibylla Platform', per: 'Hotel', url: 'https://www.sibyllaecosystem.it/soluzioni/platform/', icona: 'fa-hotel' },
-  { nome: 'Sibylla Tableau', per: 'Tour operator', url: 'https://www.sibyllaecosystem.it/soluzioni/tableau/', icona: 'fa-route' },
-  { nome: 'Sibylla Agorà', per: 'Fornitori', url: 'https://www.sibyllaecosystem.it/soluzioni/agora/', icona: 'fa-store' },
-]
 
 export default function SnwRete({ ancora }: { ancora?: string }) {
   const vai = useSitoStore(s => s.vai)
@@ -55,7 +50,7 @@ export default function SnwRete({ ancora }: { ancora?: string }) {
         <section className="snw-rete__eco snw-reveal">
           <h2>L'ecosistema per le imprese</h2>
           <div>
-            {ECOSISTEMA.map(e => (
+            {PRODOTTI_ECOSISTEMA.map(e => (
               <a key={e.nome} href={e.url} target="_blank" rel="noreferrer">
                 <i className={`fa-light ${e.icona}`} aria-hidden="true" />
                 <span><small>Per {e.per.toLowerCase()}</small><b>{e.nome}</b></span>

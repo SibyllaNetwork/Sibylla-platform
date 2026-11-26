@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { CheckboxField, InputField, RadioGroup } from '../../core/components/form'
+import { CheckboxField, InputField } from '../../core/components/form'
 import { useConfirmStore } from '../../store/useConfirmStore'
 import { eur, oggiIso, trova } from '../sitoData'
 import { useSitoStore } from '../useSitoStore'
-import { nuovoNumeroOrdine, useSaldo, useSitoAccountStore } from '../useSitoAccountStore'
-import { SnwFoto, SnwStepper } from '../SnwUi'
+import { nuovoNumeroOrdine, useSitoAccountStore } from '../useSitoAccountStore'
+import { SnwEsito, SnwFoto, SnwPagamento, SnwStepper, SnwTotali } from '../SnwUi'
 import './SnwCarrello.sass'
 
 /**
@@ -24,7 +24,6 @@ export default function SnwCarrello() {
   const utente = useSitoAccountStore(s => s.utente)
   const aggiungiOrdine = useSitoAccountStore(s => s.aggiungiOrdine)
   const pagaToken = useSitoAccountStore(s => s.pagaToken)
-  const saldo = useSaldo()
   const [passo, setPasso] = useState(0)
   const [codice, setCodice] = useState('')
   const [sconto, setSconto] = useState(0)
@@ -34,14 +33,13 @@ export default function SnwCarrello() {
 
   if (pagina.nome === 'conferma') {
     return (
-      <div className="snw__wrap snw-car snw-car__ok">
-        <i className="fa-light fa-circle-check" aria-hidden="true" />
-        <h1>Grazie, l'ordine è confermato</h1>
-        <p>Numero d'ordine <b>{pagina.ordine}</b>. Ti abbiamo inviato i voucher via e-mail: li trovi anche nell'area riservata, in Ordini effettuati. Il booking Sibylla resta a disposizione per qualunque richiesta.</p>
-        <div className="snw-car__ok-az">
+      <div className="snw__wrap snw-car">
+        <SnwEsito icona="fa-circle-check" livello="h1" titolo="Grazie, l'ordine è confermato" azioni={<>
           <button type="button" className="sib-btn sib-btn--primary" onClick={() => vai({ nome: 'account', sez: 'ordini' })}>Vai ai tuoi ordini</button>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => vai({ nome: 'home' })}>Torna alla home</button>
-        </div>
+        </>}>
+          Numero d'ordine <b>{pagina.ordine}</b>. Ti abbiamo inviato i voucher via e-mail: li trovi anche nell'area riservata, in Ordini effettuati. Il booking Sibylla resta a disposizione per qualunque richiesta.
+        </SnwEsito>
       </div>
     )
   }
@@ -74,11 +72,11 @@ export default function SnwCarrello() {
 
   if (!carrello.length) {
     return (
-      <div className="snw__wrap snw-car snw-car__ok">
-        <i className="fa-light fa-cart-shopping" aria-hidden="true" />
-        <h1>Il carrello è vuoto</h1>
-        <p>Scopri soggiorni, esperienze e prodotti della rete Sibylla.</p>
-        <button type="button" className="sib-btn sib-btn--primary" onClick={() => vai({ nome: 'catalogo' })}>Esplora le offerte</button>
+      <div className="snw__wrap snw-car">
+        <SnwEsito icona="fa-cart-shopping" livello="h1" titolo="Il carrello è vuoto"
+          azioni={<button type="button" className="sib-btn sib-btn--primary" onClick={() => vai({ nome: 'catalogo' })}>Esplora le offerte</button>}>
+          Scopri soggiorni, esperienze e prodotti della rete Sibylla.
+        </SnwEsito>
       </div>
     )
   }
@@ -144,32 +142,18 @@ export default function SnwCarrello() {
           {passo === 2 && (
             <>
               <h1>Pagamento</h1>
-              <RadioGroup name="metodo" label="Metodo di pagamento" value={metodo} onChange={setMetodo}
-                options={[
-                  { value: 'carta', label: 'Carta di credito o debito' }, { value: 'paypal', label: 'PayPal' }, { value: 'apple', label: 'Apple Pay' },
-                  ...(utente ? [{ value: 'token', label: `Sibylla Token · saldo ${eur(saldo)}${saldo < totale ? ' (non sufficiente)' : ''}`, disabled: saldo < totale }] : []),
-                ]} />
-              {metodo === 'carta' && (
-                <div className="snw-car__form">
-                  <InputField name="intestatario" label="Intestatario" defaultValue={`${dati.nome} ${dati.cognome}`.trim()} />
-                  <InputField name="numero" label="Numero carta" iconLeft="fa-regular fa-credit-card" placeholder="1234 5678 9012 3456" />
-                  <InputField name="scadenza" label="Scadenza" placeholder="MM/AA" />
-                  <InputField name="cvv" label="CVV" placeholder="123" maxLength={4} />
-                </div>
-              )}
-              <p className="snw-car__nota"><i className="fa-solid fa-lock" aria-hidden="true" /> Pagamento protetto con 3-D Secure. Demo: nessun addebito reale.</p>
+              <SnwPagamento nome="metodo" valore={metodo} onChange={setMetodo} totale={totale} wallet campiCarta intestatario={`${dati.nome} ${dati.cognome}`.trim()} />
             </>
           )}
         </section>
 
         <aside className="snw-car__riep" aria-label="Riepilogo">
           <h2>Riepilogo</h2>
-          <dl>
-            <div><dt>Subtotale</dt><dd>{eur(subtotale)}</dd></div>
-            {sconto > 0 && <div className="snw-car__sconto"><dt>Sconto NETWORK{sconto}</dt><dd>−{eur(valSconto)}</dd></div>}
-            <div><dt>Tassa di soggiorno</dt><dd>in struttura</dd></div>
-            <div className="snw-car__totale"><dt>Totale</dt><dd>{eur(totale)}</dd></div>
-          </dl>
+          <SnwTotali totale={totale} righe={[
+            { tit: 'Subtotale', val: subtotale },
+            ...(sconto > 0 ? [{ tit: `Sconto NETWORK${sconto}`, val: valSconto, sconto: true }] : []),
+            { tit: 'Tassa di soggiorno', val: 'in struttura' },
+          ]} />
           {passo === 0 && (
             <form className="snw-car__codice" onSubmit={e => { e.preventDefault(); setSconto(codice.trim().toUpperCase() === 'NETWORK10' ? 10 : 0) }}>
               <InputField name="codice" label="Codice sconto" placeholder="Es. NETWORK10" value={codice} onChange={e => setCodice(e.target.value)}

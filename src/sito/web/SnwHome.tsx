@@ -5,7 +5,7 @@ import { CATEGORIE, Categoria, DESTINAZIONI, FOTO, OFFERTE, eur, trova } from '.
 import { useSitoStore } from '../useSitoStore'
 import { SnwFoto } from '../SnwUi'
 import SnwCard from './SnwCard'
-import { PARTNER_NASTRO } from '../sitoContenuti'
+import { PARTNER_NASTRO, PRODOTTI_ECOSISTEMA } from '../sitoContenuti'
 import './SnwHome.sass'
 
 /**
@@ -34,14 +34,6 @@ const FOTO_CAT: Record<Categoria, string> = {
 }
 const NASTRO = ['Soggiorni selezionati', 'Esperienze autentiche', 'Made in Italy a casa tua', 'Servizi per il viaggio', 'Cancellazione gratuita', 'Persone vere, 7 giorni su 7', 'Partner verificati']
 
-const RETE = [
-  { tit: 'Hotel', prod: 'Sibylla Platform', icona: 'fa-hotel', url: 'https://www.sibyllaecosystem.it/soluzioni/platform/',
-    txt: "Dal check-in alla distribuzione, dai dati alla marginalità: l'operatività della struttura in un'unica piattaforma." },
-  { tit: 'Tour operator', prod: 'Sibylla Tableau', icona: 'fa-route', url: 'https://www.sibyllaecosystem.it/soluzioni/tableau/',
-    txt: 'TO e hotel in un ambiente digitale unico: prenotazioni, disponibilità e relazioni B2B senza interruzioni.' },
-  { tit: 'Fornitori', prod: 'Sibylla Agorà', icona: 'fa-store', url: 'https://www.sibyllaecosystem.it/soluzioni/agora/',
-    txt: 'Il marketplace specializzato dove proporre soluzioni su misura e crescere con una rete selezionata.' },
-]
 
 // Offerta lampo: scade a mezzanotte
 function useMezzanotte() {
@@ -395,11 +387,11 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
             </div>
           </header>
           <div className="snw-home__rete-grid">
-            {RETE.map(r => (
-              <a key={r.tit} href={r.url} target="_blank" rel="noreferrer" className="snw-home__rete-card">
+            {PRODOTTI_ECOSISTEMA.map(r => (
+              <a key={r.nome} href={r.url} target="_blank" rel="noreferrer" className="snw-home__rete-card">
                 <i className={`fa-light ${r.icona}`} aria-hidden="true" />
-                <span className="snw-home__rete-prod">{r.prod}</span>
-                <h3>{r.tit}</h3>
+                <span className="snw-home__rete-prod">{r.nome}</span>
+                <h3>{r.per}</h3>
                 <p>{r.txt}</p>
                 <span className="snw-home__rete-cta">Scopri di più <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
               </a>

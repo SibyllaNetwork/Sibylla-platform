@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { InputField, RadioGroup, TextareaField } from '../../core/components/form'
+import { InputField, TextareaField } from '../../core/components/form'
 import { FOTO, STRUTTURA_OSPITE, eur, oggiIso } from '../sitoData'
 import { useSitoStore } from '../useSitoStore'
 import { useSaldo, useSitoAccountStore } from '../useSitoAccountStore'
-import { SnwFoto } from '../SnwUi'
+import { SnwEsito, SnwFoto, SnwPagamento, SnwTotali } from '../SnwUi'
 import './SnwPreventivo.sass'
 
 /**
@@ -61,20 +61,16 @@ export default function SnwPreventivo({ codice: iniziale }: { codice?: string })
       </form>
 
       {!aperto ? (
-        <div className="snw-prv__vuoto">
-          <i className="fa-light fa-file-circle-question" aria-hidden="true" />
-          <h1>Nessun preventivo disponibile</h1>
-          <p>{errore ? `Il codice «${cod.trim()}» non corrisponde a un preventivo attivo.` : 'Il link che hai utilizzato non contiene le informazioni necessarie per visualizzare un preventivo.'} Contatta la struttura per ricevere un nuovo link.</p>
-        </div>
+        <SnwEsito icona="fa-file-circle-question" livello="h1" titolo="Nessun preventivo disponibile">
+          {errore ? `Il codice «${cod.trim()}» non corrisponde a un preventivo attivo.` : 'Il link che hai utilizzato non contiene le informazioni necessarie per visualizzare un preventivo.'} Contatta la struttura per ricevere un nuovo link.
+        </SnwEsito>
       ) : fase === 'ok' || fase === 'inviata' ? (
-        <div className="snw-prv__vuoto">
-          <i className={`fa-light ${fase === 'ok' ? 'fa-circle-check' : 'fa-paper-plane'}`} aria-hidden="true" />
-          <h1>{fase === 'ok' ? 'Preventivo confermato' : 'Richiesta di modifica inviata'}</h1>
-          <p>{fase === 'ok'
+        <SnwEsito icona={fase === 'ok' ? 'fa-circle-check' : 'fa-paper-plane'} livello="h1" titolo={fase === 'ok' ? 'Preventivo confermato' : 'Richiesta di modifica inviata'}
+          azioni={<button type="button" className="sib-btn sib-btn--primary" onClick={() => vai(utente ? { nome: 'account', sez: 'ordini' } : { nome: 'home' })}>{utente ? 'Vai ai tuoi ordini' : 'Torna alla home'}</button>}>
+          {fase === 'ok'
             ? `${STRUTTURA_OSPITE.nome} ha ricevuto la conferma del preventivo ${DEMO} (${eur(totale)}). Ti arrivano via e-mail la ricevuta e i voucher.`
-            : `${STRUTTURA_OSPITE.nome} ti risponde con un preventivo aggiornato, di solito entro la giornata.`}</p>
-          <button type="button" className="sib-btn sib-btn--primary" onClick={() => vai(utente ? { nome: 'account', sez: 'ordini' } : { nome: 'home' })}>{utente ? 'Vai ai tuoi ordini' : 'Torna alla home'}</button>
-        </div>
+            : `${STRUTTURA_OSPITE.nome} ti risponde con un preventivo aggiornato, di solito entro la giornata.`}
+        </SnwEsito>
       ) : (
         <div className="snw-prv__layout">
           <article className="snw-prv__doc">
@@ -92,12 +88,11 @@ export default function SnwPreventivo({ codice: iniziale }: { codice?: string })
             <ul className="snw-prv__voci">
               {PREV.voci.map(v => <li key={v.tit}><span><b>{v.tit}</b><small>{v.det}</small></span><b>{eur(v.eur)}</b></li>)}
             </ul>
-            <dl className="snw-prv__tot">
-              <div><dt>Subtotale</dt><dd>{eur(subtot)}</dd></div>
-              <div className="snw-prv__sconto"><dt>Sconto della struttura</dt><dd>−{eur(PREV.sconto)}</dd></div>
-              <div><dt>Tassa di soggiorno</dt><dd>in struttura</dd></div>
-              <div className="snw-prv__totale"><dt>Totale</dt><dd>{eur(totale)}</dd></div>
-            </dl>
+            <SnwTotali className="snw-prv__tot" totale={totale} righe={[
+              { tit: 'Subtotale', val: subtot },
+              { tit: 'Sconto della struttura', val: PREV.sconto, sconto: true },
+              { tit: 'Tassa di soggiorno', val: 'in struttura' },
+            ]} />
             <p className="snw-prv__note"><i className="fa-solid fa-message-lines" aria-hidden="true" /> {PREV.note}</p>
           </article>
 
@@ -112,11 +107,7 @@ export default function SnwPreventivo({ codice: iniziale }: { codice?: string })
             ) : fase === 'paga' ? (
               <>
                 <h2>Accetta e paga</h2>
-                <RadioGroup name="prv-metodo" label="Metodo di pagamento" value={metodo} onChange={setMetodo}
-                  options={[
-                    { value: 'carta', label: 'Carta di credito' },
-                    ...(utente ? [{ value: 'token', label: `Sibylla Token · saldo ${eur(saldo)}`, disabled: !tokenOk }] : []),
-                  ]} />
+                <SnwPagamento nome="prv-metodo" valore={metodo} onChange={setMetodo} totale={totale} verticale />
                 {!utente && <p className="snw-prv__hint"><button type="button" className="snw-prv__link" onClick={() => vai({ nome: 'accesso', poi: { nome: 'preventivo', codice: DEMO } })}>Accedi</button> per pagare con i Sibylla Token del tuo portafoglio.</p>}
                 {utente && !tokenOk && <p className="snw-prv__hint">Il saldo token non basta: puoi ricaricarlo dal Portafoglio.</p>}
                 <button type="button" className="sib-btn sib-btn--primary" onClick={conferma}><i className="fa-solid fa-lock" aria-hidden="true" /> Paga {eur(totale)}</button>

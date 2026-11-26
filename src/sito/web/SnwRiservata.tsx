@@ -9,7 +9,7 @@ import { CATEGORIE, Categoria, OFFERTE, Offerta, eur, nomeCategoria, oggiIso, ri
 import { PROMO_B2B, SCONTO_OPERATORE, SOGGIORNI_RISERVATI, SoggiornoRiservato, prezzoOperatore } from '../sitoContenuti'
 import { SezioneAccount, useSitoStore } from '../useSitoStore'
 import { Ordine, RigaOrdine, STATI_RIGA, TIPI_AZIENDA, TipoAzienda, UtenteSito, statoRiga, useSaldo, useSitoAccountStore } from '../useSitoAccountStore'
-import { SnwFoto } from '../SnwUi'
+import { SnwFoto, SnwSchede } from '../SnwUi'
 import SnwCard from './SnwCard'
 import SnwAvatarCampo from './SnwAvatarCampo'
 import { NAZIONALITA } from './snwNazionalita'
@@ -110,13 +110,8 @@ function Operatori() {
   return (
     <>
       <Titolo tit="Riservato operatori" sotto="Tariffe nette, promozioni e soggiorni riservati agli operatori del settore della rete Sibylla." />
-      <div className="snw-ris__tab" role="tablist" aria-label="Riservato operatori">
-        {([['tariffe', 'Tariffe nette', 'fa-tags'], ['promo', 'Promozioni', 'fa-badge-percent'], ['soggiorni', 'Soggiorni riservati', 'fa-hotel']] as const).map(([id, nome, ic]) => (
-          <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'snw-ris__tab-on' : ''} onClick={() => setTab(id)}>
-            <i className={`fa-light ${ic}`} aria-hidden="true" />{nome}
-          </button>
-        ))}
-      </div>
+      <SnwSchede etichetta="Riservato operatori" attiva={tab} onChange={setTab}
+        voci={[['tariffe', 'Tariffe nette', 'fa-tags'], ['promo', 'Promozioni', 'fa-badge-percent'], ['soggiorni', 'Soggiorni riservati', 'fa-hotel']] as const} />
       {tab === 'tariffe' && <Tariffe promo={promo} setPromo={setPromo} />}
       {tab === 'promo' && <Promozioni usa={usa} />}
       {tab === 'soggiorni' && <SoggiorniRiservati />}
@@ -549,10 +544,8 @@ function Profilo() {
           <SnwAvatarCampo compatto valore={u.avatar} onChange={v => { setU(x => ({ ...x, avatar: v })); salva({ avatar: v }) }} />
         </div>
         <form className="snw-ris__box" onSubmit={e => { e.preventDefault(); salva(u); setSalvato(true) }}>
-          <div className="snw-ris__tab snw-ris__tab--piccolo" role="tablist" aria-label="Profilo">
-            <button type="button" role="tab" aria-selected={tab === 'account'} className={tab === 'account' ? 'snw-ris__tab-on' : ''} onClick={() => setTab('account')}>Impostazioni account</button>
-            {biz && <button type="button" role="tab" aria-selected={tab === 'azienda'} className={tab === 'azienda' ? 'snw-ris__tab-on' : ''} onClick={() => setTab('azienda')}>Dati aziendali</button>}
-          </div>
+          <SnwSchede piccola etichetta="Profilo" attiva={tab} onChange={setTab}
+            voci={[['account', 'Impostazioni account'] as const, ...(biz ? [['azienda', 'Dati aziendali'] as const] : [])]} />
           {tab === 'account' ? (
             <div className="snw-ris__griglia">
               <InputField name="p-nome" label="Nome" value={u.nome} onChange={e => set('nome', e.target.value)} />

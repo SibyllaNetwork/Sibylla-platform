@@ -3,7 +3,7 @@ import { CheckboxField, InputField, RadioGroup, SelectField } from '../../core/c
 import { FOTO } from '../sitoData'
 import { PaginaSito, useSitoStore } from '../useSitoStore'
 import { TIPI_AZIENDA, TipoAccount, TipoAzienda, UtenteSito, profiloBase, useSitoAccountStore } from '../useSitoAccountStore'
-import { SnwFoto } from '../SnwUi'
+import { SnwEsito, SnwFoto } from '../SnwUi'
 import SnwAvatarCampo from './SnwAvatarCampo'
 import { NAZIONALITA } from './snwNazionalita'
 import './SnwAccesso.sass'
@@ -168,12 +168,10 @@ export default function SnwAccesso({ modo: iniziale = 'accedi', poi }: { modo?: 
           )}
 
           {modo === 'recupero' && (inviato ? (
-            <div className="snw-acs__ok">
-              <i className="fa-light fa-envelope-circle-check" aria-hidden="true" />
-              <h2>Controlla la posta</h2>
-              <p>Se <b>{email.trim()}</b> è registrata, tra poco ricevi il link di reset (valido 30 minuti).</p>
-              <button type="button" className="sib-btn sib-btn--primary snw-acs__cta" onClick={() => cambia('accedi')}>Torna alla login</button>
-            </div>
+            <SnwEsito icona="fa-envelope-circle-check" titolo="Controlla la posta" variante="compatto"
+              azioni={<button type="button" className="sib-btn sib-btn--primary snw-acs__cta" onClick={() => cambia('accedi')}>Torna alla login</button>}>
+              Se <b>{email.trim()}</b> è registrata, tra poco ricevi il link di reset (valido 30 minuti).
+            </SnwEsito>
           ) : (
             <form onSubmit={recupero} noValidate>
               <h2>Reset password</h2>
