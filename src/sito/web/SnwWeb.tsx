@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Tooltip from '../../core/components/Tooltip'
-import { CATEGORIE, eur, trova } from '../sitoData'
+import { CATEGORIE, eur, testoRiga, trova } from '../sitoData'
 import { VersioneHome, useSitoStore, versioneWeb } from '../useSitoStore'
 import { SnwFoto, SnwLogo } from '../SnwUi'
 import SnwHome from './SnwHome'
@@ -20,6 +20,7 @@ import SnwRichiesta from './SnwRichiesta'
 import SnwPreventivo from './SnwPreventivo'
 import { useSitoAccountStore } from '../useSitoAccountStore'
 import SnwLingua from '../i18n/SnwLingua'
+import { t } from '../i18n'
 import './SnwWeb.sass'
 
 /**
@@ -81,8 +82,8 @@ export default function SnwWeb() {
     <div className={`${scelta === 'impatto2' ? 'snw snw--impatto snw--impatto2' : `snw snw--${versione}`}${riservata ? ' snw--riservata' : ''}`} data-section="sito" ref={scroller} onScroll={e => setInCima(e.currentTarget.scrollTop < 40)}>
       <div className="snw__strip">
         <div className="snw__wrap snw__strip-in">
-          <span className="snw__versioni" role="tablist" aria-label="Versione della home">
-            <span>Versione</span>
+          <span className="snw__versioni" role="tablist" aria-label={t('Versione della home')}>
+            <span>{t('Versione')}</span>
             {VERSIONI.map(v => (
               <button key={v.id} type="button" role="tab" aria-selected={scelta === v.id}
                 className={scelta === v.id ? 'snw__versione snw__versione--on' : 'snw__versione'} onClick={() => setVersione(v.id)}>
@@ -94,13 +95,13 @@ export default function SnwWeb() {
             <SnwLingua />
             <a href="tel:00390691714070"><i className="fa-solid fa-phone" aria-hidden="true" /> +39 06 91714070</a>
             <button type="button" onClick={() => vai({ nome: 'info', id: 'contatti' })}>
-              <i className="fa-solid fa-handshake" aria-hidden="true" /> Diventa partner
+              <i className="fa-solid fa-handshake" aria-hidden="true" /> {t('Diventa partner')}
             </button>
             <button type="button" onClick={() => useSitoStore.getState().setModo('totem')}>
               <i className="fa-solid fa-tablet-screen" aria-hidden="true" /> Totem
             </button>
             <button type="button" onClick={vaiRiservata}>
-              <i className={`fa-solid ${utente ? 'fa-user' : 'fa-right-to-bracket'}`} aria-hidden="true" /> {utente ? `Ciao ${utente.nome}` : 'Area riservata'}
+              <i className={`fa-solid ${utente ? 'fa-user' : 'fa-right-to-bracket'}`} aria-hidden="true" /> {utente ? t('Ciao {nome}', { nome: utente.nome }) : t('Area riservata')}
             </button>
           </span>
         </div>
@@ -108,34 +109,34 @@ export default function SnwWeb() {
 
       <header className={`snw__head ${sopraHero ? 'snw__head--sopra' : ''}`}>
         <div className="snw__wrap snw__head-in">
-          <button type="button" className="snw__brand" onClick={() => vai({ nome: 'home' })} aria-label="Sibylla Network, home">
+          <button type="button" className="snw__brand" onClick={() => vai({ nome: 'home' })} aria-label={t('Sibylla Network, home')}>
             <SnwLogo chiaro={sopraHero} />
           </button>
-          <nav className="snw__nav" aria-label="Categorie">
+          <nav className="snw__nav" aria-label={t('Categorie')}>
             {CATEGORIE.map(c => (
               <button key={c.id} type="button" className={`snw__nav-voce ${catAttiva === c.id ? 'snw__nav-voce--on' : ''}`}
                 onClick={() => vai({ nome: 'catalogo', cat: c.id })}>
-                <i className={`fa-light ${c.icona}`} aria-hidden="true" />{c.nome}
+                <i className={`fa-light ${c.icona}`} aria-hidden="true" />{t(c.nome)}
               </button>
             ))}
             <button type="button" className={`snw__nav-voce ${pagina.nome === 'rete' ? 'snw__nav-voce--on' : ''}`} onClick={() => vai({ nome: 'rete' })}>
-              <i className="fa-light fa-circle-nodes" aria-hidden="true" />La rete
+              <i className="fa-light fa-circle-nodes" aria-hidden="true" />{t('La rete')}
             </button>
           </nav>
           <div className="snw__azioni">
-            <Tooltip text={utente ? 'La tua area riservata' : 'Accedi o registrati'}>
-              <button type="button" className={utente ? 'snw__ico snw__ico--utente' : 'snw__ico'} aria-label={utente ? `Area riservata di ${utente.nome}` : 'Area riservata: accedi o registrati'} onClick={vaiRiservata}>
+            <Tooltip text={utente ? t('La tua area riservata') : t('Accedi o registrati')}>
+              <button type="button" className={utente ? 'snw__ico snw__ico--utente' : 'snw__ico'} aria-label={utente ? t('Area riservata di {nome}', { nome: utente.nome }) : t('Area riservata: accedi o registrati')} onClick={vaiRiservata}>
                 {utente ? (utente.avatar ? <img src={utente.avatar} alt="" /> : <span>{iniziali(utente)}</span>) : <i className="fa-regular fa-user" />}
               </button>
             </Tooltip>
-            <Tooltip text="Preferiti">
-              <button type="button" className="snw__ico snw__ico--pref" aria-label={`Preferiti (${preferiti.length})`} onClick={() => vai({ nome: 'preferiti' })}>
+            <Tooltip text={t('Preferiti')}>
+              <button type="button" className="snw__ico snw__ico--pref" aria-label={t('Preferiti ({n})', { n: preferiti.length })} onClick={() => vai({ nome: 'preferiti' })}>
                 <i className="fa-regular fa-heart" />
                 {preferiti.length > 0 && <span className="snw__conta">{preferiti.length}</span>}
               </button>
             </Tooltip>
-            <Tooltip text="Carrello">
-              <button type="button" className="snw__ico" aria-label={`Carrello (${pezzi})`} onClick={() => setDrawer(!drawer)}>
+            <Tooltip text={t('Carrello')}>
+              <button type="button" className="snw__ico" aria-label={t('Carrello ({n})', { n: pezzi })} onClick={() => setDrawer(!drawer)}>
                 <i className="fa-regular fa-cart-shopping" />
                 {pezzi > 0 && <span className="snw__conta">{pezzi}</span>}
               </button>
@@ -167,33 +168,33 @@ export default function SnwWeb() {
           <div className="snw__foot-grid">
             <div className="snw__foot-brand">
               <SnwLogo chiaro />
-              <p>Il volto accessibile dell'ecosistema Sibylla: soggiorni, esperienze, prodotti e servizi di una rete di imprese del turismo.</p>
+              <p>{t("Il volto accessibile dell'ecosistema Sibylla: soggiorni, esperienze, prodotti e servizi di una rete di imprese del turismo.")}</p>
               <span><i className="fa-solid fa-phone" aria-hidden="true" /> +39 06 91714070</span>
               <span><i className="fa-solid fa-envelope" aria-hidden="true" /> info@sibyllanetwork.com</span>
             </div>
             <div>
-              <h4>Rete</h4>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'partner' })}>Partner</button>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'imt' })}>Programma di Rete I.M.T.</button>
-              <button type="button" onClick={vaiRiservata}>Area riservata operatori</button>
+              <h4>{t('Rete')}</h4>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'partner' })}>{t('Partner')}</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'imt' })}>{t('Programma di Rete I.M.T.')}</button>
+              <button type="button" onClick={vaiRiservata}>{t('Area riservata operatori')}</button>
               <a href="https://www.sibyllaecosystem.it/" target="_blank" rel="noreferrer">sibyllaecosystem.it</a>
             </div>
             <div>
-              <h4>Società</h4>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'chi-siamo' })}>Chi siamo</button>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'mission' })}>Mission</button>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'lavora' })}>Lavora con noi</button>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'contatti' })}>Contattaci</button>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'societa' })}>Dati societari</button>
+              <h4>{t('Società')}</h4>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'chi-siamo' })}>{t('Chi siamo')}</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'mission' })}>{t('Mission')}</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'lavora' })}>{t('Lavora con noi')}</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'contatti' })}>{t('Contattaci')}</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'societa' })}>{t('Dati societari')}</button>
             </div>
             <div>
-              <h4>Seguici</h4>
+              <h4>{t('Seguici')}</h4>
               <a href="https://www.facebook.com/people/Sibylla/61552356982215/" target="_blank" rel="noreferrer"><i className="fa-brands fa-facebook" aria-hidden="true" /> Facebook</a>
               <a href="https://www.instagram.com/sibylla_official/" target="_blank" rel="noreferrer"><i className="fa-brands fa-instagram" aria-hidden="true" /> Instagram</a>
               <a href="https://www.linkedin.com/company/sibylla-s-r-l/" target="_blank" rel="noreferrer"><i className="fa-brands fa-linkedin" aria-hidden="true" /> LinkedIn</a>
             </div>
             <div>
-              <h4>Pagamenti sicuri</h4>
+              <h4>{t('Pagamenti sicuri')}</h4>
               <span className="snw__pay">
                 <i className="fa-brands fa-cc-visa" aria-label="Visa" />
                 <i className="fa-brands fa-cc-mastercard" aria-label="Mastercard" />
@@ -201,10 +202,10 @@ export default function SnwWeb() {
                 <i className="fa-brands fa-cc-paypal" aria-label="PayPal" />
                 <i className="fa-brands fa-cc-apple-pay" aria-label="Apple Pay" />
               </span>
-              <button type="button" onClick={() => vai({ nome: 'faq' })}>Domande frequenti</button>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'termini' })}>Termini e condizioni</button>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'privacy' })}>Privacy policy</button>
-              <button type="button" onClick={() => vai({ nome: 'info', id: 'cookie' })}>Cookie policy</button>
+              <button type="button" onClick={() => vai({ nome: 'faq' })}>{t('Domande frequenti')}</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'termini' })}>{t('Termini e condizioni')}</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'privacy' })}>{t('Privacy policy')}</button>
+              <button type="button" onClick={() => vai({ nome: 'info', id: 'cookie' })}>{t('Cookie policy')}</button>
             </div>
           </div>
           <div className="snw__legal">
@@ -216,13 +217,13 @@ export default function SnwWeb() {
 
       {/* ── Mini-carrello ───────────────────────────────────────────────── */}
       {drawer && <div className="snw__velo" onClick={() => setDrawer(false)} aria-hidden="true" />}
-      <aside className={`snw__drawer ${drawer ? 'snw__drawer--on' : ''}`} aria-label="Carrello" aria-hidden={!drawer}>
+      <aside className={`snw__drawer ${drawer ? 'snw__drawer--on' : ''}`} aria-label={t('Carrello')} aria-hidden={!drawer}>
         <header>
-          <h3><i className="fa-solid fa-cart-shopping" aria-hidden="true" /> Il tuo carrello</h3>
-          <button type="button" className="snw__ico" aria-label="Chiudi il carrello" onClick={() => setDrawer(false)}><i className="fa-solid fa-xmark" /></button>
+          <h3><i className="fa-solid fa-cart-shopping" aria-hidden="true" /> {t('Il tuo carrello')}</h3>
+          <button type="button" className="snw__ico" aria-label={t('Chiudi il carrello')} onClick={() => setDrawer(false)}><i className="fa-solid fa-xmark" /></button>
         </header>
         {carrello.length === 0 ? (
-          <p className="snw__drawer-vuoto">Il carrello è vuoto. Scegli un soggiorno, un'esperienza o un prodotto della rete.</p>
+          <p className="snw__drawer-vuoto">{t("Il carrello è vuoto. Scegli un soggiorno, un'esperienza o un prodotto della rete.")}</p>
         ) : (
           <ul className="snw__drawer-righe">
             {carrello.map(r => {
@@ -232,8 +233,8 @@ export default function SnwWeb() {
                 <li key={r.key}>
                   <span className="snw__drawer-foto"><SnwFoto id={o.foto[0]} w={160} h={160} alt="" /></span>
                   <span className="snw__drawer-txt">
-                    <b>{o.titolo}</b>
-                    <small>{r.dettaglio}</small>
+                    <b>{t(o.titolo)}</b>
+                    <small>{testoRiga(r)}</small>
                   </span>
                   <b className="snw__drawer-eur">{eur(r.prezzo * r.qta)}</b>
                 </li>
@@ -242,9 +243,9 @@ export default function SnwWeb() {
           </ul>
         )}
         <footer>
-          <span className="snw__drawer-tot">Totale <b>{eur(totale)}</b></span>
+          <span className="snw__drawer-tot">{t('Totale')} <b>{eur(totale)}</b></span>
           <button type="button" className="sib-btn sib-btn--primary" disabled={!carrello.length} onClick={() => vai({ nome: 'carrello' })}>
-            Vai al carrello <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+            {t('Vai al carrello')} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
           </button>
         </footer>
       </aside>

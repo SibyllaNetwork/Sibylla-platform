@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { CheckboxField, RadioGroup, RangeField, SelectField, ToggleSwitch } from '../../core/components/form'
 import { CATEGORIE, Categoria, FOTO, OFFERTE, eur } from '../sitoData'
 import { useSitoStore } from '../useSitoStore'
+import { t } from '../i18n'
 import SnwCard from './SnwCard'
 import SnwSoggiorni from './SnwSoggiorni'
 import SnwTestata from './SnwTestata'
@@ -51,65 +52,65 @@ function CatalogoOfferte({ cat, dove }: { cat?: Categoria; dove?: string }) {
 
   return (
     <div className="snw-cat">
-      <SnwTestata kicker={dove ? `Catalogo · ${dove}` : 'Catalogo'} titolo={info ? (info.id === 'esperienze' ? 'Scegli tra le' : 'Scegli tra i') : 'Tutte le'} enfasi={info ? info.nome.toLowerCase() : 'offerte'}
-        sotto={info?.claim ?? 'Soggiorni, esperienze, prodotti e servizi della rete Sibylla'} foto={FOTO_CAT[cat ?? 'tutto']} icona={info?.icona ?? 'fa-grid-2'}
-        briciole={[{ nome: info?.nome ?? 'Tutte le offerte' }]}
-        extra={<span className="snw-cat__conta"><b>{base.length}</b> offerte in {citta.length} località</span>} />
+      <SnwTestata kicker={dove ? t('Catalogo · {luogo}', { luogo: t(dove) }) : t('Catalogo')} titolo={info ? (info.id === 'esperienze' ? t('Scegli tra le') : t('Scegli tra i')) : t('Tutte le')} enfasi={info ? t(info.nome.toLowerCase()) : t('offerte')}
+        sotto={info ? t(info.claim) : t('Soggiorni, esperienze, prodotti e servizi della rete Sibylla')} foto={FOTO_CAT[cat ?? 'tutto']} icona={info?.icona ?? 'fa-grid-2'}
+        briciole={[{ nome: info ? t(info.nome) : t('Tutte le offerte') }]}
+        extra={<span className="snw-cat__conta"><b>{base.length}</b> {t('offerte in {n} località', { n: citta.length })}</span>} />
       <div className="snw__wrap">
-      <div className="snw-cat__tab snw-cat__tab--barra" role="tablist" aria-label="Categoria">
-        <button type="button" role="tab" aria-selected={!cat} className={!cat ? 'snw-cat__t snw-cat__t--on' : 'snw-cat__t'} onClick={() => vai({ nome: 'catalogo' })}>Tutto</button>
+      <div className="snw-cat__tab snw-cat__tab--barra" role="tablist" aria-label={t('Categoria')}>
+        <button type="button" role="tab" aria-selected={!cat} className={!cat ? 'snw-cat__t snw-cat__t--on' : 'snw-cat__t'} onClick={() => vai({ nome: 'catalogo' })}>{t('Tutto')}</button>
         {CATEGORIE.map(c => (
           <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} className={cat === c.id ? 'snw-cat__t snw-cat__t--on' : 'snw-cat__t'}
             onClick={() => vai({ nome: 'catalogo', cat: c.id })}>
-            <i className={`fa-light ${c.icona}`} aria-hidden="true" />{c.nome}
+            <i className={`fa-light ${c.icona}`} aria-hidden="true" />{t(c.nome)}
           </button>
         ))}
       </div>
 
       <div className="snw-cat__layout">
-        <aside className="snw-cat__filtri" aria-label="Filtri">
+        <aside className="snw-cat__filtri" aria-label={t('Filtri')}>
           <div className="snw-cat__filtri-head">
-            <h2><i className="fa-solid fa-sliders" aria-hidden="true" /> Filtri</h2>
-            <button type="button" className="sib-btn sib-btn--ghost" onClick={azzera}>Azzera</button>
+            <h2><i className="fa-solid fa-sliders" aria-hidden="true" /> {t('Filtri')}</h2>
+            <button type="button" className="sib-btn sib-btn--ghost" onClick={azzera}>{t('Azzera')}</button>
           </div>
           <fieldset>
-            <legend>Destinazione</legend>
+            <legend>{t('Destinazione')}</legend>
             {citta.map(c => (
-              <CheckboxField key={c} name={`luogo-${c}`} label={`${c} (${base.filter(o => o.citta === c).length})`} checked={luoghi.includes(c)}
+              <CheckboxField key={c} name={`luogo-${c}`} label={`${t(c)} (${base.filter(o => o.citta === c).length})`} checked={luoghi.includes(c)}
                 onChange={e => setLuoghi(l => (e.target.checked ? [...l, c] : l.filter(x => x !== c)))} />
             ))}
           </fieldset>
           <fieldset>
-            <RangeField label="Prezzo massimo" name="prezzo" value={maxPrezzo} onChange={setMaxPrezzo} min={0} max={tetto} step={tetto > 100 ? 10 : 1}
+            <RangeField label={t('Prezzo massimo')} resetLabel={t('Azzera {label}', { label: t('Prezzo massimo') })} name="prezzo" value={maxPrezzo} onChange={setMaxPrezzo} min={0} max={tetto} step={tetto > 100 ? 10 : 1}
               valueLabel={eur(maxPrezzo)} resetTo={tetto} />
           </fieldset>
           <fieldset>
-            <RadioGroup label="Valutazione" name="voto" value={votoMin} onChange={setVotoMin}
-              options={[{ value: '0', label: 'Tutte' }, { value: '4.5', label: '4,5 e oltre' }, { value: '4.8', label: '4,8 e oltre' }]} />
+            <RadioGroup label={t('Valutazione')} name="voto" value={votoMin} onChange={setVotoMin}
+              options={[{ value: '0', label: t('Tutte') }, { value: '4.5', label: t('4,5 e oltre') }, { value: '4.8', label: t('4,8 e oltre') }]} />
           </fieldset>
           <fieldset>
-            <ToggleSwitch label="Cancellazione gratuita" checked={soloCanc} onChange={setSoloCanc} />
-            <ToggleSwitch label="Solo preferiti" checked={soloPref} onChange={setSoloPref} />
+            <ToggleSwitch label={t('Cancellazione gratuita')} checked={soloCanc} onChange={setSoloCanc} />
+            <ToggleSwitch label={t('Solo preferiti')} checked={soloPref} onChange={setSoloPref} />
           </fieldset>
         </aside>
 
         <section className="snw-cat__ris">
           {cat === 'servizi' && (
-            <div className="snw-cat__richieste" aria-label="Servizi su richiesta">
-              <span><b>Servizi su richiesta</b><small>Compili, il booking conferma entro 2 ore lavorative.</small></span>
-              {([['transfer', 'Trasferimenti', 'fa-van-shuttle'], ['ristoranti', 'Ristoranti per gruppi', 'fa-utensils'], ['bagagli', 'Deposito bagagli', 'fa-suitcase-rolling']] as const).map(([tipo, nome, ic]) => (
+            <div className="snw-cat__richieste" aria-label={t('Servizi su richiesta')}>
+              <span><b>{t('Servizi su richiesta')}</b><small>{t('Compili, il booking conferma entro 2 ore lavorative.')}</small></span>
+              {([['transfer', t('Trasferimenti'), 'fa-van-shuttle'], ['ristoranti', t('Ristoranti per gruppi'), 'fa-utensils'], ['bagagli', t('Deposito bagagli'), 'fa-suitcase-rolling']] as const).map(([tipo, nome, ic]) => (
                 <button key={tipo} type="button" onClick={() => vai({ nome: 'richiesta', tipo })}><i className={`fa-light ${ic}`} aria-hidden="true" />{nome}<i className="fa-solid fa-arrow-right" aria-hidden="true" /></button>
               ))}
             </div>
           )}
           <div className="snw-cat__barra">
-            <span><b>{risultati.length}</b> {risultati.length === 1 ? 'offerta' : 'offerte'}{luoghi.length ? ` a ${luoghi.join(', ')}` : ''}</span>
-            <SelectField name="ordine" label="Ordina per" value={ordine} onChange={e => setOrdine(e.target.value as Ordine)} className="snw-cat__ordine"
+            <span><b>{risultati.length}</b> {risultati.length === 1 ? t('offerta') : t('offerte')}{luoghi.length ? ` ${t('a {luoghi}', { luoghi: luoghi.map(l => t(l)).join(', ') })}` : ''}</span>
+            <SelectField name="ordine" label={t('Ordina per')} value={ordine} onChange={e => setOrdine(e.target.value as Ordine)} className="snw-cat__ordine"
               options={[
-                { value: 'consigliati', label: 'Consigliati' },
-                { value: 'prezzo-su', label: 'Prezzo: dal più basso' },
-                { value: 'prezzo-giu', label: 'Prezzo: dal più alto' },
-                { value: 'voto', label: 'Valutazione' },
+                { value: 'consigliati', label: t('Consigliati') },
+                { value: 'prezzo-su', label: t('Prezzo: dal più basso') },
+                { value: 'prezzo-giu', label: t('Prezzo: dal più alto') },
+                { value: 'voto', label: t('Valutazione') },
               ]} />
           </div>
           {risultati.length ? (
@@ -119,8 +120,8 @@ function CatalogoOfferte({ cat, dove }: { cat?: Categoria; dove?: string }) {
           ) : (
             <div className="snw-cat__vuoto">
               <i className="fa-light fa-compass" aria-hidden="true" />
-              <b>Nessuna offerta con questi filtri</b>
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={azzera}>Azzera i filtri</button>
+              <b>{t('Nessuna offerta con questi filtri')}</b>
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={azzera}>{t('Azzera i filtri')}</button>
             </div>
           )}
         </section>

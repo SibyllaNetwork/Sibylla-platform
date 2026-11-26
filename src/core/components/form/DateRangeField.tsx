@@ -2,6 +2,10 @@ import React, { useLayoutEffect } from 'react'
 import clsx from 'clsx'
 import { DateRangePicker, CustomProvider } from 'rsuite'
 import itIT from 'rsuite/locales/it_IT'
+import enGB from 'rsuite/locales/en_GB'
+import deDE from 'rsuite/locales/de_DE'
+import frFR from 'rsuite/locales/fr_FR'
+import esES from 'rsuite/locales/es_ES'
 import { format, parseISO, isValid } from 'date-fns'
 import 'rsuite/dist/rsuite-no-reset.min.css'
 import './DateRangeField.sass'
@@ -28,6 +32,9 @@ export interface DateRangeFieldProps {
   onChangeTo?:   (e: React.ChangeEvent<HTMLInputElement>) => void
   onChange?:     (from: Date | null, to: Date | null) => void
   className?:    string
+  /** Lingua del calendario (sito Sibylla Network multilingua); di default italiano. */
+  lingua?:       'it' | 'en' | 'de' | 'fr' | 'es'
+  placeholder?:  string
 }
 
 // Icona calendario (caret a destra) con FontAwesome.
@@ -46,11 +53,13 @@ const safeParseISO = (s?: string): Date | null => {
 // (due calendari affiancati, selezione fluida con anteprima). API invariata: i
 // consumer continuano a usare valueFrom/valueTo + onChangeFrom/onChangeTo
 // (ricevono un evento sintetico con target.value in formato ISO yyyy-MM-dd).
+const LOCALI = { it: itIT, en: enGB, de: deDE, fr: frFR, es: esES }
+
 const DateRangeField: React.FC<DateRangeFieldProps> = ({
   label, nameFrom, nameTo, valueFrom, valueTo,
   defaultFrom, defaultTo, hint, error,
   disabled = false, required = false,
-  min, max, isDateDisabled, onChangeFrom, onChangeTo, onChange, className,
+  min, max, isDateDisabled, onChangeFrom, onChangeTo, onChange, className, lingua, placeholder,
 }) => {
   // In dark il calendario usa il tema scuro di RSuite (popup agganciato al body)
   const theme = useThemeStore((st) => st.theme)
@@ -87,7 +96,7 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
           {label}{required && <span className="text-error ml-0.5">*</span>}
         </label>
       )}
-      <CustomProvider locale={itIT} theme={theme === 'dark' ? 'dark' : undefined}>
+      <CustomProvider locale={LOCALI[lingua ?? 'it']} theme={theme === 'dark' ? 'dark' : undefined}>
         <DateRangePicker
           value={value}
           onChange={handleChange as (v: [Date, Date] | null) => void}
@@ -98,7 +107,7 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
           ranges={[]}
           cleanable={false}
           disabled={disabled}
-          placeholder="Seleziona periodo"
+          placeholder={placeholder ?? 'Seleziona periodo'}
           placement="bottomStart"
           shouldDisableDate={shouldDisableDate}
           className={clsx('sib-daterange', error && 'sib-daterange--error')}

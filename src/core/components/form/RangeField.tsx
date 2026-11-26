@@ -27,6 +27,8 @@ export interface RangeFieldProps {
   resetTo?: number
   /** Nasconde il pulsante di azzeramento. */
   hideReset?: boolean
+  /** Etichetta accessibile del pulsante di azzeramento (default «Azzera <label>»). */
+  resetLabel?: string
   /** Riga di contesto sotto il cursore (es. il valore risultante). */
   hint?: React.ReactNode
   disabled?: boolean
@@ -35,7 +37,7 @@ export interface RangeFieldProps {
 
 export default function RangeField({
   label, name, value, onChange, min = -20, max = 20, step = 1,
-  valueLabel, suffix = '%', resetTo = 0, hideReset = false, hint, disabled, className,
+  valueLabel, suffix = '%', resetTo = 0, hideReset = false, resetLabel, hint, disabled, className,
 }: RangeFieldProps) {
   const id = `range-${name}`
   const testo = valueLabel ?? `${value > 0 ? '+' : value < 0 ? '−' : ''}${new Intl.NumberFormat('it-IT', {
@@ -58,7 +60,7 @@ export default function RangeField({
             className="range-field__reset"
             onClick={() => onChange(resetTo)}
             disabled={disabled || value === resetTo}
-            aria-label={`Azzera ${label}`}
+            aria-label={resetLabel ?? `Azzera ${label}`}
           >
             <i className="fa-solid fa-rotate-left" aria-hidden="true" />
           </button>

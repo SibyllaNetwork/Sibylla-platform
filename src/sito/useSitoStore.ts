@@ -47,6 +47,10 @@ export interface RigaCarrello {
   dettaglio: string
   /** Tariffa operatore dall'area riservata. */
   b2b?: boolean
+  /** Codice promozione operatore applicato (righe b2b). */
+  codice?: string
+  /** Tipo di soggiorno riservato agli operatori (fam trip, educational…), in italiano. */
+  riservato?: string
 }
 
 export type ModoSito = 'web' | 'totem'

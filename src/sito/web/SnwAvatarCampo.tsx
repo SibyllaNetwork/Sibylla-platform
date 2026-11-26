@@ -1,5 +1,6 @@
 import React, { useRef } from 'react'
 import Tooltip from '../../core/components/Tooltip'
+import { t } from '../i18n'
 import './SnwAvatarCampo.sass'
 
 /**
@@ -29,16 +30,16 @@ export default function SnwAvatarCampo({ valore, onChange, compatto }: { valore?
   return (
     <div className={compatto ? 'snw-avc snw-avc--compatto' : 'snw-avc'}>
       <span className="snw-avc__tondo">
-        {valore ? <img src={valore} alt="Immagine del profilo" /> : <i className="fa-light fa-user" aria-hidden="true" />}
-        <Tooltip text={valore ? 'Cambia immagine' : 'Carica immagine'}>
-          <button type="button" className="snw-avc__piu" aria-label={valore ? 'Cambia immagine del profilo' : 'Carica immagine del profilo'} onClick={() => file.current?.click()}>
+        {valore ? <img src={valore} alt={t('Immagine del profilo')} /> : <i className="fa-light fa-user" aria-hidden="true" />}
+        <Tooltip text={valore ? t('Cambia immagine') : t('Carica immagine')}>
+          <button type="button" className="snw-avc__piu" aria-label={valore ? t('Cambia immagine del profilo') : t('Carica immagine del profilo')} onClick={() => file.current?.click()}>
             <i className="fa-solid fa-plus" aria-hidden="true" />
           </button>
         </Tooltip>
       </span>
       <span className="snw-avc__txt">
-        <b>Immagine del profilo</b>
-        <small>Ricordati che l'immagine sarà tagliata e visualizzata tonda.</small>
+        <b>{t('Immagine del profilo')}</b>
+        <small>{t('Ricordati che l\'immagine sarà tagliata e visualizzata tonda.')}</small>
       </span>
       <input ref={file} type="file" accept="image/*" hidden onChange={carica} />
     </div>

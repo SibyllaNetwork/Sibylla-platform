@@ -6,6 +6,7 @@ import { useSitoStore } from '../useSitoStore'
 import { SnwFoto } from '../SnwUi'
 import SnwCard from './SnwCard'
 import { PARTNER_NASTRO, PRODOTTI_ECOSISTEMA } from '../sitoContenuti'
+import { t, loc, linguaCorrente } from '../i18n'
 import './SnwHome.sass'
 
 /**
@@ -48,7 +49,7 @@ function Numero({ valore, decimali = 0, suffisso = '', etichetta }: { valore: nu
   const v = useCountUp(valore, 1600)
   return (
     <div className="snw-home__num">
-      <b>{v.toLocaleString('it-IT', { minimumFractionDigits: decimali, maximumFractionDigits: decimali })}{suffisso}</b>
+      <b>{v.toLocaleString(loc(), { minimumFractionDigits: decimali, maximumFractionDigits: decimali })}{suffisso}</b>
       <span>{etichetta}</span>
     </div>
   )
@@ -89,23 +90,23 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
   const cerca = (inBarra: boolean) => (
     <form ref={inBarra ? undefined : cercaHero} className={inBarra ? 'snw-home__cerca snw-home__cerca--barra' : 'snw-home__cerca'}
       onSubmit={e => { e.preventDefault(); vai({ nome: 'catalogo', cat, dove: dove || undefined }) }}>
-      <div className="snw-home__cerca-tab" role="tablist" aria-label="Cosa cerchi">
+      <div className="snw-home__cerca-tab" role="tablist" aria-label={t('Cosa cerchi')}>
         {CATEGORIE.map(c => (
           <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} tabIndex={inBarra && !barra ? -1 : undefined}
             className={cat === c.id ? 'snw-home__tab snw-home__tab--on' : 'snw-home__tab'} onClick={() => setCat(c.id)}>
-            <i className={`fa-light ${c.icona}`} aria-hidden="true" />{c.nome}
+            <i className={`fa-light ${c.icona}`} aria-hidden="true" />{t(c.nome)}
           </button>
         ))}
       </div>
       <div className="snw-home__cerca-campi">
-        <SelectField name={inBarra ? 'dove-barra' : 'dove'} label="Dove" value={dove} onChange={e => setDove(e.target.value)}
-          options={[{ value: '', label: 'Tutte le destinazioni' }, ...CITTA.map(c => ({ value: c, label: c }))]} />
-        <DateRangeField label={cat === 'soggiorni' ? 'Check-in e check-out' : 'Quando'} nameFrom={inBarra ? 'dal-barra' : 'dal'} nameTo={inBarra ? 'al-barra' : 'al'}
+        <SelectField name={inBarra ? 'dove-barra' : 'dove'} label={t('Dove')} value={dove} onChange={e => setDove(e.target.value)}
+          options={[{ value: '', label: t('Tutte le destinazioni') }, ...CITTA.map(c => ({ value: c, label: t(c) }))]} />
+        <DateRangeField lingua={linguaCorrente()} placeholder={t('Seleziona periodo')} label={cat === 'soggiorni' ? t('Check-in e check-out') : t('Quando')} nameFrom={inBarra ? 'dal-barra' : 'dal'} nameTo={inBarra ? 'al-barra' : 'al'}
           valueFrom={dal} valueTo={al} onChangeFrom={e => setDal(e.target.value)} onChangeTo={e => setAl(e.target.value)} />
-        <SelectField name={inBarra ? 'ospiti-barra' : 'ospiti'} label="Ospiti" value={ospiti} onChange={e => setOspiti(e.target.value)}
-          options={[1, 2, 3, 4, 5, 6].map(n => ({ value: String(n), label: `${n} ${n === 1 ? 'ospite' : 'ospiti'}` }))} />
+        <SelectField name={inBarra ? 'ospiti-barra' : 'ospiti'} label={t('Ospiti')} value={ospiti} onChange={e => setOspiti(e.target.value)}
+          options={[1, 2, 3, 4, 5, 6].map(n => ({ value: String(n), label: n === 1 ? t('1 ospite') : t('{n} ospiti', { n }) }))} />
         <button type="submit" className="snw-home__cerca-btn">
-          <i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Cerca
+          <i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> {t('Cerca')}
         </button>
       </div>
     </form>
@@ -132,13 +133,13 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
             <div className="snw-home__sol-txt">
               <span className="snw-home__occhiello"><i className="fa-solid fa-key" aria-hidden="true" /> Change the way of buying travel</span>
               <h1>
-                Vivi
+                {t('Vivi')}
                 <span className="snw-home__rotore" aria-live="polite">
-                  {SLIDE.map((s, i) => <span key={s.luogo} className={i === slide ? 'snw-home__parola snw-home__parola--on' : 'snw-home__parola'}>{s.luogo}</span>)}
+                  {SLIDE.map((s, i) => <span key={s.luogo} className={i === slide ? 'snw-home__parola snw-home__parola--on' : 'snw-home__parola'}>{t(s.luogo)}</span>)}
                 </span>
-                <br />come chi ci abita.
+                <br />{t('come chi ci abita.')}
               </h1>
-              <p>Soggiorni scelti, esperienze autentiche e il meglio del Made in Italy, da un'unica rete di imprese del turismo.</p>
+              <p>{t("Soggiorni scelti, esperienze autentiche e il meglio del Made in Italy, da un'unica rete di imprese del turismo.")}</p>
             </div>
             <div className="snw-home__sol-foto">
               {SLIDE.map((s, i) => (
@@ -164,22 +165,22 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
         <div className="snw__wrap snw-home__hero-in">
           <span className="snw-home__occhiello"><i className="fa-solid fa-key" aria-hidden="true" /> Change the way of buying travel</span>
           <h1>
-            Vivi
+            {t('Vivi')}
             <span className="snw-home__rotore" aria-live="polite">
-              {SLIDE.map((s, i) => <span key={s.luogo} className={i === slide ? 'snw-home__parola snw-home__parola--on' : 'snw-home__parola'}>{s.luogo}</span>)}
+              {SLIDE.map((s, i) => <span key={s.luogo} className={i === slide ? 'snw-home__parola snw-home__parola--on' : 'snw-home__parola'}>{t(s.luogo)}</span>)}
             </span>
-            <br />come chi ci abita.
+            <br />{t('come chi ci abita.')}
           </h1>
-          <p>Soggiorni scelti, esperienze autentiche e il meglio del Made in Italy, da un'unica rete di imprese del turismo.</p>
+          <p>{t("Soggiorni scelti, esperienze autentiche e il meglio del Made in Italy, da un'unica rete di imprese del turismo.")}</p>
 
           {cerca(false)}
         </div>
 
-        <div className="snw-home__dots" role="tablist" aria-label="Destinazioni in primo piano">
+        <div className="snw-home__dots" role="tablist" aria-label={t('Destinazioni in primo piano')}>
           {SLIDE.map((s, i) => (
-            <button key={s.luogo} type="button" role="tab" aria-selected={i === slide} aria-label={s.luogo}
+            <button key={s.luogo} type="button" role="tab" aria-selected={i === slide} aria-label={t(s.luogo)}
               className={i === slide ? 'snw-home__dot snw-home__dot--on' : 'snw-home__dot'} onClick={() => setSlide(i)}>
-              <span className="snw-home__dot-bar"><span /></span>{s.luogo}
+              <span className="snw-home__dot-bar"><span /></span>{t(s.luogo)}
             </button>
           ))}
         </div>
@@ -189,8 +190,8 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
       {/* ── Nastro scorrevole ────────────────────────────────────────── */}
       {solare ? (
         // Impatto 2: i partner della rete, marchio + nome + attività
-        <div className="snw-home__partner" aria-label="I partner della rete">
-          <span className="snw-home__partner-tit"><i className="fa-solid fa-key" aria-hidden="true" />Partner della rete</span>
+        <div className="snw-home__partner" aria-label={t('I partner della rete')}>
+          <span className="snw-home__partner-tit"><i className="fa-solid fa-key" aria-hidden="true" />{t('Partner della rete')}</span>
           <div className="snw-home__partner-pista">
             <ul className="snw-home__partner-in">
               {[...PARTNER_NASTRO, ...PARTNER_NASTRO].map((p, i) => (
@@ -198,7 +199,7 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
                   <span className={`snw-mrc__segno snw-mrc__segno--${p.forma}`}>
                     {p.sigla ? <b>{p.sigla}</b> : <i className={`fa-solid ${p.icona}`} aria-hidden="true" />}
                   </span>
-                  <span className="snw-mrc__txt"><b>{p.nome}</b><small>{p.tipo}</small></span>
+                  <span className="snw-mrc__txt"><b>{p.nome}</b><small>{t(p.tipo)}</small></span>
                 </li>
               ))}
             </ul>
@@ -207,7 +208,7 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
       ) : (
         <div className="snw-home__nastro" aria-hidden="true">
           <div className="snw-home__nastro-in">
-            {[...NASTRO, ...NASTRO].map((t, i) => <span key={i}>{t}<i className="fa-solid fa-sparkle" /></span>)}
+            {[...NASTRO, ...NASTRO].map((n, i) => <span key={i}>{t(n)}<i className="fa-solid fa-sparkle" /></span>)}
           </div>
         </div>
       )}
@@ -216,8 +217,8 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
       <section className="snw__wrap snw-home__sez snw-reveal">
         <header className="snw-home__sez-head">
           <div>
-            <span className="snw-home__kicker">Cosa cerchi oggi?</span>
-            <h2>Quattro modi di viaggiare</h2>
+            <span className="snw-home__kicker">{t('Cosa cerchi oggi?')}</span>
+            <h2>{t('Quattro modi di viaggiare')}</h2>
           </div>
         </header>
         {solare ? (
@@ -225,9 +226,9 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
             {CATEGORIE.map((c, i) => (
               <button key={c.id} type="button" className="snw-home__blob-voce" onClick={() => vai({ nome: 'catalogo', cat: c.id })}>
                 <span className={`snw-home__blob snw-home__blob--${i}`}><i className={`fa-light ${c.icona}`} aria-hidden="true" /></span>
-                <b>{c.nome}</b>
-                <small>{c.claim}</small>
-                <span className="snw-home__cat-n">{di(c.id).length} offerte <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
+                <b>{t(c.nome)}</b>
+                <small>{t(c.claim)}</small>
+                <span className="snw-home__cat-n">{t('{n} offerte', { n: di(c.id).length })} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
               </button>
             ))}
           </div>
@@ -239,9 +240,9 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
               <span className="snw-home__cat-velo" />
               <span className="snw-home__cat-txt">
                 <span className="snw-home__cat-anello"><i className={`fa-light ${c.icona}`} aria-hidden="true" /></span>
-                <b>{c.nome}</b>
-                <small>{c.claim}</small>
-                <span className="snw-home__cat-n">{di(c.id).length} offerte <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
+                <b>{t(c.nome)}</b>
+                <small>{t(c.claim)}</small>
+                <span className="snw-home__cat-n">{t('{n} offerte', { n: di(c.id).length })} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
               </span>
             </button>
           ))}
@@ -253,12 +254,12 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
       <section className="snw__wrap snw-home__sez snw-reveal">
         <header className="snw-home__sez-head">
           <div>
-            <span className="snw-home__kicker">Le più prenotate</span>
-            <h2>Esperienze che restano</h2>
+            <span className="snw-home__kicker">{t('Le più prenotate')}</span>
+            <h2>{t('Esperienze che restano')}</h2>
           </div>
           <span className="snw-home__frecce">
-            <button type="button" aria-label="Precedenti" onClick={() => scorri(-1)}><i className="fa-solid fa-arrow-left" /></button>
-            <button type="button" aria-label="Successive" onClick={() => scorri(1)}><i className="fa-solid fa-arrow-right" /></button>
+            <button type="button" aria-label={t('Precedenti')} onClick={() => scorri(-1)}><i className="fa-solid fa-arrow-left" /></button>
+            <button type="button" aria-label={t('Successive')} onClick={() => scorri(1)}><i className="fa-solid fa-arrow-right" /></button>
           </span>
         </header>
         <div className="snw-home__carosello" ref={carosello}>
@@ -271,22 +272,22 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
         <div className="snw-home__lampo">
           <div className="snw-home__lampo-foto"><SnwFoto id={lampo.foto[0]} w={1200} h={900} alt="" /></div>
           <div className="snw-home__lampo-txt">
-            <span className="snw-home__lampo-tag"><i className="fa-solid fa-bolt" aria-hidden="true" /> Offerta lampo · solo oggi</span>
-            <h2>{lampo.titolo}</h2>
-            <p>{lampo.descrizione}</p>
-            <div className="snw-home__conto" aria-label={`Scade tra ${hh} ore, ${mm} minuti e ${ss} secondi`}>
-              {[[hh, 'ore'], [mm, 'min'], [ss, 'sec']].map(([v, l]) => (
+            <span className="snw-home__lampo-tag"><i className="fa-solid fa-bolt" aria-hidden="true" /> {t('Offerta lampo · solo oggi')}</span>
+            <h2>{t(lampo.titolo)}</h2>
+            <p>{t(lampo.descrizione)}</p>
+            <div className="snw-home__conto" aria-label={t('Scade tra {hh} ore, {mm} minuti e {ss} secondi', { hh, mm, ss })}>
+              {[[hh, t('ore')], [mm, t('min')], [ss, t('sec')]].map(([v, l]) => (
                 <span key={l}><b>{v}</b><small>{l}</small></span>
               ))}
             </div>
             <div className="snw-home__lampo-prezzo">
               <s>{eur(lampo.prezzoPieno ?? lampo.prezzo)}</s>
               <b>{eur(lampo.prezzo)}</b>
-              <span>a persona · −{Math.round((1 - lampo.prezzo / (lampo.prezzoPieno ?? lampo.prezzo)) * 100)}%</span>
+              <span>{t('a persona')} · −{Math.round((1 - lampo.prezzo / (lampo.prezzoPieno ?? lampo.prezzo)) * 100)}%</span>
             </div>
             <div className="snw-home__lampo-cta">
-              <button type="button" className="snw-home__btn-oro" onClick={() => vai({ nome: 'scheda', id: lampo.id })}>Prenota ora</button>
-              <button type="button" className="snw-home__btn-vetro" onClick={() => vai({ nome: 'catalogo', cat: 'esperienze' })}>Altre esperienze</button>
+              <button type="button" className="snw-home__btn-oro" onClick={() => vai({ nome: 'scheda', id: lampo.id })}>{t('Prenota ora')}</button>
+              <button type="button" className="snw-home__btn-vetro" onClick={() => vai({ nome: 'catalogo', cat: 'esperienze' })}>{t('Altre esperienze')}</button>
             </div>
           </div>
         </div>
@@ -296,8 +297,8 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
       <section className="snw__wrap snw-home__sez snw-reveal">
         <header className="snw-home__sez-head">
           <div>
-            <span className="snw-home__kicker">Dove ti portiamo</span>
-            <h2>Destinazioni della rete</h2>
+            <span className="snw-home__kicker">{t('Dove ti portiamo')}</span>
+            <h2>{t('Destinazioni della rete')}</h2>
           </div>
         </header>
         <div className="snw-home__dest">
@@ -308,9 +309,9 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
                 onClick={() => vai({ nome: 'destinazione', citta: d.nome })}>
                 <SnwFoto id={d.foto} w={900} h={900} alt="" />
                 <span className="snw-home__dest-txt">
-                  <small>{d.regione}</small>
-                  <b>{d.nome}</b>
-                  <span>{n ? `${n} offerte` : 'Scopri'} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
+                  <small>{t(d.regione)}</small>
+                  <b>{t(d.nome)}</b>
+                  <span>{n ? t('{n} offerte', { n }) : t('Scopri')} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
                 </span>
               </button>
             )
@@ -321,35 +322,35 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
       {/* ── Numeri della rete ────────────────────────────────────────── */}
       <section className="snw-home__numeri snw-reveal">
         <div className="snw__wrap snw-home__numeri-in">
-          <Numero valore={OFFERTE.length} etichetta="offerte in vetrina" />
-          <Numero valore={CITTA.length} etichetta="destinazioni" />
-          <Numero valore={votoMedio} decimali={1} suffisso="/5" etichetta="voto medio" />
-          <Numero valore={recensioni} etichetta="recensioni verificate" />
+          <Numero valore={OFFERTE.length} etichetta={t('offerte in vetrina')} />
+          <Numero valore={CITTA.length} etichetta={t('destinazioni')} />
+          <Numero valore={votoMedio} decimali={1} suffisso="/5" etichetta={t('voto medio')} />
+          <Numero valore={recensioni} etichetta={t('recensioni verificate')} />
         </div>
       </section>
 
       {/* ── Soggiorni + prodotti ─────────────────────────────────────── */}
-      <Vetrina kicker="Dormire bene" titolo="Soggiorni selezionati" offerte={di('soggiorni').slice(0, 4)} onTutte={() => vai({ nome: 'catalogo', cat: 'soggiorni' })} />
+      <Vetrina kicker={t('Dormire bene')} titolo={t('Soggiorni selezionati')} offerte={di('soggiorni').slice(0, 4)} onTutte={() => vai({ nome: 'catalogo', cat: 'soggiorni' })} />
 
       <section className="snw__wrap snw-home__sez snw-reveal">
         <div className="snw-home__made">
           <div className="snw-home__made-txt">
             <span className="snw-home__kicker">Made in Italy</span>
-            <h2>Il viaggio continua a casa</h2>
-            <p>Olio, vino e sapori dei produttori della rete, spediti in 48 ore. Ogni acquisto sostiene un'impresa del territorio.</p>
-            <button type="button" className="snw-home__btn-oro" onClick={() => vai({ nome: 'catalogo', cat: 'prodotti' })}>Vai alla bottega</button>
+            <h2>{t('Il viaggio continua a casa')}</h2>
+            <p>{t("Olio, vino e sapori dei produttori della rete, spediti in 48 ore. Ogni acquisto sostiene un'impresa del territorio.")}</p>
+            <button type="button" className="snw-home__btn-oro" onClick={() => vai({ nome: 'catalogo', cat: 'prodotti' })}>{t('Vai alla bottega')}</button>
           </div>
           <div className="snw-home__made-griglia">
             {di('prodotti').map(o => (
               <article key={o.id} className="snw-home__prod">
-                <button type="button" className="snw-home__prod-foto" onClick={() => vai({ nome: 'scheda', id: o.id })} aria-label={`Apri ${o.titolo}`}>
+                <button type="button" className="snw-home__prod-foto" onClick={() => vai({ nome: 'scheda', id: o.id })} aria-label={t('Apri {titolo}', { titolo: t(o.titolo) })}>
                   <SnwFoto id={o.foto[0]} w={500} h={500} alt="" />
                 </button>
                 <span className="snw-home__prod-txt">
-                  <b>{o.titolo}</b>
+                  <b>{t(o.titolo)}</b>
                   <span>{eur(o.prezzo)}</span>
                 </span>
-                <button type="button" className="snw-home__prod-add" aria-label={`Aggiungi ${o.titolo} al carrello`}
+                <button type="button" className="snw-home__prod-add" aria-label={t('Aggiungi {titolo} al carrello', { titolo: t(o.titolo) })}
                   onClick={() => aggiungi({ id: o.id, qta: 1, prezzo: o.prezzo, dettaglio: '1 pz' })}>
                   <i className="fa-solid fa-plus" />
                 </button>
@@ -359,19 +360,19 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
         </div>
       </section>
 
-      <Vetrina kicker="Senza pensieri" titolo="Servizi per il viaggio" offerte={di('servizi')} onTutte={() => vai({ nome: 'catalogo', cat: 'servizi' })} />
+      <Vetrina kicker={t('Senza pensieri')} titolo={t('Servizi per il viaggio')} offerte={di('servizi')} onTutte={() => vai({ nome: 'catalogo', cat: 'servizi' })} />
 
       {/* ── Human touch ──────────────────────────────────────────────── */}
       <section className="snw__wrap snw-home__sez snw-reveal">
         <div className="snw-home__human">
           <SnwFoto id={FOTO.assistenza} w={1200} h={800} alt="" className="snw-home__human-foto" />
           <div className="snw-home__human-txt">
-            <span className="snw-home__kicker">La soluzione human touch</span>
-            <h2>Dietro ogni prenotazione c'è una persona.</h2>
-            <p>Il booking centralizzato di Sibylla ti segue prima, durante e dopo il viaggio: personalizza l'itinerario, risolve gli imprevisti e parla la tua lingua.</p>
+            <span className="snw-home__kicker">{t('La soluzione human touch')}</span>
+            <h2>{t("Dietro ogni prenotazione c'è una persona.")}</h2>
+            <p>{t("Il booking centralizzato di Sibylla ti segue prima, durante e dopo il viaggio: personalizza l'itinerario, risolve gli imprevisti e parla la tua lingua.")}</p>
             <div className="snw-home__lampo-cta">
-              <a className="snw-home__btn-oro" href="tel:00390691714070"><i className="fa-solid fa-phone" aria-hidden="true" /> Chiama il booking</a>
-              <a className="snw-home__btn-vetro" href="https://www.sibyllaecosystem.it/servizi/booking/" target="_blank" rel="noreferrer">Scopri Sibylla Booking</a>
+              <a className="snw-home__btn-oro" href="tel:00390691714070"><i className="fa-solid fa-phone" aria-hidden="true" /> {t('Chiama il booking')}</a>
+              <a className="snw-home__btn-vetro" href="https://www.sibyllaecosystem.it/servizi/booking/" target="_blank" rel="noreferrer">{t('Scopri Sibylla Booking')}</a>
             </div>
           </div>
         </div>
@@ -382,8 +383,8 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
         <div className="snw__wrap">
           <header className="snw-home__sez-head">
             <div>
-              <span className="snw-home__kicker">Per le imprese del turismo</span>
-              <h2>L'ipernetwork che crea valore</h2>
+              <span className="snw-home__kicker">{t('Per le imprese del turismo')}</span>
+              <h2>{t("L'ipernetwork che crea valore")}</h2>
             </div>
           </header>
           <div className="snw-home__rete-grid">
@@ -391,9 +392,9 @@ export default function SnwHome({ solare = false }: { solare?: boolean }) {
               <a key={r.nome} href={r.url} target="_blank" rel="noreferrer" className="snw-home__rete-card">
                 <i className={`fa-light ${r.icona}`} aria-hidden="true" />
                 <span className="snw-home__rete-prod">{r.nome}</span>
-                <h3>{r.per}</h3>
-                <p>{r.txt}</p>
-                <span className="snw-home__rete-cta">Scopri di più <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
+                <h3>{t(r.per)}</h3>
+                <p>{t(r.txt)}</p>
+                <span className="snw-home__rete-cta">{t('Scopri di più')} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></span>
               </a>
             ))}
           </div>
@@ -412,7 +413,7 @@ function Vetrina({ kicker, titolo, offerte, onTutte }: { kicker: string; titolo:
           <h2>{titolo}</h2>
         </div>
         <button type="button" className="snw-home__link" onClick={onTutte}>
-          Vedi tutto <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+          {t('Vedi tutto')} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
         </button>
       </header>
       <div className="snw-home__griglia">

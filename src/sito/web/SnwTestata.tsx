@@ -1,6 +1,7 @@
 import React from 'react'
 import { PaginaSito, useSitoStore, versioneWeb } from '../useSitoStore'
 import { SnwFoto } from '../SnwUi'
+import { t } from '../i18n'
 import './SnwTestata.sass'
 
 /**
@@ -30,8 +31,8 @@ export default function SnwTestata({ kicker, titolo, enfasi, sotto, foto, icona,
   const vai = useSitoStore(s => s.vai)
 
   const percorso = briciole && briciole.length > 0 && (
-    <nav className="snw-tst__briciole" aria-label="Percorso">
-      <button type="button" onClick={() => vai({ nome: 'home' })}>Home</button>
+    <nav className="snw-tst__briciole" aria-label={t('Percorso')}>
+      <button type="button" onClick={() => vai({ nome: 'home' })}>{t('Home')}</button>
       {briciole.map(b => (
         <React.Fragment key={b.nome}>
           <i className="fa-solid fa-chevron-right" aria-hidden="true" />

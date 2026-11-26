@@ -3,6 +3,7 @@
  * Quattro categorie come il sito attuale (Soggiorni, Esperienze, Prodotti,
  * Servizi). Le foto sono di Unsplash (licenza libera), servite dal loro CDN.
  */
+import { loc, t } from './i18n'
 
 export type Categoria = 'soggiorni' | 'esperienze' | 'prodotti' | 'servizi'
 
@@ -348,9 +349,9 @@ export const PARTNER: Record<'hotel' | 'to' | 'fornitori', string[]> = {
   fornitori: ['Acqua Egeria', 'Frantoio Sabino', 'Cantine del Piglio', 'Aaron Truffles'],
 }
 
-export const eur = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })
+export const eur = (n: number) => n.toLocaleString(loc(), { style: 'currency', currency: 'EUR', minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })
 export const trova = (id: string) => OFFERTE.find(o => o.id === id)
-export const nomeCategoria = (c: Categoria) => CATEGORIE.find(x => x.id === c)?.nome ?? c
+export const nomeCategoria = (c: Categoria) => t(CATEGORIE.find(x => x.id === c)?.nome ?? c)
 
 /** Struttura che ospita il totem (la categoria «Struttura» del totem). */
 export const STRUTTURA_OSPITE = {
@@ -371,17 +372,33 @@ export const STRUTTURA_OSPITE = {
 
 /** Riga di carrello costruita dalla scelta dell'utente (stessa logica web e totem). */
 export function rigaDa(o: Offerta, s: { qta: number; data?: string; dataFine?: string; orario?: string }) {
-  const fmtData = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
+  const fmtData = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(loc(), { day: 'numeric', month: 'short' })
   if (o.cat === 'soggiorni' && s.data && s.dataFine) {
     const notti = Math.max(1, Math.round((+new Date(s.dataFine) - +new Date(s.data)) / 86400000))
     return {
       id: o.id, qta: s.qta, data: s.data, dataFine: s.dataFine, prezzo: o.prezzo * notti,
-      dettaglio: `${fmtData(s.data)} → ${fmtData(s.dataFine)} · ${notti} ${notti === 1 ? 'notte' : 'notti'} · ${s.qta} ${s.qta === 1 ? 'camera' : 'camere'}`,
+      dettaglio: `${fmtData(s.data)} → ${fmtData(s.dataFine)} · ${notti === 1 ? t('{n} notte', { n: notti }) : t('{n} notti', { n: notti })} · ${s.qta === 1 ? t('{n} camera', { n: s.qta }) : t('{n} camere', { n: s.qta })}`,
     }
   }
-  const quando = [s.data && fmtData(s.data), s.orario].filter(Boolean).join(' · ')
-  const quanti = o.unita === 'a persona' ? `${s.qta} ${s.qta === 1 ? 'persona' : 'persone'}` : o.cat === 'prodotti' ? `${s.qta} pz` : `${s.qta} × ${o.unita.replace('a ', '')}`
+  const quando = [s.data && fmtData(s.data), s.orario && t(s.orario)].filter(Boolean).join(' · ')
+  const quanti = o.unita === 'a persona' ? (s.qta === 1 ? t('{n} persona', { n: s.qta }) : t('{n} persone', { n: s.qta }))
+    : o.cat === 'prodotti' ? t('{n} pz', { n: s.qta }) : `${s.qta} × ${t(o.unita.replace('a ', ''))}`
   return { id: o.id, qta: s.qta, data: s.data, orario: s.orario, prezzo: o.prezzo, dettaglio: [quando, quanti].filter(Boolean).join(' · ') }
+}
+
+/**
+ * Testo di una riga di carrello o d'ordine nella lingua corrente. `dettaglio`
+ * è salvato nella lingua in cui la riga è stata aggiunta: dove possibile lo
+ * si ricostruisce dai dati della riga.
+ */
+export function testoRiga(r: { id: string; qta: number; data?: string; dataFine?: string; orario?: string; dettaglio: string; b2b?: boolean; codice?: string; riservato?: string }) {
+  const o = trova(r.id)
+  if (!o) return t(r.dettaglio)
+  const fmtData = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(loc(), { day: 'numeric', month: 'short' })
+  if (r.riservato && r.data && r.dataFine) return t('{tipo} · {dal} → {al} · 1 posto · riservato operatori', { tipo: t(r.riservato), dal: fmtData(r.data), al: fmtData(r.dataFine) })
+  const base = rigaDa(o, r).dettaglio
+  if (!r.b2b) return base
+  return r.codice ? t('{dettaglio} · tariffa operatore {codice}', { dettaglio: base, codice: r.codice }) : t('{dettaglio} · tariffa operatore', { dettaglio: base })
 }
 
 export const oggiIso = (piu = 0) => { const d = new Date(); d.setDate(d.getDate() + piu); return d.toISOString().slice(0, 10) }

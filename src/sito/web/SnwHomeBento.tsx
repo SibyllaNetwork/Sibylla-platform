@@ -4,6 +4,7 @@ import { CATEGORIE, Categoria, FOTO, OFFERTE, eur, trova } from '../sitoData'
 import { useSitoStore } from '../useSitoStore'
 import { SnwFoto, SnwVoto } from '../SnwUi'
 import SnwCard from './SnwCard'
+import { t, loc } from '../i18n'
 import './SnwHomeBento.sass'
 
 /**
@@ -39,50 +40,50 @@ export default function SnwHomeBento() {
         <section className="snw-bento__t snw-bento__hero">
           <SnwFoto id={FOTO.vernazza} w={1600} h={1000} alt="" />
           <div className="snw-bento__hero-txt">
-            <span className="snw-bento__tag"><i className="fa-solid fa-location-dot" aria-hidden="true" /> Cinque Terre · Liguria</span>
-            <h1>Prenota l'Italia<br />in tre tocchi.</h1>
+            <span className="snw-bento__tag"><i className="fa-solid fa-location-dot" aria-hidden="true" /> Cinque Terre · {t('Liguria')}</span>
+            <h1>{t("Prenota l'Italia")}<br />{t('in tre tocchi.')}</h1>
             <div className="snw-bento__hero-cta">
-              <button type="button" className="snw-bento__btn" onClick={() => vai({ nome: 'catalogo' })}>Inizia a esplorare <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button>
-              <span><b>{OFFERTE.length}</b> offerte · <b>{CITTA.length}</b> destinazioni</span>
+              <button type="button" className="snw-bento__btn" onClick={() => vai({ nome: 'catalogo' })}>{t('Inizia a esplorare')} <i className="fa-solid fa-arrow-right" aria-hidden="true" /></button>
+              <span><b>{OFFERTE.length}</b> {t('offerte')} · <b>{CITTA.length}</b> {t('destinazioni')}</span>
             </div>
           </div>
         </section>
 
         {/* Ricerca */}
         <form className="snw-bento__t snw-bento__cerca" onSubmit={e => { e.preventDefault(); vai({ nome: 'catalogo', dove: dove || undefined }) }}>
-          <span className="snw-bento__t-tit"><i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Dove vuoi andare?</span>
-          <SelectField name="dove-bento" label="Destinazione" value={dove} onChange={e => setDove(e.target.value)}
-            options={[{ value: '', label: 'Ovunque in Italia' }, ...CITTA.map(c => ({ value: c, label: c }))]} />
-          <button type="submit" className="sib-btn sib-btn--primary">Cerca</button>
+          <span className="snw-bento__t-tit"><i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> {t('Dove vuoi andare?')}</span>
+          <SelectField name="dove-bento" label={t('Destinazione')} value={dove} onChange={e => setDove(e.target.value)}
+            options={[{ value: '', label: t('Ovunque in Italia') }, ...CITTA.map(c => ({ value: c, label: t(c) }))]} />
+          <button type="submit" className="sib-btn sib-btn--primary">{t('Cerca')}</button>
         </form>
 
         {/* Offerta lampo */}
         <button type="button" className="snw-bento__t snw-bento__lampo" onClick={() => vai({ nome: 'scheda', id: lampo.id })}>
-          <span className="snw-bento__t-tit"><i className="fa-solid fa-bolt" aria-hidden="true" /> Offerta lampo</span>
+          <span className="snw-bento__t-tit"><i className="fa-solid fa-bolt" aria-hidden="true" /> {t('Offerta lampo')}</span>
           <b className="snw-bento__conto">{conto}</b>
-          <span>{lampo.titolo} · <s>{eur(lampo.prezzoPieno!)}</s> <b>{eur(lampo.prezzo)}</b> a notte</span>
+          <span>{t(lampo.titolo)} · <s>{eur(lampo.prezzoPieno!)}</s> <b>{eur(lampo.prezzo)}</b> {t('a notte')}</span>
         </button>
 
         {/* Categorie */}
         {CATEGORIE.map((c, i) => (
           <button key={c.id} type="button" className={`snw-bento__t snw-bento__cat snw-bento__cat--${i}`} onClick={() => vai({ nome: 'catalogo', cat: c.id })}>
             <i className={`fa-light ${c.icona}`} aria-hidden="true" />
-            <b>{c.nome}</b>
-            <small>{OFFERTE.filter(o => o.cat === c.id).length} offerte</small>
+            <b>{t(c.nome)}</b>
+            <small>{t('{n} offerte', { n: OFFERTE.filter(o => o.cat === c.id).length })}</small>
             <i className="fa-solid fa-arrow-up-right snw-bento__freccia" aria-hidden="true" />
           </button>
         ))}
 
         {/* Top della rete */}
         <section className="snw-bento__t snw-bento__top">
-          <span className="snw-bento__t-tit"><i className="fa-solid fa-trophy" aria-hidden="true" /> I più amati</span>
+          <span className="snw-bento__t-tit"><i className="fa-solid fa-trophy" aria-hidden="true" /> {t('I più amati')}</span>
           <ol>
             {top.map((o, i) => (
               <li key={o.id}>
                 <button type="button" onClick={() => vai({ nome: 'scheda', id: o.id })}>
                   <span className="snw-bento__pos">{i + 1}</span>
                   <span className="snw-bento__mini"><SnwFoto id={o.foto[0]} w={160} h={160} alt="" /></span>
-                  <span className="snw-bento__top-txt"><b>{o.titolo}</b><SnwVoto o={o} compatto /></span>
+                  <span className="snw-bento__top-txt"><b>{t(o.titolo)}</b><SnwVoto o={o} compatto /></span>
                 </button>
               </li>
             ))}
@@ -92,27 +93,27 @@ export default function SnwHomeBento() {
         {/* Destinazione */}
         <button type="button" className="snw-bento__t snw-bento__dest" onClick={() => vai({ nome: 'destinazione', citta: 'Venezia' })}>
           <SnwFoto id={FOTO.rialto} w={900} h={1000} alt="" />
-          <span className="snw-bento__dest-txt"><small>Destinazione del mese</small><b>Venezia</b></span>
+          <span className="snw-bento__dest-txt"><small>{t('Destinazione del mese')}</small><b>{t('Venezia')}</b></span>
         </button>
 
         {/* Numeri */}
         <div className="snw-bento__t snw-bento__voto">
-          <b>{media.toLocaleString('it-IT', { maximumFractionDigits: 1 })}</b>
-          <span><i className="fa-solid fa-star" aria-hidden="true" /> voto medio della rete</span>
+          <b>{media.toLocaleString(loc(), { maximumFractionDigits: 1 })}</b>
+          <span><i className="fa-solid fa-star" aria-hidden="true" /> {t('voto medio della rete')}</span>
         </div>
 
         {/* Human touch */}
         <a className="snw-bento__t snw-bento__human" href="tel:00390691714070">
           <i className="fa-light fa-headset" aria-hidden="true" />
-          <span><b>Persone vere</b>Il booking risponde 7 giorni su 7</span>
+          <span><b>{t('Persone vere')}</b>{t('Il booking risponde 7 giorni su 7')}</span>
         </a>
 
         {/* Totem */}
         <section className="snw-bento__t snw-bento__totem">
-          <span className="snw-bento__t-tit"><i className="fa-solid fa-tablet-screen" aria-hidden="true" /> Anche in hotel</span>
-          <p>Trovi Sibylla Network sui totem delle strutture della rete: prenoti e paghi dal tuo telefono o addebiti in camera.</p>
+          <span className="snw-bento__t-tit"><i className="fa-solid fa-tablet-screen" aria-hidden="true" /> {t('Anche in hotel')}</span>
+          <p>{t('Trovi Sibylla Network sui totem delle strutture della rete: prenoti e paghi dal tuo telefono o addebiti in camera.')}</p>
           <button type="button" className="snw-bento__link" onClick={() => useSitoStore.getState().setModo('totem')}>
-            Prova il totem <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+            {t('Prova il totem')} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
           </button>
         </section>
       </div>
@@ -120,11 +121,11 @@ export default function SnwHomeBento() {
       {/* ── Vetrina filtrabile ───────────────────────────────────────── */}
       <section className="snw-bento__vetrina snw-reveal">
         <header>
-          <h2>Scelti per te</h2>
-          <div className="snw-bento__filtri" role="tablist" aria-label="Filtra per categoria">
-            {[{ id: 'tutto' as const, nome: 'Tutto' }, ...CATEGORIE].map(c => (
+          <h2>{t('Scelti per te')}</h2>
+          <div className="snw-bento__filtri" role="tablist" aria-label={t('Filtra per categoria')}>
+            {[{ id: 'tutto' as const, nome: t('Tutto') }, ...CATEGORIE].map(c => (
               <button key={c.id} type="button" role="tab" aria-selected={filtro === c.id}
-                className={filtro === c.id ? 'snw-bento__f snw-bento__f--on' : 'snw-bento__f'} onClick={() => setFiltro(c.id)}>{c.nome}</button>
+                className={filtro === c.id ? 'snw-bento__f snw-bento__f--on' : 'snw-bento__f'} onClick={() => setFiltro(c.id)}>{t(c.nome)}</button>
             ))}
           </div>
         </header>

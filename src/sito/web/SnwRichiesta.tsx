@@ -3,6 +3,7 @@ import { CheckboxField, DatePickerField, InputField, RadioGroup, SelectField, Te
 import { FOTO, eur, oggiIso } from '../sitoData'
 import { TipoRichiesta, useSitoStore } from '../useSitoStore'
 import { useSitoAccountStore } from '../useSitoAccountStore'
+import { t } from '../i18n'
 import { SnwEsito, SnwStepper } from '../SnwUi'
 import SnwTestata from './SnwTestata'
 import './SnwRichiesta.sass'
@@ -40,7 +41,7 @@ const TARIFFA_BAGAGLIO = 6
 export default function SnwRichiesta({ tipo }: { tipo: TipoRichiesta }) {
   const vai = useSitoStore(s => s.vai)
   const utente = useSitoAccountStore(s => s.utente)
-  const t = TESTE[tipo]
+  const testa = TESTE[tipo]
   const [email, setEmail] = useState(utente?.email ?? '')
   const [inviata, setInviata] = useState('')
   const [prova, setProva] = useState(false)
@@ -86,38 +87,38 @@ export default function SnwRichiesta({ tipo }: { tipo: TipoRichiesta }) {
 
   return (
     <div className="snw-rq">
-      <SnwTestata kicker={t.kicker} titolo={t.titolo} enfasi={t.enfasi || undefined} sotto={t.sotto} foto={t.foto} icona={t.icona}
-        briciole={[{ nome: 'Servizi', vai: { nome: 'catalogo', cat: 'servizi' } }, { nome: `${t.titolo} ${t.enfasi}`.trim() }]} />
+      <SnwTestata kicker={t(testa.kicker)} titolo={t(testa.titolo)} enfasi={testa.enfasi ? t(testa.enfasi) : undefined} sotto={t(testa.sotto)} foto={testa.foto} icona={testa.icona}
+        briciole={[{ nome: t('Servizi'), vai: { nome: 'catalogo', cat: 'servizi' } }, { nome: `${t(testa.titolo)} ${testa.enfasi ? t(testa.enfasi) : ''}`.trim() }]} />
       <div className="snw__wrap snw-rq__layout">
         {inviata ? (
-          <SnwEsito icona="fa-paper-plane" titolo="Richiesta inviata" variante="riquadro" azioni={<>
-            <button type="button" className="sib-btn sib-btn--primary" onClick={() => vai({ nome: 'home' })}>Torna alla home</button>
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInviata('')}>Nuova richiesta</button>
+          <SnwEsito icona="fa-paper-plane" titolo={t('Richiesta inviata')} variante="riquadro" azioni={<>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={() => vai({ nome: 'home' })}>{t('Torna alla home')}</button>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInviata('')}>{t('Nuova richiesta')}</button>
           </>}>
-            Pratica <b>{inviata}</b> · totale indicativo <b>{eur(totale)}</b>. Il booking Sibylla conferma disponibilità e dettagli a <b>{email.trim()}</b> entro 2 ore lavorative.
+            {t('Pratica')} <b>{inviata}</b> · {t('totale indicativo')} <b>{eur(totale)}</b>. {t('Il booking Sibylla conferma disponibilità e dettagli a')} <b>{email.trim()}</b> {t('entro 2 ore lavorative.')}
           </SnwEsito>
         ) : (
           <form className="snw-rq__form" onSubmit={invia} noValidate>
             <div className="snw-rq__griglia">
-              <InputField name="rq-mail" type="email" label="Email di contatto" required iconLeft="fa-regular fa-envelope" value={email} onChange={e => setEmail(e.target.value)}
-                error={prova && !mailOk ? 'Inserisci un indirizzo e-mail valido' : undefined} />
-              {tipo === 'ristoranti' && <InputField name="rq-tel" type="tel" label="Cellulare" iconLeft="fa-regular fa-mobile" value={tel} onChange={e => setTel(e.target.value)} />}
+              <InputField name="rq-mail" type="email" label={t('Email di contatto')} required iconLeft="fa-regular fa-envelope" value={email} onChange={e => setEmail(e.target.value)}
+                error={prova && !mailOk ? t('Inserisci un indirizzo e-mail valido') : undefined} />
+              {tipo === 'ristoranti' && <InputField name="rq-tel" type="tel" label={t('Cellulare')} iconLeft="fa-regular fa-mobile" value={tel} onChange={e => setTel(e.target.value)} />}
 
               {tipo === 'transfer' && (
                 <>
-                  <SelectField name="rq-veicolo" label="Servizio" required value={veicolo} onChange={e => setVeicolo(e.target.value)}
-                    options={VEICOLI.map(v => ({ value: v.value, label: `${v.label} · ${eur(v.prezzo)}` }))} />
-                  <SelectField name="rq-da" label="Luogo di partenza" value={da} onChange={e => setDa(e.target.value)} options={PARTENZE.map(p => ({ value: p, label: p }))} />
-                  <InputField name="rq-ind" label={da === 'Personalizzato' ? 'Partenza' : 'Destinazione'} required={da === 'Personalizzato'} iconLeft="fa-regular fa-location-dot"
-                    placeholder={da === 'Personalizzato' ? 'Indirizzo di partenza' : 'Hotel o indirizzo di arrivo'} value={indirizzo} onChange={e => setIndirizzo(e.target.value)}
-                    error={prova && da === 'Personalizzato' && !indirizzo.trim() ? 'Obbligatorio' : undefined} />
-                  <DatePickerField name="rq-data" label="Data partenza" required value={dataT} min={oggiIso()} onChange={e => setDataT(e.target.value)} />
-                  <DatePickerField name="rq-ora" type="time" label="Ora partenza" required value={oraT} onChange={e => setOraT(e.target.value)} />
-                  <div className="snw-rq__largo"><CheckboxField name="rq-rit" label="Prenota ritorno" checked={ritorno} onChange={e => setRitorno(e.target.checked)} /></div>
+                  <SelectField name="rq-veicolo" label={t('Servizio')} required value={veicolo} onChange={e => setVeicolo(e.target.value)}
+                    options={VEICOLI.map(v => ({ value: v.value, label: `${t(v.label)} · ${eur(v.prezzo)}` }))} />
+                  <SelectField name="rq-da" label={t('Luogo di partenza')} value={da} onChange={e => setDa(e.target.value)} options={PARTENZE.map(p => ({ value: p, label: t(p) }))} />
+                  <InputField name="rq-ind" label={da === 'Personalizzato' ? t('Partenza') : t('Destinazione')} required={da === 'Personalizzato'} iconLeft="fa-regular fa-location-dot"
+                    placeholder={da === 'Personalizzato' ? t('Indirizzo di partenza') : t('Hotel o indirizzo di arrivo')} value={indirizzo} onChange={e => setIndirizzo(e.target.value)}
+                    error={prova && da === 'Personalizzato' && !indirizzo.trim() ? t('Obbligatorio') : undefined} />
+                  <DatePickerField name="rq-data" label={t('Data partenza')} required value={dataT} min={oggiIso()} onChange={e => setDataT(e.target.value)} />
+                  <DatePickerField name="rq-ora" type="time" label={t('Ora partenza')} required value={oraT} onChange={e => setOraT(e.target.value)} />
+                  <div className="snw-rq__largo"><CheckboxField name="rq-rit" label={t('Prenota ritorno')} checked={ritorno} onChange={e => setRitorno(e.target.checked)} /></div>
                   {ritorno && (
                     <>
-                      <DatePickerField name="rq-data-r" label="Data ritorno" value={dataR} min={dataT} onChange={e => setDataR(e.target.value)} />
-                      <DatePickerField name="rq-ora-r" type="time" label="Ora ritorno" value={oraR} onChange={e => setOraR(e.target.value)} />
+                      <DatePickerField name="rq-data-r" label={t('Data ritorno')} value={dataR} min={dataT} onChange={e => setDataR(e.target.value)} />
+                      <DatePickerField name="rq-ora-r" type="time" label={t('Ora ritorno')} value={oraR} onChange={e => setOraR(e.target.value)} />
                     </>
                   )}
                 </>
@@ -125,71 +126,71 @@ export default function SnwRichiesta({ tipo }: { tipo: TipoRichiesta }) {
 
               {tipo === 'ristoranti' && (
                 <>
-                  <DatePickerField name="rq-data-g" label="Data" required value={dataG} min={oggiIso(1)} onChange={e => setDataG(e.target.value)} />
+                  <DatePickerField name="rq-data-g" label={t('Data')} required value={dataG} min={oggiIso(1)} onChange={e => setDataG(e.target.value)} />
                   <div className="snw-rq__stepper">
-                    <span className="snw-rq__lbl">N° di persone (minimo 12)</span>
-                    <SnwStepper valore={persone} min={12} max={120} onChange={setPersone} etichetta="persone" />
+                    <span className="snw-rq__lbl">{t('N° di persone (minimo 12)')}</span>
+                    <SnwStepper valore={persone} min={12} max={120} onChange={setPersone} etichetta={t('persone')} />
                   </div>
                   <div className="snw-rq__largo">
-                    <RadioGroup name="rq-pasto" label="Pasto" value={pasto} onChange={v => { setPasto(v); setOrario(ORARI[v][1]) }}
-                      options={[{ value: 'colazione', label: 'Colazione' }, { value: 'pranzo', label: 'Pranzo' }, { value: 'cena', label: 'Cena' }]} />
+                    <RadioGroup name="rq-pasto" label={t('Pasto')} value={pasto} onChange={v => { setPasto(v); setOrario(ORARI[v][1]) }}
+                      options={[{ value: 'colazione', label: t('Colazione') }, { value: 'pranzo', label: t('Pranzo') }, { value: 'cena', label: t('Cena') }]} />
                   </div>
-                  <SelectField name="rq-orario" label="Orario" value={orario} onChange={e => setOrario(e.target.value)} options={ORARI[pasto].map(h => ({ value: h, label: h }))} />
-                  <div className="snw-rq__largo snw-rq__menu" role="radiogroup" aria-label="Menù">
+                  <SelectField name="rq-orario" label={t('Orario')} value={orario} onChange={e => setOrario(e.target.value)} options={ORARI[pasto].map(h => ({ value: h, label: h }))} />
+                  <div className="snw-rq__largo snw-rq__menu" role="radiogroup" aria-label={t('Menù')}>
                     {MENU.map(m => (
                       <button key={m.id} type="button" role="radio" aria-checked={menu === m.id} className={menu === m.id ? 'snw-rq__m snw-rq__m--on' : 'snw-rq__m'} onClick={() => setMenu(m.id)}>
-                        <span><b>{m.nome}</b><small>{m.txt}</small></span>
+                        <span><b>{t(m.nome)}</b><small>{t(m.txt)}</small></span>
                         <strong>{eur(m.prezzo)}</strong>
                         {menu === m.id && <i className="fa-solid fa-circle-check" aria-hidden="true" />}
                       </button>
                     ))}
                   </div>
-                  <div className="snw-rq__largo"><TextareaField name="rq-note" label="Note" rows={3} placeholder="Specifica se ci sono intolleranze o allergie…" value={note} onChange={e => setNote(e.target.value)} /></div>
+                  <div className="snw-rq__largo"><TextareaField name="rq-note" label={t('Note')} rows={3} placeholder={t('Specifica se ci sono intolleranze o allergie…')} value={note} onChange={e => setNote(e.target.value)} /></div>
                 </>
               )}
 
               {tipo === 'bagagli' && (
                 <>
-                  <SelectField name="rq-dep" label="Deposito" value={deposito} onChange={e => setDeposito(e.target.value)} options={DEPOSITI.map(d => ({ value: d, label: d }))} />
+                  <SelectField name="rq-dep" label={t('Deposito')} value={deposito} onChange={e => setDeposito(e.target.value)} options={DEPOSITI.map(d => ({ value: d, label: t(d) }))} />
                   <div className="snw-rq__stepper">
-                    <span className="snw-rq__lbl">Bagagli</span>
-                    <SnwStepper valore={colli} min={1} max={20} onChange={setColli} etichetta="bagagli" />
+                    <span className="snw-rq__lbl">{t('Bagagli')}</span>
+                    <SnwStepper valore={colli} min={1} max={20} onChange={setColli} etichetta={t('Bagagli').toLowerCase()} />
                   </div>
-                  <DatePickerField name="rq-dd" label="Data di deposito" required value={dataD} min={oggiIso()} onChange={e => setDataD(e.target.value)} />
-                  <DatePickerField name="rq-od" type="time" label="Ora deposito" required value={oraD} onChange={e => setOraD(e.target.value)} />
-                  <DatePickerField name="rq-dp" label="Data di ritiro" required value={dataP} min={dataD} onChange={e => setDataP(e.target.value)} />
-                  <DatePickerField name="rq-op" type="time" label="Ora ritiro" required value={oraP} onChange={e => setOraP(e.target.value)}
-                    error={prova && !ritiroOk ? 'Il ritiro deve essere dopo il deposito' : undefined} />
+                  <DatePickerField name="rq-dd" label={t('Data di deposito')} required value={dataD} min={oggiIso()} onChange={e => setDataD(e.target.value)} />
+                  <DatePickerField name="rq-od" type="time" label={t('Ora deposito')} required value={oraD} onChange={e => setOraD(e.target.value)} />
+                  <DatePickerField name="rq-dp" label={t('Data di ritiro')} required value={dataP} min={dataD} onChange={e => setDataP(e.target.value)} />
+                  <DatePickerField name="rq-op" type="time" label={t('Ora ritiro')} required value={oraP} onChange={e => setOraP(e.target.value)}
+                    error={prova && !ritiroOk ? t('Il ritiro deve essere dopo il deposito') : undefined} />
                 </>
               )}
             </div>
 
             <footer className="snw-rq__piede">
               <span className="snw-rq__tot">
-                <small>Totale</small>
+                <small>{t('Totale')}</small>
                 <b>{eur(totale)}</b>
                 <em>
-                  {tipo === 'transfer' && `${eur(prezzoV)} a tratta${ritorno ? ' · andata e ritorno' : ''}`}
-                  {tipo === 'ristoranti' && `${persone} persone × ${eur(MENU.find(m => m.id === menu)!.prezzo)}`}
-                  {tipo === 'bagagli' && `${colli} ${colli === 1 ? 'bagaglio' : 'bagagli'} × ${eur(TARIFFA_BAGAGLIO)} × ${giorniB} ${giorniB === 1 ? 'giorno' : 'giorni'}`}
+                  {tipo === 'transfer' && `${t('{prezzo} a tratta', { prezzo: eur(prezzoV) })}${ritorno ? ` · ${t('andata e ritorno')}` : ''}`}
+                  {tipo === 'ristoranti' && `${t('{n} persone', { n: persone })} × ${eur(MENU.find(m => m.id === menu)!.prezzo)}`}
+                  {tipo === 'bagagli' && `${colli === 1 ? t('{n} bagaglio', { n: colli }) : t('{n} bagagli', { n: colli })} × ${eur(TARIFFA_BAGAGLIO)} × ${giorniB === 1 ? t('{n} giorno', { n: giorniB }) : t('{n} giorni', { n: giorniB })}`}
                 </em>
               </span>
-              <button type="submit" className="sib-btn sib-btn--primary">Invia richiesta</button>
+              <button type="submit" className="sib-btn sib-btn--primary">{t('Invia richiesta')}</button>
             </footer>
           </form>
         )}
 
         <aside className="snw-rq__lato">
-          <h3>Come funziona</h3>
+          <h3>{t('Come funziona')}</h3>
           <ol>
-            <li><b>Invii la richiesta</b><span>Senza pagare nulla adesso.</span></li>
-            <li><b>Il booking conferma</b><span>Disponibilità e dettagli via e-mail entro 2 ore lavorative.</span></li>
-            <li><b>Paghi e ricevi il voucher</b><span>Con carta o Sibylla Token, dall'area riservata.</span></li>
+            <li><b>{t('Invii la richiesta')}</b><span>{t('Senza pagare nulla adesso.')}</span></li>
+            <li><b>{t('Il booking conferma')}</b><span>{t('Disponibilità e dettagli via e-mail entro 2 ore lavorative.')}</span></li>
+            <li><b>{t('Paghi e ricevi il voucher')}</b><span>{t('Con carta o Sibylla Token, dall\'area riservata.')}</span></li>
           </ol>
           <div className="snw-rq__altri">
             {(['transfer', 'ristoranti', 'bagagli'] as TipoRichiesta[]).filter(x => x !== tipo).map(x => (
               <button key={x} type="button" onClick={() => vai({ nome: 'richiesta', tipo: x })}>
-                <i className={`fa-light ${TESTE[x].icona}`} aria-hidden="true" /> {`${TESTE[x].titolo} ${TESTE[x].enfasi}`.trim()} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+                <i className={`fa-light ${TESTE[x].icona}`} aria-hidden="true" /> {`${t(TESTE[x].titolo)} ${TESTE[x].enfasi ? t(TESTE[x].enfasi) : ''}`.trim()} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
               </button>
             ))}
           </div>
