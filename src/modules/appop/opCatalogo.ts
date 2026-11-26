@@ -6,6 +6,7 @@
 export type RepartoOp =
   | 'pulizie' | 'manutenzione' | 'magazzino' | 'frontOffice'
   | 'foodBeverage' | 'risorseUmane' | 'businessIntelligence' | 'purchasing'
+  | 'amministrazione'
 
 export type LivelloOp = 'amministratore' | 'responsabile' | 'impiegato'
 
@@ -109,6 +110,7 @@ export const REPARTI_OP: InfoRepartoOp[] = [
   { key: 'risorseUmane',         id: 6, nome: 'Risorse umane',         predefiniti: [...COMUNI, 'hrApprovazioni', 'hrPresenze', 'hrTurni', 'hrComunicazioni', 'hrTimbrature', 'hrPersonale'] },
   { key: 'businessIntelligence', id: 7, nome: 'Business Intelligence', predefiniti: [...COMUNI, 'biCruscotto'] },
   { key: 'purchasing',           id: 8, nome: 'Purchasing',            predefiniti: [...COMUNI, 'acquisti'] },
+  { key: 'amministrazione',      id: 9, nome: 'Amministrazione',       predefiniti: [...COMUNI] },
 ]
 
 export const LIVELLI_OP: { value: LivelloOp; label: string }[] = [
