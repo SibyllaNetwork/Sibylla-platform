@@ -21,9 +21,6 @@ import { useFbStrutturaSync } from './hooks/useFbStrutturaSync'
 import { useStrutturaCorrente } from './hooks/useStrutturaCorrente'
 import T from './core/tokens'
 import Ico from './core/icons/Ico'
-import SitoNetwork from './sito/SitoNetwork'
-import { useSitoStore } from './sito/useSitoStore'
-import { useSchermoTotem } from './sito/schermoTotem'
 
 // ── ContextMenu (right-click su voce menu) ───────────────────────────────────
 function ContextMenu({ x, y, pageId, label, favorites, onToggle, onClose }: {
@@ -125,9 +122,6 @@ export default function App() {
   const [navOpen, setNavOpen] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
 
-  // Su uno schermo da totem si apre direttamente il sito in versione totem
-  const schermoTotem = useSchermoTotem()
-  const sitoAperto = useSitoStore(s => s.aperto) || schermoTotem
   const viewMode = useViewModeStore(s => s.mode)
   const addTab   = useViewModeStore(s => s.addTab)
 
@@ -279,9 +273,6 @@ export default function App() {
       <div className="app-loading__spinner" />
     </div>
   )
-
-  // ── Sito pubblico Sibylla Network (aperto da "Disconnetti profilo") ──────────
-  if (sitoAperto) return <SitoNetwork />
 
   // ── Login ──────────────────────────────────────────────────────────────────
   if (!user) return <LoginPage onLogin={handleLogin} />
